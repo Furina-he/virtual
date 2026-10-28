@@ -1,0 +1,28 @@
+appId: cn.edu.virtual-ee-lab
+productName: 电工电子技术虚拟仿真实训
+directories:
+  output: dist
+  buildResources: build
+files:
+  - out/**
+  - package.json
+asarUnpack:
+  - node_modules/koffi/**
+extraResources:
+  # ngspice DLL 与内容不进 asar（技术设计 §13）
+  - from: resources/ngspice
+    to: ngspice
+  - from: content
+    to: content
+win:
+  target:
+    - target: nsis
+      arch: x64
+  artifactName: virtual-ee-lab-${version}-setup.${ext}
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+npmRebuild: false
+publish: null

@@ -1,0 +1,14 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; img-src 'self' blob: data:; font-src 'self' data:; style-src 'self' 'unsafe-inline'; connect-src 'self'" />
+    <title>Offline asset exporter</title>
+    <script type="importmap">
+      { "imports": { "three": "/node_modules/three/build/three.module.js", "three/addons/": "/node_modules/three/examples/jsm/" } }
+    </script>
+  </head>
+  <body>
+    <script type="module" src="/tools/assets/export-browser.ts"></script>
+  </body>
+</html>

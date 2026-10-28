@@ -1,0 +1,38 @@
+.subckt mod_dc_circuit KH_U1P KH_U1N KH_U2P KH_U2N KH_F KH_A KH_B KH_E KH_D KH_C KH_I1A KH_I1B KH_I2A KH_I2B KH_I3A KH_I3B TH_USP TH_USN TH_ISP TH_ISN TH_IA TH_IB TH_A TH_B params: k1=1 k2=1 k3=0
+* 电路基础实验挂箱（一），电路与阻值见 docs/原型选型说明.md §5.2（待与天煌实物核对）
+* 节点名即插孔名；同一铜箔网络上的插孔用 1 μΩ 连接（子电路端口不能直接合并）
+* 开关按 ADR-009 建成参数化电阻：接通 1 mΩ，断开 1 TΩ
+*
+* ---- 上半部：基尔霍夫 / 叠加 ----
+Rcu1 KH_U1N KH_E 1u
+Rcu2 KH_U2N KH_C 1u
+Rcu3 KH_I1B KH_A 1u
+Rcu4 KH_I2A KH_A 1u
+Rcu5 KH_I3A KH_A 1u
+R1 KH_F KH_I1A 510
+R2 KH_I2B KH_B 1k
+R3 KH_I3B KH_D 510
+R4 KH_E KH_D 510
+* K1：1 = F 接 U1+，0 = F 与 E 短接
+RK1on KH_F KH_U1P {k1 > 0.5 ? 1m : 1T}
+RK1sh KH_F KH_E {k1 > 0.5 ? 1T : 1m}
+* K2：1 = B 接 U2+，0 = B 与 C 短接
+RK2on KH_B KH_U2P {k2 > 0.5 ? 1m : 1T}
+RK2sh KH_B KH_C {k2 > 0.5 ? 1T : 1m}
+* K3：0 = D、C 之间接 R5，1 = 接 VD1
+R5 KH_D n_r5 330
+RK3r n_r5 KH_C {k3 > 0.5 ? 1T : 1m}
+DVD1 KH_D n_vd1 dmod_1n4007
+RK3d n_vd1 KH_C {k3 > 0.5 ? 1m : 1T}
+* T0.7 的 diodes.lib 完成后改为引用库模型
+.model dmod_1n4007 D(IS=7.6n RS=0.04 N=1.95)
+*
+* ---- 下半部：戴维南有源二端网络 ----
+Rcu6 TH_USN TH_ISN 1u
+Rcu7 TH_USN TH_B 1u
+Rcu8 TH_IB TH_A 1u
+R6 TH_USP n_th1 330
+R7 n_th1 TH_USN 510
+R8 n_th1 TH_ISP 10
+R9 TH_ISP TH_IA 510
+.ends mod_dc_circuit

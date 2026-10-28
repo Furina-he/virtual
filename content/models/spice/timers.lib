@@ -1,0 +1,61 @@
+* timers.lib -- 定时器芯片模型库
+* （技术设计 §5.5 分类表未列出 555 的归属；555 是数模混合 IC，不属于
+*   behavioral.lib 的灯具/传感器类，故单独建本文件，后续 556 / 7555 也放这里。）
+*
+* NE555（双极型单定时器）
+*   来源：本项目按 NE555 数据手册功能框图与典型参数自建的数模混合模型，
+*   只用 ngspice 内置元件与 XSPICE 代码模型（adc_bridge、dac_bridge、d_and、
+*   d_inverter、d_srlatch），未复制任何厂商 SPICE 模型文件。
+*   许可证：随本项目发布，可自由再分发（项目自有内容）。
+*
+*   结构（对应数据手册框图）：
+*     3 × 5 kΩ 分压 -> CTRL = 2/3 VCC，下比较器参考 = 1/3 VCC；
+*     阈值比较器 THR > CTRL 复位、触发比较器 TRIG < 1/3 VCC 置位（置位优先）；
+*     RESET 引脚相对 GND < 0.7 V 时强制复位；
+*     输出：VOH ≈ VCC - 1.7 V（数据手册典型），VOL ≈ 0 V，输出电阻 10 Ω；
+*     放电管：Q = 0 时 DIS~GND 导通（≈ 10 Ω）。
+*   供电依赖：比较器与 RESET 均以 GND 引脚为参考；V(VCC,GND) < 4.5 V（规格下限）
+*   时芯片不工作（锁存器被禁止、输出为 0）；输出幅度随 V(VCC,GND) 变化，
+*   VCC 未接时输出不可能为高电平。
+*
+* 引脚顺序 = DIP-8：1 GND 2 TRIG 3 OUT 4 RESET 5 CTRL 6 THR 7 DIS 8 VCC
+.subckt NE555 1 2 3 4 5 6 7 8
+Rg 1 0 1G
+Rdiv1 8 5 5k
+Rdiv2 5 lo 5k
+Rdiv3 lo 1 5k
+Rq 8 1 1.7k
+Bthr cthr 0 V=V(6,5)
+Btrg ctrg 0 V=V(lo,2)
+Brst crst 0 V=V(4,1)
+Bvcc vs 0 V=V(8,1)
+Acmp [cthr ctrg] [dthr dtrg] NE555_CMP
+Arst [crst] [drst] NE555_RST
+Apwr [vs] [pwr] NE555_PWR
+* 置位优先：R = THR·/TRIG；RESET 引脚为低或未供电时强制复位
+Antr dtrg ntrg NE555_INV
+Ar [dthr ntrg] rr NE555_AND
+Anrs drst nrst NE555_INV
+Anp pwr npwr NE555_INV
+Afr [nrst npwr] force NE555_OR
+* 工作点求解时（time = 0）锁存器保持初值 Q = 0：555 多谐振荡电路没有直流稳定点，
+* 不这样处理 .op 会在置位/复位之间反复震荡而不收敛；t > 1 ns 后正常工作。
+Bstart vstart 0 V=time > 1e-9 ? 1 : 0
+Astart [vstart] [dstart] NE555_RST
+Aen [pwr dstart] en NE555_AND
+Al dtrg rr en zero force q nq NE555_SR
+Alo [pwr npwr] zero NE555_AND
+Adac [q nq] [lq lnq] NE555_DAC
+Bo o 0 V=V(1)+V(lq)*max(V(8,1)-1.7,0)
+Ro o 3 10
+Sdis 7 1 lnq 0 NE555_SW
+.model NE555_CMP adc_bridge(in_low=0 in_high=0 rise_delay=1e-10 fall_delay=1e-10)
+.model NE555_RST adc_bridge(in_low=0.6 in_high=0.8 rise_delay=1e-10 fall_delay=1e-10)
+.model NE555_PWR adc_bridge(in_low=4.0 in_high=4.5 rise_delay=1e-10 fall_delay=1e-10)
+.model NE555_INV d_inverter(rise_delay=1e-10 fall_delay=1e-10)
+.model NE555_AND d_and(rise_delay=1e-10 fall_delay=1e-10)
+.model NE555_OR d_or(rise_delay=1e-10 fall_delay=1e-10)
+.model NE555_SR d_srlatch(sr_delay=50e-9 enable_delay=1e-10 set_delay=1e-10 reset_delay=1e-10 rise_delay=1e-10 fall_delay=1e-10)
+.model NE555_DAC dac_bridge(out_low=0 out_high=1 out_undef=0 t_rise=50e-9 t_fall=50e-9)
+.model NE555_SW SW(VT=0.5 VH=0.1 RON=10 ROFF=1G)
+.ends NE555

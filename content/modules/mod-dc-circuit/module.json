@@ -1,0 +1,225 @@
+{
+  "id": "mod-dc-circuit",
+  "name": "电路基础实验挂箱（一）",
+  "form": "box",
+  "model": "module.glb",
+  "netlist": "module.cir",
+  "jacks": [
+    {
+      "id": "KH_U1P",
+      "label": "U1+",
+      "kind": "banana4",
+      "polarityHint": "+"
+    },
+    {
+      "id": "KH_U1N",
+      "label": "U1-",
+      "kind": "banana4",
+      "polarityHint": "-"
+    },
+    {
+      "id": "KH_U2P",
+      "label": "U2+",
+      "kind": "banana4",
+      "polarityHint": "+"
+    },
+    {
+      "id": "KH_U2N",
+      "label": "U2-",
+      "kind": "banana4",
+      "polarityHint": "-"
+    },
+    {
+      "id": "KH_F",
+      "label": "F",
+      "kind": "banana4"
+    },
+    {
+      "id": "KH_A",
+      "label": "A",
+      "kind": "banana4"
+    },
+    {
+      "id": "KH_B",
+      "label": "B",
+      "kind": "banana4"
+    },
+    {
+      "id": "KH_E",
+      "label": "E",
+      "kind": "banana4"
+    },
+    {
+      "id": "KH_D",
+      "label": "D",
+      "kind": "banana4"
+    },
+    {
+      "id": "KH_C",
+      "label": "C",
+      "kind": "banana4"
+    },
+    {
+      "id": "KH_I1A",
+      "label": "I1",
+      "kind": "banana4"
+    },
+    {
+      "id": "KH_I1B",
+      "label": "I1 右",
+      "kind": "banana4"
+    },
+    {
+      "id": "KH_I2A",
+      "label": "I2",
+      "kind": "banana4"
+    },
+    {
+      "id": "KH_I2B",
+      "label": "I2 右",
+      "kind": "banana4"
+    },
+    {
+      "id": "KH_I3A",
+      "label": "I3",
+      "kind": "banana4"
+    },
+    {
+      "id": "KH_I3B",
+      "label": "I3 右",
+      "kind": "banana4"
+    },
+    {
+      "id": "TH_USP",
+      "label": "Us+",
+      "kind": "banana4",
+      "polarityHint": "+"
+    },
+    {
+      "id": "TH_USN",
+      "label": "Us-",
+      "kind": "banana4",
+      "polarityHint": "-"
+    },
+    {
+      "id": "TH_ISP",
+      "label": "Is+",
+      "kind": "banana4",
+      "polarityHint": "+"
+    },
+    {
+      "id": "TH_ISN",
+      "label": "Is-",
+      "kind": "banana4",
+      "polarityHint": "-"
+    },
+    {
+      "id": "TH_IA",
+      "label": "I",
+      "kind": "banana4"
+    },
+    {
+      "id": "TH_IB",
+      "label": "I 右",
+      "kind": "banana4"
+    },
+    {
+      "id": "TH_A",
+      "label": "A",
+      "kind": "banana4"
+    },
+    {
+      "id": "TH_B",
+      "label": "B",
+      "kind": "banana4",
+      "polarityHint": "-"
+    }
+  ],
+  "controls": [
+    {
+      "id": "K1",
+      "kind": "switch",
+      "param": "k1",
+      "steps": [
+        0,
+        1
+      ],
+      "unit": "",
+      "default": 1
+    },
+    {
+      "id": "K2",
+      "kind": "switch",
+      "param": "k2",
+      "steps": [
+        0,
+        1
+      ],
+      "unit": "",
+      "default": 1
+    },
+    {
+      "id": "K3",
+      "kind": "switch",
+      "param": "k3",
+      "steps": [
+        0,
+        1
+      ],
+      "unit": "",
+      "default": 0
+    }
+  ],
+  "indicators": [],
+  "commonNets": [
+    [
+      "KH_U1N",
+      "KH_E"
+    ],
+    [
+      "KH_U2N",
+      "KH_C"
+    ],
+    [
+      "KH_I1B",
+      "KH_I2A",
+      "KH_I3A",
+      "KH_A"
+    ],
+    [
+      "TH_USN",
+      "TH_ISN",
+      "TH_B"
+    ],
+    [
+      "TH_IB",
+      "TH_A"
+    ]
+  ],
+  "internalJumpers": [
+    {
+      "id": "I1",
+      "kind": "currentSocket",
+      "a": "KH_I1A",
+      "b": "KH_I1B"
+    },
+    {
+      "id": "I2",
+      "kind": "currentSocket",
+      "a": "KH_I2A",
+      "b": "KH_I2B"
+    },
+    {
+      "id": "I3",
+      "kind": "currentSocket",
+      "a": "KH_I3A",
+      "b": "KH_I3B"
+    },
+    {
+      "id": "TH_I",
+      "kind": "currentSocket",
+      "a": "TH_IA",
+      "b": "TH_IB"
+    }
+  ]
+}

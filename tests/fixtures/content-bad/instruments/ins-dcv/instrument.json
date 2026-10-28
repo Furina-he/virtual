@@ -1,0 +1,10 @@
+{
+  "id": "ins-dcv",
+  "name": "直流电压表",
+  "kind": "dcv",
+  "mounting": "fixed",
+  "fixedSlot": "SLOT_INS_DCV",
+  "model": "i.glb",
+  "jacks": [{ "id": "POS", "label": "+", "kind": "banana4" }],
+  "spiceTemplate": "i.cir"
+}

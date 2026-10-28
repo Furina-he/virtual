@@ -1,0 +1,8 @@
+{
+  "id": "mod-x",
+  "name": "测试挂箱",
+  "form": "box",
+  "model": "m.glb",
+  "netlist": "m.cir",
+  "jacks": [{ "id": "A", "label": "A", "kind": "banana4" }, { "id": "B", "label": "B", "kind": "banana4" }]
+}

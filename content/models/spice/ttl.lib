@@ -1,0 +1,120 @@
+* ttl.lib -- 74LS 系列 TTL 芯片模型库
+*
+* 来源：本项目按 TI / 国标 74LS 数据手册的功能表与典型参数自建，
+*   内部只用 ngspice 内置 XSPICE 代码模型（adc_bridge、dac_bridge、d_nand、
+*   d_and、d_inverter、d_jkff），未复制任何厂商 SPICE 模型文件。
+* 许可证：随本项目发布，可自由再分发（项目自有内容）。
+*
+* 供电依赖设计（技术设计 §5.5：未供电不工作）：
+*   1. 所有输入阈值以芯片 GND 引脚为参考：B 源先算 V(pin,GND) 再进 adc_bridge
+*      （VIL = 0.8 V，VIH = 2.0 V）；输入经 20 kΩ 上拉到 VCC 的受控复制电压（LS 输入悬空视为高电平；
+*      用受控源隔离，避免输入高电平经上拉电阻倒灌 VCC 使未供电芯片“被供电”）。
+*   2. 供电检测：V(VCC,GND) 经 adc_bridge（4.0 V / 4.5 V）得到数字信号 pwr；
+*      时序芯片的时钟与 pwr 相与，未供电不计数。
+*   3. 输出级：dac_bridge 给出 0/1 V 逻辑电平，再由 B 源输出
+*      V(GND) + 逻辑 × max(V(VCC,GND) - 1.6 V, 0)，经 50 Ω 输出电阻。
+*      即 VOH ≈ VCC - 1.6 V（5 V 时 3.4 V，与 LS 典型 VOH 一致），VOL ≈ 0 V；
+*      VCC 或 GND 未接时 V(VCC,GND) ≈ 0，输出不可能达到逻辑高电平。
+*   4. VCC~GND 间电阻表示静态电流（LS00 ≈ 1.6 mA，LS90 ≈ 9 mA）；
+*      GND 引脚经 1 GΩ 接地、NC 引脚经 1 GΩ 接 GND，保证引脚悬空时矩阵非奇异。
+*
+* 传输延迟：门延迟 + dac 上升/下降时间的一半 ≈ 数据手册典型值。
+
+* ---- 公共辅助子电路 ----
+* LS 输入：pin 引脚，输出 x 为相对 GND 的电压（供 adc_bridge 使用）
+.subckt LS_IN pin x vcc gnd
+Bpu pu 0 V=V(vcc)
+Rpu pin pu 20k
+Bx x 0 V=V(pin,gnd)
+.ends LS_IN
+
+* LS 输出：l 为 dac_bridge 输出的 0/1 V 逻辑电平
+.subckt LS_OUT l pin vcc gnd
+Bo o 0 V=V(gnd)+V(l)*max(V(vcc,gnd)-1.6,0)
+Ro o pin 50
+.ends LS_OUT
+
+.model LS_ADC adc_bridge(in_low=0.8 in_high=2.0 rise_delay=1e-10 fall_delay=1e-10)
+.model LS_PWR adc_bridge(in_low=4.0 in_high=4.5 rise_delay=1e-10 fall_delay=1e-10)
+.model LS_DAC dac_bridge(out_low=0 out_high=1 out_undef=0 t_rise=4e-9 t_fall=4e-9)
+
+* ---- 74LS00 四 2 输入与非门 ----
+* tPLH 典型 9 ns，tPHL 典型 10 ns
+* 引脚顺序 = DIP-14：1 1A 2 1B 3 1Y 4 2A 5 2B 6 2Y 7 GND 8 3Y 9 3A 10 3B 11 4Y 12 4A 13 4B 14 VCC
+.subckt SN74LS00 1 2 3 4 5 6 7 8 9 10 11 12 13 14
+Rq 14 7 3.1k
+Rg 7 0 1G
+X1 1 a1 14 7 LS_IN
+X2 2 b1 14 7 LS_IN
+X4 4 a2 14 7 LS_IN
+X5 5 b2 14 7 LS_IN
+X9 9 a3 14 7 LS_IN
+X10 10 b3 14 7 LS_IN
+X12 12 a4 14 7 LS_IN
+X13 13 b4 14 7 LS_IN
+Aadc [a1 b1 a2 b2 a3 b3 a4 b4] [da1 db1 da2 db2 da3 db3 da4 db4] LS_ADC
+An1 [da1 db1] dy1 LS00_NAND
+An2 [da2 db2] dy2 LS00_NAND
+An3 [da3 db3] dy3 LS00_NAND
+An4 [da4 db4] dy4 LS00_NAND
+Adac [dy1 dy2 dy3 dy4] [l1 l2 l3 l4] LS_DAC
+X3 l1 3 14 7 LS_OUT
+X6 l2 6 14 7 LS_OUT
+X8 l3 8 14 7 LS_OUT
+X11 l4 11 14 7 LS_OUT
+.model LS00_NAND d_nand(rise_delay=7e-9 fall_delay=8e-9)
+.ends SN74LS00
+
+* ---- 74LS90 十进制计数器（÷2 + ÷5） ----
+* 下降沿计数；QA 接 CKB 为 8421 BCD 计数。
+* R0(1)·R0(2) = 1 且 R9 不全为 1 时清零；R9(1)·R9(2) = 1 时置 9（QA = QD = 1），R9 优先。
+* ÷5 部分按数据手册逻辑图：FFB J = /QD；FFC 由 QB 下降沿翻转；FFD J = QB·QC，三者 K = 1。
+* tPHL/tPLH：CKA→QA ≈ 10 ns，CKB→QB ≈ 10 ns（数据手册典型 10~16 ns）。
+* 引脚顺序 = DIP-14：1 CKB 2 R0(1) 3 R0(2) 4 NC 5 VCC 6 R9(1) 7 R9(2) 8 QC 9 QB 10 GND 11 QD 12 QA 13 NC 14 CKA
+.subckt SN74LS90 1 2 3 4 5 6 7 8 9 10 11 12 13 14
+Rq 5 10 560
+Rg 10 0 1G
+Rnc4 4 10 1G
+Rnc13 13 10 1G
+X14 14 cka 5 10 LS_IN
+X1 1 ckb 5 10 LS_IN
+X2 2 r01 5 10 LS_IN
+X3 3 r02 5 10 LS_IN
+X6 6 r91 5 10 LS_IN
+X7 7 r92 5 10 LS_IN
+Bvcc vs 0 V=V(5,10)
+Aadc [cka ckb r01 r02 r91 r92] [dcka dckb dr01 dr02 dr91 dr92] LS_ADC
+Apwr [vs] [pwr] LS_PWR
+* 时钟下降沿 -> 内部上升沿，并与供电相与
+Ainva dcka ncka LS90_INV
+Ainvb dckb nckb LS90_INV
+Acka [ncka pwr] ika LS90_AND0
+Ackb [nckb pwr] ikb LS90_AND0
+Ar0 [dr01 dr02] r0 LS90_AND0
+Ar9 [dr91 dr92] r9 LS90_AND0
+Anr9 r9 nr9 LS90_INV
+Aclr [r0 nr9] clr LS90_AND0
+Abc [r0 r9] clrbc LS90_OR0
+Ahi [pwr pwr] one LS90_AND0
+Anp pwr npwr LS90_INV
+Alo [pwr npwr] zero LS90_AND0
+* QA
+Afa one one ika r9 clr qa nqa LS90_JK
+* QB：J = /QD
+Afb nqd one ikb zero clrbc qb nqb LS90_JK
+* QC：QB 下降沿
+Aqbinv qb nqbi LS90_INV
+Afc one one nqbi zero clrbc qc nqc LS90_JK
+* QD：J = QB·QC
+Ajd [qb qc] jd LS90_AND0
+Afd jd one ikb r9 clr qd nqd LS90_JK
+Adac [qa qb qc qd] [la lb lc ld] LS_DAC
+X12 la 12 5 10 LS_OUT
+X9 lb 9 5 10 LS_OUT
+X8 lc 8 5 10 LS_OUT
+X11 ld 11 5 10 LS_OUT
+.model LS90_INV d_inverter(rise_delay=1e-10 fall_delay=1e-10)
+.model LS90_AND0 d_and(rise_delay=1e-10 fall_delay=1e-10)
+.model LS90_OR0 d_or(rise_delay=1e-10 fall_delay=1e-10)
+.model LS90_JK d_jkff(clk_delay=8e-9 set_delay=8e-9 reset_delay=8e-9 rise_delay=1e-10 fall_delay=1e-10)
+.ends SN74LS90

@@ -1,0 +1,14 @@
+* bjt.lib -- 双极型晶体管模型库
+*
+* S9013（NPN，TO-92，ICM = 500 mA，VCEO = 25 V，PC = 625 mW）
+*   来源：本项目按数据手册自行拟合，未复制任何厂商 SPICE 模型文件。
+*   拟合目标（S9013 数据手册，25 °C）：
+*     hFE 测试条件 VCE = 1 V、IC = 50 mA；分档 D/E/F/G/H/I = 64~202，
+*     本模型取 H 档典型值 hFE ≈ 160（实训箱常用档）。
+*     VCE(sat) ≤ 0.6 V @ IC = 500 mA / IB = 50 mA；fT ≈ 150 MHz；Cob ≈ 6 pF。
+*   参数只取 ngspice 内置 Gummel-Poon 模型（NPN, level 1）的标准参数。
+*   许可证：随本项目发布，可自由再分发（项目自有内容）。
+*
+.model S9013 NPN(IS=3e-14 BF=175 NF=1 VAF=100 IKF=1.2 ISE=1e-14 NE=1.5 BR=8 NR=1 VAR=20
++ IKR=0.2 RB=10 RE=0.2 RC=0.5 CJE=25e-12 VJE=0.75 MJE=0.33 CJC=8e-12 VJC=0.75 MJC=0.33
++ TF=0.9e-9 TR=50e-9 XTB=1.5 EG=1.11 XTI=3)

@@ -1,0 +1,98 @@
+{
+  "id": "bench",
+  "schemaVersion": 1,
+  "workSurface": { "min": [-0.9, 0.8, -0.375], "max": [0.9, 0.8, 0.375] },
+  "camera": {
+    "position": [
+      0.85,
+      1.48,
+      1.8
+    ],
+    "target": [
+      0,
+      1.17,
+      0
+    ]
+  },
+  "placements": [
+    {
+      "assetId": "bench",
+      "instanceId": "bench",
+      "position": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "assetId": "mod-dc-circuit",
+      "instanceId": "dc1",
+      "position": [
+        -0.12,
+        0.865,
+        -0.2
+      ],
+      "slot": "SLOT_BOX_L1"
+    },
+    {
+      "assetId": "ins-dc-voltmeter",
+      "instanceId": "ins-dc-voltmeter",
+      "position": [
+        -0.12,
+        1.405,
+        -0.27
+      ],
+      "slot": "SLOT_INS_DCV"
+    },
+    {
+      "assetId": "ins-dc-ammeter",
+      "instanceId": "ins-dc-ammeter",
+      "position": [
+        0.11,
+        1.405,
+        -0.27
+      ],
+      "slot": "SLOT_INS_DCA"
+    },
+    {
+      "assetId": "ins-dc-power",
+      "instanceId": "ins-dc-power",
+      "position": [
+        -0.62,
+        0.97,
+        -0.266
+      ],
+      "slot": "SLOT_INS_DCPOWER"
+    },
+    {
+      "assetId": "ins-func-gen",
+      "instanceId": "generator1",
+      "position": [
+        -0.5,
+        0.8,
+        0.13
+      ],
+      "slot": "SLOT_DESK_1"
+    },
+    {
+      "assetId": "ins-multimeter",
+      "instanceId": "meter1",
+      "position": [
+        -0.15,
+        0.8,
+        0.23
+      ],
+      "slot": "SLOT_DESK_2"
+    },
+    {
+      "assetId": "ins-oscilloscope",
+      "instanceId": "scope1",
+      "position": [
+        0.6,
+        0.8,
+        0.07
+      ],
+      "slot": "SLOT_SCOPE"
+    }
+  ]
+}

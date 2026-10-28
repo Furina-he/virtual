@@ -1,0 +1,9 @@
+{
+  "id": "mod-y",
+  "name": "写错的挂箱",
+  "form": "box",
+  "model": "m.glb",
+  "netlist": "m.cir",
+  "jacks": [{ "id": "A", "label": "A", "kind": "banana4" }],
+  "controls": [{ "id": "RP1", "kind": "pot", "param": "rp1", "range": [0, 1000], "unit": "Ω", "default": 5000 }]
+}

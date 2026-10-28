@@ -1,0 +1,2099 @@
+{
+  "schemaVersion": 1,
+  "assets": [
+    {
+      "estimatedDimensions": true,
+      "jacks": [],
+      "controls": [],
+      "screens": [],
+      "id": "bench",
+      "name": "电工电子实训台",
+      "kind": "bench",
+      "bodyStyle": "bench",
+      "dimensionsMm": [
+        1800,
+        1600,
+        750
+      ],
+      "model": "content/bench/bench.glb",
+      "textureSize": [
+        2048,
+        128
+      ],
+      "dimensionNote": "Estimated outer dimensions and console zoning from docs/prototype selection, section 6. Worktop height 800 mm.",
+      "slots": [
+        {
+          "id": "SLOT_INS_DCV",
+          "position": [
+            -0.12,
+            1.405,
+            -0.27
+          ],
+          "kind": "fixed",
+          "dimensionsMm": [
+            160,
+            80,
+            100
+          ]
+        },
+        {
+          "id": "SLOT_INS_DCA",
+          "position": [
+            0.11,
+            1.405,
+            -0.27
+          ],
+          "kind": "fixed",
+          "dimensionsMm": [
+            160,
+            80,
+            100
+          ]
+        },
+        {
+          "id": "SLOT_INS_DCPOWER",
+          "position": [
+            -0.62,
+            0.97,
+            -0.266
+          ],
+          "kind": "fixed",
+          "dimensionsMm": [
+            420,
+            340,
+            100
+          ]
+        },
+        {
+          "id": "SLOT_BOX_L1",
+          "position": [
+            -0.12,
+            0.865,
+            -0.2
+          ],
+          "kind": "module",
+          "dimensionsMm": [
+            290,
+            470,
+            55
+          ]
+        },
+        {
+          "id": "SLOT_BOX_L2",
+          "position": [
+            0.19,
+            0.865,
+            -0.2
+          ],
+          "kind": "module",
+          "dimensionsMm": [
+            290,
+            470,
+            55
+          ]
+        },
+        {
+          "id": "SLOT_BOX_S1",
+          "position": [
+            0.425,
+            0.865,
+            -0.2
+          ],
+          "kind": "module",
+          "dimensionsMm": [
+            145,
+            470,
+            55
+          ]
+        },
+        {
+          "id": "SLOT_BOX_S2",
+          "position": [
+            0.59,
+            0.865,
+            -0.2
+          ],
+          "kind": "module",
+          "dimensionsMm": [
+            145,
+            470,
+            55
+          ]
+        },
+        {
+          "id": "SLOT_DESK_1",
+          "position": [
+            -0.5,
+            0.8,
+            0.13
+          ],
+          "kind": "desktop"
+        },
+        {
+          "id": "SLOT_DESK_2",
+          "position": [
+            -0.15,
+            0.8,
+            0.23
+          ],
+          "kind": "desktop"
+        },
+        {
+          "id": "SLOT_DESK_3",
+          "position": [
+            0.22,
+            0.8,
+            0.2
+          ],
+          "kind": "desktop"
+        },
+        {
+          "id": "SLOT_DESK_4",
+          "position": [
+            0.59,
+            0.8,
+            0.2
+          ],
+          "kind": "desktop"
+        },
+        {
+          "id": "SLOT_SCOPE",
+          "position": [
+            0.6,
+            0.8,
+            0.07
+          ],
+          "kind": "desktop"
+        }
+      ],
+      "panel": {
+        "title": "电工电子技术虚拟实训台",
+        "subtitle": "模块化实验工作台  /  学员仅连接外部导线"
+      }
+    },
+    {
+      "estimatedDimensions": true,
+      "jacks": [
+        {
+          "id": "KH_U1P",
+          "label": "U1+",
+          "x": 18.0,
+          "y": 90.0,
+          "color": "red",
+          "kind": "banana4"
+        },
+        {
+          "id": "KH_U1N",
+          "label": "U1-",
+          "x": 18.0,
+          "y": 140.0,
+          "color": "black",
+          "kind": "banana4"
+        },
+        {
+          "id": "KH_U2P",
+          "label": "U2+",
+          "x": 272.0,
+          "y": 90.0,
+          "color": "red",
+          "kind": "banana4"
+        },
+        {
+          "id": "KH_U2N",
+          "label": "U2-",
+          "x": 272.0,
+          "y": 140.0,
+          "color": "black",
+          "kind": "banana4"
+        },
+        {
+          "id": "KH_F",
+          "label": "F",
+          "x": 45.0,
+          "y": 60.0,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "KH_A",
+          "label": "A",
+          "x": 145.0,
+          "y": 45.0,
+          "color": "yellow",
+          "kind": "banana4",
+          "labelX": 156,
+          "labelY": 44
+        },
+        {
+          "id": "KH_B",
+          "label": "B",
+          "x": 245.0,
+          "y": 60.0,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "KH_E",
+          "label": "E",
+          "x": 45.0,
+          "y": 190.0,
+          "color": "yellow",
+          "kind": "banana4",
+          "labelX": 55,
+          "labelY": 181
+        },
+        {
+          "id": "KH_D",
+          "label": "D",
+          "x": 145.0,
+          "y": 190.0,
+          "color": "yellow",
+          "kind": "banana4",
+          "labelX": 135,
+          "labelY": 181
+        },
+        {
+          "id": "KH_C",
+          "label": "C",
+          "x": 245.0,
+          "y": 190.0,
+          "color": "yellow",
+          "kind": "banana4",
+          "labelX": 259,
+          "labelY": 185
+        },
+        {
+          "id": "KH_I1A",
+          "label": "I1",
+          "x": 98.0,
+          "y": 60.0,
+          "color": "green",
+          "kind": "banana4"
+        },
+        {
+          "id": "KH_I1B",
+          "label": "I1 右",
+          "x": 118.0,
+          "y": 60.0,
+          "color": "green",
+          "kind": "banana4",
+          "silkLabel": ""
+        },
+        {
+          "id": "KH_I2A",
+          "label": "I2",
+          "x": 172.0,
+          "y": 60.0,
+          "color": "green",
+          "kind": "banana4"
+        },
+        {
+          "id": "KH_I2B",
+          "label": "I2 右",
+          "x": 192.0,
+          "y": 60.0,
+          "color": "green",
+          "kind": "banana4",
+          "silkLabel": ""
+        },
+        {
+          "id": "KH_I3A",
+          "label": "I3",
+          "x": 145.0,
+          "y": 85.0,
+          "color": "green",
+          "kind": "banana4",
+          "labelX": 160,
+          "labelY": 87
+        },
+        {
+          "id": "KH_I3B",
+          "label": "I3 右",
+          "x": 145.0,
+          "y": 105.0,
+          "color": "green",
+          "kind": "banana4",
+          "silkLabel": ""
+        },
+        {
+          "id": "TH_USP",
+          "label": "Us+",
+          "x": 20.0,
+          "y": 300.0,
+          "color": "red",
+          "kind": "banana4"
+        },
+        {
+          "id": "TH_USN",
+          "label": "Us-",
+          "x": 20.0,
+          "y": 410.0,
+          "color": "black",
+          "kind": "banana4"
+        },
+        {
+          "id": "TH_ISP",
+          "label": "Is+",
+          "x": 175.0,
+          "y": 330.0,
+          "color": "red",
+          "kind": "banana4",
+          "labelX": 190,
+          "labelY": 332
+        },
+        {
+          "id": "TH_ISN",
+          "label": "Is-",
+          "x": 175.0,
+          "y": 410.0,
+          "color": "black",
+          "kind": "banana4"
+        },
+        {
+          "id": "TH_IA",
+          "label": "I",
+          "x": 240.0,
+          "y": 300.0,
+          "color": "green",
+          "kind": "banana4"
+        },
+        {
+          "id": "TH_IB",
+          "label": "I 右",
+          "x": 262.0,
+          "y": 300.0,
+          "color": "green",
+          "kind": "banana4",
+          "silkLabel": ""
+        },
+        {
+          "id": "TH_A",
+          "label": "A",
+          "x": 262.0,
+          "y": 355.0,
+          "color": "yellow",
+          "kind": "banana4",
+          "labelX": 252,
+          "labelY": 360
+        },
+        {
+          "id": "TH_B",
+          "label": "B",
+          "x": 262.0,
+          "y": 410.0,
+          "color": "black",
+          "kind": "banana4"
+        }
+      ],
+      "controls": [
+        {
+          "id": "K1",
+          "label": "K1",
+          "kind": "switch",
+          "x": 45,
+          "y": 115,
+          "param": "k1",
+          "labelX": 55,
+          "labelY": 121
+        },
+        {
+          "id": "K2",
+          "label": "K2",
+          "kind": "switch",
+          "x": 245,
+          "y": 115,
+          "param": "k2",
+          "labelX": 235,
+          "labelY": 121
+        },
+        {
+          "id": "K3",
+          "label": "K3",
+          "kind": "switch",
+          "x": 220,
+          "y": 190,
+          "param": "k3",
+          "labelX": 233,
+          "labelY": 177
+        }
+      ],
+      "screens": [],
+      "id": "mod-dc-circuit",
+      "name": "电路基础实验挂箱（一）",
+      "kind": "module",
+      "bodyStyle": "module",
+      "dimensionsMm": [
+        290,
+        470,
+        55
+      ],
+      "model": "content/modules/mod-dc-circuit/module.glb",
+      "textureSize": [
+        1264,
+        2048
+      ],
+      "dimensionNote": "Panel 290 x 470 mm and jack XY retained exactly from the archived layout; 55 mm housing depth is estimated.",
+      "panel": {
+        "title": "电路基础实验（一）",
+        "titleSize": 5.7,
+        "frames": [
+          {
+            "x": 8,
+            "y": 20,
+            "width": 274,
+            "height": 213,
+            "label": "基尔霍夫定律 / 叠加原理"
+          },
+          {
+            "x": 8,
+            "y": 246,
+            "width": 274,
+            "height": 213,
+            "label": "戴维南定理 / 有源二端网络"
+          }
+        ],
+        "lines": [
+          {
+            "points": [
+              [
+                45,
+                60
+              ],
+              [
+                59,
+                60
+              ]
+            ]
+          },
+          {
+            "points": [
+              [
+                85,
+                60
+              ],
+              [
+                98,
+                60
+              ]
+            ]
+          },
+          {
+            "points": [
+              [
+                118,
+                60
+              ],
+              [
+                172,
+                60
+              ]
+            ]
+          },
+          {
+            "points": [
+              [
+                145,
+                45
+              ],
+              [
+                145,
+                85
+              ]
+            ]
+          },
+          {
+            "points": [
+              [
+                192,
+                60
+              ],
+              [
+                205,
+                60
+              ]
+            ]
+          },
+          {
+            "points": [
+              [
+                230,
+                60
+              ],
+              [
+                245,
+                60
+              ]
+            ]
+          },
+          {
+            "points": [
+              [
+                145,
+                105
+              ],
+              [
+                145,
+                131
+              ]
+            ]
+          },
+          {
+            "points": [
+              [
+                145,
+                161
+              ],
+              [
+                145,
+                190
+              ]
+            ]
+          },
+          {
+            "points": [
+              [
+                45,
+                190
+              ],
+              [
+                73,
+                190
+              ]
+            ]
+          },
+          {
+            "points": [
+              [
+                103,
+                190
+              ],
+              [
+                145,
+                190
+              ]
+            ]
+          },
+          {
+            "points": [
+              [
+                18,
+                140
+              ],
+              [
+                18,
+                190
+              ],
+              [
+                45,
+                190
+              ]
+            ]
+          },
+          {
+            "points": [
+              [
+                272,
+                140
+              ],
+              [
+                272,
+                190
+              ],
+              [
+                245,
+                190
+              ]
+            ]
+          },
+          {
+            "points": [
+              [
+                45,
+                60
+              ],
+              [
+                45,
+                107
+              ]
+            ]
+          },
+          {
+            "points": [
+              [
+                45,
+                123
+              ],
+              [
+                45,
+                190
+              ]
+            ]
+          },
+          {
+            "points": [
+              [
+                18,
+                90
+              ],
+              [
+                31,
+                90
+              ],
+              [
+                31,
+                109
+              ],
+              [
+                39,
+                109
+              ]
+            ]
+          },
+          {
+            "points": [
+              [
+                245,
+                60
+              ],
+              [
+                245,
+                107
+              ]
+            ]
+          },
+          {
+            "points": [
+              [
+                245,
+                123
+              ],
+              [
+                245,
+                190
+              ]
+            ]
+          },
+          {
+            "points": [
+              [
+                272,
+                90
+              ],
+              [
+                259,
+                90
+              ],
+              [
+                259,
+                109
+              ],
+              [
+                251,
+                109
+              ]
+            ]
+          },
+          {
+            "points": [
+              [
+                145,
+                190
+              ],
+              [
+                156,
+                190
+              ],
+              [
+                156,
+                172
+              ],
+              [
+                162,
+                172
+              ]
+            ]
+          },
+          {
+            "points": [
+              [
+                190,
+                172
+              ],
+              [
+                220,
+                172
+              ],
+              [
+                220,
+                182
+              ]
+            ]
+          },
+          {
+            "points": [
+              [
+                145,
+                190
+              ],
+              [
+                145,
+                208
+              ],
+              [
+                167,
+                208
+              ]
+            ]
+          },
+          {
+            "points": [
+              [
+                195,
+                208
+              ],
+              [
+                220,
+                208
+              ],
+              [
+                220,
+                198
+              ]
+            ]
+          },
+          {
+            "points": [
+              [
+                228,
+                190
+              ],
+              [
+                245,
+                190
+              ]
+            ]
+          },
+          {
+            "points": [
+              [
+                20,
+                300
+              ],
+              [
+                42,
+                300
+              ]
+            ]
+          },
+          {
+            "points": [
+              [
+                68,
+                300
+              ],
+              [
+                111,
+                300
+              ]
+            ]
+          },
+          {
+            "points": [
+              [
+                139,
+                300
+              ],
+              [
+                193,
+                300
+              ]
+            ]
+          },
+          {
+            "points": [
+              [
+                217,
+                300
+              ],
+              [
+                240,
+                300
+              ]
+            ]
+          },
+          {
+            "points": [
+              [
+                175,
+                300
+              ],
+              [
+                175,
+                330
+              ]
+            ]
+          },
+          {
+            "points": [
+              [
+                90,
+                300
+              ],
+              [
+                90,
+                338
+              ]
+            ]
+          },
+          {
+            "points": [
+              [
+                90,
+                372
+              ],
+              [
+                90,
+                410
+              ]
+            ]
+          },
+          {
+            "points": [
+              [
+                20,
+                410
+              ],
+              [
+                262,
+                410
+              ]
+            ]
+          },
+          {
+            "points": [
+              [
+                262,
+                300
+              ],
+              [
+                262,
+                355
+              ]
+            ]
+          }
+        ],
+        "symbols": [
+          {
+            "kind": "resistor",
+            "x": 72,
+            "y": 60,
+            "length": 26,
+            "label": "R1 510 ohm"
+          },
+          {
+            "kind": "resistor",
+            "x": 217.5,
+            "y": 60,
+            "length": 25,
+            "label": "R2 1k ohm"
+          },
+          {
+            "kind": "resistor",
+            "x": 145,
+            "y": 146,
+            "length": 30,
+            "angle": 90,
+            "label": "R3 510 ohm",
+            "labelX": 170,
+            "labelY": 148
+          },
+          {
+            "kind": "resistor",
+            "x": 88,
+            "y": 190,
+            "length": 30,
+            "label": "R4 510 ohm"
+          },
+          {
+            "kind": "resistor",
+            "x": 176,
+            "y": 172,
+            "length": 28,
+            "label": "R5 330 ohm"
+          },
+          {
+            "kind": "diode",
+            "x": 181,
+            "y": 208,
+            "length": 28,
+            "label": "VD1 1N4007"
+          },
+          {
+            "kind": "resistor",
+            "x": 55,
+            "y": 300,
+            "length": 26,
+            "label": "R6 330 ohm"
+          },
+          {
+            "kind": "resistor",
+            "x": 125,
+            "y": 300,
+            "length": 28,
+            "label": "R8 10 ohm"
+          },
+          {
+            "kind": "resistor",
+            "x": 205,
+            "y": 300,
+            "length": 24,
+            "label": "R9 510 ohm"
+          },
+          {
+            "kind": "resistor",
+            "x": 90,
+            "y": 355,
+            "length": 34,
+            "angle": 90,
+            "label": "R7 510 ohm",
+            "labelX": 121,
+            "labelY": 357
+          }
+        ],
+        "texts": [
+          {
+            "text": "电源 1",
+            "x": 38,
+            "y": 159,
+            "size": 2.7
+          },
+          {
+            "text": "电源 2",
+            "x": 254,
+            "y": 159,
+            "size": 2.7
+          },
+          {
+            "text": "Us 接直流稳压电源，Is 接恒流源",
+            "x": 145,
+            "y": 438,
+            "size": 3.2
+          },
+          {
+            "text": "面板印制内部电路示意 / 仅在插孔处连接外部导线",
+            "x": 145,
+            "y": 449,
+            "size": 2.5
+          }
+        ]
+      }
+    },
+    {
+      "estimatedDimensions": true,
+      "jacks": [
+        {
+          "id": "POS",
+          "label": "+",
+          "x": 128,
+          "y": 57,
+          "color": "red",
+          "kind": "banana4",
+          "labelY": 45
+        },
+        {
+          "id": "NEG",
+          "label": "−",
+          "x": 147,
+          "y": 57,
+          "color": "black",
+          "kind": "banana4",
+          "labelY": 45
+        }
+      ],
+      "controls": [
+        {
+          "id": "RANGE",
+          "label": "RANGE",
+          "kind": "switch",
+          "x": 90,
+          "y": 59,
+          "shape": "push",
+          "radiusMm": 4,
+          "labelX": 107,
+          "labelY": 60
+        }
+      ],
+      "screens": [
+        {
+          "id": "MAIN",
+          "x": 53,
+          "y": 34,
+          "width": 84,
+          "height": 24,
+          "style": "blank"
+        }
+      ],
+      "id": "ins-dc-voltmeter",
+      "name": "直流数字电压表",
+      "kind": "instrument",
+      "bodyStyle": "meter",
+      "dimensionsMm": [
+        160,
+        80,
+        100
+      ],
+      "model": "content/instruments/ins-dc-voltmeter/instrument.glb",
+      "textureSize": [
+        1024,
+        512
+      ],
+      "mounting": "fixed",
+      "dimensionNote": "160 x 80 x 100 mm embedded meter envelope, estimated in prototype selection section 7.",
+      "leds": [
+        {
+          "id": "OL",
+          "label": "OL",
+          "x": 108,
+          "y": 26,
+          "color": "red"
+        }
+      ],
+      "panel": {
+        "title": "直流数字电压表",
+        "titleSize": 4.2,
+        "texts": [
+          {
+            "text": "V",
+            "x": 111,
+            "y": 40,
+            "size": 5
+          },
+          {
+            "text": "200 mV / 2 V / 20 V / 200 V",
+            "x": 57,
+            "y": 71,
+            "size": 2.7
+          },
+          {
+            "text": "输入",
+            "x": 137,
+            "y": 72,
+            "size": 2.7
+          }
+        ]
+      }
+    },
+    {
+      "estimatedDimensions": true,
+      "jacks": [
+        {
+          "id": "POS",
+          "label": "+",
+          "x": 128,
+          "y": 57,
+          "color": "red",
+          "kind": "banana4",
+          "labelY": 45
+        },
+        {
+          "id": "NEG",
+          "label": "−",
+          "x": 147,
+          "y": 57,
+          "color": "black",
+          "kind": "banana4",
+          "labelY": 45
+        }
+      ],
+      "controls": [
+        {
+          "id": "RANGE",
+          "label": "RANGE",
+          "kind": "switch",
+          "x": 90,
+          "y": 59,
+          "shape": "push",
+          "radiusMm": 4,
+          "labelX": 107,
+          "labelY": 60
+        }
+      ],
+      "screens": [
+        {
+          "id": "MAIN",
+          "x": 53,
+          "y": 34,
+          "width": 84,
+          "height": 24,
+          "style": "blank"
+        }
+      ],
+      "id": "ins-dc-ammeter",
+      "name": "直流数字毫安表",
+      "kind": "instrument",
+      "bodyStyle": "meter",
+      "dimensionsMm": [
+        160,
+        80,
+        100
+      ],
+      "model": "content/instruments/ins-dc-ammeter/instrument.glb",
+      "textureSize": [
+        1024,
+        512
+      ],
+      "mounting": "fixed",
+      "dimensionNote": "160 x 80 x 100 mm embedded meter envelope, estimated in prototype selection section 7.",
+      "leds": [
+        {
+          "id": "OL",
+          "label": "OL",
+          "x": 108,
+          "y": 26,
+          "color": "red"
+        }
+      ],
+      "panel": {
+        "title": "直流数字毫安表",
+        "titleSize": 4.2,
+        "texts": [
+          {
+            "text": "mA",
+            "x": 111,
+            "y": 40,
+            "size": 5
+          },
+          {
+            "text": "2 / 20 / 200 / 2000 mA",
+            "x": 57,
+            "y": 71,
+            "size": 2.7
+          },
+          {
+            "text": "输入",
+            "x": 137,
+            "y": 72,
+            "size": 2.7
+          }
+        ]
+      }
+    },
+    {
+      "estimatedDimensions": true,
+      "jacks": [
+        {
+          "id": "COM",
+          "label": "COM",
+          "x": 34,
+          "y": 155,
+          "color": "black",
+          "kind": "banana4",
+          "labelY": 141
+        },
+        {
+          "id": "VOHM",
+          "label": "VΩ",
+          "x": 54,
+          "y": 155,
+          "color": "red",
+          "kind": "banana4",
+          "labelY": 141
+        },
+        {
+          "id": "MA",
+          "label": "mA",
+          "x": 74,
+          "y": 155,
+          "color": "red",
+          "kind": "banana4",
+          "labelY": 141
+        },
+        {
+          "id": "A10",
+          "label": "10A",
+          "x": 14,
+          "y": 155,
+          "color": "red",
+          "kind": "banana4",
+          "labelY": 141
+        }
+      ],
+      "controls": [
+        {
+          "id": "FUNCTION",
+          "label": "FUNCTION",
+          "kind": "knob",
+          "x": 45,
+          "y": 103,
+          "radiusMm": 15,
+          "labelY": 130
+        },
+        {
+          "id": "HOLD",
+          "label": "HOLD",
+          "kind": "switch",
+          "x": 67,
+          "y": 63,
+          "shape": "push",
+          "radiusMm": 3.5,
+          "labelY": 55
+        }
+      ],
+      "screens": [
+        {
+          "id": "MAIN",
+          "x": 45,
+          "y": 35,
+          "width": 62,
+          "height": 28,
+          "style": "blank"
+        }
+      ],
+      "id": "ins-multimeter",
+      "name": "数字万用表",
+      "kind": "instrument",
+      "bodyStyle": "handheld",
+      "dimensionsMm": [
+        90,
+        180,
+        40
+      ],
+      "model": "content/instruments/ins-multimeter/instrument.glb",
+      "mounting": "desktop",
+      "textureSize": [
+        512,
+        1024
+      ],
+      "dimensionNote": "90 x 180 x 40 mm estimated handheld meter envelope; selector legend is an appearance-only asset, not implemented ranges.",
+      "panel": {
+        "title": "数字万用表",
+        "titleSize": 3.8,
+        "texts": [
+          {
+            "text": "V DC",
+            "x": 21,
+            "y": 85,
+            "size": 3.2
+          },
+          {
+            "text": "V AC",
+            "x": 68,
+            "y": 85,
+            "size": 3.2
+          },
+          {
+            "text": "ohm",
+            "x": 21,
+            "y": 120,
+            "size": 3.2
+          },
+          {
+            "text": "A",
+            "x": 71,
+            "y": 120,
+            "size": 3.2
+          },
+          {
+            "text": "OFF",
+            "x": 45,
+            "y": 79,
+            "size": 3
+          },
+          {
+            "text": "FUSED INPUTS",
+            "x": 45,
+            "y": 172,
+            "size": 3
+          }
+        ]
+      }
+    },
+    {
+      "estimatedDimensions": true,
+      "jacks": [
+        {
+          "id": "CH1P",
+          "label": "CH1 +",
+          "x": 55,
+          "y": 275,
+          "color": "red",
+          "kind": "banana4"
+        },
+        {
+          "id": "CH1N",
+          "label": "CH1 −",
+          "x": 122,
+          "y": 275,
+          "color": "black",
+          "kind": "banana4"
+        },
+        {
+          "id": "CH2P",
+          "label": "CH2 +",
+          "x": 265,
+          "y": 275,
+          "color": "red",
+          "kind": "banana4"
+        },
+        {
+          "id": "CH2N",
+          "label": "CH2 −",
+          "x": 332,
+          "y": 275,
+          "color": "black",
+          "kind": "banana4"
+        }
+      ],
+      "controls": [
+        {
+          "id": "CH1_V",
+          "label": "VOLTAGE",
+          "kind": "knob",
+          "x": 65,
+          "y": 174,
+          "radiusMm": 17,
+          "param": "ch1_v"
+        },
+        {
+          "id": "CH1_I",
+          "label": "CURRENT",
+          "kind": "knob",
+          "x": 140,
+          "y": 174,
+          "radiusMm": 13
+        },
+        {
+          "id": "CH2_V",
+          "label": "VOLTAGE",
+          "kind": "knob",
+          "x": 275,
+          "y": 174,
+          "radiusMm": 17,
+          "param": "ch2_v"
+        },
+        {
+          "id": "CH2_I",
+          "label": "CURRENT",
+          "kind": "knob",
+          "x": 350,
+          "y": 174,
+          "radiusMm": 13
+        },
+        {
+          "id": "OUTPUT",
+          "label": "OUTPUT",
+          "kind": "switch",
+          "x": 210,
+          "y": 292,
+          "shape": "push",
+          "radiusMm": 7
+        }
+      ],
+      "screens": [
+        {
+          "id": "CH1",
+          "x": 103,
+          "y": 88,
+          "width": 132,
+          "height": 48,
+          "style": "blank"
+        },
+        {
+          "id": "CH2",
+          "x": 313,
+          "y": 88,
+          "width": 132,
+          "height": 48,
+          "style": "blank"
+        }
+      ],
+      "id": "ins-dc-power",
+      "name": "直流稳压电源",
+      "kind": "instrument",
+      "bodyStyle": "supply",
+      "dimensionsMm": [
+        420,
+        340,
+        100
+      ],
+      "model": "content/instruments/ins-dc-power/instrument.glb",
+      "mounting": "fixed",
+      "textureSize": [
+        1536,
+        1244
+      ],
+      "dimensionNote": "Estimated 420 x 340 x 100 mm two-channel control-console insert. Only the four existing content outputs are exposed.",
+      "leds": [
+        {
+          "id": "CV1",
+          "label": "CV",
+          "x": 73,
+          "y": 126,
+          "color": "green"
+        },
+        {
+          "id": "CC1",
+          "label": "CC",
+          "x": 129,
+          "y": 126,
+          "color": "yellow"
+        },
+        {
+          "id": "CV2",
+          "label": "CV",
+          "x": 283,
+          "y": 126,
+          "color": "green"
+        },
+        {
+          "id": "CC2",
+          "label": "CC",
+          "x": 339,
+          "y": 126,
+          "color": "yellow"
+        }
+      ],
+      "panel": {
+        "title": "直流稳压电源",
+        "titleSize": 7.7,
+        "subtitle": "双路独立可调直流输出",
+        "frames": [
+          {
+            "x": 17,
+            "y": 46,
+            "width": 181,
+            "height": 265,
+            "label": "通道 1"
+          },
+          {
+            "x": 222,
+            "y": 46,
+            "width": 181,
+            "height": 265,
+            "label": "通道 2"
+          }
+        ],
+        "texts": [
+          {
+            "text": "0 - 30 V / 1 A",
+            "x": 102,
+            "y": 227,
+            "size": 5
+          },
+          {
+            "text": "0 - 30 V / 1 A",
+            "x": 313,
+            "y": 227,
+            "size": 5
+          }
+        ],
+        "footer": "控制屏固定安装 / 仅连接外部输出插孔"
+      }
+    },
+    {
+      "estimatedDimensions": true,
+      "jacks": [
+        {
+          "id": "CH1",
+          "label": "CH 1",
+          "x": 209,
+          "y": 142,
+          "color": "yellow",
+          "kind": "bnc"
+        },
+        {
+          "id": "CH2",
+          "label": "CH 2",
+          "x": 252,
+          "y": 142,
+          "color": "blue",
+          "kind": "bnc"
+        },
+        {
+          "id": "OUT",
+          "label": "OUT",
+          "x": 296,
+          "y": 142,
+          "color": "metal",
+          "kind": "bnc"
+        }
+      ],
+      "controls": [
+        {
+          "id": "CH1_SCALE",
+          "label": "V / div",
+          "kind": "knob",
+          "x": 208,
+          "y": 65,
+          "radiusMm": 8
+        },
+        {
+          "id": "CH1_POSITION",
+          "label": "POSITION",
+          "kind": "knob",
+          "x": 208,
+          "y": 101,
+          "radiusMm": 5
+        },
+        {
+          "id": "CH2_SCALE",
+          "label": "V / div",
+          "kind": "knob",
+          "x": 248,
+          "y": 65,
+          "radiusMm": 8
+        },
+        {
+          "id": "CH2_POSITION",
+          "label": "POSITION",
+          "kind": "knob",
+          "x": 248,
+          "y": 101,
+          "radiusMm": 5
+        },
+        {
+          "id": "TIMEBASE",
+          "label": "s / div",
+          "kind": "knob",
+          "x": 290,
+          "y": 65,
+          "radiusMm": 8
+        },
+        {
+          "id": "TRIGGER",
+          "label": "TRIGGER",
+          "kind": "knob",
+          "x": 290,
+          "y": 101,
+          "radiusMm": 5
+        },
+        {
+          "id": "AUTO",
+          "label": "AUTO",
+          "kind": "switch",
+          "x": 217,
+          "y": 28,
+          "shape": "push",
+          "radiusMm": 4
+        },
+        {
+          "id": "RUN",
+          "label": "RUN / STOP",
+          "kind": "switch",
+          "x": 267,
+          "y": 28,
+          "shape": "push",
+          "radiusMm": 4
+        }
+      ],
+      "screens": [
+        {
+          "id": "MAIN",
+          "x": 98,
+          "y": 82,
+          "width": 164,
+          "height": 100,
+          "style": "grid"
+        }
+      ],
+      "id": "ins-oscilloscope",
+      "name": "双通道数字示波器",
+      "kind": "instrument",
+      "bodyStyle": "scope",
+      "dimensionsMm": [
+        320,
+        160,
+        120
+      ],
+      "model": "content/instruments/ins-oscilloscope/instrument.glb",
+      "mounting": "desktop",
+      "textureSize": [
+        1536,
+        768
+      ],
+      "dimensionNote": "320 x 160 x 120 mm estimated housing from prototype selection section 7. Controls and ports are visual anchors only pending T0.12 content.",
+      "panel": {
+        "title": "双通道数字示波器",
+        "titleSize": 5,
+        "texts": [
+          {
+            "text": "CH 1",
+            "x": 208,
+            "y": 47,
+            "size": 3.1
+          },
+          {
+            "text": "CH 2",
+            "x": 248,
+            "y": 47,
+            "size": 3.1
+          },
+          {
+            "text": "HORIZONTAL",
+            "x": 290,
+            "y": 47,
+            "size": 2.7
+          },
+          {
+            "text": "双通道 / 未上电",
+            "x": 98,
+            "y": 144,
+            "size": 3.1
+          }
+        ]
+      }
+    },
+    {
+      "estimatedDimensions": true,
+      "jacks": [
+        {
+          "id": "CH1",
+          "label": "CH 1",
+          "x": 169,
+          "y": 80,
+          "color": "yellow",
+          "kind": "bnc"
+        },
+        {
+          "id": "CH2",
+          "label": "CH 2",
+          "x": 208,
+          "y": 80,
+          "color": "blue",
+          "kind": "bnc"
+        },
+        {
+          "id": "TTL",
+          "label": "TTL",
+          "x": 245,
+          "y": 80,
+          "color": "metal",
+          "kind": "bnc"
+        }
+      ],
+      "controls": [
+        {
+          "id": "VALUE",
+          "label": "VALUE",
+          "kind": "knob",
+          "x": 165,
+          "y": 39,
+          "radiusMm": 10
+        },
+        {
+          "id": "ADJUST",
+          "label": "ADJUST",
+          "kind": "knob",
+          "x": 224,
+          "y": 39,
+          "radiusMm": 8
+        },
+        {
+          "id": "CH_SELECT",
+          "label": "CHANNEL",
+          "kind": "switch",
+          "x": 76,
+          "y": 79,
+          "shape": "push",
+          "radiusMm": 3.5
+        },
+        {
+          "id": "WAVEFORM",
+          "label": "WAVE",
+          "kind": "switch",
+          "x": 34,
+          "y": 79,
+          "shape": "push",
+          "radiusMm": 3.5
+        },
+        {
+          "id": "OUTPUT",
+          "label": "OUTPUT",
+          "kind": "switch",
+          "x": 120,
+          "y": 79,
+          "shape": "push",
+          "radiusMm": 3.5
+        }
+      ],
+      "screens": [
+        {
+          "id": "MAIN",
+          "x": 67,
+          "y": 42,
+          "width": 98,
+          "height": 39,
+          "style": "blank"
+        }
+      ],
+      "id": "ins-func-gen",
+      "name": "双通道函数信号发生器",
+      "kind": "instrument",
+      "bodyStyle": "generator",
+      "dimensionsMm": [
+        260,
+        100,
+        300
+      ],
+      "model": "content/instruments/ins-func-gen/instrument.glb",
+      "mounting": "desktop",
+      "textureSize": [
+        1536,
+        592
+      ],
+      "dimensionNote": "260 x 100 x 300 mm estimated housing from prototype selection section 7. Controls and ports are visual anchors only pending T0.12 content.",
+      "panel": {
+        "title": "双通道函数信号发生器",
+        "titleSize": 4.8,
+        "texts": [
+          {
+            "text": "双路输出 / 50 ohm",
+            "x": 195,
+            "y": 17,
+            "size": 2.8
+          }
+        ]
+      }
+    },
+    {
+      "estimatedDimensions": true,
+      "jacks": [],
+      "controls": [],
+      "screens": [],
+      "id": "cmp-resistor",
+      "name": "轴向电阻",
+      "kind": "component",
+      "bodyStyle": "component",
+      "dimensionsMm": [
+        24,
+        4,
+        3
+      ],
+      "model": "content/models/components/cmp-resistor.glb",
+      "componentStyle": "resistor",
+      "triangleBudget": 1500,
+      "dimensionNote": "Generic original procedural shape; dimensions are visual estimates, not manufacturer or electrical specifications.",
+      "textureSize": [
+        256,
+        256
+      ]
+    },
+    {
+      "estimatedDimensions": true,
+      "jacks": [],
+      "controls": [],
+      "screens": [],
+      "id": "cmp-diode",
+      "name": "轴向整流二极管",
+      "kind": "component",
+      "bodyStyle": "component",
+      "dimensionsMm": [
+        24,
+        4.5,
+        3.5
+      ],
+      "model": "content/models/components/cmp-diode.glb",
+      "componentStyle": "diode",
+      "triangleBudget": 1500,
+      "dimensionNote": "Generic original procedural shape; dimensions are visual estimates, not manufacturer or electrical specifications.",
+      "textureSize": [
+        256,
+        256
+      ]
+    },
+    {
+      "estimatedDimensions": true,
+      "jacks": [],
+      "controls": [],
+      "screens": [],
+      "id": "cmp-capacitor-ceramic",
+      "name": "瓷片电容",
+      "kind": "component",
+      "bodyStyle": "component",
+      "dimensionsMm": [
+        7,
+        13,
+        3
+      ],
+      "model": "content/models/components/cmp-capacitor-ceramic.glb",
+      "componentStyle": "ceramic-capacitor",
+      "triangleBudget": 1500,
+      "dimensionNote": "Generic original procedural shape; dimensions are visual estimates, not manufacturer or electrical specifications.",
+      "textureSize": [
+        256,
+        256
+      ]
+    },
+    {
+      "estimatedDimensions": true,
+      "jacks": [],
+      "controls": [],
+      "screens": [],
+      "id": "cmp-capacitor-electrolytic",
+      "name": "径向电解电容",
+      "kind": "component",
+      "bodyStyle": "component",
+      "dimensionsMm": [
+        8,
+        17,
+        8
+      ],
+      "model": "content/models/components/cmp-capacitor-electrolytic.glb",
+      "componentStyle": "electrolytic-capacitor",
+      "triangleBudget": 1500,
+      "dimensionNote": "Generic original procedural shape; dimensions are visual estimates, not manufacturer or electrical specifications.",
+      "textureSize": [
+        256,
+        256
+      ]
+    },
+    {
+      "estimatedDimensions": true,
+      "jacks": [],
+      "controls": [],
+      "screens": [],
+      "id": "cmp-led",
+      "name": "直插发光二极管",
+      "kind": "component",
+      "bodyStyle": "component",
+      "dimensionsMm": [
+        5.8,
+        15,
+        5.8
+      ],
+      "model": "content/models/components/cmp-led.glb",
+      "componentStyle": "led",
+      "triangleBudget": 1500,
+      "dimensionNote": "Generic original procedural shape; dimensions are visual estimates, not manufacturer or electrical specifications.",
+      "textureSize": [
+        256,
+        256
+      ]
+    },
+    {
+      "estimatedDimensions": true,
+      "jacks": [],
+      "controls": [],
+      "screens": [],
+      "id": "cmp-transistor-to92",
+      "name": "TO-92 三极管",
+      "kind": "component",
+      "bodyStyle": "component",
+      "dimensionsMm": [
+        5,
+        12,
+        4
+      ],
+      "model": "content/models/components/cmp-transistor-to92.glb",
+      "componentStyle": "transistor-to92",
+      "triangleBudget": 1500,
+      "dimensionNote": "Generic original procedural shape; dimensions are visual estimates, not manufacturer or electrical specifications.",
+      "textureSize": [
+        256,
+        256
+      ]
+    },
+    {
+      "estimatedDimensions": true,
+      "jacks": [],
+      "controls": [],
+      "screens": [],
+      "id": "cmp-potentiometer",
+      "name": "旋转电位器",
+      "kind": "component",
+      "bodyStyle": "component",
+      "dimensionsMm": [
+        17,
+        29,
+        17
+      ],
+      "model": "content/models/components/cmp-potentiometer.glb",
+      "componentStyle": "potentiometer",
+      "triangleBudget": 1500,
+      "dimensionNote": "Generic original procedural shape; dimensions are visual estimates, not manufacturer or electrical specifications.",
+      "textureSize": [
+        256,
+        256
+      ]
+    },
+    {
+      "estimatedDimensions": true,
+      "jacks": [],
+      "controls": [],
+      "screens": [],
+      "id": "cmp-switch",
+      "name": "微型钮子开关",
+      "kind": "component",
+      "bodyStyle": "component",
+      "dimensionsMm": [
+        13,
+        26,
+        9
+      ],
+      "model": "content/models/components/cmp-switch.glb",
+      "componentStyle": "toggle-switch",
+      "triangleBudget": 1500,
+      "dimensionNote": "Generic original procedural shape; dimensions are visual estimates, not manufacturer or electrical specifications.",
+      "textureSize": [
+        256,
+        256
+      ]
+    },
+    {
+      "estimatedDimensions": true,
+      "jacks": [],
+      "controls": [],
+      "screens": [],
+      "id": "cmp-dip8",
+      "name": "DIP-8 集成电路",
+      "kind": "component",
+      "bodyStyle": "component",
+      "dimensionsMm": [
+        11,
+        6,
+        10
+      ],
+      "model": "content/models/components/cmp-dip8.glb",
+      "componentStyle": "dip8",
+      "triangleBudget": 1500,
+      "dimensionNote": "Generic original procedural shape; dimensions are visual estimates, not manufacturer or electrical specifications.",
+      "textureSize": [
+        256,
+        256
+      ]
+    },
+    {
+      "estimatedDimensions": true,
+      "jacks": [],
+      "controls": [],
+      "screens": [],
+      "id": "cmp-banana-jack",
+      "name": "4 mm 香蕉插座",
+      "kind": "component",
+      "bodyStyle": "component",
+      "dimensionsMm": [
+        11,
+        11,
+        24
+      ],
+      "model": "content/models/components/cmp-banana-jack.glb",
+      "componentStyle": "banana-jack",
+      "triangleBudget": 1500,
+      "dimensionNote": "Generic original procedural shape; dimensions are visual estimates, not manufacturer or electrical specifications.",
+      "textureSize": [
+        256,
+        256
+      ]
+    },
+    {
+      "estimatedDimensions": true,
+      "jacks": [],
+      "controls": [],
+      "screens": [],
+      "id": "tool-pliers",
+      "name": "组合钳",
+      "kind": "component",
+      "bodyStyle": "component",
+      "dimensionsMm": [
+        61.507,
+        200,
+        20.008
+      ],
+      "model": "content/models/tools/pliers.glb",
+      "sourceFile": "assets/vendor/polyhaven-pliers/pliers_1k.gltf",
+      "triangleBudget": 5000,
+      "dimensionNote": "CC0 Poly Haven combination pliers geometry, scaled to estimated 200 mm length. Original certification/logo textures are not used.",
+      "textureSize": [
+        512,
+        512
+      ]
+    }
+  ],
+  "preview": {
+    "camera": {
+      "position": [
+        0.85,
+        1.48,
+        1.8
+      ],
+      "target": [
+        0,
+        1.17,
+        0
+      ]
+    },
+    "placements": [
+      {
+        "assetId": "bench",
+        "position": [
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "assetId": "mod-dc-circuit",
+        "slot": "SLOT_BOX_L1",
+        "position": [
+          -0.12,
+          0.865,
+          -0.2
+        ]
+      },
+      {
+        "assetId": "ins-dc-voltmeter",
+        "slot": "SLOT_INS_DCV",
+        "position": [
+          -0.12,
+          1.405,
+          -0.27
+        ]
+      },
+      {
+        "assetId": "ins-dc-ammeter",
+        "slot": "SLOT_INS_DCA",
+        "position": [
+          0.11,
+          1.405,
+          -0.27
+        ]
+      },
+      {
+        "assetId": "ins-dc-power",
+        "slot": "SLOT_INS_DCPOWER",
+        "position": [
+          -0.62,
+          0.97,
+          -0.266
+        ]
+      },
+      {
+        "assetId": "ins-func-gen",
+        "slot": "SLOT_DESK_1",
+        "position": [
+          -0.5,
+          0.8,
+          0.13
+        ]
+      },
+      {
+        "assetId": "ins-multimeter",
+        "slot": "SLOT_DESK_2",
+        "position": [
+          -0.15,
+          0.8,
+          0.23
+        ]
+      },
+      {
+        "assetId": "ins-oscilloscope",
+        "slot": "SLOT_SCOPE",
+        "position": [
+          0.6,
+          0.8,
+          0.07
+        ]
+      }
+    ]
+  }
+}

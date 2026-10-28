@@ -1,0 +1,84 @@
+{
+  "id": "ins-dc-ammeter",
+  "name": "直流数字毫安表",
+  "kind": "dca",
+  "mounting": "fixed",
+  "fixedSlot": "SLOT_INS_DCA",
+  "model": "instrument.glb",
+  "jacks": [
+    {
+      "id": "POS",
+      "label": "+",
+      "kind": "banana4",
+      "polarityHint": "+"
+    },
+    {
+      "id": "NEG",
+      "label": "−",
+      "kind": "banana4",
+      "polarityHint": "-"
+    }
+  ],
+  "ranges": [
+    {
+      "id": "r2m",
+      "full": 0.002,
+      "unit": "A",
+      "internalR": 100,
+      "resolution": 0.000001,
+      "mode": "dca",
+      "label": "2 mA",
+      "displayUnit": "mA",
+      "positiveJack": "POS",
+      "negativeJack": "NEG"
+    },
+    {
+      "id": "r20m",
+      "full": 0.02,
+      "unit": "A",
+      "internalR": 10,
+      "resolution": 0.00001,
+      "mode": "dca",
+      "label": "20 mA",
+      "displayUnit": "mA",
+      "positiveJack": "POS",
+      "negativeJack": "NEG"
+    },
+    {
+      "id": "r200m",
+      "full": 0.2,
+      "unit": "A",
+      "internalR": 1,
+      "resolution": 0.0001,
+      "mode": "dca",
+      "label": "200 mA",
+      "displayUnit": "mA",
+      "positiveJack": "POS",
+      "negativeJack": "NEG"
+    },
+    {
+      "id": "r2000m",
+      "full": 2,
+      "unit": "A",
+      "internalR": 0.1,
+      "resolution": 0.001,
+      "mode": "dca",
+      "label": "2000 mA",
+      "displayUnit": "mA",
+      "positiveJack": "POS",
+      "negativeJack": "NEG"
+    }
+  ],
+  "accuracyClass": 0.5,
+  "spiceTemplate": "Rsh_{X} {J:POS} m_{X} {R}\nVsense_{X} m_{X} {J:NEG} DC 0",
+  "measure": {
+    "voltage": [],
+    "series": [
+      [
+        "POS",
+        "NEG"
+      ]
+    ]
+  },
+  "defaultRange": "r200m"
+}

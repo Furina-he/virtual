@@ -1,0 +1,89 @@
+{
+  "id": "ins-dc-voltmeter",
+  "name": "直流数字电压表",
+  "kind": "dcv",
+  "mounting": "fixed",
+  "fixedSlot": "SLOT_INS_DCV",
+  "model": "instrument.glb",
+  "jacks": [
+    {
+      "id": "POS",
+      "label": "+",
+      "kind": "banana4",
+      "polarityHint": "+"
+    },
+    {
+      "id": "NEG",
+      "label": "−",
+      "kind": "banana4",
+      "polarityHint": "-"
+    }
+  ],
+  "ranges": [
+    {
+      "id": "r200m",
+      "full": 0.2,
+      "unit": "V",
+      "internalR": 10000000,
+      "resolution": 0.0001,
+      "mode": "dcv",
+      "label": "200 mV",
+      "displayUnit": "mV",
+      "positiveJack": "POS",
+      "negativeJack": "NEG"
+    },
+    {
+      "id": "r2",
+      "full": 2,
+      "unit": "V",
+      "internalR": 10000000,
+      "resolution": 0.001,
+      "mode": "dcv",
+      "label": "2 V",
+      "displayUnit": "V",
+      "positiveJack": "POS",
+      "negativeJack": "NEG"
+    },
+    {
+      "id": "r20",
+      "full": 20,
+      "unit": "V",
+      "internalR": 10000000,
+      "resolution": 0.01,
+      "mode": "dcv",
+      "label": "20 V",
+      "displayUnit": "V",
+      "positiveJack": "POS",
+      "negativeJack": "NEG"
+    },
+    {
+      "id": "r200",
+      "full": 200,
+      "unit": "V",
+      "internalR": 10000000,
+      "resolution": 0.1,
+      "mode": "dcv",
+      "label": "200 V",
+      "displayUnit": "V",
+      "positiveJack": "POS",
+      "negativeJack": "NEG"
+    }
+  ],
+  "accuracyClass": 0.5,
+  "spiceTemplate": "Rin_{X} {J:POS} {J:NEG} {R}",
+  "measure": {
+    "voltage": [
+      [
+        "POS",
+        "NEG"
+      ]
+    ],
+    "series": []
+  },
+  "defaultRange": "r20",
+  "internalROptions": [
+    1000,
+    10000,
+    10000000
+  ]
+}

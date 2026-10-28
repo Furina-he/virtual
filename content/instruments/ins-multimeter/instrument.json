@@ -1,0 +1,502 @@
+{
+  "id": "ins-multimeter",
+  "name": "数字万用表",
+  "kind": "multimeter",
+  "mounting": "desktop",
+  "model": "instrument.glb",
+  "jacks": [
+    {
+      "id": "COM",
+      "label": "COM",
+      "kind": "banana4",
+      "polarityHint": "-"
+    },
+    {
+      "id": "VOHM",
+      "label": "VΩ",
+      "kind": "banana4",
+      "polarityHint": "+"
+    },
+    {
+      "id": "MA",
+      "label": "mA",
+      "kind": "banana4",
+      "polarityHint": "+"
+    },
+    {
+      "id": "A10",
+      "label": "10A",
+      "kind": "banana4",
+      "polarityHint": "+"
+    }
+  ],
+  "ranges": [
+    {
+      "id": "dcv200m",
+      "mode": "dcv",
+      "label": "直流电压 200 mV",
+      "full": 0.2,
+      "unit": "V",
+      "displayUnit": "mV",
+      "internalR": 10000000,
+      "resolution": 0.0001,
+      "positiveJack": "VOHM",
+      "negativeJack": "COM",
+      "accuracy": {
+        "percentReading": 0.5,
+        "digits": 1
+      }
+    },
+    {
+      "id": "dcv2",
+      "mode": "dcv",
+      "label": "直流电压 2 V",
+      "full": 2,
+      "unit": "V",
+      "displayUnit": "V",
+      "internalR": 10000000,
+      "resolution": 0.001,
+      "positiveJack": "VOHM",
+      "negativeJack": "COM",
+      "accuracy": {
+        "percentReading": 0.5,
+        "digits": 1
+      }
+    },
+    {
+      "id": "dcv20",
+      "mode": "dcv",
+      "label": "直流电压 20 V",
+      "full": 20,
+      "unit": "V",
+      "displayUnit": "V",
+      "internalR": 10000000,
+      "resolution": 0.01,
+      "positiveJack": "VOHM",
+      "negativeJack": "COM",
+      "accuracy": {
+        "percentReading": 0.5,
+        "digits": 1
+      }
+    },
+    {
+      "id": "dcv200",
+      "mode": "dcv",
+      "label": "直流电压 200 V",
+      "full": 200,
+      "unit": "V",
+      "displayUnit": "V",
+      "internalR": 10000000,
+      "resolution": 0.1,
+      "positiveJack": "VOHM",
+      "negativeJack": "COM",
+      "accuracy": {
+        "percentReading": 0.5,
+        "digits": 1
+      }
+    },
+    {
+      "id": "dcv1000",
+      "mode": "dcv",
+      "label": "直流电压 1000 V",
+      "full": 1000,
+      "unit": "V",
+      "displayUnit": "V",
+      "internalR": 10000000,
+      "resolution": 1,
+      "positiveJack": "VOHM",
+      "negativeJack": "COM",
+      "accuracy": {
+        "percentReading": 0.5,
+        "digits": 1
+      }
+    },
+    {
+      "id": "acv2",
+      "mode": "acv",
+      "label": "交流电压 2 V",
+      "full": 2,
+      "unit": "V",
+      "displayUnit": "V",
+      "internalR": 10000000,
+      "resolution": 0.001,
+      "positiveJack": "VOHM",
+      "negativeJack": "COM",
+      "accuracy": {
+        "percentReading": 0.8,
+        "digits": 3
+      }
+    },
+    {
+      "id": "acv20",
+      "mode": "acv",
+      "label": "交流电压 20 V",
+      "full": 20,
+      "unit": "V",
+      "displayUnit": "V",
+      "internalR": 10000000,
+      "resolution": 0.01,
+      "positiveJack": "VOHM",
+      "negativeJack": "COM",
+      "accuracy": {
+        "percentReading": 0.8,
+        "digits": 3
+      }
+    },
+    {
+      "id": "acv200",
+      "mode": "acv",
+      "label": "交流电压 200 V",
+      "full": 200,
+      "unit": "V",
+      "displayUnit": "V",
+      "internalR": 10000000,
+      "resolution": 0.1,
+      "positiveJack": "VOHM",
+      "negativeJack": "COM",
+      "accuracy": {
+        "percentReading": 0.8,
+        "digits": 3
+      }
+    },
+    {
+      "id": "acv750",
+      "mode": "acv",
+      "label": "交流电压 750 V",
+      "full": 750,
+      "unit": "V",
+      "displayUnit": "V",
+      "internalR": 10000000,
+      "resolution": 1,
+      "positiveJack": "VOHM",
+      "negativeJack": "COM",
+      "accuracy": {
+        "percentReading": 0.8,
+        "digits": 3
+      }
+    },
+    {
+      "id": "dca2m",
+      "mode": "dca",
+      "label": "直流电流 2 mA",
+      "full": 0.002,
+      "unit": "A",
+      "displayUnit": "mA",
+      "internalR": 100,
+      "resolution": 0.000001,
+      "positiveJack": "MA",
+      "negativeJack": "COM",
+      "accuracy": {
+        "percentReading": 1,
+        "digits": 2
+      }
+    },
+    {
+      "id": "dca20m",
+      "mode": "dca",
+      "label": "直流电流 20 mA",
+      "full": 0.02,
+      "unit": "A",
+      "displayUnit": "mA",
+      "internalR": 10,
+      "resolution": 0.00001,
+      "positiveJack": "MA",
+      "negativeJack": "COM",
+      "accuracy": {
+        "percentReading": 1,
+        "digits": 2
+      }
+    },
+    {
+      "id": "dca200m",
+      "mode": "dca",
+      "label": "直流电流 200 mA",
+      "full": 0.2,
+      "unit": "A",
+      "displayUnit": "mA",
+      "internalR": 1,
+      "resolution": 0.0001,
+      "positiveJack": "MA",
+      "negativeJack": "COM",
+      "accuracy": {
+        "percentReading": 1,
+        "digits": 2
+      }
+    },
+    {
+      "id": "dca10",
+      "mode": "dca",
+      "label": "直流电流 10 A",
+      "full": 10,
+      "unit": "A",
+      "displayUnit": "A",
+      "internalR": 0.01,
+      "resolution": 0.01,
+      "positiveJack": "A10",
+      "negativeJack": "COM",
+      "accuracy": {
+        "percentReading": 1,
+        "digits": 2
+      }
+    },
+    {
+      "id": "aca2m",
+      "mode": "aca",
+      "label": "交流电流 2 mA",
+      "full": 0.002,
+      "unit": "A",
+      "displayUnit": "mA",
+      "internalR": 100,
+      "resolution": 0.000001,
+      "positiveJack": "MA",
+      "negativeJack": "COM",
+      "accuracy": {
+        "percentReading": 1.2,
+        "digits": 3
+      }
+    },
+    {
+      "id": "aca20m",
+      "mode": "aca",
+      "label": "交流电流 20 mA",
+      "full": 0.02,
+      "unit": "A",
+      "displayUnit": "mA",
+      "internalR": 10,
+      "resolution": 0.00001,
+      "positiveJack": "MA",
+      "negativeJack": "COM",
+      "accuracy": {
+        "percentReading": 1.2,
+        "digits": 3
+      }
+    },
+    {
+      "id": "aca200m",
+      "mode": "aca",
+      "label": "交流电流 200 mA",
+      "full": 0.2,
+      "unit": "A",
+      "displayUnit": "mA",
+      "internalR": 1,
+      "resolution": 0.0001,
+      "positiveJack": "MA",
+      "negativeJack": "COM",
+      "accuracy": {
+        "percentReading": 1.2,
+        "digits": 3
+      }
+    },
+    {
+      "id": "aca10",
+      "mode": "aca",
+      "label": "交流电流 10 A",
+      "full": 10,
+      "unit": "A",
+      "displayUnit": "A",
+      "internalR": 0.01,
+      "resolution": 0.01,
+      "positiveJack": "A10",
+      "negativeJack": "COM",
+      "accuracy": {
+        "percentReading": 1.2,
+        "digits": 3
+      }
+    },
+    {
+      "id": "ohm200",
+      "mode": "ohm",
+      "label": "电阻 200 Ω",
+      "full": 200,
+      "unit": "Ω",
+      "displayUnit": "Ω",
+      "internalR": 1000000000000,
+      "resolution": 0.1,
+      "positiveJack": "VOHM",
+      "negativeJack": "COM",
+      "accuracy": {
+        "percentReading": 0.8,
+        "digits": 1
+      },
+      "testSource": {
+        "voltage": 2.8,
+        "current": 0.001,
+        "safetyVoltage": 0.1
+      }
+    },
+    {
+      "id": "ohm2k",
+      "mode": "ohm",
+      "label": "电阻 2 kΩ",
+      "full": 2000,
+      "unit": "Ω",
+      "displayUnit": "kΩ",
+      "internalR": 1000000000000,
+      "resolution": 1,
+      "positiveJack": "VOHM",
+      "negativeJack": "COM",
+      "accuracy": {
+        "percentReading": 0.8,
+        "digits": 1
+      },
+      "testSource": {
+        "voltage": 2.8,
+        "current": 0.0001,
+        "safetyVoltage": 0.1
+      }
+    },
+    {
+      "id": "ohm20k",
+      "mode": "ohm",
+      "label": "电阻 20 kΩ",
+      "full": 20000,
+      "unit": "Ω",
+      "displayUnit": "kΩ",
+      "internalR": 1000000000000,
+      "resolution": 10,
+      "positiveJack": "VOHM",
+      "negativeJack": "COM",
+      "accuracy": {
+        "percentReading": 0.8,
+        "digits": 1
+      },
+      "testSource": {
+        "voltage": 2.8,
+        "current": 0.00001,
+        "safetyVoltage": 0.1
+      }
+    },
+    {
+      "id": "ohm200k",
+      "mode": "ohm",
+      "label": "电阻 200 kΩ",
+      "full": 200000,
+      "unit": "Ω",
+      "displayUnit": "kΩ",
+      "internalR": 1000000000000,
+      "resolution": 100,
+      "positiveJack": "VOHM",
+      "negativeJack": "COM",
+      "accuracy": {
+        "percentReading": 0.8,
+        "digits": 1
+      },
+      "testSource": {
+        "voltage": 2.8,
+        "current": 0.000001,
+        "safetyVoltage": 0.1
+      }
+    },
+    {
+      "id": "ohm2M",
+      "mode": "ohm",
+      "label": "电阻 2 MΩ",
+      "full": 2000000,
+      "unit": "Ω",
+      "displayUnit": "MΩ",
+      "internalR": 1000000000000,
+      "resolution": 1000,
+      "positiveJack": "VOHM",
+      "negativeJack": "COM",
+      "accuracy": {
+        "percentReading": 0.8,
+        "digits": 1
+      },
+      "testSource": {
+        "voltage": 2.8,
+        "current": 1e-7,
+        "safetyVoltage": 0.1
+      }
+    },
+    {
+      "id": "ohm20M",
+      "mode": "ohm",
+      "label": "电阻 20 MΩ",
+      "full": 20000000,
+      "unit": "Ω",
+      "displayUnit": "MΩ",
+      "internalR": 1000000000000,
+      "resolution": 10000,
+      "positiveJack": "VOHM",
+      "negativeJack": "COM",
+      "accuracy": {
+        "percentReading": 0.8,
+        "digits": 1
+      },
+      "testSource": {
+        "voltage": 2.8,
+        "current": 1e-8,
+        "safetyVoltage": 0.1
+      }
+    },
+    {
+      "id": "diode",
+      "mode": "diode",
+      "label": "二极管",
+      "full": 2,
+      "unit": "V",
+      "displayUnit": "V",
+      "internalR": 1000000000000,
+      "resolution": 0.001,
+      "positiveJack": "VOHM",
+      "negativeJack": "COM",
+      "accuracy": {
+        "percentReading": 1,
+        "digits": 2
+      },
+      "testSource": {
+        "voltage": 2.8,
+        "current": 0.001,
+        "safetyVoltage": 0.1
+      }
+    },
+    {
+      "id": "continuity",
+      "mode": "continuity",
+      "label": "通断蜂鸣",
+      "full": 200,
+      "unit": "Ω",
+      "displayUnit": "Ω",
+      "internalR": 1000000000000,
+      "resolution": 0.1,
+      "positiveJack": "VOHM",
+      "negativeJack": "COM",
+      "accuracy": {
+        "percentReading": 0.8,
+        "digits": 1
+      },
+      "testSource": {
+        "voltage": 2.8,
+        "current": 0.001,
+        "safetyVoltage": 0.1,
+        "continuityThreshold": 50
+      }
+    }
+  ],
+  "accuracyClass": 0.5,
+  "spiceTemplate": "Rin_{X} {J:VOHM} {J:COM} {R}",
+  "measure": {
+    "voltage": [
+      [
+        "VOHM",
+        "COM"
+      ]
+    ],
+    "series": [
+      [
+        "MA",
+        "COM"
+      ],
+      [
+        "A10",
+        "COM"
+      ]
+    ]
+  },
+  "defaultRange": "dcv20",
+  "internalROptions": [
+    1000,
+    10000,
+    10000000
+  ]
+}

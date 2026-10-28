@@ -1,0 +1,38 @@
+{
+  "id": "DG-01",
+  "group": "直流电路",
+  "title": "常用电工仪表使用与测量误差（仪表功能验证）",
+  "type": "basic",
+  "validation": {
+    "purpose": "T0.11 仪表功能验证，复用现有挂箱的戴维南电阻网络。",
+    "limitations": [
+      "正式 DG-01 所需的 mod-dc-components 元件箱尚未交付；本场景不替代该项目完整教学内容验收。",
+      "仪表内阻和精度采用原型说明中的估计值，仍待实物参数确认。",
+      "GTX 1650 级或核显目标机性能及冷启动验收尚未完成。"
+    ]
+  },
+  "modules": [{ "instanceId": "dc1", "moduleId": "mod-dc-circuit", "slot": "SLOT_BOX_L1" }],
+  "allowedInstruments": ["ins-multimeter"],
+  "reference": {
+    "nets": [
+      ["ins-dc-power.CH1P", "dc1.TH_USP"],
+      ["ins-dc-power.CH1N", "dc1.TH_USN"]
+    ],
+    "measurePoints": [{ "id": "u-ab", "kind": "voltage", "between": ["dc1.TH_A", "dc1.TH_B"] }]
+  },
+  "steps": [
+    { "id": "choose", "text": "从仪表柜选取数字万用表，拖到空闲台面位置。固定电压表和毫安表保留在控制屏上。" },
+    { "id": "wire", "text": "断电时，将 CH1+ 接 Us+、CH1− 接 Us−。将电压表正端接挂箱下半部 A、负端接 B；不要连接上半部电路。" },
+    { "id": "measure", "text": "CH1 设置 6 V，选择 20 V 档，上电读取 U_AB。每次只接一块电压表，比较 10 MΩ、10 kΩ 和 1 kΩ 输入电阻的读数。", "expect": { "measurePoint": "u-ab", "min": 2.1, "max": 3.65 } },
+    { "id": "overload", "text": "保持接线，改为 2 V 档，观察 OL.。恢复 20 V 档，断电后反接测量线，再上电观察负值。" },
+    { "id": "multimeter", "text": "断电并拆除固定表外线，自行把万用表 COM、VΩ 接 B、A；用 DCV 测量。选择 DCA 但保留 VΩ 表线，确认错档提示。" },
+    { "id": "passive", "text": "断电后，使用电阻、二极管或通断档测量无源支路。外部回路带电时这些档位禁止注入测试电流。" }
+  ],
+  "dataTables": [],
+  "charts": [],
+  "questions": [
+    "为什么降低电压表输入电阻会降低端电压读数？",
+    "若两块电压表同时并联接入，等效输入电阻如何计算？",
+    "为什么不能用电流档并联测量电源电压？"
+  ]
+}

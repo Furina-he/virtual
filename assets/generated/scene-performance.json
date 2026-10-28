@@ -1,0 +1,202 @@
+{
+  "schemaVersion": 1,
+  "capturedAt": "2026-10-28T10:25:49.367Z",
+  "baselineCertified": false,
+  "method": "12 s continuous mouse camera orbit per tier; rAF samples count only frames with actual WebGL draw submissions; warmed contact shadows excluded; all submitted passes counted; FPS is rendered frames / wall time, not idle rAF rate.",
+  "cpu": "12th Gen Intel(R) Core(TM) i5-12450H",
+  "logicalCpus": 12,
+  "memoryBytes": 16898891776,
+  "os": {
+    "platform": "win32",
+    "release": "10.0.22631",
+    "arch": "x64"
+  },
+  "gpu": {
+    "features": {
+      "2d_canvas": "disabled_software",
+      "direct_rendering_display_compositor": "disabled_off_ok",
+      "gpu_compositing": "disabled_software",
+      "multiple_raster_threads": "enabled_on",
+      "opengl": "disabled_off",
+      "rasterization": "disabled_software",
+      "raw_draw": "disabled_off_ok",
+      "skia_graphite": "disabled_off",
+      "trees_in_viz": "disabled_off",
+      "video_decode": "disabled_software",
+      "video_encode": "disabled_software",
+      "webgl": "disabled_off",
+      "webgpu": "disabled_off",
+      "webnn": "disabled_off"
+    },
+    "info": {
+      "auxAttributes": {
+        "amdSwitchable": false,
+        "canSupportThreadedTextureMailbox": false,
+        "directMLFeatureLevel": "Not supported",
+        "dx12FeatureLevel": "Not supported",
+        "glImplementationParts": "(gl=none,angle=none)",
+        "glResetNotificationStrategy": 0,
+        "inProcessGpu": true,
+        "initializationTime": 0,
+        "isAsan": false,
+        "isClangCoverage": false,
+        "jpegDecodeAcceleratorSupported": false,
+        "optimus": false,
+        "overlayInfo": {
+          "bgra8OverlaySupport": "NONE",
+          "directComposition": false,
+          "nv12OverlaySupport": "NONE",
+          "p010OverlaySupport": "NONE",
+          "rgb10a2OverlaySupport": "NONE",
+          "supportsOverlays": false,
+          "yuy2OverlaySupport": "NONE"
+        },
+        "passthroughCmdDecoder": false,
+        "sandboxed": false,
+        "skiaBackendType": "None",
+        "subpixelFontRendering": true,
+        "supportsD3dSharedImages": false,
+        "supportsDirectML": false,
+        "supportsDx12": false,
+        "supportsVulkan": false,
+        "targetCpuBits": 64,
+        "visibilityCallbackCallCount": 0,
+        "vulkanVersion": "Not supported"
+      },
+      "gpuDevice": [
+        {
+          "active": false,
+          "deviceId": 10401,
+          "deviceString": "NVIDIA GeForce RTX 4050 Laptop GPU",
+          "driverVersion": "32.0.15.7283",
+          "gpuPreference": 0,
+          "revision": 161,
+          "subSysId": 306388229,
+          "vendorId": 4318
+        },
+        {
+          "active": false,
+          "deviceId": 140,
+          "deviceString": "Microsoft Basic Render Driver",
+          "driverVersion": "10.0.22621.4249",
+          "gpuPreference": 0,
+          "revision": 0,
+          "subSysId": 0,
+          "vendorId": 5140
+        }
+      ]
+    }
+  },
+  "contentCss": [
+    1920,
+    1080
+  ],
+  "reloadStartupMs": 1678.7,
+  "results": [
+    {
+      "quality": "high",
+      "display": {
+        "cssWidth": 1918,
+        "cssHeight": 933,
+        "pixelWidth": 2397,
+        "pixelHeight": 1166,
+        "devicePixelRatio": 1.25,
+        "actualDpr": 1.2497393117831075,
+        "renderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 4050 Laptop GPU (0x000028A1) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+        "vendor": "Google Inc. (NVIDIA)",
+        "version": "WebGL 2.0 (OpenGL ES 3.0 Chromium)",
+        "contextAttributes": {
+          "alpha": true,
+          "antialias": true,
+          "depth": true,
+          "desynchronized": false,
+          "failIfMajorPerformanceCaveat": false,
+          "powerPreference": "high-performance",
+          "premultipliedAlpha": true,
+          "preserveDrawingBuffer": false,
+          "stencil": false,
+          "xrCompatible": false
+        }
+      },
+      "startupMs": 84.5,
+      "durationMs": 12020.200000047684,
+      "renderedFrames": 1978,
+      "distinctCameraPositions": 1967,
+      "averageFps": 164.5563301768817,
+      "p95FrameMs": 6.199999999998909,
+      "maxSubmittedDraws": 64,
+      "maxSubmittedTriangles": 21992,
+      "currentMachine30Fps": true
+    },
+    {
+      "quality": "medium",
+      "display": {
+        "cssWidth": 1918,
+        "cssHeight": 933,
+        "pixelWidth": 2397,
+        "pixelHeight": 1166,
+        "devicePixelRatio": 1.25,
+        "actualDpr": 1.2497393117831075,
+        "renderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 4050 Laptop GPU (0x000028A1) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+        "vendor": "Google Inc. (NVIDIA)",
+        "version": "WebGL 2.0 (OpenGL ES 3.0 Chromium)",
+        "contextAttributes": {
+          "alpha": true,
+          "antialias": true,
+          "depth": true,
+          "desynchronized": false,
+          "failIfMajorPerformanceCaveat": false,
+          "powerPreference": "high-performance",
+          "premultipliedAlpha": true,
+          "preserveDrawingBuffer": false,
+          "stencil": false,
+          "xrCompatible": false
+        }
+      },
+      "startupMs": 95.1,
+      "durationMs": 12026.699999988079,
+      "renderedFrames": 1980,
+      "distinctCameraPositions": 1966,
+      "averageFps": 164.63369003982493,
+      "p95FrameMs": 6.19999999999709,
+      "maxSubmittedDraws": 64,
+      "maxSubmittedTriangles": 21992,
+      "currentMachine30Fps": true
+    },
+    {
+      "quality": "low",
+      "display": {
+        "cssWidth": 1918,
+        "cssHeight": 933,
+        "pixelWidth": 1918,
+        "pixelHeight": 933,
+        "devicePixelRatio": 1.25,
+        "actualDpr": 1,
+        "renderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 4050 Laptop GPU (0x000028A1) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+        "vendor": "Google Inc. (NVIDIA)",
+        "version": "WebGL 2.0 (OpenGL ES 3.0 Chromium)",
+        "contextAttributes": {
+          "alpha": true,
+          "antialias": true,
+          "depth": true,
+          "desynchronized": false,
+          "failIfMajorPerformanceCaveat": false,
+          "powerPreference": "high-performance",
+          "premultipliedAlpha": true,
+          "preserveDrawingBuffer": false,
+          "stencil": false,
+          "xrCompatible": false
+        }
+      },
+      "startupMs": 120.2,
+      "durationMs": 12015.699999988079,
+      "renderedFrames": 1966,
+      "distinctCameraPositions": 1956,
+      "averageFps": 163.61926479538857,
+      "p95FrameMs": 6.200000000000728,
+      "maxSubmittedDraws": 63,
+      "maxSubmittedTriangles": 21990,
+      "currentMachine30Fps": true
+    }
+  ]
+}

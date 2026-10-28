@@ -1,0 +1,63 @@
+{
+  "schemaVersion": 1,
+  "sources": [
+    {
+      "id": "studio-small-09",
+      "name": "Studio Small 09",
+      "author": "Sergej Majboroda",
+      "url": "https://polyhaven.com/a/studio_small_09",
+      "license": "CC0-1.0",
+      "licenseUrl": "https://polyhaven.com/license",
+      "legalUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "files": [
+        {
+          "path": "resources/hdri/studio_small_09_1k.hdr",
+          "url": "https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/studio_small_09_1k.hdr",
+          "bytes": 1615248,
+          "md5": "d5d7eb9d26d341d6aa4d11c1a54fd97c"
+        }
+      ]
+    },
+    {
+      "id": "tool-pliers",
+      "name": "Pliers",
+      "author": "PierreB3D",
+      "url": "https://polyhaven.com/a/pliers",
+      "license": "CC0-1.0",
+      "licenseUrl": "https://polyhaven.com/license",
+      "legalUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "files": [
+        {
+          "path": "assets/vendor/polyhaven-pliers/pliers_1k.gltf",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/1k/pliers/pliers_1k.gltf",
+          "bytes": 5560,
+          "md5": "1c83e0be2aeebf33e2a750a16c33b2ed"
+        },
+        {
+          "path": "assets/vendor/polyhaven-pliers/pliers.bin",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/4k/pliers/pliers.bin",
+          "bytes": 146348,
+          "md5": "4e7ed7bcaa7b0444ab15ce25742adeb3"
+        },
+        {
+          "path": "assets/vendor/polyhaven-pliers/textures/pliers_nor_gl_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/pliers/pliers_nor_gl_1k.jpg",
+          "bytes": 420328,
+          "md5": "71640ca861416cf5a94337b6b1bc8070"
+        },
+        {
+          "path": "assets/vendor/polyhaven-pliers/textures/pliers_diff_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/pliers/pliers_diff_1k.jpg",
+          "bytes": 669794,
+          "md5": "554ebf0ee29a92b8e17e0ab1b1013424"
+        },
+        {
+          "path": "assets/vendor/polyhaven-pliers/textures/pliers_arm_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/pliers/pliers_arm_1k.jpg",
+          "bytes": 774330,
+          "md5": "1241ca682bb58e3e1395f0818f4331f6"
+        }
+      ]
+    }
+  ]
+}

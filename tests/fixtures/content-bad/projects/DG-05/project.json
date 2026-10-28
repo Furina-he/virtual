@@ -1,0 +1,14 @@
+{
+  "id": "DG-05",
+  "group": "直流",
+  "title": "基尔霍夫",
+  "type": "basic",
+  "modules": [{ "instanceId": "dc1", "moduleId": "mod-x", "slot": "SLOT_BOX_L1" }],
+  "allowedInstruments": ["ins-dcv", "ins-nope"],
+  "reference": {
+    "nets": [["dc1.A", "dc1.Z"]],
+    "measurePoints": [{ "id": "U", "kind": "voltage", "between": ["dc1.A", "ins-dcv.POS"] }]
+  },
+  "steps": [{ "id": "s1", "text": "测量" }],
+  "questions": []
+}

@@ -1,0 +1,18 @@
+* text=auto eol=lf
+
+*.cir text eol=lf
+*.json text eol=lf
+*.md text eol=lf
+*.svg text eol=lf
+*.ts text eol=lf
+*.tsx text eol=lf
+*.yml text eol=lf
+
+*.dll binary
+*.glb binary
+*.hdr binary
+*.jpg binary
+*.jpeg binary
+*.png binary
+*.webp binary
+*.woff2 binary

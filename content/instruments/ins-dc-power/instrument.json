@@ -1,0 +1,77 @@
+{
+  "id": "ins-dc-power",
+  "name": "直流稳压电源",
+  "kind": "dcSupply",
+  "mounting": "fixed",
+  "fixedSlot": "SLOT_INS_DCPOWER",
+  "model": "instrument.glb",
+  "jacks": [
+    {
+      "id": "CH1P",
+      "label": "CH1 +",
+      "kind": "banana4",
+      "polarityHint": "+"
+    },
+    {
+      "id": "CH1N",
+      "label": "CH1 −",
+      "kind": "banana4",
+      "polarityHint": "-"
+    },
+    {
+      "id": "CH2P",
+      "label": "CH2 +",
+      "kind": "banana4",
+      "polarityHint": "+"
+    },
+    {
+      "id": "CH2N",
+      "label": "CH2 −",
+      "kind": "banana4",
+      "polarityHint": "-"
+    }
+  ],
+  "ranges": [
+    {
+      "id": "out30",
+      "full": 30,
+      "unit": "V",
+      "internalR": 0.01,
+      "resolution": 0.01
+    }
+  ],
+  "spiceTemplate": "* 理想源 + 输出内阻（原型选型说明 §7，估计值）；CV/CC 限流属于 INS-07 / T1.2，当前仅模拟恒压输出\nVch1_{X} x1_{X} {J:CH1N} DC {S:ch1_v=6}\nRch1_{X} {J:CH1P} x1_{X} {R}\nVch2_{X} x2_{X} {J:CH2N} DC {S:ch2_v=12}\nRch2_{X} {J:CH2P} x2_{X} {R}",
+  "outputs": [
+    [
+      "CH1P",
+      "CH1N"
+    ],
+    [
+      "CH2P",
+      "CH2N"
+    ]
+  ],
+  "defaultRange": "out30",
+  "settingsControls": [
+    {
+      "id": "ch1_v",
+      "label": "CH1 电压",
+      "unit": "V",
+      "min": 0,
+      "max": 30,
+      "step": 0.1,
+      "default": 6,
+      "anchor": "KNOB_CH1_V"
+    },
+    {
+      "id": "ch2_v",
+      "label": "CH2 电压",
+      "unit": "V",
+      "min": 0,
+      "max": 30,
+      "step": 0.1,
+      "default": 12,
+      "anchor": "KNOB_CH2_V"
+    }
+  ]
+}

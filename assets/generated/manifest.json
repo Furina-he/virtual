@@ -1,0 +1,1680 @@
+{
+  "schemaVersion": 1,
+  "assets": [
+    {
+      "id": "bench",
+      "model": "content/bench/bench.glb",
+      "bytes": 294540,
+      "sha256": "f4336be093abcb9c1854c671cc3203406b6de7821fca76e2d8445f749296a0fc",
+      "triangles": 2134,
+      "drawCalls": 3,
+      "bounds": {
+        "min": [
+          -0.8999999761581421,
+          6.109476258231439e-10,
+          -0.375
+        ],
+        "max": [
+          0.8999999761581421,
+          1.5959999561309814,
+          0.37599998712539673
+        ]
+      },
+      "anchors": [
+        {
+          "name": "SLOT_INS_DCV",
+          "position": [
+            -0.12,
+            1.405,
+            -0.27
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "SLOT_INS_DCA",
+          "position": [
+            0.11,
+            1.405,
+            -0.27
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "SLOT_INS_DCPOWER",
+          "position": [
+            -0.62,
+            0.97,
+            -0.266
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "SLOT_BOX_L1",
+          "position": [
+            -0.12,
+            0.865,
+            -0.2
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "SLOT_BOX_L2",
+          "position": [
+            0.19,
+            0.865,
+            -0.2
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "SLOT_BOX_S1",
+          "position": [
+            0.425,
+            0.865,
+            -0.2
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "SLOT_BOX_S2",
+          "position": [
+            0.59,
+            0.865,
+            -0.2
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "SLOT_DESK_1",
+          "position": [
+            -0.5,
+            0.8,
+            0.13
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "SLOT_DESK_2",
+          "position": [
+            -0.15,
+            0.8,
+            0.23
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "SLOT_DESK_3",
+          "position": [
+            0.22,
+            0.8,
+            0.2
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "SLOT_DESK_4",
+          "position": [
+            0.59,
+            0.8,
+            0.2
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "SLOT_SCOPE",
+          "position": [
+            0.6,
+            0.8,
+            0.07
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "textures": [
+        {
+          "mimeType": "image/webp",
+          "width": 2048,
+          "height": 128
+        }
+      ]
+    },
+    {
+      "id": "mod-dc-circuit",
+      "model": "content/modules/mod-dc-circuit/module.glb",
+      "bytes": 672168,
+      "sha256": "3fe0dcd03661e3debede1abbefafa52b532c39dc21b9df14ef5062017c69defe",
+      "triangles": 4790,
+      "drawCalls": 6,
+      "bounds": {
+        "min": [
+          -0.14499999582767487,
+          5.9604643443123e-10,
+          -0.030500000342726707
+        ],
+        "max": [
+          0.14499999582767487,
+          0.4699999988079071,
+          0.041299999594688414
+        ]
+      },
+      "anchors": [
+        {
+          "name": "JACK_KH_U1P",
+          "position": [
+            -0.127,
+            0.38,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_KH_U1N",
+          "position": [
+            -0.127,
+            0.33,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_KH_U2P",
+          "position": [
+            0.127,
+            0.38,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_KH_U2N",
+          "position": [
+            0.127,
+            0.33,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_KH_F",
+          "position": [
+            -0.1,
+            0.41,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_KH_A",
+          "position": [
+            0,
+            0.425,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_KH_B",
+          "position": [
+            0.1,
+            0.41,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_KH_E",
+          "position": [
+            -0.1,
+            0.28,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_KH_D",
+          "position": [
+            0,
+            0.28,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_KH_C",
+          "position": [
+            0.1,
+            0.28,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_KH_I1A",
+          "position": [
+            -0.047,
+            0.41,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_KH_I1B",
+          "position": [
+            -0.027,
+            0.41,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_KH_I2A",
+          "position": [
+            0.027,
+            0.41,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_KH_I2B",
+          "position": [
+            0.047,
+            0.41,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_KH_I3A",
+          "position": [
+            0,
+            0.385,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_KH_I3B",
+          "position": [
+            0,
+            0.365,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_TH_USP",
+          "position": [
+            -0.125,
+            0.17,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_TH_USN",
+          "position": [
+            -0.125,
+            0.06,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_TH_ISP",
+          "position": [
+            0.03,
+            0.14,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_TH_ISN",
+          "position": [
+            0.03,
+            0.06,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_TH_IA",
+          "position": [
+            0.095,
+            0.17,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_TH_IB",
+          "position": [
+            0.117,
+            0.17,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_TH_A",
+          "position": [
+            0.117,
+            0.115,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_TH_B",
+          "position": [
+            0.117,
+            0.06,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "SW_K1",
+          "position": [
+            -0.1,
+            0.355,
+            0.029
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "SW_K2",
+          "position": [
+            0.1,
+            0.355,
+            0.029
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "SW_K3",
+          "position": [
+            0.075,
+            0.28,
+            0.029
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "textures": [
+        {
+          "mimeType": "image/webp",
+          "width": 1264,
+          "height": 2048
+        }
+      ]
+    },
+    {
+      "id": "ins-dc-voltmeter",
+      "model": "content/instruments/ins-dc-voltmeter/instrument.glb",
+      "bytes": 150656,
+      "sha256": "daf050283b143e3cd46fec732d50199e59acb72defe9ea3f94b29c9e3b884173",
+      "triangles": 1060,
+      "drawCalls": 6,
+      "bounds": {
+        "min": [
+          -0.07999999821186066,
+          8.940696516468449e-10,
+          -0.05000000074505806
+        ],
+        "max": [
+          0.07999999821186066,
+          0.07999999821186066,
+          0.05404999852180481
+        ]
+      },
+      "anchors": [
+        {
+          "name": "JACK_POS",
+          "position": [
+            0.048,
+            0.023,
+            0.054000000000000006
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_NEG",
+          "position": [
+            0.067,
+            0.023,
+            0.054000000000000006
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "SW_RANGE",
+          "position": [
+            0.01,
+            0.021,
+            0.051500000000000004
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "SCREEN_MAIN",
+          "position": [
+            -0.027,
+            0.046,
+            0.0534
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "LED_OL",
+          "position": [
+            0.028,
+            0.054,
+            0.05260000000000001
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "textures": [
+        {
+          "mimeType": "image/webp",
+          "width": 1024,
+          "height": 512
+        }
+      ]
+    },
+    {
+      "id": "ins-dc-ammeter",
+      "model": "content/instruments/ins-dc-ammeter/instrument.glb",
+      "bytes": 150812,
+      "sha256": "a22b704bfea8e8774cd030894d18c230abc9868cefc189516185ec0bbad00f5d",
+      "triangles": 1060,
+      "drawCalls": 6,
+      "bounds": {
+        "min": [
+          -0.07999999821186066,
+          8.940696516468449e-10,
+          -0.05000000074505806
+        ],
+        "max": [
+          0.07999999821186066,
+          0.07999999821186066,
+          0.05404999852180481
+        ]
+      },
+      "anchors": [
+        {
+          "name": "JACK_POS",
+          "position": [
+            0.048,
+            0.023,
+            0.054000000000000006
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_NEG",
+          "position": [
+            0.067,
+            0.023,
+            0.054000000000000006
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "SW_RANGE",
+          "position": [
+            0.01,
+            0.021,
+            0.051500000000000004
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "SCREEN_MAIN",
+          "position": [
+            -0.027,
+            0.046,
+            0.0534
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "LED_OL",
+          "position": [
+            0.028,
+            0.054,
+            0.05260000000000001
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "textures": [
+        {
+          "mimeType": "image/webp",
+          "width": 1024,
+          "height": 512
+        }
+      ]
+    },
+    {
+      "id": "ins-multimeter",
+      "model": "content/instruments/ins-multimeter/instrument.glb",
+      "bytes": 275112,
+      "sha256": "09fa949087da541ac017f3dca1dd707b35e9f9a121f14568203dcbc43a327c63",
+      "triangles": 1964,
+      "drawCalls": 6,
+      "bounds": {
+        "min": [
+          -0.045499999076128006,
+          -3.5762786065873797e-9,
+          -0.020999999716877937
+        ],
+        "max": [
+          0.045499999076128006,
+          0.18000000715255737,
+          0.034275000184774404
+        ]
+      },
+      "anchors": [
+        {
+          "name": "JACK_COM",
+          "position": [
+            -0.011,
+            0.025,
+            0.024
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_VOHM",
+          "position": [
+            0.009,
+            0.025,
+            0.024
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_MA",
+          "position": [
+            0.029,
+            0.025,
+            0.024
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_A10",
+          "position": [
+            -0.031,
+            0.025,
+            0.024
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "KNOB_FUNCTION",
+          "position": [
+            0,
+            0.077,
+            0.021500000000000002
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "SW_HOLD",
+          "position": [
+            0.022,
+            0.117,
+            0.021500000000000002
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "SCREEN_MAIN",
+          "position": [
+            0,
+            0.145,
+            0.023399999999999997
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "textures": [
+        {
+          "mimeType": "image/webp",
+          "width": 512,
+          "height": 1024
+        }
+      ]
+    },
+    {
+      "id": "ins-dc-power",
+      "model": "content/instruments/ins-dc-power/instrument.glb",
+      "bytes": 462276,
+      "sha256": "6712ee427917b660499ee4b249145e320223dae0ae50c9f51c9c0a863f957044",
+      "triangles": 3370,
+      "drawCalls": 14,
+      "bounds": {
+        "min": [
+          -0.20999999344348907,
+          -1.7881393032936899e-9,
+          -0.05000000074505806
+        ],
+        "max": [
+          0.20999999344348907,
+          0.3400000035762787,
+          0.0642750001847744
+        ]
+      },
+      "anchors": [
+        {
+          "name": "JACK_CH1P",
+          "position": [
+            -0.155,
+            0.065,
+            0.054000000000000006
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_CH1N",
+          "position": [
+            -0.088,
+            0.065,
+            0.054000000000000006
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_CH2P",
+          "position": [
+            0.055,
+            0.065,
+            0.054000000000000006
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_CH2N",
+          "position": [
+            0.122,
+            0.065,
+            0.054000000000000006
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "KNOB_CH1_V",
+          "position": [
+            -0.145,
+            0.166,
+            0.051500000000000004
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "KNOB_CH1_I",
+          "position": [
+            -0.07,
+            0.166,
+            0.051500000000000004
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "KNOB_CH2_V",
+          "position": [
+            0.065,
+            0.166,
+            0.051500000000000004
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "KNOB_CH2_I",
+          "position": [
+            0.14,
+            0.166,
+            0.051500000000000004
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "SW_OUTPUT",
+          "position": [
+            0,
+            0.048,
+            0.051500000000000004
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "SCREEN_CH1",
+          "position": [
+            -0.107,
+            0.252,
+            0.0534
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "SCREEN_CH2",
+          "position": [
+            0.103,
+            0.252,
+            0.0534
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "LED_CV1",
+          "position": [
+            -0.137,
+            0.214,
+            0.05260000000000001
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "LED_CC1",
+          "position": [
+            -0.081,
+            0.214,
+            0.05260000000000001
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "LED_CV2",
+          "position": [
+            0.073,
+            0.214,
+            0.05260000000000001
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "LED_CC2",
+          "position": [
+            0.129,
+            0.214,
+            0.05260000000000001
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "textures": [
+        {
+          "mimeType": "image/webp",
+          "width": 1536,
+          "height": 1244
+        }
+      ]
+    },
+    {
+      "id": "ins-oscilloscope",
+      "model": "content/instruments/ins-oscilloscope/instrument.glb",
+      "bytes": 640448,
+      "sha256": "f195d7316ead4c5e67e2ed7216d06c4288f054db962d47c70c93a70f22e636ac",
+      "triangles": 4612,
+      "drawCalls": 13,
+      "bounds": {
+        "min": [
+          -0.1599999964237213,
+          -1.8998980166884394e-10,
+          -0.06350000202655792
+        ],
+        "max": [
+          0.1599999964237213,
+          0.16005000472068787,
+          0.0690750001706183
+        ]
+      },
+      "anchors": [
+        {
+          "name": "JACK_CH1",
+          "position": [
+            0.049,
+            0.018,
+            0.067
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_CH2",
+          "position": [
+            0.092,
+            0.018,
+            0.067
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_OUT",
+          "position": [
+            0.136,
+            0.018,
+            0.067
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "KNOB_CH1_SCALE",
+          "position": [
+            0.048,
+            0.095,
+            0.0615
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "KNOB_CH1_POSITION",
+          "position": [
+            0.048,
+            0.059,
+            0.0615
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "KNOB_CH2_SCALE",
+          "position": [
+            0.088,
+            0.095,
+            0.0615
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "KNOB_CH2_POSITION",
+          "position": [
+            0.088,
+            0.059,
+            0.0615
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "KNOB_TIMEBASE",
+          "position": [
+            0.13,
+            0.095,
+            0.0615
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "KNOB_TRIGGER",
+          "position": [
+            0.13,
+            0.059,
+            0.0615
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "SW_AUTO",
+          "position": [
+            0.057,
+            0.132,
+            0.0615
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "SW_RUN",
+          "position": [
+            0.107,
+            0.132,
+            0.0615
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "SCREEN_MAIN",
+          "position": [
+            -0.062,
+            0.078,
+            0.0634
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "textures": [
+        {
+          "mimeType": "image/webp",
+          "width": 1536,
+          "height": 768
+        }
+      ]
+    },
+    {
+      "id": "ins-func-gen",
+      "model": "content/instruments/ins-func-gen/instrument.glb",
+      "bytes": 420292,
+      "sha256": "d402d8a7397cce474db3d83cebae8e0285a4a21a9a9a8fce826a5fd5fa66987c",
+      "triangles": 3000,
+      "drawCalls": 9,
+      "bounds": {
+        "min": [
+          -0.12999999523162842,
+          -7.450580707946131e-10,
+          -0.1535000056028366
+        ],
+        "max": [
+          0.12999999523162842,
+          0.10005000233650208,
+          0.1607749996110797
+        ]
+      },
+      "anchors": [
+        {
+          "name": "JACK_CH1",
+          "position": [
+            0.039,
+            0.02,
+            0.157
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_CH2",
+          "position": [
+            0.078,
+            0.02,
+            0.157
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_TTL",
+          "position": [
+            0.115,
+            0.02,
+            0.157
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "KNOB_VALUE",
+          "position": [
+            0.035,
+            0.061,
+            0.1515
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "KNOB_ADJUST",
+          "position": [
+            0.094,
+            0.061,
+            0.1515
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "SW_CH_SELECT",
+          "position": [
+            -0.054,
+            0.021,
+            0.1515
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "SW_WAVEFORM",
+          "position": [
+            -0.096,
+            0.021,
+            0.1515
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "SW_OUTPUT",
+          "position": [
+            -0.01,
+            0.021,
+            0.1515
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "SCREEN_MAIN",
+          "position": [
+            -0.063,
+            0.058,
+            0.1534
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "textures": [
+        {
+          "mimeType": "image/webp",
+          "width": 1536,
+          "height": 592
+        }
+      ]
+    },
+    {
+      "id": "cmp-resistor",
+      "model": "content/models/components/cmp-resistor.glb",
+      "bytes": 42972,
+      "sha256": "fb0cae433260f7e9aaa731b1175593a1c73169e444deacab7321eaa828ce2e91",
+      "triangles": 304,
+      "drawCalls": 2,
+      "bounds": {
+        "min": [
+          -0.012000000104308128,
+          0,
+          -0.001500000013038516
+        ],
+        "max": [
+          0.012000000104308128,
+          0.004000000189989805,
+          0.001500000013038516
+        ]
+      },
+      "anchors": [],
+      "textures": []
+    },
+    {
+      "id": "cmp-diode",
+      "model": "content/models/components/cmp-diode.glb",
+      "bytes": 23968,
+      "sha256": "63f96bd68acf0883c5cea7d327e71777db7ac81225b57ad4cde8150f64e81294",
+      "triangles": 160,
+      "drawCalls": 2,
+      "bounds": {
+        "min": [
+          -0.012000000104308128,
+          0,
+          -0.0017500000540167093
+        ],
+        "max": [
+          0.012000000104308128,
+          0.0044999998062849045,
+          0.0017500000540167093
+        ]
+      },
+      "anchors": [],
+      "textures": []
+    },
+    {
+      "id": "cmp-capacitor-ceramic",
+      "model": "content/models/components/cmp-capacitor-ceramic.glb",
+      "bytes": 33484,
+      "sha256": "6b7cffe65980a44a504bdeb70b573688b8a7628700ae60b799d089c51edc0661",
+      "triangles": 232,
+      "drawCalls": 2,
+      "bounds": {
+        "min": [
+          -0.0035000001080334187,
+          0,
+          -0.001500000013038516
+        ],
+        "max": [
+          0.0035000001080334187,
+          0.013000000268220901,
+          0.001500000013038516
+        ]
+      },
+      "anchors": [],
+      "textures": []
+    },
+    {
+      "id": "cmp-capacitor-electrolytic",
+      "model": "content/models/components/cmp-capacitor-electrolytic.glb",
+      "bytes": 35084,
+      "sha256": "7706f0f5d78c899c29e7979dce6b4466c42cd44d5b16825c94603acebea24fb0",
+      "triangles": 244,
+      "drawCalls": 2,
+      "bounds": {
+        "min": [
+          -0.004000000189989805,
+          0,
+          -0.004000000189989805
+        ],
+        "max": [
+          0.004000000189989805,
+          0.016999999061226845,
+          0.004000000189989805
+        ]
+      },
+      "anchors": [],
+      "textures": []
+    },
+    {
+      "id": "cmp-led",
+      "model": "content/models/components/cmp-led.glb",
+      "bytes": 41392,
+      "sha256": "1b4546f1342f2ad634c8646efbfebef0aab5e8d2aed9278e81f1699eb93415d3",
+      "triangles": 292,
+      "drawCalls": 2,
+      "bounds": {
+        "min": [
+          -0.002899999963119626,
+          0,
+          -0.002899999963119626
+        ],
+        "max": [
+          0.002899999963119626,
+          0.014999999664723873,
+          0.002899999963119626
+        ]
+      },
+      "anchors": [],
+      "textures": []
+    },
+    {
+      "id": "cmp-transistor-to92",
+      "model": "content/models/components/cmp-transistor-to92.glb",
+      "bytes": 20892,
+      "sha256": "b345c7b1d6f22d941be3c5ddcdc964fc18205dd54f6e0b2e80f60e3e70528794",
+      "triangles": 136,
+      "drawCalls": 2,
+      "bounds": {
+        "min": [
+          -0.0024999999441206455,
+          0,
+          -0.0020000000949949026
+        ],
+        "max": [
+          0.0024999999441206455,
+          0.012000000104308128,
+          0.0020000000949949026
+        ]
+      },
+      "anchors": [],
+      "textures": []
+    },
+    {
+      "id": "cmp-potentiometer",
+      "model": "content/models/components/cmp-potentiometer.glb",
+      "bytes": 37704,
+      "sha256": "301188b5c406d206bfaac6851f715368e74babfd52937421451be6dcdefe72de",
+      "triangles": 264,
+      "drawCalls": 2,
+      "bounds": {
+        "min": [
+          -0.008500000461935997,
+          0,
+          -0.008500000461935997
+        ],
+        "max": [
+          0.008500000461935997,
+          0.028999999165534973,
+          0.008500000461935997
+        ]
+      },
+      "anchors": [],
+      "textures": []
+    },
+    {
+      "id": "cmp-switch",
+      "model": "content/models/components/cmp-switch.glb",
+      "bytes": 44108,
+      "sha256": "efa7289bc23ed4aa0633041a58a8539ccda8bab3f03e11a86fa70dac889f7cf6",
+      "triangles": 312,
+      "drawCalls": 2,
+      "bounds": {
+        "min": [
+          -0.006500000134110451,
+          0,
+          -0.0044999998062849045
+        ],
+        "max": [
+          0.006500000134110451,
+          0.026000000536441803,
+          0.0044999998062849045
+        ]
+      },
+      "anchors": [],
+      "textures": []
+    },
+    {
+      "id": "cmp-dip8",
+      "model": "content/models/components/cmp-dip8.glb",
+      "bytes": 85272,
+      "sha256": "68280bb599331259cfba6a3ce0e9720b4064eb43a1f1236b32f4dfda004e2363",
+      "triangles": 624,
+      "drawCalls": 2,
+      "bounds": {
+        "min": [
+          -0.005499999970197678,
+          0,
+          -0.004999999888241291
+        ],
+        "max": [
+          0.005499999970197678,
+          0.006000000052154064,
+          0.004999999888241291
+        ]
+      },
+      "anchors": [],
+      "textures": []
+    },
+    {
+      "id": "cmp-banana-jack",
+      "model": "content/models/components/cmp-banana-jack.glb",
+      "bytes": 68344,
+      "sha256": "6f70186655d35a287b3887b01a80ff5b433a382eef74b9d231adf1803800715c",
+      "triangles": 496,
+      "drawCalls": 2,
+      "bounds": {
+        "min": [
+          -0.005499999970197678,
+          0,
+          -0.012000000104308128
+        ],
+        "max": [
+          0.005499999970197678,
+          0.010999999940395355,
+          0.012000000104308128
+        ]
+      },
+      "anchors": [],
+      "textures": []
+    },
+    {
+      "id": "tool-pliers",
+      "model": "content/models/tools/pliers.glb",
+      "bytes": 195712,
+      "sha256": "8231ad097e89108f6c6a010a7d33b185f944397f91bfd34e8f024fd4b78fa664",
+      "triangles": 4540,
+      "drawCalls": 3,
+      "bounds": {
+        "min": [
+          -0.030753531575111365,
+          0,
+          -0.010003965690647659
+        ],
+        "max": [
+          0.030753531575111365,
+          0.2,
+          0.010003965690647659
+        ]
+      },
+      "anchors": [],
+      "textures": []
+    }
+  ],
+  "preview": {
+    "triangles": 21990,
+    "drawCalls": 63
+  },
+  "issues": []
+}
