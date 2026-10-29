@@ -1885,8 +1885,8 @@
     {
       "id": "mod-voltage-follower",
       "model": "content/modules/mod-voltage-follower/module.glb",
-      "bytes": 160368,
-      "sha256": "e40b2f87ee30c709acf18ddc90ed5a5a19205b375febac3e669d462dca81ce95",
+      "bytes": 160176,
+      "sha256": "01081a207b4310ea1d5775012f29e19a77e1ddd6f97c52a244e19a5d3009b327",
       "triangles": 1010,
       "drawCalls": 3,
       "bounds": {
