@@ -431,7 +431,8 @@ export class SimSession {
 
   private sendReadings(): void {
     const cmd = this.current
-    if (this.state !== 'running' || !cmd || !this.chunker) return
+    // Only publish samples drained for this load; trim retains the actual last sample at readIdx=1.
+    if (this.state !== 'running' || !cmd || !this.chunker || this.readIdx === 0) return
     const values: Record<string, number> = {}
     cmd.probes.forEach((p, i) => {
       values[p.id] = this.probeValues[i] ?? 0
