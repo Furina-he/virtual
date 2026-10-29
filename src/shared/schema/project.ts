@@ -95,6 +95,7 @@ export const Step = z.object({
     .array(z.string().min(1))
     .refine((points) => new Set(points).size === points.length, '步骤测量点不能重复')
     .optional(),
+  referenceNets: z.array(z.array(JackRef).min(2)).min(1).optional(),
   checkWiring: z.boolean().optional(),
   recordTable: z.string().min(1).optional(),
   dataTable: z.string().min(1).optional(),
@@ -126,23 +127,27 @@ export const Project = z
   })
   .superRefine((p, ctx) => {
     // 参考拓扑中一个插孔只能属于一个网络
-    const owner = new Map<string, number>()
-    p.reference.nets.forEach((net, i) => {
-      net.forEach((ref, j) => {
-        const prev = owner.get(ref)
-        if (prev !== undefined)
-          ctx.addIssue({
-            code: 'custom',
-            message: `插孔 ${ref} 同时出现在网络 ${prev} 和 ${i}`,
-            path: ['reference', 'nets', i, j],
-          })
-        owner.set(ref, i)
+    const validateNets = (nets: string[][], path: (string | number)[]) => {
+      const owner = new Map<string, number>()
+      nets.forEach((net, i) => {
+        net.forEach((ref, j) => {
+          const prev = owner.get(ref)
+          if (prev !== undefined)
+            ctx.addIssue({
+              code: 'custom',
+              message: `插孔 ${ref} 同时出现在网络 ${prev} 和 ${i}`,
+              path: [...path, i, j],
+            })
+          owner.set(ref, i)
+        })
       })
-    })
+    }
+    validateNets(p.reference.nets, ['reference', 'nets'])
     const points = new Set(p.reference.measurePoints.map((m) => m.id))
     const tables = new Map(p.dataTables.map((t) => [t.id, new Set(t.columns.map((c) => c.id))]))
     const steps = new Set(p.steps.map((step) => step.id))
     p.steps.forEach((s, i) => {
+      if (s.referenceNets) validateNets(s.referenceNets, ['steps', i, 'referenceNets'])
       if (s.expect && !points.has(s.expect.measurePoint))
         ctx.addIssue({
           code: 'custom',

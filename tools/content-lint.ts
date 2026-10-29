@@ -95,6 +95,13 @@ export function lintContent(root: string): LintIssue[] {
         checkRef(ref, `reference.nets[${i}][${j}]`)
       })
     })
+    p.steps.forEach((step, i) => {
+      step.referenceNets?.forEach((net, j) => {
+        net.forEach((ref, k) => {
+          checkRef(ref, `steps[${i}].referenceNets[${j}][${k}]`)
+        })
+      })
+    })
     p.reference.measurePoints.forEach((mp, i) => {
       mp.between?.forEach((ref, j) => {
         checkRef(ref, `reference.measurePoints[${i}].between[${j}]`)
