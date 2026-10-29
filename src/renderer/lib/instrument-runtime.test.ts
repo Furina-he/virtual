@@ -30,6 +30,11 @@ const fixture = vi.hoisted(() => ({
     onSamples: (id: string, listener: SamplesListener) => () => void
   },
 }))
+const sound = vi.hoisted(() => ({
+  outputs: [] as { feed: ReturnType<typeof vi.fn>; stop: ReturnType<typeof vi.fn> }[],
+  contexts: [] as { resume: ReturnType<typeof vi.fn>; close: ReturnType<typeof vi.fn> }[],
+  create: vi.fn(),
+}))
 
 vi.mock('./sim-client', () => ({ getSimClient: () => fixture.sim }))
 vi.mock('../features/practice/practice-content', () => ({
@@ -55,6 +60,7 @@ vi.mock('../features/practice/wiring-state', () => ({
   },
 }))
 vi.mock('../stores/instrument-panels', () => ({ connectInstrumentPanels: () => () => {} }))
+vi.mock('./audio/sim-audio', () => ({ SimAudioOutput: { create: sound.create } }))
 
 const load = (id: string) =>
   Instrument.parse(JSON.parse(readFileSync(`content/instruments/${id}/instrument.json`, 'utf8')))
@@ -63,7 +69,7 @@ const scope = load('ins-oscilloscope')
 const meter = load('ins-multimeter')
 let disconnect: (() => void) | undefined
 
-function useModule(transient = true) {
+function useModule(transient = true, speaker = false) {
   fixture.modules.push(
     Module.parse({
       id: 'mod-runtime-test',
@@ -86,6 +92,9 @@ function useModule(transient = true) {
           targets: [{ element: 'R1' }],
         },
       ],
+      ...(speaker
+        ? { indicators: [{ id: 'sound', kind: 'speaker', between: ['P', 'N'], audio: { fullScale: 5 } }] }
+        : {}),
       ...(transient ? { simulation: { analysis: 'tran', maxStep: 1e-4 } } : {}),
     }),
   )
@@ -120,8 +129,22 @@ async function start() {
   await vi.advanceTimersByTimeAsync(40)
   const command = vi.mocked(fixture.sim.send).mock.calls.find(([entry]) => entry.type === 'load')?.[0]
   if (command?.type !== 'load') throw new Error('Missing measurement load')
-  emit({ type: 'loaded', vectors: command.probes.map((probe) => probe.id) })
+  emit({ type: 'loaded', requestId: command.requestId, vectors: command.probes.map((probe) => probe.id) })
+  await vi.advanceTimersByTimeAsync(0)
   return command
+}
+
+function latestLoad() {
+  const command = vi
+    .mocked(fixture.sim.send)
+    .mock.calls.filter(([entry]) => entry.type === 'load')
+    .at(-1)?.[0]
+  if (command?.type !== 'load') throw new Error('Missing measurement load')
+  return command
+}
+
+function acknowledgeLoad(command: Extract<SimCommand, { type: 'load' }>) {
+  emit({ type: 'loaded', requestId: command.requestId, vectors: command.probes.map((probe) => probe.id) })
 }
 
 beforeEach(() => {
@@ -132,6 +155,23 @@ beforeEach(() => {
   fixture.samples.clear()
   fixture.modules.length = 0
   fixture.netlist = ''
+  sound.outputs.length = 0
+  sound.contexts.length = 0
+  sound.create.mockReset().mockImplementation(async () => {
+    const output = { feed: vi.fn(), stop: vi.fn() }
+    sound.outputs.push(output)
+    return output
+  })
+  vi.stubGlobal(
+    'AudioContext',
+    class {
+      resume = vi.fn(async () => {})
+      close = vi.fn(async () => {})
+      constructor() {
+        sound.contexts.push(this)
+      }
+    },
+  )
   fixture.instruments = [
     { instanceId: 'gen1', instrument: gen, settings: { ...getInstrumentDefaults(gen), ch1_freq: 5000 } },
     { instanceId: 'scope1', instrument: scope, settings: getInstrumentDefaults(scope) },
@@ -184,9 +224,146 @@ afterEach(() => {
   disconnect = undefined
   instrumentReadings.dispose()
   vi.useRealTimers()
+  vi.unstubAllGlobals()
 })
 
 describe('instrument runtime integration', () => {
+  it('waits for the matching native load before starting or feeding a prepared speaker', async () => {
+    useModule(true, true)
+    disconnect = connectInstrumentRuntime(vi.fn())
+    await vi.advanceTimersByTimeAsync(40)
+    const command = latestLoad()
+    if (command.analysis.kind !== 'tran') throw new Error('Missing transient')
+    const probe = 'indicator:box1:sound'
+    const output = sound.outputs[0]
+    expect(output).toBeDefined()
+    expect(command.requestId).toMatch(/^measurement-load-/)
+    const samples = Float32Array.of(1, 2, 3)
+    chunk(probe, samples, 10, command.analysis.step)
+    emit({ type: 'readings', simTime: 10, values: Object.fromEntries(command.probes.map((entry) => [entry.id, 1])) })
+    expect(output?.feed).not.toHaveBeenCalled()
+    expect(currentMeasurementSnapshot()?.current).toBe(false)
+    expect(vi.mocked(fixture.sim.send).mock.calls.map(([entry]) => entry.type)).toEqual(['load'])
+    emit({ type: 'loaded', requestId: 'superseded-load', vectors: [] })
+    await vi.advanceTimersByTimeAsync(0)
+    expect(fixture.samples.get(probe)?.size ?? 0).toBe(0)
+    acknowledgeLoad(command)
+    await vi.advanceTimersByTimeAsync(0)
+    expect(fixture.samples.get(probe)?.size).toBe(1)
+    chunk(probe, samples, 0, command.analysis.step)
+    expect(output?.feed).toHaveBeenCalledExactlyOnceWith(samples, 0, command.analysis.step)
+    expect(vi.mocked(fixture.sim.send).mock.calls.map(([entry]) => entry.type)).toEqual(['load', 'setPacing', 'run'])
+  })
+
+  it('ignores superseded load acknowledgements, tails and errors without starting the latest speaker early', async () => {
+    useModule(true, true)
+    await start()
+    const probe = 'indicator:box1:sound'
+    const reload = async (frequency: number) => {
+      fixture.instruments = fixture.instruments.map((entry) =>
+        entry.instanceId === 'gen1' ? { ...entry, settings: { ...entry.settings, ch1_freq: frequency } } : entry,
+      )
+      changeControl(1000)
+      await vi.advanceTimersByTimeAsync(40)
+      return latestLoad()
+    }
+    const superseded = await reload(1000)
+    const latest = await reload(2000)
+    expect(superseded.requestId).not.toBe(latest.requestId)
+    expect(sound.outputs[0]?.stop).toHaveBeenCalledTimes(1)
+    expect(sound.outputs[1]?.stop).toHaveBeenCalledTimes(1)
+    acknowledgeLoad(superseded)
+    emit({ type: 'error', requestId: superseded.requestId, code: 'model', message: 'Old queued load failed' })
+    chunk(probe, Float32Array.of(9), 10, 1e-4)
+    await vi.advanceTimersByTimeAsync(0)
+    expect(fixture.state.powered).toBe(true)
+    expect(fixture.samples.get(probe)?.size ?? 0).toBe(0)
+    expect(sound.outputs[2]?.feed).not.toHaveBeenCalled()
+    expect(vi.mocked(fixture.sim.send).mock.calls.filter(([entry]) => entry.type === 'run')).toHaveLength(1)
+    acknowledgeLoad(latest)
+    await vi.advanceTimersByTimeAsync(0)
+    chunk(probe, Float32Array.of(2), 0, 1e-4)
+    expect(sound.outputs[2]?.feed).toHaveBeenCalledExactlyOnceWith(Float32Array.of(2), 0, 1e-4)
+    expect(vi.mocked(fixture.sim.send).mock.calls.filter(([entry]) => entry.type === 'run')).toHaveLength(2)
+    expect(fixture.samples.get(probe)?.size).toBe(1)
+  })
+
+  it('replaces the speaker timebase on an actual replay of the same load request', async () => {
+    useModule(true, true)
+    const command = await start()
+    const probe = 'indicator:box1:sound'
+    chunk(probe, Float32Array.of(1), 10, 1e-4)
+    expect(sound.outputs[0]?.feed).toHaveBeenCalledTimes(1)
+    acknowledgeLoad(command)
+    await vi.advanceTimersByTimeAsync(0)
+    expect(sound.outputs[0]?.stop).toHaveBeenCalledTimes(1)
+    expect(sound.contexts[0]?.close).toHaveBeenCalledTimes(1)
+    chunk(probe, Float32Array.of(2), 0, 1e-4)
+    expect(sound.outputs[0]?.feed).toHaveBeenCalledTimes(1)
+    expect(sound.outputs[1]?.feed).toHaveBeenCalledExactlyOnceWith(Float32Array.of(2), 0, 1e-4)
+    expect(fixture.samples.get(probe)?.size).toBe(1)
+  })
+
+  it('waits for a replayed speaker that replaced the ready group while pacing was in flight', async () => {
+    useModule(true, true)
+    let releasePacing!: () => void
+    vi.mocked(fixture.sim.send).mockImplementation((command) =>
+      command.type === 'setPacing'
+        ? new Promise<void>((resolve) => {
+            releasePacing = resolve
+          })
+        : Promise.resolve(),
+    )
+    const command = await start()
+    const replacement = { feed: vi.fn(), stop: vi.fn() }
+    let prepareReplacement!: (output: typeof replacement) => void
+    sound.create.mockImplementationOnce(
+      () =>
+        new Promise<typeof replacement>((resolve) => {
+          prepareReplacement = resolve
+        }),
+    )
+    acknowledgeLoad(command)
+    await vi.advanceTimersByTimeAsync(0)
+    expect(sound.outputs[0]?.stop).toHaveBeenCalledTimes(1)
+    releasePacing()
+    await vi.advanceTimersByTimeAsync(0)
+    expect(vi.mocked(fixture.sim.send).mock.calls.filter(([entry]) => entry.type === 'run')).toHaveLength(0)
+    expect(fixture.samples.get('indicator:box1:sound')?.size ?? 0).toBe(0)
+    prepareReplacement(replacement)
+    await vi.advanceTimersByTimeAsync(0)
+    expect(vi.mocked(fixture.sim.send).mock.calls.filter(([entry]) => entry.type === 'run')).toHaveLength(1)
+    chunk('indicator:box1:sound', Float32Array.of(2), 0, 1e-4)
+    expect(replacement.feed).toHaveBeenCalledExactlyOnceWith(Float32Array.of(2), 0, 1e-4)
+  })
+
+  it('visibly releases an active speaker if an unrelated actual native session replaces it', async () => {
+    useModule(true, true)
+    await start()
+    emit({ type: 'loaded', requestId: 'unrelated-session', vectors: [] })
+    expect(fixture.state.powered).toBe(false)
+    expect(currentMeasurementSnapshot()).toBeUndefined()
+    expect(sound.outputs[0]?.stop).toHaveBeenCalledTimes(1)
+    expect(sound.contexts[0]?.close).toHaveBeenCalledTimes(1)
+    expect(fixture.samples.get('indicator:box1:sound')?.size ?? 0).toBe(0)
+  })
+
+  it('releases a prepared speaker on disposal and cannot resume from its late load acknowledgement', async () => {
+    useModule(true, true)
+    disconnect = connectInstrumentRuntime(vi.fn())
+    await vi.advanceTimersByTimeAsync(40)
+    const command = latestLoad()
+    disconnect()
+    disconnect = undefined
+    acknowledgeLoad(command)
+    await vi.advanceTimersByTimeAsync(0)
+    chunk('indicator:box1:sound', Float32Array.of(2), 0, 1e-4)
+    expect(sound.outputs[0]?.feed).not.toHaveBeenCalled()
+    expect(sound.outputs[0]?.stop).toHaveBeenCalledTimes(1)
+    expect(sound.contexts[0]?.close).toHaveBeenCalledTimes(1)
+    expect(vi.mocked(fixture.sim.send).mock.calls.filter(([entry]) => entry.type === 'run')).toHaveLength(0)
+  })
+
   it('updates only numeric module parameters without reloading or replacing live subscriptions', async () => {
     useModule()
     const command = await start()
@@ -362,7 +539,7 @@ describe('instrument runtime integration', () => {
       .mock.calls.filter(([entry]) => entry.type === 'load')
       .at(-1)?.[0]
     if (next?.type !== 'load') throw new Error('Missing reloaded measurement plan')
-    emit({ type: 'loaded', vectors: next.probes.map((probe) => probe.id) })
+    acknowledgeLoad(next)
     expect(currentMeasurementSnapshot()?.current).toBe(false)
     const values = Object.fromEntries(next.probes.map((probe) => [probe.id, 3]))
     emit({ type: 'readings', simTime: 0.1, values })
@@ -396,7 +573,7 @@ describe('instrument runtime integration', () => {
     expect(fixture.sim.buffer(probe.id).length).toBe(262_144)
     expect(getInstrumentReading('meter1')).toMatchObject({ status: 'ok', text: '0.71', unit: 'V' })
     expect(getInstrumentReading('meter1').rawValue).toBeCloseTo(Math.SQRT1_2, 5)
-    emit({ type: 'loaded', vectors: command.probes.map((entry) => entry.id) })
+    acknowledgeLoad(command)
     emit({ type: 'readings', simTime: 0, values })
     expect(getInstrumentReading('meter1').status).toBe('pending')
     disconnect?.()
@@ -410,6 +587,9 @@ describe('instrument runtime integration', () => {
     vi.mocked(fixture.sim.send).mockClear()
     for (const listener of fixture.restarts) listener()
     await vi.advanceTimersByTimeAsync(40)
+    expect(vi.mocked(fixture.sim.send).mock.calls.map(([entry]) => entry.type)).toEqual(['load'])
+    acknowledgeLoad(latestLoad())
+    await vi.advanceTimersByTimeAsync(0)
     expect(vi.mocked(fixture.sim.send).mock.calls.map(([entry]) => entry.type)).toEqual(['load', 'setPacing', 'run'])
     expect(fixture.sim.send).toHaveBeenCalledWith({ type: 'setPacing', mode: 'window', windowSec: 0.002 })
   })

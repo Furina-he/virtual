@@ -106,6 +106,7 @@ export function connectInstrumentRuntime(onStatus: (status: RuntimeStatus) => vo
   let job: RuntimeJob | undefined
   let publishedJob: RuntimeJob | undefined
   let parameterRequest = 0
+  let loadBoundary: { requestId: string; applied: boolean; resolve: () => void } | undefined
   const parameterRequests = new Set<string>()
   let pendingAlter: { requestId: string; afterTime?: number } | undefined
   let waveformAfterTime = Number.NEGATIVE_INFINITY
@@ -310,6 +311,8 @@ export function connectInstrumentRuntime(onStatus: (status: RuntimeStatus) => vo
     publishedJob = undefined
     pendingAlter = undefined
     parameterRequests.clear()
+    loadBoundary?.resolve()
+    loadBoundary = undefined
     waveformAfterTime = Number.NEGATIVE_INFINITY
     waveformBoundary.clear()
     moduleAudio?.dispose()
@@ -335,6 +338,13 @@ export function connectInstrumentRuntime(onStatus: (status: RuntimeStatus) => vo
   function start(next: RuntimeJob) {
     if (disposed || next.revision !== revision) return
     clearRms()
+    loadBoundary?.resolve()
+    const requestId = `measurement-load-${crypto.randomUUID()}`
+    let acknowledge!: () => void
+    const loaded = new Promise<void>((resolve) => {
+      acknowledge = resolve
+    })
+    loadBoundary = { requestId, applied: false, resolve: acknowledge }
     job = next
     publishedJob = undefined
     ownsSession = true
@@ -349,7 +359,11 @@ export function connectInstrumentRuntime(onStatus: (status: RuntimeStatus) => vo
         if (!probe || rmsWindows.has(probe)) continue
         const window = new RmsWindow(METER_RMS_WINDOW)
         rmsWindows.set(probe, window)
-        offMeterSamples.push(sim.onSamples(probe, (data, t0, dt) => window.push(data, t0, dt)))
+        offMeterSamples.push(
+          sim.onSamples(probe, (data, t0, dt) => {
+            if (job === next && loadBoundary?.applied) window.push(data, t0, dt)
+          }),
+        )
       }
     }
     const speakers =
@@ -360,14 +374,26 @@ export function connectInstrumentRuntime(onStatus: (status: RuntimeStatus) => vo
     moduleAudio = speakers
     clearTimeout(timeout)
     timeout = setTimeout(() => failure('仿真未及时返回读数。请断电后重试，并检查接线。'), 8000)
-    void sim
-      .send(next.plan.command)
+    // IPC receipt is not the session boundary: old tail chunks precede the matching native loaded event.
+    void Promise.all([sim.send({ ...next.plan.command, requestId }), loaded, speakers?.ready])
       .then(async () => {
-        if (disposed || job !== next || next.plan.command.analysis.kind !== 'tran') return
-        await speakers?.ready
-        if (disposed || job !== next) return
+        if (
+          disposed ||
+          job !== next ||
+          loadBoundary?.requestId !== requestId ||
+          !loadBoundary.applied ||
+          next.plan.command.analysis.kind !== 'tran'
+        )
+          return
         await sim.send(next.plan.pacing)
-        if (!disposed && job === next) await sim.send({ type: 'run' })
+        while (!disposed && job === next && loadBoundary?.requestId === requestId) {
+          const currentAudio = moduleAudio
+          await currentAudio?.ready
+          if (disposed || job !== next || loadBoundary?.requestId !== requestId) return
+          if (currentAudio !== moduleAudio) continue
+          await sim.send({ type: 'run' })
+          return
+        }
       })
       .catch(() => {
         // A superseded load may reject after a newer circuit revision started.
@@ -378,7 +404,7 @@ export function connectInstrumentRuntime(onStatus: (status: RuntimeStatus) => vo
   function update(force = false) {
     if (disposed || protecting) return
     const state = circuitStore.getState()
-    if (!force && job && !job.preflight && job.powered === state.powered) {
+    if (!force && job && loadBoundary?.applied && !job.preflight && job.powered === state.powered) {
       try {
         const input = benchCircuitInput(state)
         const candidate = buildMeasurementPlan(input, state.powered, `m${revision}`)
@@ -522,10 +548,26 @@ export function connectInstrumentRuntime(onStatus: (status: RuntimeStatus) => vo
     const current = job
     if (!current || current.revision !== revision || disposed) return
     if (event.type === 'loaded') {
+      if (!loadBoundary || event.requestId !== loadBoundary.requestId) {
+        if (loadBoundary?.applied) failure('仿真会话已变更，请重新上电后继续测量。')
+        return
+      }
+      const replayed = loadBoundary.applied
+      loadBoundary.applied = true
+      loadBoundary.resolve()
       publishedJob = undefined
       waveformAfterTime = Number.NEGATIVE_INFINITY
       waveformBoundary.clear()
       for (const window of rmsWindows.values()) window.clear()
+      if (replayed && moduleAudio && current.plan.command.analysis.kind === 'tran') {
+        moduleAudio.dispose()
+        const replacement = createModuleAudio(sim, current.plan.speakers, current.plan.command.analysis.step)
+        moduleAudio = replacement
+        void replacement.ready.catch(() => {
+          if (!disposed && job === current && moduleAudio === replacement) failure('无法启动模块声音，请断电后重试。')
+        })
+      }
+      moduleAudio?.activate()
       return
     }
     if (event.type === 'altered') {
@@ -543,12 +585,17 @@ export function connectInstrumentRuntime(onStatus: (status: RuntimeStatus) => vo
       return
     }
     if (event.type === 'error') {
-      if (event.requestId && event.requestId !== pendingAlter?.requestId && !parameterRequests.has(event.requestId))
+      if (
+        event.requestId &&
+        event.requestId !== loadBoundary?.requestId &&
+        event.requestId !== pendingAlter?.requestId &&
+        !parameterRequests.has(event.requestId)
+      )
         return
       failure(event.message)
       return
     }
-    if (event.type !== 'op' && event.type !== 'readings') return
+    if (!loadBoundary?.applied || (event.type !== 'op' && event.type !== 'readings')) return
     if (pendingAlter) {
       if (
         pendingAlter.afterTime === undefined ||

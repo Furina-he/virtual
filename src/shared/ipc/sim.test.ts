@@ -2,6 +2,21 @@ import { describe, expect, it } from 'vitest'
 import { patchNetlistParameters, SimCommandSchema, SimEventSchema } from './sim'
 
 describe('module parameter protocol', () => {
+  it('keeps legacy loads compatible and correlates the actual native load boundary', () => {
+    const load = { type: 'load', netlist: 'Test\nV1 n 0 1\n.end', probes: [], analysis: { kind: 'op' } }
+    expect(SimCommandSchema.parse(load)).toEqual(load)
+    expect(SimCommandSchema.parse({ ...load, requestId: 'measurement-load-2' })).toMatchObject({
+      requestId: 'measurement-load-2',
+    })
+    expect(SimEventSchema.parse({ type: 'loaded', requestId: 'measurement-load-2', vectors: ['v(n)'] })).toEqual({
+      type: 'loaded',
+      requestId: 'measurement-load-2',
+      vectors: ['v(n)'],
+    })
+    expect(SimCommandSchema.safeParse({ ...load, requestId: '' }).success).toBe(false)
+    expect(SimEventSchema.safeParse({ type: 'loaded', requestId: '', vectors: [] }).success).toBe(false)
+  })
+
   it('keeps legacy alteration requests compatible and supports correlated acknowledgements', () => {
     const changes = [{ param: 'p_box_rw', value: 0.75 }]
     expect(SimCommandSchema.parse({ type: 'alter', changes })).toEqual({ type: 'alter', changes })

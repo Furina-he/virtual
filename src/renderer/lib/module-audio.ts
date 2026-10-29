@@ -17,17 +17,37 @@ const browserAudio: AudioFactories = {
   },
 }
 
-/** The main runtime owns this group; disposing also cancels resources that finish creating late. */
+/** The runtime activates after its matching native loaded event, not IPC acceptance; disposal cancels late resources. */
 export function createModuleAudio(
   source: SampleSource,
   speakers: readonly SpeakerPlan[],
   step: number,
   factories: AudioFactories = browserAudio,
-): { ready: Promise<void>; dispose: () => void } {
+): { ready: Promise<void>; activate: () => void; dispose: () => void } {
   let disposed = false
+  let activated = false
+  let prepared = false
+  let bound = false
   let context: SpeakerContext | undefined
   const outputs: AudioOutput[] = []
   const subscriptions: (() => void)[] = []
+
+  const bind = () => {
+    if (disposed || !activated || !prepared || bound) return
+    bound = true
+    outputs.forEach((output, index) => {
+      subscriptions.push(
+        source.onSamples((speakers[index] as SpeakerPlan).probe, (samples, t0, dt) => {
+          if (!disposed) output.feed(samples, t0, dt)
+        }),
+      )
+    })
+  }
+  const activate = () => {
+    if (disposed) return
+    activated = true
+    bind()
+  }
 
   const dispose = () => {
     if (disposed) return
@@ -51,17 +71,14 @@ export function createModuleAudio(
         return
       }
       outputs.push(output)
-      subscriptions.push(
-        source.onSamples(speaker.probe, (samples, t0, dt) => {
-          if (!disposed) output.feed(samples, t0, dt)
-        }),
-      )
     }
+    prepared = true
+    bind()
   })().catch((error) => {
     const cancelled = disposed
     dispose()
     if (!cancelled) throw error
   })
 
-  return { ready, dispose }
+  return { ready, activate, dispose }
 }
