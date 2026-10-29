@@ -305,6 +305,43 @@ describe('instrument runtime integration', () => {
     expect(currentMeasurementSnapshot()?.waveforms?.[0]?.current).toBe(false)
   })
 
+  it('records synchronized DC channel differences without moving the scope ground away from circuit ground', async () => {
+    useModule()
+    fixture.state.wires.push({ id: 'scope2', a: 'scope1.CH2', b: 'gen1.CH1', color: 'red' })
+    const command = await start()
+    if (command.analysis.kind !== 'tran') throw new Error('Missing transient')
+    const dt = command.analysis.step
+    const count = 20000
+    const ripple = (i: number) => Math.sin(2 * Math.PI * 5000 * i * dt)
+    chunk(
+      'scope:scope1:CH1',
+      Float32Array.from({ length: count }, (_, i) => 3 + 0.5 * ripple(i)),
+      0,
+      dt,
+    )
+    chunk(
+      'scope:scope1:CH2',
+      Float32Array.from({ length: count }, (_, i) => 2.8 + 0.4 * ripple(i)),
+      0,
+      dt,
+    )
+    emit({ type: 'readings', simTime: 0.1, values: Object.fromEntries(command.probes.map((entry) => [entry.id, 1])) })
+    const difference = currentMeasurementSnapshot()?.waveforms?.find((entry) => entry.channelId === 'CH1-CH2')
+    expect(difference).toMatchObject({
+      current: true,
+      coupling: 'dc',
+      positiveRef: 'scope1.CH1',
+      negativeRef: 'scope1.CH2',
+    })
+    expect(difference?.measurement?.min).toBeCloseTo(0.1, 5)
+    expect(difference?.measurement?.max).toBeCloseTo(0.3, 5)
+    fixture.instruments = fixture.instruments.map((entry) =>
+      entry.instanceId === 'scope1' ? { ...entry, settings: { ...entry.settings, ch2_coupling: 1 } } : entry,
+    )
+    changeControl(1000)
+    expect(currentMeasurementSnapshot()?.waveforms?.some((entry) => entry.channelId === 'CH1-CH2')).toBe(false)
+  })
+
   it('exposes only the currently published job and invalidates captures synchronously on a range change', async () => {
     const command = await start()
     expect(currentMeasurementSnapshot()?.current).toBe(false)

@@ -148,7 +148,8 @@ export function connectInstrumentRuntime(onStatus: (status: RuntimeStatus) => vo
       const input = current.input.instruments.find((entry) => entry.instanceId === scope.instanceId)
       if (!input?.instrument.scope) return []
       const settings = resolveScope(input.instrument, input.settings)
-      return scope.channels.flatMap((channel, index) => {
+      const channelSamples = new Map<string, { samples: Float32Array; dt: number; lastTime: number }>()
+      const captured = scope.channels.flatMap((channel, index) => {
         const configured = input.instrument.scope?.channels[index]
         const displayed = settings.channels[index]
         if (!configured || !displayed) return []
@@ -173,6 +174,7 @@ export function connectInstrumentRuntime(onStatus: (status: RuntimeStatus) => vo
             const samples = waveformScratch.subarray(0, retained)
             buffer.copyLatest(samples)
             measurement = measureSignal(samples, buffer.dt)
+            channelSamples.set(channel.id, { samples: samples.slice(), dt: buffer.dt, lastTime: buffer.lastTime })
           }
         }
         return [
@@ -187,6 +189,38 @@ export function connectInstrumentRuntime(onStatus: (status: RuntimeStatus) => vo
           },
         ]
       })
+      const difference = captured.flatMap((positive) =>
+        captured.flatMap((negative) => {
+          if (
+            positive.channelId === negative.channelId ||
+            !positive.current ||
+            !negative.current ||
+            positive.coupling !== 'dc' ||
+            negative.coupling !== 'dc' ||
+            positive.negativeRef !== negative.negativeRef
+          )
+            return []
+          const a = channelSamples.get(positive.channelId)
+          const b = channelSamples.get(negative.channelId)
+          if (!a || !b || a.dt !== b.dt || Math.abs(a.lastTime - b.lastTime) > a.dt * 1e-6) return []
+          const count = Math.min(a.samples.length, b.samples.length)
+          const data = new Float32Array(count)
+          for (let i = 0; i < count; i++)
+            data[i] =
+              (a.samples[a.samples.length - count + i] as number) - (b.samples[b.samples.length - count + i] as number)
+          const measurement = measureSignal(data, a.dt)
+          return [
+            {
+              ...positive,
+              channelId: `${positive.channelId}-${negative.channelId}`,
+              negativeRef: negative.positiveRef,
+              current: measurement !== null,
+              measurement,
+            },
+          ]
+        }),
+      )
+      return [...captured, ...difference]
     })
   }
 

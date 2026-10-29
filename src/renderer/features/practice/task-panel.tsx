@@ -174,10 +174,24 @@ export function TaskDataPanel({ project }: { project?: Project }) {
   const sources = panels.flatMap((panel) =>
     isMeasurementInstrument(panel.instrument)
       ? [{ id: panel.id, title: panel.title }]
-      : (panel.instrument.scope?.channels ?? []).map((channel) => ({
-          id: `${panel.id}.${channel.id}`,
-          title: `${panel.title} ${channel.label}`,
-        })),
+      : [
+          ...(panel.instrument.scope?.channels ?? []).map((channel) => ({
+            id: `${panel.id}.${channel.id}`,
+            title: `${panel.title} ${channel.label}`,
+          })),
+          ...(panel.instrument.scope?.channels ?? []).flatMap((positive) =>
+            (panel.instrument.scope?.channels ?? []).flatMap((negative) =>
+              positive.id === negative.id
+                ? []
+                : [
+                    {
+                      id: `${panel.id}.${positive.id}-${negative.id}`,
+                      title: `${panel.title} ${positive.label}−${negative.label}（同步差分）`,
+                    },
+                  ],
+            ),
+          ),
+        ],
   )
   if (!project) return <p className="p-3 text-sm text-muted-foreground">当前未选择有效实训项目。</p>
   const step = currentTaskStep(project, state.task)
