@@ -19,6 +19,8 @@ function stream(
 }
 
 const square = (time: number) => (time % 1 < 0.5 ? 0 : 5)
+const capacitor = (time: number, period = 1) =>
+  time < 1 ? (10 / 3) * time : 10 / 3 - (5 / 3) * (1 - Math.abs((2 * ((time - 1) % period)) / period - 1))
 
 function ready(): LongWindow {
   const window = new LongWindow()
@@ -28,6 +30,150 @@ function ready(): LongWindow {
 }
 
 describe('LongWindow', () => {
+  it.each([
+    ['timing capacitor', (value: number) => value, 5 / 3, 10 / 3],
+    ['buffered CV', (value: number) => 2.5 + value / 4, 35 / 12, 10 / 3],
+  ] as const)('recovers %s cycle evidence after startup without dropping actual history', (_name, scale, min, max) => {
+    const window = new LongWindow()
+    stream(window, 0, 5, 1e-3, (time) => scale(capacitor(time)), [137, 23, 4096])
+    const snapshot = window.snapshot(4)
+    expect(snapshot.measurement?.min).toBeCloseTo(min, 6)
+    expect(snapshot.measurement?.max).toBeCloseTo(max, 6)
+    expect(snapshot.measurement?.frequency).toBeCloseTo(1, 5)
+    expect(snapshot.measurement?.period).toBeCloseTo(1, 5)
+    expect(snapshot.window.completeCycles).toBeGreaterThanOrEqual(2)
+    expect(window.snapshot(16).measurement?.min).toBeCloseTo(scale(0), 6)
+    expect(window.snapshot(16).window.start).toBe(0)
+  })
+
+  it('adapts to startup without shortening the evidence window for a four-second period', () => {
+    const window = new LongWindow()
+    stream(window, 0, 14, 1e-3, (time) => capacitor(time, 4), [137, 4096])
+    const snapshot = window.snapshot(16)
+    expect(snapshot.measurement?.frequency).toBeCloseTo(0.25, 5)
+    expect(snapshot.measurement?.period).toBeCloseTo(4, 5)
+    expect(snapshot.window.completeCycles).toBeGreaterThanOrEqual(2)
+    expect(snapshot.measurement?.min).toBe(0)
+    expect(snapshot.window.start).toBe(0)
+  })
+
+  it('withdraws calibrated cycle evidence when the signal stops but retains its measured history', () => {
+    const window = new LongWindow()
+    stream(window, 0, 5, 1e-3, capacitor, [137])
+    expect(window.snapshot(4).window.completeCycles).toBeGreaterThanOrEqual(2)
+    stream(window, 5, 6.2, 1e-3, () => 2.5, [137])
+    expect(window.snapshot(4).measurement?.frequency).toBeNull()
+    expect(window.snapshot(4).window.completeCycles).toBe(0)
+    expect(window.snapshot(1).measurement).toMatchObject({ min: 2.5, max: 2.5, mean: 2.5, vpp: 0 })
+    expect(window.snapshot(16).measurement?.min).toBe(0)
+  })
+
+  it('requires new consistent raw crossings after a material change to a calibrated signal', () => {
+    const window = new LongWindow()
+    stream(window, 0, 5, 1e-3, capacitor, [137])
+    expect(window.snapshot(4).measurement?.frequency).toBeCloseTo(1, 5)
+    stream(window, 5, 5.2, 1e-3, () => 50, [137])
+    expect(window.snapshot().measurement?.frequency).toBeNull()
+    expect(window.snapshot().window.rawRises).toBe(0)
+    stream(window, 5.2, 9.5, 1e-3, (time) => 10 + 10 * (1 - Math.abs(2 * ((time - 5.2) % 1) - 1)), [137])
+    expect(window.snapshot(4).measurement?.frequency).toBeCloseTo(1, 5)
+    expect(window.snapshot(4).window.completeCycles).toBeGreaterThanOrEqual(2)
+    expect(window.snapshot(16).measurement?.max).toBe(50)
+  })
+
+  it('recovers a smaller real oscillation without reusing a stale wider-range generation', () => {
+    const window = new LongWindow()
+    stream(window, 0, 5, 1e-3, capacitor, [137])
+    stream(window, 5, 10, 1e-3, (time) => 3 + 0.1 * Math.sin(2 * Math.PI * time), [137])
+    expect(window.snapshot(4).measurement?.frequency).toBeCloseTo(1, 5)
+    expect(window.snapshot(4).window.completeCycles).toBeGreaterThanOrEqual(2)
+    expect(window.snapshot(4).measurement?.vpp).toBeCloseTo(0.2, 5)
+    expect(window.snapshot(16).measurement?.min).toBe(0)
+  })
+
+  it.each([
+    ['timing capacitor', (value: number) => value],
+    ['buffered CV', (value: number) => 2.5 + value / 4],
+  ] as const)('retains %s cycle evidence with raw ripple below the established gate hysteresis', (_name, scale) => {
+    const window = new LongWindow()
+    const ripple = (time: number) => scale(capacitor(time)) + 0.01 * Math.sin(2 * Math.PI * 100 * time)
+    stream(window, 0, 8, 1e-4, ripple, [137])
+    const snapshot = window.snapshot(4)
+    expect(snapshot.measurement?.frequency).toBeCloseTo(1, 5)
+    expect(snapshot.window.completeCycles).toBeGreaterThanOrEqual(2)
+    expect(snapshot.measurement?.min).toBeLessThan(scale(5 / 3))
+    expect(snapshot.measurement?.max).toBeGreaterThan(scale(10 / 3))
+    let actualMin = Number.POSITIVE_INFINITY
+    for (let sample = 0; sample < 80_000; sample++) actualMin = Math.min(actualMin, Math.fround(ripple(sample * 1e-4)))
+    expect(window.snapshot(16).measurement?.min).toBe(actualMin)
+    expect(window.snapshot(16).window.start).toBe(0)
+  })
+
+  it('relearns a range smaller than old hysteresis once its actual history expires', () => {
+    const window = new LongWindow()
+    stream(window, 0, 5, 1e-3, capacitor, [137])
+    stream(window, 5, 25, 1e-3, (time) => 3 + 0.05 * Math.sin(2 * Math.PI * time), [137])
+    const snapshot = window.snapshot(4)
+    expect(snapshot.measurement?.frequency).toBeCloseTo(1, 5)
+    expect(snapshot.window.completeCycles).toBeGreaterThanOrEqual(2)
+    expect(snapshot.measurement?.vpp).toBeCloseTo(0.1, 5)
+    expect(window.snapshot(16).measurement?.min).toBeCloseTo(2.95, 5)
+  })
+
+  it('does not calibrate a DC noise floor or rearm on sub-threshold chatter after a real oscillation', () => {
+    const window = new LongWindow()
+    stream(window, 0, 5, 1e-3, capacitor, [137])
+    stream(window, 5, 8, 1e-3, (time) => 2.5 + 0.0002 * Math.sin(2 * Math.PI * 25 * time), [137])
+    expect(window.snapshot(2).measurement?.vpp).toBeCloseTo(0.0004, 6)
+    expect(window.snapshot(2).measurement?.frequency).toBeNull()
+    expect(window.snapshot().window.completeCycles).toBe(0)
+    window.reset()
+    stream(window, 0, 5, 1e-3, (time) => Math.min(time, 1) * 2.5 + 0.0002 * Math.sin(2 * Math.PI * 25 * time), [137])
+    expect(window.snapshot().measurement?.frequency).toBeNull()
+    expect(window.snapshot().window.completeCycles).toBe(0)
+  })
+
+  it('withdraws actual offset-carrier burst evidence during the silent interval after startup calibration', () => {
+    const window = new LongWindow()
+    const bursts = (time: number) =>
+      time < 1 ? (10 / 3) * time : 2.5 + ((time - 1) % 1 < 0.2 ? 0.8 * Math.sin(2 * Math.PI * 25 * time) : 0)
+    stream(window, 0, 2.18, 1e-3, bursts, [137])
+    expect(window.snapshot().measurement?.frequency).toBeCloseTo(25, 4)
+    stream(window, 2.18, 2.6, 1e-3, bursts, [137])
+    expect(window.snapshot().measurement?.frequency).toBeNull()
+    expect(window.snapshot().window.completeCycles).toBe(0)
+    expect(window.snapshot(0.1).measurement).toMatchObject({ min: 2.5, max: 2.5, mean: 2.5, vpp: 0 })
+  })
+
+  it('does not turn a monotonic charge or a single direction reversal into periodic evidence', () => {
+    for (const signal of [
+      (time: number) => Math.min(time, 1) * (10 / 3),
+      (time: number) => (time < 1 ? (10 / 3) * time : Math.max(5 / 3, 10 / 3 - (time - 1))),
+    ]) {
+      const window = new LongWindow()
+      stream(window, 0, 5, 1e-3, signal, [137])
+      expect(window.snapshot().measurement?.frequency).toBeNull()
+      expect(window.snapshot().window.completeCycles).toBe(0)
+    }
+  })
+
+  it('keeps local calibration bounded and forgets it on a repeated explicit context reset', () => {
+    const window = new LongWindow()
+    const arrays = Object.values(window).filter((value) => ArrayBuffer.isView(value))
+    stream(window, 0, 60, 1e-3, capacitor, [137])
+    expect(window.snapshot(4).measurement?.frequency).toBeCloseTo(1, 5)
+    expect(Object.values(window).filter((value) => ArrayBuffer.isView(value))).toEqual(arrays)
+    for (const context of ['same-load', 'same-load']) {
+      window.reset(context)
+      expect(window.snapshot().measurement).toBeNull()
+      stream(window, 0, 1.8, 1e-3, capacitor, [137])
+      expect(window.snapshot().measurement?.frequency).toBeNull()
+      expect(window.snapshot().window.completeCycles).toBe(0)
+      stream(window, 1.8, 5, 1e-3, capacitor, [137])
+      expect(window.snapshot(4).measurement?.frequency).toBeCloseTo(1, 5)
+    }
+  })
+
   it('measures real 1 Hz at a 2 us raw step across arbitrary chunk boundaries', () => {
     const window = new LongWindow()
     stream(window, 0, 3.25, 2e-6, (t) => 7 + 2 * Math.sin(2 * Math.PI * t), [23, 4096, 65_537])

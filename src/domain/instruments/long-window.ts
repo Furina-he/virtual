@@ -46,6 +46,11 @@ export class LongWindow {
   private previousTime = 0
   private revision = 0
   private contextKey: string | undefined
+  private direction = 0
+  private extreme: number | undefined
+  private localMin: number | undefined
+  private localMax: number | undefined
+  private calibrated = false
 
   clear(): void {
     this.counts.fill(0)
@@ -56,6 +61,11 @@ export class LongWindow {
     this.lastTime = 0
     this.level = undefined
     this.hysteresis = 0
+    this.direction = 0
+    this.extreme = undefined
+    this.localMin = undefined
+    this.localMax = undefined
+    this.calibrated = false
     this.revision++
   }
 
@@ -124,6 +134,7 @@ export class LongWindow {
         if (value > max) max = value
         sum += value
         count++
+        this.trackExtrema(value)
         this.crossing(value, t0 + i * dt, slot)
       }
       this.counts[slot] = count
@@ -262,12 +273,33 @@ export class LongWindow {
       min = Math.min(min, this.minima[slot] as number)
       max = Math.max(max, this.maxima[slot] as number)
     }
+    // Retain startup in the measured envelope, but do not let it overwrite a raw-turn calibration.
+    if (this.calibrated && this.localMin !== undefined && this.localMax !== undefined) {
+      const actualVpp = max - min
+      if (actualVpp * 0.1 < this.hysteresis * 0.5) {
+        // A smaller real range has rolled into every retained bin; release an obsolete turn gate.
+        this.clearEdges()
+        this.direction = 0
+        this.extreme = undefined
+        this.localMin = undefined
+        this.localMax = undefined
+        this.calibrated = false
+      } else {
+        min = this.localMin
+        max = this.localMax
+      }
+    }
     const vpp = max - min
     if (count === 0 || !(vpp > Math.max(1e-3, Math.abs(sum / count) * 1e-3))) {
       if (this.level !== undefined) this.clearEdges()
       this.level = undefined
       return
     }
+    this.setLevel(min, max)
+  }
+
+  private setLevel(min: number, max: number): void {
+    const vpp = max - min
     const level = (max + min) / 2
     const hysteresis = vpp * 0.1
     if (
@@ -279,6 +311,62 @@ export class LongWindow {
       this.clearEdges()
       this.level = level
       this.hysteresis = hysteresis
+    }
+  }
+
+  private trackExtrema(value: number): void {
+    if (
+      this.calibrated &&
+      this.localMin !== undefined &&
+      this.localMax !== undefined &&
+      (value < this.localMin || value > this.localMax)
+    ) {
+      const min = Math.min(value, this.localMin)
+      const max = Math.max(value, this.localMax)
+      const vpp = max - min
+      if (
+        Math.abs((max + min) / 2 - (this.level ?? 0)) > vpp * 0.1 ||
+        Math.abs(vpp * 0.1 - this.hysteresis) > this.hysteresis * 0.5
+      ) {
+        this.clearEdges()
+        this.level = undefined
+        this.direction = 0
+        this.extreme = value
+        this.localMin = undefined
+        this.localMax = undefined
+        this.calibrated = false
+        return
+      }
+    }
+    const extreme = this.extreme
+    if (extreme === undefined) {
+      this.extreme = value
+      return
+    }
+    const noise = Math.max(1e-3, Math.abs(value) * 1e-3, this.hysteresis)
+    if (this.direction === 0) {
+      if (Math.abs(value - extreme) > noise) {
+        this.direction = value > extreme ? 1 : -1
+        this.extreme = value
+      }
+      return
+    }
+    if ((value - extreme) * this.direction >= 0) {
+      this.extreme = value
+      return
+    }
+    if (Math.abs(value - extreme) <= noise) return
+    if (this.direction > 0) this.localMax = extreme
+    else this.localMin = extreme
+    this.direction = -this.direction
+    this.extreme = value
+    if (this.localMin === undefined || this.localMax === undefined || this.level === undefined) return
+    const vpp = this.localMax - this.localMin
+    if (vpp <= Math.max(1e-3, Math.abs((this.localMax + this.localMin) / 2) * 1e-3)) return
+    // Two opposite raw reversals can recover a gate unreachable after charging from zero.
+    if (this.calibrated || this.level - this.hysteresis <= this.localMin || this.level >= this.localMax) {
+      this.calibrated = true
+      this.setLevel(this.localMin, this.localMax)
     }
   }
 
