@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Kbd } from '@/components/ui/kbd'
+import { ScrollArea } from '@/components/ui/scroll-area'
 import {
   Select,
   SelectContent,
@@ -229,12 +230,12 @@ export function WiringPanel() {
   return (
     <section
       aria-label="接线编辑"
-      className="flex h-full min-h-0 flex-col"
+      className="flex h-full min-h-0 flex-col overflow-y-auto"
       data-wire-count={wires.length}
       data-undo-count={undoCount}
       data-redo-count={redoCount}
     >
-      <div className="flex items-center gap-2 border-b px-3 py-2">
+      <div className="flex shrink-0 items-center gap-2 border-b px-3 py-2">
         <Cable className="size-4" />
         <h2 className="mr-auto text-sm font-medium">接线</h2>
         <span className="font-mono text-xs">{wires.length} 根</span>
@@ -255,15 +256,23 @@ export function WiringPanel() {
           <Redo2 />
         </HistoryButton>
       </div>
-      <div className="space-y-2 border-b p-3">
+      <div className="shrink-0 space-y-2 border-b p-3">
         <p className="text-xs text-muted-foreground">
           拖动插孔连接，或从列表选择两端。<Kbd>Esc</Kbd> 取消。
         </p>
         {powered && <p className="text-xs text-warning">当前已上电，请先断电再修改接线。</p>}
         {notice && (
-          <p role="status" className="text-xs text-warning">
-            {notice}
-          </p>
+          <ScrollArea
+            key={notice}
+            type="auto"
+            role="region"
+            aria-label="接线诊断报告"
+            className="h-20 min-w-0 scroll-m-1"
+          >
+            <p role="status" className="break-words pr-3 pb-1 text-xs leading-relaxed text-warning">
+              {notice}
+            </p>
+          </ScrollArea>
         )}
         {pending && (
           <p className="break-words text-xs">
@@ -282,15 +291,16 @@ export function WiringPanel() {
           />
         </div>
       </div>
-      <Tabs value={tab} onValueChange={setTab} className="flex min-h-0 flex-1 flex-col gap-0">
-        <TabsList variant="line" className="w-full justify-start border-b px-2">
+      {/* Keep the endpoint form usable even at the minimum properties-panel height. */}
+      <Tabs value={tab} onValueChange={setTab} className="flex min-h-56 flex-1 flex-col gap-0">
+        <TabsList variant="line" className="w-full shrink-0 justify-start border-b px-2">
           <TabsTrigger value="wires">接线列表</TabsTrigger>
           <TabsTrigger value="properties">导线属性</TabsTrigger>
         </TabsList>
-        <TabsContent value="wires" className="min-h-0 overflow-auto">
+        <TabsContent value="wires" className="flex min-h-0 flex-1 flex-col overflow-hidden">
           <form
             aria-label="选择插孔接线"
-            className="space-y-2 border-b p-3"
+            className="shrink-0 space-y-2 border-b p-3"
             onSubmit={(event) => {
               event.preventDefault()
               circuitStore.getState().addWire(from, to)
@@ -308,64 +318,66 @@ export function WiringPanel() {
               添加导线
             </Button>
           </form>
-          {wires.length ? (
-            <ul className="divide-y">
-              {wires.map((wire, index) => (
-                <li
-                  key={wire.id}
-                  data-wire-id={wire.id}
-                  data-wire-a={wire.a}
-                  data-wire-b={wire.b}
-                  data-wire-color={wire.color}
-                  className="flex items-center gap-1 p-2"
-                >
-                  <button
-                    type="button"
-                    aria-label={`选择导线 ${index + 1}`}
-                    aria-pressed={wire.id === selected}
-                    onClick={() => circuitStore.getState().selectWire(wire.id)}
-                    onDoubleClick={() => {
-                      circuitStore.getState().selectWire(wire.id)
-                      setTab('properties')
-                    }}
-                    className="min-w-0 flex-1 rounded-md px-1 py-1 text-left text-xs outline-none hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring aria-pressed:bg-accent"
+          <ScrollArea type="auto" className="min-h-0 flex-1">
+            {wires.length ? (
+              <ul className="divide-y">
+                {wires.map((wire, index) => (
+                  <li
+                    key={wire.id}
+                    data-wire-id={wire.id}
+                    data-wire-a={wire.a}
+                    data-wire-b={wire.b}
+                    data-wire-color={wire.color}
+                    className="flex items-center gap-1 p-2"
                   >
-                    <span className="block font-medium">
-                      {wire.label || `导线 ${index + 1}`} ·{' '}
-                      {wireColors.find((color) => color.value === wire.color)?.label}
-                    </span>
-                    <span className="block break-words text-muted-foreground">
-                      {jackName(wire.a)} → {jackName(wire.b)}
-                    </span>
-                  </button>
-                  <Button
-                    size="icon-sm"
-                    variant="ghost"
-                    aria-label={`删除导线 ${index + 1}`}
-                    onClick={() => circuitStore.getState().deleteWire(wire.id)}
-                  >
-                    <Trash2 />
-                  </Button>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="p-3 text-xs text-muted-foreground">还没有导线。选择电源和挂箱的插孔开始接线。</p>
-          )}
-          <div className="p-3">
-            <Button
-              variant="outline"
-              className="w-full"
-              disabled={!wires.length}
-              onClick={() => {
-                if (powered) circuitStore.getState().clearWires()
-                else setClearOpen(true)
-              }}
-            >
-              <Trash2 />
-              清空接线
-            </Button>
-          </div>
+                    <button
+                      type="button"
+                      aria-label={`选择导线 ${index + 1}`}
+                      aria-pressed={wire.id === selected}
+                      onClick={() => circuitStore.getState().selectWire(wire.id)}
+                      onDoubleClick={() => {
+                        circuitStore.getState().selectWire(wire.id)
+                        setTab('properties')
+                      }}
+                      className="min-w-0 flex-1 rounded-md px-1 py-1 text-left text-xs outline-none hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring aria-pressed:bg-accent"
+                    >
+                      <span className="block font-medium">
+                        {wire.label || `导线 ${index + 1}`} ·{' '}
+                        {wireColors.find((color) => color.value === wire.color)?.label}
+                      </span>
+                      <span className="block break-words text-muted-foreground">
+                        {jackName(wire.a)} → {jackName(wire.b)}
+                      </span>
+                    </button>
+                    <Button
+                      size="icon-sm"
+                      variant="ghost"
+                      aria-label={`删除导线 ${index + 1}`}
+                      onClick={() => circuitStore.getState().deleteWire(wire.id)}
+                    >
+                      <Trash2 />
+                    </Button>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="p-3 text-xs text-muted-foreground">还没有导线。选择电源和挂箱的插孔开始接线。</p>
+            )}
+            <div className="p-3">
+              <Button
+                variant="outline"
+                className="w-full"
+                disabled={!wires.length}
+                onClick={() => {
+                  if (powered) circuitStore.getState().clearWires()
+                  else setClearOpen(true)
+                }}
+              >
+                <Trash2 />
+                清空接线
+              </Button>
+            </div>
+          </ScrollArea>
         </TabsContent>
         <TabsContent value="properties" className="min-h-0 overflow-auto">
           {selectedWire ? (
