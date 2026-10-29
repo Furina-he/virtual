@@ -1881,6 +1881,87 @@
           "height": 1428
         }
       ]
+    },
+    {
+      "id": "mod-voltage-follower",
+      "model": "content/modules/mod-voltage-follower/module.glb",
+      "bytes": 160368,
+      "sha256": "e40b2f87ee30c709acf18ddc90ed5a5a19205b375febac3e669d462dca81ce95",
+      "triangles": 1010,
+      "drawCalls": 3,
+      "bounds": {
+        "min": [
+          -0.05999999865889549,
+          8.940696516468449e-10,
+          -0.023000000044703484
+        ],
+        "max": [
+          0.05999999865889549,
+          0.07999999821186066,
+          0.024049999192357063
+        ]
+      },
+      "anchors": [
+        {
+          "name": "JACK_VCC",
+          "position": [
+            0.048,
+            0.062,
+            0.024
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_GND",
+          "position": [
+            0.048,
+            0.012,
+            0.024
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_IN",
+          "position": [
+            -0.048,
+            0.038,
+            0.024
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_OUT",
+          "position": [
+            0.048,
+            0.038,
+            0.024
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "textures": [
+        {
+          "mimeType": "image/webp",
+          "width": 1536,
+          "height": 1024
+        }
+      ]
     }
   ],
   "preview": {

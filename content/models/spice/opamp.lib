@@ -26,3 +26,45 @@ C1 n1 mid 159p
 Bout o1 0 V=min(max(V(n1), V(4)+min(1.5,max(V(7,4),0)/2)), max(V(7)-min(1.5,max(V(7,4),0)/2), V(4)+min(1.5,max(V(7,4),0)/2)))
 Rout o1 6 75
 .ends UA741
+
+* TLV9001_EST -- project-authored single-pole CMOS op-amp estimate, NOT a TI SPICE model.
+*   Approved part reference: TI TLV9001IDBVR, ordinary DBV pinout, SBOS833R.
+*   Pin order: OUT, V-, IN+, IN-, V+. Recommended supply 1.8..5.5 V.
+*   AV=100000, input Rin=1T, output Rout=20 ohm and 1 mA linear-drive clamp
+*   are conservative M0 modelling choices, not guaranteed datasheet specifications.
+*   GBW=1 MHz, SR=2 V/us, input bias=5 pA, Ccm=5 pF/Cdiff=1.5 pF,
+*   Iq=60 uA are datasheet typical references only. No max bias guarantee is claimed.
+*   20 mV no-load rail headroom is an estimate; 5.5 V loaded swing test conditions
+*   are not relabelled as a complete 5 V worst-case guarantee. No 8-ohm speaker drive.
+*   Output rail diodes are numerical/protection estimates, not a characterized ESD model.
+*   Input common-mode, overload recovery, temperature, protection and distortion
+*   are not fully fitted. Use for the approved 0..3.333 V, <=250 uA follower load.
+*   All active gain/drive stops below 1.8 V; the passive output then references V-.
+*   Supply includes quiescent and delivered source current. Parameters do not
+*   modify the original NE555 divider chain or UA741. Project-owned, redistributable.
+.subckt TLV9001_EST OUT VM IP IM VP
+Rinp IP VM 1T
+Rinm IM VM 1T
+Bbp IP VM I=V(VP,VM)>=1.8 ? 5p : 0
+Bbm IM VM I=V(VP,VM)>=1.8 ? 5p : 0
+Cinp IP VM 5p
+Cinm IM VM 5p
+Cdiff IP IM 1.5p
+* gm/Rdom gives finite DC gain; gm/Cdom gives 1 MHz unity-gain bandwidth.
+* Current-clamped gm/Cdom bounds slew rate to 2 V/us.
+Bgm VM nd I=V(VP,VM)>=1.8 ? 31.8309886184u*tanh(100u*V(IP,IM)/31.8309886184u) : 0
+Rdom nd VM 1G
+Cdom nd VM 15.9154943092p
+* Bound the dominant-pole state during overload instead of integrating to tens of kilovolts.
+Bclamp nd VM I=max(0,(V(nd,VM)-max(V(VP,VM)-20m,20m))*1m)+min(0,(V(nd,VM)-20m)*1m)
+Bdrive OUT VM I=V(VP,VM)>=1.8 ? 1m*tanh((V(OUT,VM)-min(max(V(nd,VM),20m),max(V(VP,VM)-20m,20m)))/20m) : 0
+* Passive recovery prevents an unpowered floating output becoming an ideal source.
+Roff OUT VM 1G
+Boff OUT VM I=V(VP,VM)<1.8 ? V(OUT,VM)/100k : 0
+* Keep a source-stepping current load within the physical rails before the amplifier enables.
+Dlow VM OUT TLV9001_RAIL_EST
+Dhigh OUT VP TLV9001_RAIL_EST
+.model TLV9001_RAIL_EST D(IS=1p RS=20 N=1)
+Biq VP VM I=V(VP,VM)>=1.8 ? 60u : 0
+Bsource VP VM I=V(VP,VM)>=1.8 ? max(0,-I(Bdrive)) : 0
+.ends TLV9001_EST

@@ -1,0 +1,9 @@
+* Approved independent four-jack follower adapter, 5 V TLV9001IDBVR teaching estimate.
+* The original 555 board, its 36 jacks, all RC values and CV divider stay unchanged.
+.subckt mod_voltage_follower VCC GND IN OUT
+* Ordinary DBV pin order: OUT, V-, IN+, IN-, V+; direct negative feedback is internal.
+XBUF OUT GND IN OUT VCC TLV9001_EST
+Cdecouple VCC GND 100n
+.ends mod_voltage_follower
+* Named library is bundled and inlined after the adapter header, never read by ngspice from disk.
+.include "opamp.lib"

@@ -2106,6 +2106,51 @@
           { "text": "Uo / RL 外接线", "x": 240, "y": 91, "size": 2.5 }
         ]
       }
+    },
+    {
+      "id": "mod-voltage-follower",
+      "name": "电压跟随缓冲适配板",
+      "kind": "module",
+      "bodyStyle": "module",
+      "dimensionsMm": [120, 80, 40],
+      "model": "content/modules/mod-voltage-follower/module.glb",
+      "estimatedDimensions": true,
+      "dimensionNote": "Original 120 x 80 x 40 mm protective carrier and four-jack layout are visual estimates for the approved TLV9001IDBVR voltage-follower adapter. The electrical model is an explicitly labeled estimate, not a vendor model or a modification of the separate 555 teaching board.",
+      "textureSize": [1536, 1024],
+      "jacks": [
+        { "id": "VCC", "label": "+5V", "x": 108, "y": 18, "color": "red", "kind": "banana4", "labelY": 10 },
+        { "id": "GND", "label": "GND", "x": 108, "y": 68, "color": "black", "kind": "banana4", "labelX": 96, "labelY": 69 },
+        { "id": "IN", "label": "IN", "x": 12, "y": 42, "color": "yellow", "kind": "banana4" },
+        { "id": "OUT", "label": "OUT", "x": 108, "y": 42, "color": "yellow", "kind": "banana4" }
+      ],
+      "controls": [],
+      "screens": [],
+      "panel": {
+        "title": "电压跟随适配板",
+        "titleSize": 3.8,
+        "footer": "TLV9001IDBVR 估计模型 / 5 V",
+        "lines": [
+          { "points": [[48, 30], [48, 56], [78, 43], [48, 30]] },
+          { "points": [[12, 42], [32, 42], [32, 37], [48, 37]] },
+          { "points": [[78, 43], [92, 43], [92, 42], [108, 42]] },
+          { "points": [[92, 43], [92, 61], [34, 61], [34, 50], [48, 50]] },
+          { "points": [[108, 18], [63, 18], [63, 36.5]] },
+          { "points": [[63, 49.5], [63, 68], [108, 68]] },
+          { "points": [[63, 18], [24, 18], [24, 24]] },
+          { "points": [[19, 24], [29, 24]] },
+          { "points": [[19, 28], [29, 28]] },
+          { "points": [[24, 28], [24, 31]] },
+          { "points": [[19, 31], [29, 31]] },
+          { "points": [[21, 33], [27, 33]] },
+          { "points": [[23, 35], [25, 35]] }
+        ],
+        "texts": [
+          { "text": "+", "x": 52, "y": 38, "size": 3.5 },
+          { "text": "−", "x": 52, "y": 51, "size": 3.5 },
+          { "text": "C1 100 nF", "x": 41, "y": 25, "size": 2.7 },
+          { "text": "单位增益负反馈", "x": 61, "y": 60, "size": 2.4 }
+        ]
+      }
     }
   ],
   "preview": {
