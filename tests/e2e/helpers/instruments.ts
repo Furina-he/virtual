@@ -47,6 +47,8 @@ export async function dragInstrumentToSlot(page: Page, slotId = 'SLOT_DESK_2', i
 export async function selectJackFromList(page: Page, label: string, ref: string) {
   const editor = page.getByRole('region', { name: '接线编辑', exact: true })
   const trigger = editor.getByRole('combobox', { name: label, exact: true })
+  // Keep stationary pointer hover from competing with this keyboard-only selection sequence.
+  await page.mouse.move(0, 0)
   await trigger.press('Enter')
   const option = page.locator(`[role="option"][data-jack-ref="${ref}"]`)
   await option.focus()

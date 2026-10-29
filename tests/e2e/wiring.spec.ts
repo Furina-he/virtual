@@ -72,6 +72,7 @@ async function dragWire(a: string, b: string) {
 
 async function selectOption(label: string, option: string | RegExp) {
   const trigger = editor().getByRole('combobox', { name: label, exact: true })
+  await page.mouse.move(0, 0)
   await trigger.press('Enter')
   const item = page.getByRole('option', { name: option, exact: typeof option === 'string' })
   const ref = await item.getAttribute('data-jack-ref')
