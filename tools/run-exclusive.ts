@@ -16,6 +16,7 @@ const scripts: Record<string, string[][]> = {
   ],
   'e2e:only': [['node_modules/@playwright/test/cli.js', 'test', ...args]],
   'assets:build': [['tools/assets/build.ts', ...args]],
+  script: args.length ? [[args[0] as string, ...args.slice(1)]] : [],
 }
 if (!task || !scripts[task]) {
   console.error(`Usage: node tools/run-exclusive.ts ${Object.keys(scripts).join('|')} [arguments]`)

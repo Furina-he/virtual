@@ -135,6 +135,20 @@ describe('actual scope recording', () => {
     const result = captureMeasurePoint(multiple, point, 'scope1.CH2')
     expect(result.ok && result.measurement.channelId).toBe('CH2')
   })
+
+  it('does not treat opposite signs of the same synchronous difference as two physical measurement sources', () => {
+    const differential = { ...reading, channelId: 'CH1-CH2', positiveRef: 'scope1.CH1', negativeRef: 'scope1.GND' }
+    const mirrored = {
+      ...differential,
+      channelId: 'CH2-CH1',
+      positiveRef: differential.negativeRef,
+      negativeRef: differential.positiveRef,
+    }
+    const measured = { ...snapshot(), waveforms: [differential, mirrored] }
+    const result = captureMeasurePoint(measured, point)
+    expect(result.ok).toBe(true)
+    if (result.ok) expect(result.measurement.channelId).toBe('CH1-CH2')
+  })
   it('converts quantity-compatible units only when writing a table', () => {
     const result = captureMeasurePoint(snapshot(), { ...point, quantity: 'frequency' })
     if (!result.ok) throw new Error('Missing capture')

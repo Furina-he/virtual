@@ -166,6 +166,18 @@ function captureWaveform(snapshot: MeasurementSnapshot, point: MeasurePoint, sel
       ({ reading }) =>
         !selected || selected === reading.instanceId || selected === `${reading.instanceId}.${reading.channelId}`,
     )
+    .filter((candidate, index, candidates) => {
+      if (selected || !candidate.reading.channelId.includes('-')) return true
+      const pair = candidate.reading.channelId.split('-').sort().join('-')
+      return !candidates
+        .slice(0, index)
+        .some(
+          (previous) =>
+            previous.reading.instanceId === candidate.reading.instanceId &&
+            previous.reading.channelId.includes('-') &&
+            previous.reading.channelId.split('-').sort().join('-') === pair,
+        )
+    })
   if (matches.length > 1)
     return {
       ok: false,
