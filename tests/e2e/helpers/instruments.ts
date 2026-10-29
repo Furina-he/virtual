@@ -36,7 +36,12 @@ export async function dragInstrumentToSlot(page: Page, slotId = 'SLOT_DESK_2', i
     /.+/,
   )
   await page.mouse.move(to.x, to.y, { steps: 16 })
+  await expect(page.locator('[data-slot="bench-canvas-frame"]')).toHaveAttribute('data-drop-target', 'true')
   await page.mouse.up()
+  await expect(page.getByRole('region', { name: '3D 实训台', exact: true })).toHaveAttribute(
+    'data-dragging-instrument',
+    '',
+  )
 }
 
 export async function selectJackFromList(page: Page, label: string, ref: string) {
