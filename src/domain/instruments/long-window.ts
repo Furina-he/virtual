@@ -94,12 +94,7 @@ export class LongWindow {
     if (this.currentBin < 0) this.origin = t0
     this.rawStep = dt
 
-    for (let i = 0; i < samples.length; i++) {
-      const value = samples[i] as number
-      if (!Number.isFinite(value)) {
-        this.clear()
-        return
-      }
+    for (let i = 0; i < samples.length; ) {
       const time = t0 + i * dt
       const bin = Math.floor((time - this.origin) / LONG_WINDOW_BIN_SECONDS)
       if (!Number.isSafeInteger(bin) || bin < 0) {
@@ -108,20 +103,35 @@ export class LongWindow {
       }
       if (bin !== this.currentBin) this.enterBin(bin)
       const slot = bin % LONG_WINDOW_BINS
-      const count = this.counts[slot] as number
-      if (count === 0) {
-        this.starts[slot] = time
-        this.minima[slot] = value
-        this.maxima[slot] = value
-      } else {
-        this.minima[slot] = Math.min(this.minima[slot] as number, value)
-        this.maxima[slot] = Math.max(this.maxima[slot] as number, value)
+      const boundary = this.origin + (bin + 1) * LONG_WINDOW_BIN_SECONDS
+      let until = Math.max(i + 1, Math.min(samples.length, Math.ceil((boundary - t0) / dt)))
+      // Correct timestamp roundoff while keeping per-sample edge detection on the original grid.
+      while (until > i + 1 && t0 + (until - 1) * dt >= boundary) until--
+      while (until < samples.length && t0 + until * dt < boundary) until++
+      const previous = this.counts[slot] as number
+      let count = previous
+      let sum = this.sums[slot] as number
+      let min = previous ? (this.minima[slot] as number) : Number.POSITIVE_INFINITY
+      let max = previous ? (this.maxima[slot] as number) : Number.NEGATIVE_INFINITY
+      if (previous === 0) this.starts[slot] = time
+      for (; i < until; i++) {
+        const value = samples[i] as number
+        if (!Number.isFinite(value)) {
+          this.clear()
+          return
+        }
+        if (value < min) min = value
+        if (value > max) max = value
+        sum += value
+        count++
+        this.crossing(value, t0 + i * dt, slot)
       }
-      this.counts[slot] = count + 1
-      this.sums[slot] = (this.sums[slot] as number) + value
-      this.ends[slot] = time
-      this.crossing(value, time, slot)
-      this.lastTime = time
+      this.counts[slot] = count
+      this.sums[slot] = sum
+      this.minima[slot] = min
+      this.maxima[slot] = max
+      this.ends[slot] = t0 + (i - 1) * dt
+      this.lastTime = this.ends[slot] as number
     }
     this.nextTime = nextTime
     this.revision++
