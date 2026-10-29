@@ -4,103 +4,1484 @@
   "title": "救护车/消防车声响报警电路",
   "type": "integrated",
   "validation": {
-    "purpose": "按 5 V 原型接法验证双 555 电路；当前为待集成、待电路修订的正式内容草案，不作为已完成实训项目。",
+    "purpose": "按 5 V 原板与已批准独立 TLV9001 跟随器实现两种教学接法；内容/模型完成，应用集成验收未完成。当前实际实时比约 0.175/0.137，完整操作只完成 3/17 步，不作为已通过实训项目。",
     "limitations": [
-      "NE555 的 CV 输入分压网络会经 R5 加载 IC1 定时电容；原型消防车接法无法持续振荡，须审批高输入阻抗缓冲方案后再验收音调渐变。",
-      "模块模型库本地解析、示波器标量快捷记录、分步骤参考拓扑和真实时间扬声器输出尚未接入公共运行时。",
-      "示波器测量步骤保留真实波形证据要求，当前公共记录接口未开放时不能用手填数据冒充完成。"
+      "原消防车 TH 直连 R5/CV 会加载停振；批准模式使用独立 follower1 适配板，原拓扑仅作诊断补充。",
+      "TLV9001_EST 是项目自建估计模型，非厂商 SPICE 拟合或最坏工况保证；20 Ω 输出、±1 mA 限流及轨余量等为估计。",
+      "正式双模式实时性能验收未通过（救护车/消防车实时比约 0.175/0.137）；完整操作在低频步骤 15 s 内证据不足，仅完成 3/17，声音全流程未验收。目标机仍未测试；SD-22、T0.15 和 PCM A 观察项保持开放。"
     ]
   },
-  "modules": [{ "instanceId": "timer1", "moduleId": "mod-555-app", "slot": "SLOT_BOX_L1" }],
-  "allowedInstruments": ["ins-oscilloscope", "ins-multimeter"],
+  "modules": [
+    {
+      "instanceId": "timer1",
+      "moduleId": "mod-555-app",
+      "slot": "SLOT_BOX_L1"
+    },
+    {
+      "instanceId": "follower1",
+      "moduleId": "mod-voltage-follower",
+      "slot": "SLOT_BOX_L2"
+    }
+  ],
+  "allowedInstruments": [
+    "ins-oscilloscope",
+    "ins-multimeter"
+  ],
   "reference": {
     "nets": [
-      ["ins-dc-power.CH1P", "timer1.VCC1", "timer1.T1_RA_1", "timer1.T1_RST", "timer1.T2_RA_1", "timer1.T2_RST"],
-      ["ins-dc-power.CH1N", "timer1.GND1", "timer1.T1_CT_N", "timer1.T1_CC_2", "timer1.T2_CT_N", "timer1.T2_CC_2", "timer1.SPK_N"],
-      ["timer1.T1_RA_2", "timer1.T1_DIS", "timer1.T1_RB_1"],
-      ["timer1.T1_RB_2", "timer1.T1_TH", "timer1.T1_TR", "timer1.T1_CT_P"],
-      ["timer1.T1_CV", "timer1.T1_CC_1"],
-      ["timer1.T1_OUT", "timer1.R5_1"],
-      ["timer1.T2_RA_2", "timer1.T2_DIS", "timer1.T2_RB_1"],
-      ["timer1.T2_RB_2", "timer1.T2_TH", "timer1.T2_TR", "timer1.T2_CT_P"],
-      ["timer1.R5_2", "timer1.T2_CV", "timer1.T2_CC_1"],
-      ["timer1.T2_OUT", "timer1.C5_P"],
-      ["timer1.C5_N", "timer1.SPK_P"]
+      [
+        "ins-dc-power.CH1P",
+        "timer1.VCC1",
+        "timer1.T1_RA_1",
+        "timer1.T1_RST",
+        "timer1.T2_RA_1",
+        "timer1.T2_RST"
+      ],
+      [
+        "ins-dc-power.CH1N",
+        "timer1.GND1",
+        "timer1.T1_CT_N",
+        "timer1.T1_CC_2",
+        "timer1.T2_CT_N",
+        "timer1.T2_CC_2",
+        "timer1.SPK_N"
+      ],
+      [
+        "timer1.T1_RA_2",
+        "timer1.T1_DIS",
+        "timer1.T1_RB_1"
+      ],
+      [
+        "timer1.T1_RB_2",
+        "timer1.T1_TH",
+        "timer1.T1_TR",
+        "timer1.T1_CT_P"
+      ],
+      [
+        "timer1.T1_CV",
+        "timer1.T1_CC_1"
+      ],
+      [
+        "timer1.T1_OUT",
+        "timer1.R5_1"
+      ],
+      [
+        "timer1.T2_RA_2",
+        "timer1.T2_DIS",
+        "timer1.T2_RB_1"
+      ],
+      [
+        "timer1.T2_RB_2",
+        "timer1.T2_TH",
+        "timer1.T2_TR",
+        "timer1.T2_CT_P"
+      ],
+      [
+        "timer1.R5_2",
+        "timer1.T2_CV",
+        "timer1.T2_CC_1"
+      ],
+      [
+        "timer1.T2_OUT",
+        "timer1.C5_P"
+      ],
+      [
+        "timer1.C5_N",
+        "timer1.SPK_P"
+      ]
     ],
     "measurePoints": [
-      { "id": "supply", "kind": "voltage", "mode": "dcv", "between": ["timer1.VCC1", "timer1.GND1"] },
-      { "id": "lf-out", "kind": "waveform", "between": ["timer1.T1_OUT", "timer1.GND1"] },
-      { "id": "lf-cap", "kind": "waveform", "between": ["timer1.T1_TH", "timer1.GND1"] },
-      { "id": "hf-out", "kind": "waveform", "between": ["timer1.T2_OUT", "timer1.GND1"] },
-      { "id": "hf-cap", "kind": "waveform", "between": ["timer1.T2_TH", "timer1.GND1"] },
-      { "id": "control", "kind": "waveform", "between": ["timer1.T2_CV", "timer1.GND1"] },
-      { "id": "speaker", "kind": "waveform", "between": ["timer1.SPK_P", "timer1.SPK_N"] }
+      {
+        "id": "supply",
+        "kind": "voltage",
+        "mode": "dcv",
+        "between": [
+          "timer1.VCC1",
+          "timer1.GND1"
+        ]
+      },
+      {
+        "id": "lf-frequency",
+        "kind": "waveform",
+        "quantity": "frequency",
+        "minCycles": 2,
+        "between": [
+          "timer1.T1_OUT",
+          "timer1.GND1"
+        ]
+      },
+      {
+        "id": "lf-period",
+        "kind": "waveform",
+        "quantity": "period",
+        "minCycles": 2,
+        "between": [
+          "timer1.T1_OUT",
+          "timer1.GND1"
+        ]
+      },
+      {
+        "id": "lf-cap-min",
+        "kind": "waveform",
+        "quantity": "min",
+        "minCycles": 2,
+        "between": [
+          "timer1.T1_TH",
+          "timer1.GND1"
+        ]
+      },
+      {
+        "id": "lf-cap-max",
+        "kind": "waveform",
+        "quantity": "max",
+        "minCycles": 2,
+        "between": [
+          "timer1.T1_TH",
+          "timer1.GND1"
+        ]
+      },
+      {
+        "id": "carrier-frequency",
+        "kind": "waveform",
+        "quantity": "frequency",
+        "minCycles": 2,
+        "between": [
+          "timer1.T2_OUT",
+          "timer1.GND1"
+        ]
+      },
+      {
+        "id": "carrier-vpp",
+        "kind": "waveform",
+        "quantity": "vpp",
+        "minCycles": 2,
+        "between": [
+          "timer1.T2_OUT",
+          "timer1.GND1"
+        ]
+      },
+      {
+        "id": "control-mean",
+        "kind": "waveform",
+        "quantity": "mean",
+        "between": [
+          "timer1.T2_CV",
+          "timer1.GND1"
+        ]
+      },
+      {
+        "id": "control-min",
+        "kind": "waveform",
+        "quantity": "min",
+        "minCycles": 2,
+        "between": [
+          "timer1.T2_CV",
+          "timer1.GND1"
+        ]
+      },
+      {
+        "id": "control-max",
+        "kind": "waveform",
+        "quantity": "max",
+        "minCycles": 2,
+        "between": [
+          "timer1.T2_CV",
+          "timer1.GND1"
+        ]
+      },
+      {
+        "id": "speaker-vpp",
+        "kind": "waveform",
+        "quantity": "vpp",
+        "minCycles": 2,
+        "between": [
+          "timer1.SPK_P",
+          "timer1.SPK_N"
+        ]
+      }
     ]
   },
   "steps": [
     {
       "id": "prepare",
-      "text": "阅读原理图与指导书，核对 36 个插孔及两片 NE555 的引脚。保持断电；CH1 设 5 V，CH2 不接线。确认消防车原型存在负载阻塞，不把单一固定音调当作音调渐变。",
-      "measurePoints": []
+      "text": "阅读指导书与原理图，确认原 555 板和独立 TLV9001 估计跟随器板。保持断电，CH1 设 5 V，CH2 不接线；救护车阶段适配板不接线。",
+      "measurePoints": [],
+      "referenceNets": [
+        [
+          "ins-dc-power.CH1P",
+          "timer1.VCC1",
+          "timer1.T1_RA_1",
+          "timer1.T1_RST",
+          "timer1.T2_RA_1",
+          "timer1.T2_RST"
+        ],
+        [
+          "ins-dc-power.CH1N",
+          "timer1.GND1",
+          "timer1.T1_CT_N",
+          "timer1.T1_CC_2",
+          "timer1.T2_CT_N",
+          "timer1.T2_CC_2",
+          "timer1.SPK_N"
+        ],
+        [
+          "timer1.T1_RA_2",
+          "timer1.T1_DIS",
+          "timer1.T1_RB_1"
+        ],
+        [
+          "timer1.T1_RB_2",
+          "timer1.T1_TH",
+          "timer1.T1_TR",
+          "timer1.T1_CT_P"
+        ],
+        [
+          "timer1.T1_CV",
+          "timer1.T1_CC_1"
+        ],
+        [
+          "timer1.T1_OUT",
+          "timer1.R5_1"
+        ],
+        [
+          "timer1.T2_RA_2",
+          "timer1.T2_DIS",
+          "timer1.T2_RB_1"
+        ],
+        [
+          "timer1.T2_RB_2",
+          "timer1.T2_TH",
+          "timer1.T2_TR",
+          "timer1.T2_CT_P"
+        ],
+        [
+          "timer1.R5_2",
+          "timer1.T2_CV",
+          "timer1.T2_CC_1"
+        ],
+        [
+          "timer1.T2_OUT",
+          "timer1.C5_P"
+        ],
+        [
+          "timer1.C5_N",
+          "timer1.SPK_P"
+        ]
+      ]
     },
     {
       "id": "wire-ambulance",
-      "text": "按救护车参考拓扑完成两路 RC、复位、CV 去耦、电源和扬声器接线；调制线为 T1_OUT→R5_1，R5_2→T2_CV。不得把 T1_OUT 与 T1_TH 同时接入 R5_1。断电时检查接线。",
+      "text": "完成原板两路 RC、复位、CV 去耦、电源与扬声器接线；调制为 T1_OUT→R5_1，R5_2→T2_CV。跟随器四孔均不接线，不同时连接 TH 或跟随器 OUT。断电检查完整救护车拓扑。",
       "measurePoints": [],
+      "referenceNets": [
+        [
+          "ins-dc-power.CH1P",
+          "timer1.VCC1",
+          "timer1.T1_RA_1",
+          "timer1.T1_RST",
+          "timer1.T2_RA_1",
+          "timer1.T2_RST"
+        ],
+        [
+          "ins-dc-power.CH1N",
+          "timer1.GND1",
+          "timer1.T1_CT_N",
+          "timer1.T1_CC_2",
+          "timer1.T2_CT_N",
+          "timer1.T2_CC_2",
+          "timer1.SPK_N"
+        ],
+        [
+          "timer1.T1_RA_2",
+          "timer1.T1_DIS",
+          "timer1.T1_RB_1"
+        ],
+        [
+          "timer1.T1_RB_2",
+          "timer1.T1_TH",
+          "timer1.T1_TR",
+          "timer1.T1_CT_P"
+        ],
+        [
+          "timer1.T1_CV",
+          "timer1.T1_CC_1"
+        ],
+        [
+          "timer1.T1_OUT",
+          "timer1.R5_1"
+        ],
+        [
+          "timer1.T2_RA_2",
+          "timer1.T2_DIS",
+          "timer1.T2_RB_1"
+        ],
+        [
+          "timer1.T2_RB_2",
+          "timer1.T2_TH",
+          "timer1.T2_TR",
+          "timer1.T2_CT_P"
+        ],
+        [
+          "timer1.R5_2",
+          "timer1.T2_CV",
+          "timer1.T2_CC_1"
+        ],
+        [
+          "timer1.T2_OUT",
+          "timer1.C5_P"
+        ],
+        [
+          "timer1.C5_N",
+          "timer1.SPK_P"
+        ]
+      ],
       "checkWiring": true
     },
     {
       "id": "supply",
-      "text": "固定电压表或万用表 DCV 20 V 档正端接 VCC1、负端接 GND1。上电，确认供电约 5 V 后记录 supply 表；供电不正确先断电排查。",
-      "measurePoints": ["supply"],
-      "expect": { "measurePoint": "supply", "min": 4.9, "max": 5.1 }
+      "text": "固定电压表 DCV 20 V 档正端接 VCC1、负端接 GND1；上电并记录约 5 V 的真实供电。供电不符时先断电排查。",
+      "measurePoints": [
+        "supply"
+      ],
+      "referenceNets": [
+        [
+          "ins-dc-power.CH1P",
+          "timer1.VCC1",
+          "timer1.T1_RA_1",
+          "timer1.T1_RST",
+          "timer1.T2_RA_1",
+          "timer1.T2_RST"
+        ],
+        [
+          "ins-dc-power.CH1N",
+          "timer1.GND1",
+          "timer1.T1_CT_N",
+          "timer1.T1_CC_2",
+          "timer1.T2_CT_N",
+          "timer1.T2_CC_2",
+          "timer1.SPK_N"
+        ],
+        [
+          "timer1.T1_RA_2",
+          "timer1.T1_DIS",
+          "timer1.T1_RB_1"
+        ],
+        [
+          "timer1.T1_RB_2",
+          "timer1.T1_TH",
+          "timer1.T1_TR",
+          "timer1.T1_CT_P"
+        ],
+        [
+          "timer1.T1_CV",
+          "timer1.T1_CC_1"
+        ],
+        [
+          "timer1.T1_OUT",
+          "timer1.R5_1"
+        ],
+        [
+          "timer1.T2_RA_2",
+          "timer1.T2_DIS",
+          "timer1.T2_RB_1"
+        ],
+        [
+          "timer1.T2_RB_2",
+          "timer1.T2_TH",
+          "timer1.T2_TR",
+          "timer1.T2_CT_P"
+        ],
+        [
+          "timer1.R5_2",
+          "timer1.T2_CV",
+          "timer1.T2_CC_1"
+        ],
+        [
+          "timer1.T2_OUT",
+          "timer1.C5_P"
+        ],
+        [
+          "timer1.C5_N",
+          "timer1.SPK_P"
+        ]
+      ],
+      "checkWiring": true,
+      "dataTable": "supply",
+      "recordTable": "supply",
+      "expect": {
+        "measurePoint": "supply",
+        "min": 4.9,
+        "max": 5.1
+      }
     },
     {
       "id": "ambulance-lf",
-      "text": "示波器 GND 接 GND1；CH1 接 T1_OUT，CH2 接 T1_TH。用 0.2 s/div、DC 耦合观察至少三个完整稳态周期，记录低频频率、周期及电容上下阈值。真实波形记录接口未接通时本步骤不能判完成。",
-      "measurePoints": ["lf-out", "lf-cap"]
+      "text": "示波器 GND 接 GND1，CH1 接 T1_OUT、CH2 接 T1_TH，DC 耦合、0.2 s/div、自动触发。等待至少三个稳态上升沿（两个完整周期）后记录低频频率/周期及 C1 极值；原设计约 0.99 Hz，此时 CH2 的 1 MΩ∥20 pF 加载 C1，使实测约 0.934 Hz；手填不能替代真实周期证据。",
+      "measurePoints": [
+        "lf-frequency",
+        "lf-period",
+        "lf-cap-min",
+        "lf-cap-max"
+      ],
+      "referenceNets": [
+        [
+          "ins-dc-power.CH1P",
+          "timer1.VCC1",
+          "timer1.T1_RA_1",
+          "timer1.T1_RST",
+          "timer1.T2_RA_1",
+          "timer1.T2_RST"
+        ],
+        [
+          "ins-dc-power.CH1N",
+          "timer1.GND1",
+          "timer1.T1_CT_N",
+          "timer1.T1_CC_2",
+          "timer1.T2_CT_N",
+          "timer1.T2_CC_2",
+          "timer1.SPK_N"
+        ],
+        [
+          "timer1.T1_RA_2",
+          "timer1.T1_DIS",
+          "timer1.T1_RB_1"
+        ],
+        [
+          "timer1.T1_RB_2",
+          "timer1.T1_TH",
+          "timer1.T1_TR",
+          "timer1.T1_CT_P"
+        ],
+        [
+          "timer1.T1_CV",
+          "timer1.T1_CC_1"
+        ],
+        [
+          "timer1.T1_OUT",
+          "timer1.R5_1"
+        ],
+        [
+          "timer1.T2_RA_2",
+          "timer1.T2_DIS",
+          "timer1.T2_RB_1"
+        ],
+        [
+          "timer1.T2_RB_2",
+          "timer1.T2_TH",
+          "timer1.T2_TR",
+          "timer1.T2_CT_P"
+        ],
+        [
+          "timer1.R5_2",
+          "timer1.T2_CV",
+          "timer1.T2_CC_1"
+        ],
+        [
+          "timer1.T2_OUT",
+          "timer1.C5_P"
+        ],
+        [
+          "timer1.C5_N",
+          "timer1.SPK_P"
+        ]
+      ],
+      "checkWiring": true,
+      "dataTable": "ambulance",
+      "expect": {
+        "measurePoint": "lf-frequency",
+        "min": 0.9243085,
+        "max": 0.9429814
+      }
     },
     {
-      "id": "ambulance-hf",
-      "text": "先断电，将 CH1 移到 T2_OUT、CH2 移到 T2_CV；以 0.2 ms/div 测两种稳态音调的频率和输出 Vpp，避开切换过渡段。低频与声音仍按真实时间推进，不随示波器窗口加速。",
-      "measurePoints": ["hf-out", "control"]
+      "id": "ambulance-tone-low",
+      "text": "先断电将 CH1 接 T2_OUT、CH2 接 T2_CV，DC 耦合、0.2 ms/div。进入低音平台中间并让最近至少 0.2 s 完全处于平台，确认真实载频约 1.023 kHz 后记录频率、输出 Vpp 与 CV 高平台短窗均值；不能用整低频窗平均。",
+      "measurePoints": [
+        "carrier-frequency",
+        "carrier-vpp",
+        "control-mean"
+      ],
+      "referenceNets": [
+        [
+          "ins-dc-power.CH1P",
+          "timer1.VCC1",
+          "timer1.T1_RA_1",
+          "timer1.T1_RST",
+          "timer1.T2_RA_1",
+          "timer1.T2_RST"
+        ],
+        [
+          "ins-dc-power.CH1N",
+          "timer1.GND1",
+          "timer1.T1_CT_N",
+          "timer1.T1_CC_2",
+          "timer1.T2_CT_N",
+          "timer1.T2_CC_2",
+          "timer1.SPK_N"
+        ],
+        [
+          "timer1.T1_RA_2",
+          "timer1.T1_DIS",
+          "timer1.T1_RB_1"
+        ],
+        [
+          "timer1.T1_RB_2",
+          "timer1.T1_TH",
+          "timer1.T1_TR",
+          "timer1.T1_CT_P"
+        ],
+        [
+          "timer1.T1_CV",
+          "timer1.T1_CC_1"
+        ],
+        [
+          "timer1.T1_OUT",
+          "timer1.R5_1"
+        ],
+        [
+          "timer1.T2_RA_2",
+          "timer1.T2_DIS",
+          "timer1.T2_RB_1"
+        ],
+        [
+          "timer1.T2_RB_2",
+          "timer1.T2_TH",
+          "timer1.T2_TR",
+          "timer1.T2_CT_P"
+        ],
+        [
+          "timer1.R5_2",
+          "timer1.T2_CV",
+          "timer1.T2_CC_1"
+        ],
+        [
+          "timer1.T2_OUT",
+          "timer1.C5_P"
+        ],
+        [
+          "timer1.C5_N",
+          "timer1.SPK_P"
+        ]
+      ],
+      "checkWiring": true,
+      "dataTable": "ambulance",
+      "expect": {
+        "measurePoint": "carrier-frequency",
+        "min": 1013.202,
+        "max": 1033.67
+      }
+    },
+    {
+      "id": "ambulance-tone-high",
+      "text": "保留当前表线与短时基，等待高音平台中间且最近至少 0.2 s 完全在平台；记录真实约 1.408 kHz 载频、输出 Vpp 与 CV 低平台短窗均值。低音/高音列按阶段隔离，不互相覆盖。",
+      "measurePoints": [
+        "carrier-frequency",
+        "carrier-vpp",
+        "control-mean"
+      ],
+      "referenceNets": [
+        [
+          "ins-dc-power.CH1P",
+          "timer1.VCC1",
+          "timer1.T1_RA_1",
+          "timer1.T1_RST",
+          "timer1.T2_RA_1",
+          "timer1.T2_RST"
+        ],
+        [
+          "ins-dc-power.CH1N",
+          "timer1.GND1",
+          "timer1.T1_CT_N",
+          "timer1.T1_CC_2",
+          "timer1.T2_CT_N",
+          "timer1.T2_CC_2",
+          "timer1.SPK_N"
+        ],
+        [
+          "timer1.T1_RA_2",
+          "timer1.T1_DIS",
+          "timer1.T1_RB_1"
+        ],
+        [
+          "timer1.T1_RB_2",
+          "timer1.T1_TH",
+          "timer1.T1_TR",
+          "timer1.T1_CT_P"
+        ],
+        [
+          "timer1.T1_CV",
+          "timer1.T1_CC_1"
+        ],
+        [
+          "timer1.T1_OUT",
+          "timer1.R5_1"
+        ],
+        [
+          "timer1.T2_RA_2",
+          "timer1.T2_DIS",
+          "timer1.T2_RB_1"
+        ],
+        [
+          "timer1.T2_RB_2",
+          "timer1.T2_TH",
+          "timer1.T2_TR",
+          "timer1.T2_CT_P"
+        ],
+        [
+          "timer1.R5_2",
+          "timer1.T2_CV",
+          "timer1.T2_CC_1"
+        ],
+        [
+          "timer1.T2_OUT",
+          "timer1.C5_P"
+        ],
+        [
+          "timer1.C5_N",
+          "timer1.SPK_P"
+        ]
+      ],
+      "checkWiring": true,
+      "dataTable": "ambulance",
+      "expect": {
+        "measurePoint": "carrier-frequency",
+        "min": 1394.168,
+        "max": 1422.334
+      }
     },
     {
       "id": "ambulance-speaker",
-      "text": "断电后将 CH1 接 SPK_P，GND 接 SPK_N。上电检查隔直后的扬声器波形；只有公共声音接口就绪且从真实仿真提取频率/包络时，才能试听并确认双音交替，禁止使用预录音。",
-      "measurePoints": ["speaker"]
+      "text": "先断电将 CH1 接 SPK_P、示波器 GND 接 SPK_N（已接板地），CH2 表线拆除；上电短时基记录真实隔直扬声器 Vpp，试听当前仿真合成的双音交替。声音频率和包络来自差分采样；试听与真实时间核对另需录屏证据，波形一步不替代声音验收。",
+      "measurePoints": [
+        "speaker-vpp"
+      ],
+      "referenceNets": [
+        [
+          "ins-dc-power.CH1P",
+          "timer1.VCC1",
+          "timer1.T1_RA_1",
+          "timer1.T1_RST",
+          "timer1.T2_RA_1",
+          "timer1.T2_RST"
+        ],
+        [
+          "ins-dc-power.CH1N",
+          "timer1.GND1",
+          "timer1.T1_CT_N",
+          "timer1.T1_CC_2",
+          "timer1.T2_CT_N",
+          "timer1.T2_CC_2",
+          "timer1.SPK_N"
+        ],
+        [
+          "timer1.T1_RA_2",
+          "timer1.T1_DIS",
+          "timer1.T1_RB_1"
+        ],
+        [
+          "timer1.T1_RB_2",
+          "timer1.T1_TH",
+          "timer1.T1_TR",
+          "timer1.T1_CT_P"
+        ],
+        [
+          "timer1.T1_CV",
+          "timer1.T1_CC_1"
+        ],
+        [
+          "timer1.T1_OUT",
+          "timer1.R5_1"
+        ],
+        [
+          "timer1.T2_RA_2",
+          "timer1.T2_DIS",
+          "timer1.T2_RB_1"
+        ],
+        [
+          "timer1.T2_RB_2",
+          "timer1.T2_TH",
+          "timer1.T2_TR",
+          "timer1.T2_CT_P"
+        ],
+        [
+          "timer1.R5_2",
+          "timer1.T2_CV",
+          "timer1.T2_CC_1"
+        ],
+        [
+          "timer1.T2_OUT",
+          "timer1.C5_P"
+        ],
+        [
+          "timer1.C5_N",
+          "timer1.SPK_P"
+        ]
+      ],
+      "checkWiring": true,
+      "dataTable": "ambulance"
     },
     {
       "id": "record-ambulance",
-      "text": "将救护车表的一行补齐：低频频率/周期、电容阈值、两种音调频率、CV 两平台和扬声器 Vpp。频率用 Hz、周期用 s，暂未开放的波形标量列须从真实示波器手填，不能填理论值。",
+      "text": "断电，核对救护车表一行完整，保留真实显示和来源窗口。比较低频周期、两种平台载频及 CV 电平，解释有限输出阻抗与扬声器负载；不得改填理论值。",
       "measurePoints": [],
+      "referenceNets": [
+        [
+          "ins-dc-power.CH1P",
+          "timer1.VCC1",
+          "timer1.T1_RA_1",
+          "timer1.T1_RST",
+          "timer1.T2_RA_1",
+          "timer1.T2_RST"
+        ],
+        [
+          "ins-dc-power.CH1N",
+          "timer1.GND1",
+          "timer1.T1_CT_N",
+          "timer1.T1_CC_2",
+          "timer1.T2_CT_N",
+          "timer1.T2_CC_2",
+          "timer1.SPK_N"
+        ],
+        [
+          "timer1.T1_RA_2",
+          "timer1.T1_DIS",
+          "timer1.T1_RB_1"
+        ],
+        [
+          "timer1.T1_RB_2",
+          "timer1.T1_TH",
+          "timer1.T1_TR",
+          "timer1.T1_CT_P"
+        ],
+        [
+          "timer1.T1_CV",
+          "timer1.T1_CC_1"
+        ],
+        [
+          "timer1.T1_OUT",
+          "timer1.R5_1"
+        ],
+        [
+          "timer1.T2_RA_2",
+          "timer1.T2_DIS",
+          "timer1.T2_RB_1"
+        ],
+        [
+          "timer1.T2_RB_2",
+          "timer1.T2_TH",
+          "timer1.T2_TR",
+          "timer1.T2_CT_P"
+        ],
+        [
+          "timer1.R5_2",
+          "timer1.T2_CV",
+          "timer1.T2_CC_1"
+        ],
+        [
+          "timer1.T2_OUT",
+          "timer1.C5_P"
+        ],
+        [
+          "timer1.C5_N",
+          "timer1.SPK_P"
+        ]
+      ],
+      "checkWiring": true,
+      "dataTable": "ambulance",
       "recordTable": "ambulance"
     },
     {
-      "id": "wire-fire-prototype",
-      "text": "先断电，只移除 T1_OUT→R5_1，将 R5_1 改接 T1_TH，其余 RC、电源、R5_2→T2_CV 和扬声器线不变。该完整替代拓扑见指导书；当前公共接口只有救护车参考，不能把救护车接线通过提示当作消防车检查。",
-      "measurePoints": []
-    },
-    {
-      "id": "fire-prototype-lf",
-      "text": "CH1 接 T1_OUT、CH2 接 T1_TH，以 0.2 s/div 观察至少 4 s。原型模型中电容约停在 3.06 V，IC1 不再周期翻转；如无完整周期，记录为无低频周期，不能计算或填写虚假的 0.99 Hz。",
-      "measurePoints": ["lf-out", "lf-cap"]
-    },
-    {
-      "id": "fire-prototype-hf",
-      "text": "先断电将 CH1 接 T2_OUT、CH2 接 T2_CV；另将固定直流电压表正端接 T1_TH、负端接 GND1，用 20 V 档和 10 MΩ 实测 C1 直流电压。观察 CV 与载频是否持续渐变。当前原型只得到近似固定载频，记录实测结果；缓冲修订未获审批前不能宣布消防车渐变报警完成。",
-      "measurePoints": ["hf-out", "control"]
-    },
-    {
-      "id": "record-fire-prototype",
-      "text": "在消防车原型诊断表的三行分别记录约 1 s、2 s、4 s 的 T1_TH、T2_CV 和载频，以及该段是否有低频完整周期（有填 1、无填 0）。保留无变化现象；手填表不是渐变声验收证据。",
+      "id": "wire-fire-buffered",
+      "text": "先断电，拆除 T1_OUT→R5_1 和可能遗留的 TH→R5_1。将 follower1 VCC/GND 接原板同一 5 V/GND，T1_TH→follower1.IN，follower1.OUT→R5_1；R5_2/T2_CV/C4 原网络及全部 RC 不变。检查完整消防车缓冲拓扑。",
       "measurePoints": [],
-      "recordTable": "fire-prototype"
+      "referenceNets": [
+        [
+          "ins-dc-power.CH1P",
+          "timer1.VCC1",
+          "timer1.T1_RA_1",
+          "timer1.T1_RST",
+          "timer1.T2_RA_1",
+          "timer1.T2_RST",
+          "follower1.VCC"
+        ],
+        [
+          "ins-dc-power.CH1N",
+          "timer1.GND1",
+          "timer1.T1_CT_N",
+          "timer1.T1_CC_2",
+          "timer1.T2_CT_N",
+          "timer1.T2_CC_2",
+          "timer1.SPK_N",
+          "follower1.GND"
+        ],
+        [
+          "timer1.T1_RA_2",
+          "timer1.T1_DIS",
+          "timer1.T1_RB_1"
+        ],
+        [
+          "timer1.T1_RB_2",
+          "timer1.T1_TH",
+          "timer1.T1_TR",
+          "timer1.T1_CT_P",
+          "follower1.IN"
+        ],
+        [
+          "timer1.T1_CV",
+          "timer1.T1_CC_1"
+        ],
+        [
+          "timer1.T2_RA_2",
+          "timer1.T2_DIS",
+          "timer1.T2_RB_1"
+        ],
+        [
+          "timer1.T2_RB_2",
+          "timer1.T2_TH",
+          "timer1.T2_TR",
+          "timer1.T2_CT_P"
+        ],
+        [
+          "timer1.R5_2",
+          "timer1.T2_CV",
+          "timer1.T2_CC_1"
+        ],
+        [
+          "timer1.T2_OUT",
+          "timer1.C5_P"
+        ],
+        [
+          "timer1.C5_N",
+          "timer1.SPK_P"
+        ],
+        [
+          "follower1.OUT",
+          "timer1.R5_1"
+        ]
+      ],
+      "checkWiring": true
+    },
+    {
+      "id": "fire-buffered-lf",
+      "text": "示波器 GND 接 GND1，CH1 接 T1_OUT、CH2 接 T1_TH，DC 耦合、0.2 s/div、自动触发。上电等三个稳态上升沿，记录低频频率/周期和 C1 极值；原设计约 0.99 Hz，CH2 的 1 MΩ∥20 pF 加载后实测约 0.934 Hz，确认加入缓冲后低频持续工作。",
+      "measurePoints": [
+        "lf-frequency",
+        "lf-period",
+        "lf-cap-min",
+        "lf-cap-max"
+      ],
+      "referenceNets": [
+        [
+          "ins-dc-power.CH1P",
+          "timer1.VCC1",
+          "timer1.T1_RA_1",
+          "timer1.T1_RST",
+          "timer1.T2_RA_1",
+          "timer1.T2_RST",
+          "follower1.VCC"
+        ],
+        [
+          "ins-dc-power.CH1N",
+          "timer1.GND1",
+          "timer1.T1_CT_N",
+          "timer1.T1_CC_2",
+          "timer1.T2_CT_N",
+          "timer1.T2_CC_2",
+          "timer1.SPK_N",
+          "follower1.GND"
+        ],
+        [
+          "timer1.T1_RA_2",
+          "timer1.T1_DIS",
+          "timer1.T1_RB_1"
+        ],
+        [
+          "timer1.T1_RB_2",
+          "timer1.T1_TH",
+          "timer1.T1_TR",
+          "timer1.T1_CT_P",
+          "follower1.IN"
+        ],
+        [
+          "timer1.T1_CV",
+          "timer1.T1_CC_1"
+        ],
+        [
+          "timer1.T2_RA_2",
+          "timer1.T2_DIS",
+          "timer1.T2_RB_1"
+        ],
+        [
+          "timer1.T2_RB_2",
+          "timer1.T2_TH",
+          "timer1.T2_TR",
+          "timer1.T2_CT_P"
+        ],
+        [
+          "timer1.R5_2",
+          "timer1.T2_CV",
+          "timer1.T2_CC_1"
+        ],
+        [
+          "timer1.T2_OUT",
+          "timer1.C5_P"
+        ],
+        [
+          "timer1.C5_N",
+          "timer1.SPK_P"
+        ],
+        [
+          "follower1.OUT",
+          "timer1.R5_1"
+        ]
+      ],
+      "checkWiring": true,
+      "dataTable": "fire-buffered",
+      "expect": {
+        "measurePoint": "lf-frequency",
+        "min": 0.9243085,
+        "max": 0.9429814
+      }
+    },
+    {
+      "id": "fire-buffered-cv",
+      "text": "先断电，CH1 保持 T1_OUT、将 CH2 从 T1_TH 移到 T2_CV；上电以慢时基观察至少两个完整调制周期，并等待启动退出当前约 4 s 的真实测量窗口（通常至少约 5.5 s 仿真时间）。确认实际窗口起点晚于初始充电/首个稳态周期，CV 极值约 2.917–3.333 V 后记录；control-min 须在 2.90–2.94 V，不能用近期周期证据把仍含启动的极值当作稳态。真实启动历史仍保留、不剪裁。移走 C1 探头后低频恢复裸板约 0.99 Hz，此阶段不同时测 C1。",
+      "measurePoints": [
+        "control-min",
+        "control-max"
+      ],
+      "referenceNets": [
+        [
+          "ins-dc-power.CH1P",
+          "timer1.VCC1",
+          "timer1.T1_RA_1",
+          "timer1.T1_RST",
+          "timer1.T2_RA_1",
+          "timer1.T2_RST",
+          "follower1.VCC"
+        ],
+        [
+          "ins-dc-power.CH1N",
+          "timer1.GND1",
+          "timer1.T1_CT_N",
+          "timer1.T1_CC_2",
+          "timer1.T2_CT_N",
+          "timer1.T2_CC_2",
+          "timer1.SPK_N",
+          "follower1.GND"
+        ],
+        [
+          "timer1.T1_RA_2",
+          "timer1.T1_DIS",
+          "timer1.T1_RB_1"
+        ],
+        [
+          "timer1.T1_RB_2",
+          "timer1.T1_TH",
+          "timer1.T1_TR",
+          "timer1.T1_CT_P",
+          "follower1.IN"
+        ],
+        [
+          "timer1.T1_CV",
+          "timer1.T1_CC_1"
+        ],
+        [
+          "timer1.T2_RA_2",
+          "timer1.T2_DIS",
+          "timer1.T2_RB_1"
+        ],
+        [
+          "timer1.T2_RB_2",
+          "timer1.T2_TH",
+          "timer1.T2_TR",
+          "timer1.T2_CT_P"
+        ],
+        [
+          "timer1.R5_2",
+          "timer1.T2_CV",
+          "timer1.T2_CC_1"
+        ],
+        [
+          "timer1.T2_OUT",
+          "timer1.C5_P"
+        ],
+        [
+          "timer1.C5_N",
+          "timer1.SPK_P"
+        ],
+        [
+          "follower1.OUT",
+          "timer1.R5_1"
+        ]
+      ],
+      "checkWiring": true,
+      "dataTable": "fire-buffered",
+      "expect": {
+        "measurePoint": "control-min",
+        "min": 2.9,
+        "max": 2.94
+      }
+    },
+    {
+      "id": "fire-buffered-tone-low",
+      "text": "先断电将 CH1 接 T2_OUT、CH2 接 T2_CV，DC 耦合、0.2 ms/div。等待真实载频进入 1020–1060 Hz 低频率取点区间后记录频率和 CV 短窗均值；两值保留各自实际采样窗口，不宣称严格同一瞬间。",
+      "measurePoints": [
+        "carrier-frequency",
+        "control-mean"
+      ],
+      "referenceNets": [
+        [
+          "ins-dc-power.CH1P",
+          "timer1.VCC1",
+          "timer1.T1_RA_1",
+          "timer1.T1_RST",
+          "timer1.T2_RA_1",
+          "timer1.T2_RST",
+          "follower1.VCC"
+        ],
+        [
+          "ins-dc-power.CH1N",
+          "timer1.GND1",
+          "timer1.T1_CT_N",
+          "timer1.T1_CC_2",
+          "timer1.T2_CT_N",
+          "timer1.T2_CC_2",
+          "timer1.SPK_N",
+          "follower1.GND"
+        ],
+        [
+          "timer1.T1_RA_2",
+          "timer1.T1_DIS",
+          "timer1.T1_RB_1"
+        ],
+        [
+          "timer1.T1_RB_2",
+          "timer1.T1_TH",
+          "timer1.T1_TR",
+          "timer1.T1_CT_P",
+          "follower1.IN"
+        ],
+        [
+          "timer1.T1_CV",
+          "timer1.T1_CC_1"
+        ],
+        [
+          "timer1.T2_RA_2",
+          "timer1.T2_DIS",
+          "timer1.T2_RB_1"
+        ],
+        [
+          "timer1.T2_RB_2",
+          "timer1.T2_TH",
+          "timer1.T2_TR",
+          "timer1.T2_CT_P"
+        ],
+        [
+          "timer1.R5_2",
+          "timer1.T2_CV",
+          "timer1.T2_CC_1"
+        ],
+        [
+          "timer1.T2_OUT",
+          "timer1.C5_P"
+        ],
+        [
+          "timer1.C5_N",
+          "timer1.SPK_P"
+        ],
+        [
+          "follower1.OUT",
+          "timer1.R5_1"
+        ]
+      ],
+      "checkWiring": true,
+      "dataTable": "fire-sweep-low",
+      "recordTable": "fire-sweep-low",
+      "expect": {
+        "measurePoint": "carrier-frequency",
+        "min": 1020,
+        "max": 1060
+      }
+    },
+    {
+      "id": "fire-buffered-tone-mid",
+      "text": "保持接线与短时基，等待真实载频进入 1090–1140 Hz 中频率取点区间，记录当前频率和 CV 均值。三阶段区间互不重叠，固定音调不能作为渐变；这是三点检查，不是完整连续轨迹。",
+      "measurePoints": [
+        "carrier-frequency",
+        "control-mean"
+      ],
+      "referenceNets": [
+        [
+          "ins-dc-power.CH1P",
+          "timer1.VCC1",
+          "timer1.T1_RA_1",
+          "timer1.T1_RST",
+          "timer1.T2_RA_1",
+          "timer1.T2_RST",
+          "follower1.VCC"
+        ],
+        [
+          "ins-dc-power.CH1N",
+          "timer1.GND1",
+          "timer1.T1_CT_N",
+          "timer1.T1_CC_2",
+          "timer1.T2_CT_N",
+          "timer1.T2_CC_2",
+          "timer1.SPK_N",
+          "follower1.GND"
+        ],
+        [
+          "timer1.T1_RA_2",
+          "timer1.T1_DIS",
+          "timer1.T1_RB_1"
+        ],
+        [
+          "timer1.T1_RB_2",
+          "timer1.T1_TH",
+          "timer1.T1_TR",
+          "timer1.T1_CT_P",
+          "follower1.IN"
+        ],
+        [
+          "timer1.T1_CV",
+          "timer1.T1_CC_1"
+        ],
+        [
+          "timer1.T2_RA_2",
+          "timer1.T2_DIS",
+          "timer1.T2_RB_1"
+        ],
+        [
+          "timer1.T2_RB_2",
+          "timer1.T2_TH",
+          "timer1.T2_TR",
+          "timer1.T2_CT_P"
+        ],
+        [
+          "timer1.R5_2",
+          "timer1.T2_CV",
+          "timer1.T2_CC_1"
+        ],
+        [
+          "timer1.T2_OUT",
+          "timer1.C5_P"
+        ],
+        [
+          "timer1.C5_N",
+          "timer1.SPK_P"
+        ],
+        [
+          "follower1.OUT",
+          "timer1.R5_1"
+        ]
+      ],
+      "checkWiring": true,
+      "dataTable": "fire-sweep-mid",
+      "recordTable": "fire-sweep-mid",
+      "expect": {
+        "measurePoint": "carrier-frequency",
+        "min": 1090,
+        "max": 1140
+      }
+    },
+    {
+      "id": "fire-buffered-tone-high",
+      "text": "保持接线与短时基，等待真实载频进入 1170–1230 Hz 高频率取点区间后记录频率和 CV 均值。只用当前真实有效周期，不能用上一阶段截图、整低频窗平均值或预录频率。",
+      "measurePoints": [
+        "carrier-frequency",
+        "control-mean"
+      ],
+      "referenceNets": [
+        [
+          "ins-dc-power.CH1P",
+          "timer1.VCC1",
+          "timer1.T1_RA_1",
+          "timer1.T1_RST",
+          "timer1.T2_RA_1",
+          "timer1.T2_RST",
+          "follower1.VCC"
+        ],
+        [
+          "ins-dc-power.CH1N",
+          "timer1.GND1",
+          "timer1.T1_CT_N",
+          "timer1.T1_CC_2",
+          "timer1.T2_CT_N",
+          "timer1.T2_CC_2",
+          "timer1.SPK_N",
+          "follower1.GND"
+        ],
+        [
+          "timer1.T1_RA_2",
+          "timer1.T1_DIS",
+          "timer1.T1_RB_1"
+        ],
+        [
+          "timer1.T1_RB_2",
+          "timer1.T1_TH",
+          "timer1.T1_TR",
+          "timer1.T1_CT_P",
+          "follower1.IN"
+        ],
+        [
+          "timer1.T1_CV",
+          "timer1.T1_CC_1"
+        ],
+        [
+          "timer1.T2_RA_2",
+          "timer1.T2_DIS",
+          "timer1.T2_RB_1"
+        ],
+        [
+          "timer1.T2_RB_2",
+          "timer1.T2_TH",
+          "timer1.T2_TR",
+          "timer1.T2_CT_P"
+        ],
+        [
+          "timer1.R5_2",
+          "timer1.T2_CV",
+          "timer1.T2_CC_1"
+        ],
+        [
+          "timer1.T2_OUT",
+          "timer1.C5_P"
+        ],
+        [
+          "timer1.C5_N",
+          "timer1.SPK_P"
+        ],
+        [
+          "follower1.OUT",
+          "timer1.R5_1"
+        ]
+      ],
+      "checkWiring": true,
+      "dataTable": "fire-sweep-high",
+      "recordTable": "fire-sweep-high",
+      "expect": {
+        "measurePoint": "carrier-frequency",
+        "min": 1170,
+        "max": 1230
+      }
+    },
+    {
+      "id": "fire-buffered-speaker",
+      "text": "先断电将 CH1 接 SPK_P、GND 接 SPK_N，拆除 CH2 表线；上电记录真实扬声器 Vpp并试听连续变化的当前仿真声音。变更示波器时基不能加速低频/声音；声音及墙钟节奏须独立实测，不能因三点记录完成而自动认定通过。",
+      "measurePoints": [
+        "speaker-vpp"
+      ],
+      "referenceNets": [
+        [
+          "ins-dc-power.CH1P",
+          "timer1.VCC1",
+          "timer1.T1_RA_1",
+          "timer1.T1_RST",
+          "timer1.T2_RA_1",
+          "timer1.T2_RST",
+          "follower1.VCC"
+        ],
+        [
+          "ins-dc-power.CH1N",
+          "timer1.GND1",
+          "timer1.T1_CT_N",
+          "timer1.T1_CC_2",
+          "timer1.T2_CT_N",
+          "timer1.T2_CC_2",
+          "timer1.SPK_N",
+          "follower1.GND"
+        ],
+        [
+          "timer1.T1_RA_2",
+          "timer1.T1_DIS",
+          "timer1.T1_RB_1"
+        ],
+        [
+          "timer1.T1_RB_2",
+          "timer1.T1_TH",
+          "timer1.T1_TR",
+          "timer1.T1_CT_P",
+          "follower1.IN"
+        ],
+        [
+          "timer1.T1_CV",
+          "timer1.T1_CC_1"
+        ],
+        [
+          "timer1.T2_RA_2",
+          "timer1.T2_DIS",
+          "timer1.T2_RB_1"
+        ],
+        [
+          "timer1.T2_RB_2",
+          "timer1.T2_TH",
+          "timer1.T2_TR",
+          "timer1.T2_CT_P"
+        ],
+        [
+          "timer1.R5_2",
+          "timer1.T2_CV",
+          "timer1.T2_CC_1"
+        ],
+        [
+          "timer1.T2_OUT",
+          "timer1.C5_P"
+        ],
+        [
+          "timer1.C5_N",
+          "timer1.SPK_P"
+        ],
+        [
+          "follower1.OUT",
+          "timer1.R5_1"
+        ]
+      ],
+      "checkWiring": true,
+      "dataTable": "fire-buffered"
+    },
+    {
+      "id": "record-fire-buffered",
+      "text": "断电并核对消防车低频/CV/扬声器表及低、中、高三张取点表。原型停振拓扑仅作诊断补充，不是本操作接法；缓冲已批准但真实应用实时性能和声音录屏仍以实际验证结果为准。",
+      "measurePoints": [],
+      "referenceNets": [
+        [
+          "ins-dc-power.CH1P",
+          "timer1.VCC1",
+          "timer1.T1_RA_1",
+          "timer1.T1_RST",
+          "timer1.T2_RA_1",
+          "timer1.T2_RST",
+          "follower1.VCC"
+        ],
+        [
+          "ins-dc-power.CH1N",
+          "timer1.GND1",
+          "timer1.T1_CT_N",
+          "timer1.T1_CC_2",
+          "timer1.T2_CT_N",
+          "timer1.T2_CC_2",
+          "timer1.SPK_N",
+          "follower1.GND"
+        ],
+        [
+          "timer1.T1_RA_2",
+          "timer1.T1_DIS",
+          "timer1.T1_RB_1"
+        ],
+        [
+          "timer1.T1_RB_2",
+          "timer1.T1_TH",
+          "timer1.T1_TR",
+          "timer1.T1_CT_P",
+          "follower1.IN"
+        ],
+        [
+          "timer1.T1_CV",
+          "timer1.T1_CC_1"
+        ],
+        [
+          "timer1.T2_RA_2",
+          "timer1.T2_DIS",
+          "timer1.T2_RB_1"
+        ],
+        [
+          "timer1.T2_RB_2",
+          "timer1.T2_TH",
+          "timer1.T2_TR",
+          "timer1.T2_CT_P"
+        ],
+        [
+          "timer1.R5_2",
+          "timer1.T2_CV",
+          "timer1.T2_CC_1"
+        ],
+        [
+          "timer1.T2_OUT",
+          "timer1.C5_P"
+        ],
+        [
+          "timer1.C5_N",
+          "timer1.SPK_P"
+        ],
+        [
+          "follower1.OUT",
+          "timer1.R5_1"
+        ]
+      ],
+      "checkWiring": true,
+      "dataTable": "fire-buffered",
+      "recordTable": "fire-buffered"
     },
     {
       "id": "analyse",
-      "text": "断电。比较 OUT 方波调制与电容电压调制；计算 CV 输入网络的加载，解释消防车原型停振原因。提交电路缓冲修订及公共接口依赖后，须重新完成两种模式的真实测量、声音和录屏才可验收本项目。",
-      "measurePoints": []
+      "text": "断电，比较两种报警模式，完成思考题并解释原消防车接法加载停振。原 NE555 分压、36 插孔、RC 参数和旧音频夹具均保持；TLV9001 是独立估计模型，不是厂商最坏条件保证。只有两模式实际测量、真实声音、墙钟节奏和录屏均完成后才可验收 SD-22，T0.15 由主会话统一核对。",
+      "measurePoints": [],
+      "referenceNets": [
+        [
+          "ins-dc-power.CH1P",
+          "timer1.VCC1",
+          "timer1.T1_RA_1",
+          "timer1.T1_RST",
+          "timer1.T2_RA_1",
+          "timer1.T2_RST",
+          "follower1.VCC"
+        ],
+        [
+          "ins-dc-power.CH1N",
+          "timer1.GND1",
+          "timer1.T1_CT_N",
+          "timer1.T1_CC_2",
+          "timer1.T2_CT_N",
+          "timer1.T2_CC_2",
+          "timer1.SPK_N",
+          "follower1.GND"
+        ],
+        [
+          "timer1.T1_RA_2",
+          "timer1.T1_DIS",
+          "timer1.T1_RB_1"
+        ],
+        [
+          "timer1.T1_RB_2",
+          "timer1.T1_TH",
+          "timer1.T1_TR",
+          "timer1.T1_CT_P",
+          "follower1.IN"
+        ],
+        [
+          "timer1.T1_CV",
+          "timer1.T1_CC_1"
+        ],
+        [
+          "timer1.T2_RA_2",
+          "timer1.T2_DIS",
+          "timer1.T2_RB_1"
+        ],
+        [
+          "timer1.T2_RB_2",
+          "timer1.T2_TH",
+          "timer1.T2_TR",
+          "timer1.T2_CT_P"
+        ],
+        [
+          "timer1.R5_2",
+          "timer1.T2_CV",
+          "timer1.T2_CC_1"
+        ],
+        [
+          "timer1.T2_OUT",
+          "timer1.C5_P"
+        ],
+        [
+          "timer1.C5_N",
+          "timer1.SPK_P"
+        ],
+        [
+          "follower1.OUT",
+          "timer1.R5_1"
+        ]
+      ]
     }
   ],
   "dataTables": [
@@ -108,65 +1489,443 @@
       "id": "supply",
       "title": "供电检查",
       "rows": 1,
-      "columns": [{ "id": "u-vcc", "title": "实测供电", "unit": "V", "measurePoint": "supply" }],
-      "sanity": [{ "column": "u-vcc", "min": 4.9, "max": 5.1, "message": "本项目使用 5 V；确认 CH1 设置、电源极性和实际端电压，不按 12 V 音频原型参数接线。" }]
+      "columns": [
+        {
+          "id": "u-vcc",
+          "title": "实测供电",
+          "unit": "V",
+          "measurePoint": "supply",
+          "captureSteps": [
+            "supply"
+          ]
+        }
+      ],
+      "sanity": [
+        {
+          "column": "u-vcc",
+          "min": 4.9,
+          "max": 5.1,
+          "message": "本项目用 5 V；确认 CH1 设置和实际端电压，不用旧音频夹具的供电参数。"
+        }
+      ]
     },
     {
       "id": "ambulance",
       "title": "救护车双音交替测量",
       "rows": 1,
       "columns": [
-        { "id": "f-lf", "title": "低频频率", "unit": "Hz" },
-        { "id": "t-lf", "title": "低频周期", "unit": "s" },
-        { "id": "ct-min", "title": "C1 下阈值", "unit": "V" },
-        { "id": "ct-max", "title": "C1 上阈值", "unit": "V" },
-        { "id": "f-tone-low", "title": "低音载频", "unit": "Hz" },
-        { "id": "f-tone-high", "title": "高音载频", "unit": "Hz" },
-        { "id": "cv-low", "title": "CV 低平台", "unit": "V" },
-        { "id": "cv-high", "title": "CV 高平台", "unit": "V" },
-        { "id": "spk-vpp", "title": "扬声器 Vpp", "unit": "V" }
+        {
+          "id": "f-lf",
+          "title": "低频频率",
+          "unit": "Hz",
+          "measurePoint": "lf-frequency",
+          "captureSteps": [
+            "ambulance-lf"
+          ]
+        },
+        {
+          "id": "t-lf",
+          "title": "低频周期",
+          "unit": "s",
+          "measurePoint": "lf-period",
+          "captureSteps": [
+            "ambulance-lf"
+          ]
+        },
+        {
+          "id": "ct-min",
+          "title": "C1 下阈值",
+          "unit": "V",
+          "measurePoint": "lf-cap-min",
+          "captureSteps": [
+            "ambulance-lf"
+          ]
+        },
+        {
+          "id": "ct-max",
+          "title": "C1 上阈值",
+          "unit": "V",
+          "measurePoint": "lf-cap-max",
+          "captureSteps": [
+            "ambulance-lf"
+          ]
+        },
+        {
+          "id": "f-tone-low",
+          "title": "低音载频",
+          "unit": "Hz",
+          "measurePoint": "carrier-frequency",
+          "captureSteps": [
+            "ambulance-tone-low"
+          ]
+        },
+        {
+          "id": "f-tone-high",
+          "title": "高音载频",
+          "unit": "Hz",
+          "measurePoint": "carrier-frequency",
+          "captureSteps": [
+            "ambulance-tone-high"
+          ]
+        },
+        {
+          "id": "cv-low",
+          "title": "CV 低平台均值",
+          "unit": "V",
+          "measurePoint": "control-mean",
+          "captureSteps": [
+            "ambulance-tone-high"
+          ]
+        },
+        {
+          "id": "cv-high",
+          "title": "CV 高平台均值",
+          "unit": "V",
+          "measurePoint": "control-mean",
+          "captureSteps": [
+            "ambulance-tone-low"
+          ]
+        },
+        {
+          "id": "hf-vpp-low",
+          "title": "低音输出 Vpp",
+          "unit": "V",
+          "measurePoint": "carrier-vpp",
+          "captureSteps": [
+            "ambulance-tone-low"
+          ]
+        },
+        {
+          "id": "hf-vpp-high",
+          "title": "高音输出 Vpp",
+          "unit": "V",
+          "measurePoint": "carrier-vpp",
+          "captureSteps": [
+            "ambulance-tone-high"
+          ]
+        },
+        {
+          "id": "spk-vpp",
+          "title": "扬声器 Vpp",
+          "unit": "V",
+          "measurePoint": "speaker-vpp",
+          "captureSteps": [
+            "ambulance-speaker"
+          ]
+        }
       ],
       "sanity": [
-        { "column": "f-lf", "min": 0.8, "max": 1.2, "message": "低频设计约 0.99 Hz。确认 RA1=10 kΩ、RB1=150 kΩ、C1=4.7 μF，以及测量单位为 Hz；此提示不替代真实仿真金标准。" },
-        { "column": "t-lf", "min": 0.8, "max": 1.3, "message": "低频周期约 1 s。只对完整稳态周期测量；切换过渡或首次起振不能当作一个周期。" },
-        { "column": "ct-min", "min": 0, "max": 5, "message": "电容阈值须以 GND1 为参考，单位 V；检查探头、耦合和极性。" },
-        { "column": "ct-max", "min": 0, "max": 5, "message": "电容电压上阈值不应超过 5 V 供电；不要将 Vpp 当作最大电压填写。" },
-        { "column": "f-tone-low", "min": 500, "max": 2000, "message": "载频在音频范围。请填 Hz 而非 kHz 的显示数字，并测 T2_OUT 的稳态平台。" },
-        { "column": "f-tone-high", "min": 500, "max": 2000, "message": "请分别测两种平台，不用整段调频波形的单一平均频率冒充高音频率。" },
-        { "column": "cv-low", "min": 0, "max": 5, "message": "CV 平台是相对 GND1 的直流电平，不是去直流后的幅值。使用 DC 耦合。" },
-        { "column": "cv-high", "min": 0, "max": 5, "message": "CV 高平台应由真实波形读出，不能直接代填 2/3 VCC；R5 会造成加载。" },
-        { "column": "spk-vpp", "min": 0, "max": 5, "message": "测量 SPK_P−SPK_N 的峰峰值。扬声器负载和 555 有限输出阻抗会降低幅度，不应直接代填 5 V。" }
+        {
+          "column": "f-lf",
+          "min": 0.9243085,
+          "max": 0.9429814,
+          "message": "原板裸设计约 0.99 Hz；本阶段 1 MΩ∥20 pF 示波器探头接 C1，实际加载频率约 0.934 Hz。保持同一接法，真实频率须在负载方程 ±1% 内，不能代填裸板值。"
+        },
+        {
+          "column": "t-lf",
+          "min": 1.0604663040013302,
+          "max": 1.0818898668572237,
+          "message": "C1 接 1 MΩ∥20 pF 探头时周期约 1.071 s。记录实际加载周期，移走电容探头后约 1.011 s；两种状态不要混填。"
+        },
+        {
+          "column": "ct-min",
+          "min": 1.4,
+          "max": 1.9,
+          "message": "C1 下阈值约 1/3 VCC。使用 DC 耦合、真实跨周期极值，不能把 Vpp 当作最小电压。"
+        },
+        {
+          "column": "ct-max",
+          "min": 3.1,
+          "max": 3.6,
+          "message": "C1 上阈值约 2/3 VCC。记录实际电压，不预填理论值。"
+        },
+        {
+          "column": "f-tone-low",
+          "min": 1013.202,
+          "max": 1033.67,
+          "message": "低音平台约 1.023 kHz；取平台内至少 0.2 s 的真实窗口，Hz 为表单位。"
+        },
+        {
+          "column": "f-tone-high",
+          "min": 1394.168,
+          "max": 1422.334,
+          "message": "高音平台约 1.408 kHz；不要将跨两平台的平均频率记入本列。"
+        },
+        {
+          "column": "cv-low",
+          "min": 2.45,
+          "max": 2.55,
+          "message": "CV 低平台对应高音调。用短时基、DC 耦合并避开切换；整低频窗均值不是平台值。"
+        },
+        {
+          "column": "cv-high",
+          "min": 3.27,
+          "max": 3.38,
+          "message": "CV 高平台对应低音调。确认短窗口完全在同一平台，不填 2/3 VCC 理论值。"
+        },
+        {
+          "column": "hf-vpp-low",
+          "min": 0.1,
+          "max": 5,
+          "message": "峰峰值来自真实接表波形。扬声器和有限 555 输出阻抗会降低幅度，不代填 5 V。"
+        },
+        {
+          "column": "hf-vpp-high",
+          "min": 0.1,
+          "max": 5,
+          "message": "峰峰值来自真实接表波形。扬声器和有限 555 输出阻抗会降低幅度，不代填 5 V。"
+        },
+        {
+          "column": "spk-vpp",
+          "min": 0.1,
+          "max": 5,
+          "message": "峰峰值来自真实接表波形。扬声器和有限 555 输出阻抗会降低幅度，不代填 5 V。"
+        }
       ]
     },
     {
-      "id": "fire-prototype",
-      "title": "消防车原型加载诊断（未实现渐变）",
-      "rows": 3,
+      "id": "fire-buffered",
+      "title": "消防车缓冲模式测量",
+      "rows": 1,
       "columns": [
-        { "id": "time", "title": "观察时刻", "unit": "s" },
-        { "id": "ct", "title": "C1 电压", "unit": "V" },
-        { "id": "cv", "title": "IC2 CV", "unit": "V" },
-        { "id": "carrier", "title": "瞬时载频", "unit": "Hz" },
-        { "id": "lf-cycle", "title": "存在完整低频周期（1/0）" }
+        {
+          "id": "f-lf",
+          "title": "低频频率",
+          "unit": "Hz",
+          "measurePoint": "lf-frequency",
+          "captureSteps": [
+            "fire-buffered-lf"
+          ]
+        },
+        {
+          "id": "t-lf",
+          "title": "低频周期",
+          "unit": "s",
+          "measurePoint": "lf-period",
+          "captureSteps": [
+            "fire-buffered-lf"
+          ]
+        },
+        {
+          "id": "ct-min",
+          "title": "C1 下阈值",
+          "unit": "V",
+          "measurePoint": "lf-cap-min",
+          "captureSteps": [
+            "fire-buffered-lf"
+          ]
+        },
+        {
+          "id": "ct-max",
+          "title": "C1 上阈值",
+          "unit": "V",
+          "measurePoint": "lf-cap-max",
+          "captureSteps": [
+            "fire-buffered-lf"
+          ]
+        },
+        {
+          "id": "cv-min",
+          "title": "跨周期 CV 最小值",
+          "unit": "V",
+          "measurePoint": "control-min",
+          "captureSteps": [
+            "fire-buffered-cv"
+          ]
+        },
+        {
+          "id": "cv-max",
+          "title": "跨周期 CV 最大值",
+          "unit": "V",
+          "measurePoint": "control-max",
+          "captureSteps": [
+            "fire-buffered-cv"
+          ]
+        },
+        {
+          "id": "spk-vpp",
+          "title": "扬声器 Vpp",
+          "unit": "V",
+          "measurePoint": "speaker-vpp",
+          "captureSteps": [
+            "fire-buffered-speaker"
+          ]
+        }
       ],
       "sanity": [
-        { "column": "time", "min": 0, "max": 10, "message": "观察时刻使用真实仿真秒数。1 s、2 s、4 s 分别占一行；不要用示波器刷新次数计时。" },
-        { "column": "ct", "min": 0, "max": 5, "message": "C1 电压以 GND1 为参考、DC 耦合。原型停振时仍有非零直流电压，不等于工作正常。" },
-        { "column": "cv", "min": 0, "max": 5, "message": "记录真实控制电平。CV 保持不变而载频存在，不代表消防车音调渐变已实现。" },
-        { "column": "carrier", "min": 500, "max": 2000, "message": "记录当前音频载频，单位 Hz；无连续渐变不能以理论上下限代填。" },
-        { "column": "lf-cycle", "min": 0, "max": 1, "message": "仅填 0（无完整低频周期）或 1（存在）。未观察到重复翻转时不能以 0.99 Hz 理论值替代。" }
+        {
+          "column": "f-lf",
+          "min": 0.9243085,
+          "max": 0.9429814,
+          "message": "原板裸设计约 0.99 Hz；本阶段 1 MΩ∥20 pF 示波器探头接 C1，实际加载频率约 0.934 Hz。保持同一接法，真实频率须在负载方程 ±1% 内，不能代填裸板值。"
+        },
+        {
+          "column": "t-lf",
+          "min": 1.0604663040013302,
+          "max": 1.0818898668572237,
+          "message": "C1 接 1 MΩ∥20 pF 探头时周期约 1.071 s。记录实际加载周期，移走电容探头后约 1.011 s；两种状态不要混填。"
+        },
+        {
+          "column": "ct-min",
+          "min": 1.4,
+          "max": 1.9,
+          "message": "C1 下阈值约 1/3 VCC。使用 DC 耦合、真实跨周期极值，不能把 Vpp 当作最小电压。"
+        },
+        {
+          "column": "ct-max",
+          "min": 3.1,
+          "max": 3.6,
+          "message": "C1 上阈值约 2/3 VCC。记录实际电压，不预填理论值。"
+        },
+        {
+          "column": "cv-min",
+          "min": 2.8,
+          "max": 3.05,
+          "message": "保留 R5/CV 分压后，最小控制电平约 2.917 V，不等于 C1 下阈值。需真实完整调制周期。"
+        },
+        {
+          "column": "cv-max",
+          "min": 3.2,
+          "max": 3.45,
+          "message": "控制端最大约 3.333 V；C4 保留在 T2_CV→GND，不移到缓冲输出。"
+        },
+        {
+          "column": "spk-vpp",
+          "min": 0.1,
+          "max": 5,
+          "message": "记录实际扬声器差分峰峰值；有波形不等于墙钟节奏和声音验收已通过。"
+        }
+      ]
+    },
+    {
+      "id": "fire-sweep-low",
+      "title": "消防车渐变取点：低频率",
+      "rows": 1,
+      "columns": [
+        {
+          "id": "carrier",
+          "title": "当前载频",
+          "unit": "Hz",
+          "measurePoint": "carrier-frequency",
+          "captureSteps": [
+            "fire-buffered-tone-low"
+          ]
+        },
+        {
+          "id": "cv-mean",
+          "title": "CV 短窗均值",
+          "unit": "V",
+          "measurePoint": "control-mean",
+          "captureSteps": [
+            "fire-buffered-tone-low"
+          ]
+        }
+      ],
+      "sanity": [
+        {
+          "column": "carrier",
+          "min": 1020,
+          "max": 1060,
+          "message": "该阶段须用当前真实载频，取点区间不与其它阶段重叠；三点不是完整轨迹。"
+        },
+        {
+          "column": "cv-mean",
+          "min": 2.8,
+          "max": 3.45,
+          "message": "CV 均值来自独立短窗口，不能将它冒充某个载波周期的瞬时 CV 或用它重算/代填载频。"
+        }
+      ]
+    },
+    {
+      "id": "fire-sweep-mid",
+      "title": "消防车渐变取点：中频率",
+      "rows": 1,
+      "columns": [
+        {
+          "id": "carrier",
+          "title": "当前载频",
+          "unit": "Hz",
+          "measurePoint": "carrier-frequency",
+          "captureSteps": [
+            "fire-buffered-tone-mid"
+          ]
+        },
+        {
+          "id": "cv-mean",
+          "title": "CV 短窗均值",
+          "unit": "V",
+          "measurePoint": "control-mean",
+          "captureSteps": [
+            "fire-buffered-tone-mid"
+          ]
+        }
+      ],
+      "sanity": [
+        {
+          "column": "carrier",
+          "min": 1090,
+          "max": 1140,
+          "message": "该阶段须用当前真实载频，取点区间不与其它阶段重叠；三点不是完整轨迹。"
+        },
+        {
+          "column": "cv-mean",
+          "min": 2.8,
+          "max": 3.45,
+          "message": "CV 均值来自独立短窗口，不能将它冒充某个载波周期的瞬时 CV 或用它重算/代填载频。"
+        }
+      ]
+    },
+    {
+      "id": "fire-sweep-high",
+      "title": "消防车渐变取点：高频率",
+      "rows": 1,
+      "columns": [
+        {
+          "id": "carrier",
+          "title": "当前载频",
+          "unit": "Hz",
+          "measurePoint": "carrier-frequency",
+          "captureSteps": [
+            "fire-buffered-tone-high"
+          ]
+        },
+        {
+          "id": "cv-mean",
+          "title": "CV 短窗均值",
+          "unit": "V",
+          "measurePoint": "control-mean",
+          "captureSteps": [
+            "fire-buffered-tone-high"
+          ]
+        }
+      ],
+      "sanity": [
+        {
+          "column": "carrier",
+          "min": 1170,
+          "max": 1230,
+          "message": "该阶段须用当前真实载频，取点区间不与其它阶段重叠；三点不是完整轨迹。"
+        },
+        {
+          "column": "cv-mean",
+          "min": 2.8,
+          "max": 3.45,
+          "message": "CV 均值来自独立短窗口，不能将它冒充某个载波周期的瞬时 CV 或用它重算/代填载频。"
+        }
       ]
     }
   ],
   "charts": [],
   "questions": [
     "IC1 的 RA1、RB1、C1 如何决定低频周期？为什么首次上电的充电时间不等于稳态周期？",
-    "IC2 的 CV 电压变化时，其两个比较阈值如何变化？为什么较低 CV 通常对应较高载频？",
-    "救护车接法中的两种载频为什么不是简单的同一个 1.02 kHz 理论值？R5 与 CV 内部分压如何共同决定控制电平？",
-    "为什么直接将 C1 电压经 10 kΩ 接到双极型 NE555 的 CV，会使低频振荡停住？请用戴维南等效和放电平衡电压说明。",
-    "高输入阻抗电压跟随缓冲应放在哪两个节点之间？它应保持哪些端电压、负载效应与 5 V 供电约束，才能验证消防车渐变方案？",
-    "C5 的极性和隔直作用是什么？如果把 8 Ω 扬声器直接跨接 IC2 OUT 与地，对直流电流、输出幅度和额定功率有何影响？",
-    "示波器从 0.2 s/div 切到 0.2 ms/div 时，为什么声音与低频变化不能随窗口刷新加速？应如何分别核对真实时间和载频？",
-    "由真实仿真提取基频/包络合成的声音，与固定预录警笛有何区别？接错调制线、断电或拔掉扬声器时应出现什么结果？"
+    "IC2 的 CV 电压变化时两个比较阈值怎样变化？为什么 CV 低平台对应较高音调？",
+    "救护车两音载频为什么不同于同一个 1.02 kHz 理论值？R5 和 NE555 内部分压怎样决定两个控制平台？",
+    "原消防车 TH→R5→CV 为什么停振？请用 CV 戴维南等效和 C1 放电平衡电压解释。",
+    "批准的 TLV9001IDBVR 适配板如何隔离 C1，为什么保留 R5 后 CV 约为 2.5+0.25×缓冲输出而不是等于 TH？",
+    "C5 的极性和隔直作用是什么？将 8 Ω 扬声器直接接 OUT 会怎样影响直流电流、输出幅度与额定功率？",
+    "示波器改时基时为什么不能改变声音和低频的墙钟节奏？细步长金标准准确与实时性能通过有何区别？",
+    "三个渐变频率取点为什么不能代替完整轨迹？为什么短窗 CV 均值不能冒充某个载波周期的同步瞬时 CV？",
+    "TLV9001_EST 的哪些值是典型参考、哪些是 M0 估计？为何不能把模型限流、轨余量和本机测试当作厂商保证或目标机验收？",
+    "由本次真实仿真提取基频/包络合成的声音，与固定预录警笛有何区别？断电、扬声器断线、重置和项目切换时应有什么结果？"
   ]
 }

@@ -1,7 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1500 1130" role="img" aria-labelledby="title description">
-  <title id="title">SD-22 双 NE555 救护车与消防车原型报警电路</title>
-  <desc id="description">五伏供电。左侧低频 NE555 使用十千欧、百五十千欧和四点七微法定时；右侧音频 NE555 使用两个十千欧和四十七纳法定时。救护车把左侧 OUT 经十千欧调制电阻接到右侧 CV，消防车原型改用左侧 TH。后者因控制端加载停振，缓冲修订待审批。右侧 OUT 经一百微法隔直电容驱动八欧扬声器。所有三十六个插孔标有与实验板一致的编号；两条调制候选线互斥，不是板内开关。</desc>
-  <metadata>Original code-native teaching schematic for mod-555-app, prototype section 5.4. Project-owned artwork. No copied panel, remote font, fixed waveform or prerecorded audio. Fire-prototype loading defect intentionally disclosed.</metadata>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1500 1370" role="img" aria-labelledby="title description">
+  <title id="title">SD-22 双 NE555 与独立 TLV9001 跟随器的两模式报警电路</title>
+  <desc id="description">原三十六插孔五伏 555 板保持全部电阻电容。救护车 OUT 方波直接经十千欧 R5 调制 IC2 CV；消防车 TH 电容电压先经过已批准的独立 TLV9001IDBVR 高输入阻抗单位增益适配板，再经原 R5 调制 CV。适配板有 VCC、GND、IN、OUT 四孔，电源与原板同源同地，内部一百纳法去耦。两个模式的调制信号来源互斥；原 TH 直连 R5 的停振接法仅作诊断补充。输出经一百微法电容驱动八欧扬声器。模型为项目独立估计，正式实时声音尚待实际验收。</desc>
+  <metadata>Original code-native teaching schematic for mod-555-app and the approved independent mod-voltage-follower. Prototype section 5.4 and docs/06. Project-owned artwork. No copied panel, remote font, fixed waveform or prerecorded audio. Original fire-prototype loading evidence is retained as a diagnosis, not an operational mode.</metadata>
   <style>
     text { font-family: "Noto Sans SC Variable", sans-serif; fill: black; font-size: 17px; }
     .wire { fill: none; stroke: black; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
@@ -15,9 +15,9 @@
     .center { text-anchor: middle; }
     .heading { font-size: 22px; font-weight: 600; }
   </style>
-  <rect width="1500" height="1130" fill="white"/>
-  <text x="750" y="38" class="center heading">救护车 / 消防车声响报警电路：双 555 原型</text>
-  <text x="750" y="68" class="center small">SD-22 · 5 V · 圆圈为插孔 · 电气原理图，不是面板布局 · 消防车原型需缓冲修订</text>
+  <rect width="1500" height="1370" fill="white"/>
+  <text x="750" y="38" class="center heading">救护车 / 消防车声响报警电路：原 555 板 + 独立跟随器</text>
+  <text x="750" y="68" class="center small">SD-22 · 5 V · 原板 36 孔不变 · 圆圈为插孔 · 消防车采用已批准缓冲，非厂商完整拟合</text>
   <text x="390" y="107" class="center">IC1 低频振荡器：设计约 0.99 Hz</text>
   <text x="1060" y="107" class="center">IC2 音频振荡器：未调制约 1.02 kHz</text>
 
@@ -130,26 +130,61 @@
     <circle cx="850" cy="760" r="3"/><circle cx="1110" cy="760" r="3"/><circle cx="1220" cy="760" r="3"/><circle cx="1310" cy="760" r="3"/>
   </g>
 
-  <text x="70" y="830" class="heading">调制线二选一：由学员断电改线，不是板内开关</text>
+  <text x="70" y="810" class="heading">调制来源二选一：学员断电改线，不是板内开关</text>
   <g class="choice">
-    <path d="M630 370 H690 V880 H600 L630 900"/>
-    <path d="M170 490 H110 V930 H600 L630 900"/>
+    <path d="M630 370 H690 V845 H865 V1030 H900"/>
+    <path d="M170 490 H38 V1010 H240"/>
   </g>
-  <text x="185" y="876" class="small">救护车：T1_OUT → R5_1（双音交替）</text>
-  <text x="185" y="923" class="small">消防车原型：T1_TH → R5_1（加载停振，待缓冲修订）</text>
-  <g class="wire">
-    <path d="M630 900 H660 M740 900 H790 H1255 V778 Q1270 760 1255 742 V650 H1235"/>
-  </g>
-  <rect x="660" y="888" width="80" height="24" class="component"/>
-  <text x="700" y="872" class="center">R5 · 10 kΩ</text>
-  <g data-jack-id="R5_1"><title>R5_1：调制输入端，OUT 与 TH 两种候选线互斥</title><circle cx="630" cy="900" r="5" class="jack"/><text x="614" y="934" class="jack-label">R5_1</text></g>
-  <g data-jack-id="R5_2"><title>R5_2：调制输出端，连接 T2_CV 与 T2_CC_1</title><circle cx="790" cy="900" r="5" class="jack"/><text x="774" y="934" class="jack-label">R5_2</text></g>
-  <circle cx="1235" cy="650" r="3" class="node"/>
-  <text x="835" y="883" class="small">R5_2 接 IC2 CV；跨 GND 处无连接</text>
+  <text x="185" y="839" class="small">救护车：T1_OUT → R5_1；适配板四孔全不接</text>
+  <text x="70" y="879" class="small">消防车：T1_TH → follower1.IN，follower1.OUT → R5_1</text>
 
-  <path d="M65 978 H1435" class="wire"/>
-  <text x="70" y="1010" class="small">原型消防车缺陷：NE555 CV 等效为 3.333 V / 3.333 kΩ，经 R5 上拉 C1；放电平衡约 3.061 V &gt; IC1 下阈值 1.667 V。</text>
-  <text x="70" y="1037" class="small">不能把恒定载频当作渐变；高输入阻抗电压跟随缓冲尚待审批。电阻、电容、CV 输入阻抗和旧音频夹具参数不作暗改。</text>
-  <text x="70" y="1074" class="small">测量：低频约 0.2 s/div；高频约 0.2 ms/div；CV 用 DC 耦合；扬声器测 SPK_P−SPK_N。真实波形与声音均来自本次仿真。</text>
-  <text x="70" y="1100" class="small">本图只定义电气连接。公共波形记录 / 分步骤拓扑 / 音频运行时未接通时，不能凭静态图或手填数据宣布实训完成。</text>
+  <!-- The adapter is independent; its supply wiring is added only for the fire mode. -->
+  <g data-module-id="follower1">
+    <rect x="205" y="900" width="555" height="280" fill="none" stroke="dimgray" stroke-width="1.5"/>
+    <text x="222" y="924" class="small">独立适配板 mod-voltage-follower · 消防车同源 5 V / GND</text>
+    <g class="wire">
+      <path d="M240 1010 H310 M510 1030 H720"/>
+      <path d="M545 1030 V1105 H435 Q420 1120 405 1105 H295 V1060 H310"/>
+      <path d="M420 946 V970 M420 1095 V1145 M420 960 H650 V1015 Q665 1030 650 1045 V1080 M650 1100 V1130 H420"/>
+    </g>
+    <rect x="310" y="970" width="200" height="125" class="component"/>
+    <text x="320" y="1010" class="pin-label">3 IN+</text>
+    <text x="320" y="1060" class="pin-label">4 IN−</text>
+    <text x="495" y="1025" class="pin-label" text-anchor="end">1 OUT</text>
+    <text x="420" y="990" class="center pin-label">5 V+</text>
+    <text x="420" y="1088" class="center pin-label">2 V−</text>
+    <text x="415" y="1037" class="center small">TLV9001_EST</text>
+    <text x="414" y="1124" class="center small">内部 OUT → IN− 负反馈</text>
+    <path d="M632 1080 H668 M632 1100 H668" class="component"/>
+    <text x="681" y="1090" class="small">Cdec</text>
+    <text x="681" y="1114" class="small">100 nF</text>
+    <circle cx="545" cy="1030" r="3" class="node"/>
+    <circle cx="420" cy="960" r="3" class="node"/>
+    <circle cx="420" cy="1130" r="3" class="node"/>
+    <g data-jack-id="VCC" data-module-id="follower1"><title>follower1.VCC：与 VCC1 同源 5 V，不自动接线</title><circle cx="420" cy="946" r="5" class="jack"/><text x="435" y="951" class="jack-label">VCC → VCC1 (+5 V)</text></g>
+    <g data-jack-id="GND" data-module-id="follower1"><title>follower1.GND：与 GND1 同地</title><circle cx="420" cy="1145" r="5" class="jack"/><text x="435" y="1169" class="jack-label">GND → GND1</text></g>
+    <g data-jack-id="IN" data-module-id="follower1"><title>follower1.IN：高输入阻抗同相端，接 T1_TH</title><circle cx="240" cy="1010" r="5" class="jack"/><text x="224" y="1037" class="jack-label">IN</text></g>
+    <g data-jack-id="OUT" data-module-id="follower1"><title>follower1.OUT：有限输出跟随器端，接原 R5_1</title><circle cx="720" cy="1030" r="5" class="jack"/><text x="694" y="1078" class="jack-label">OUT</text></g>
+  </g>
+  <path d="M720 1030 H900" class="choice"/>
+  <text x="805" y="1005" class="center small">仅消防车外接</text>
+
+  <g class="wire">
+    <path d="M900 1030 H930 M1010 1030 H1060 H1255 V778 Q1270 760 1255 742 V650 H1235"/>
+  </g>
+  <rect x="930" y="1018" width="80" height="24" class="component"/>
+  <text x="970" y="1002" class="center">原 R5 · 10 kΩ</text>
+  <g data-jack-id="R5_1"><title>timer1.R5_1：救护车接 T1_OUT 或消防车接 follower1.OUT，互斥</title><circle cx="900" cy="1030" r="5" class="jack"/><text x="875" y="1078" class="jack-label">R5_1</text></g>
+  <g data-jack-id="R5_2"><title>timer1.R5_2：原调制输出端，连接 T2_CV 与 T2_CC_1</title><circle cx="1060" cy="1030" r="5" class="jack"/><text x="1035" y="1078" class="jack-label">R5_2</text></g>
+  <circle cx="1235" cy="650" r="3" class="node"/>
+  <text x="925" y="917" class="small">R5_2 接 IC2 CV / C4</text>
+  <text x="925" y="942" class="small">C4 保留在 CV 与 GND 之间</text>
+  <text x="925" y="967" class="small">跨 GND 处无连接；缓冲不驱动扬声器</text>
+
+  <path d="M65 1206 H1435" class="wire"/>
+  <text x="70" y="1238" class="small">原型诊断（非本次操作）：TH 直接经 R5 接 CV 会使 C1 平衡约 3.061 V &gt; 下阈值 1.667 V，低频停振；历史证据保留。</text>
+  <text x="70" y="1265" class="small">批准缓冲保留真实 CV 分压，VCV ≈ 2.5 + 0.25 VBUF，约 2.917–3.333 V；原 36 孔 / RC / NE555 模型不改。</text>
+  <text x="70" y="1292" class="small">TLV9001_EST 为独立 M0 估计，非 TI SPICE / 最坏条件保证；有限输出、1 mA 模型限流等不能当作厂商额定值。</text>
+  <text x="70" y="1321" class="small">测量：低频 0.2 s/div；高频 / 平台 0.2 ms/div；frequency/period 至少两完整周期；CV 均值与载频各保留真实窗口。</text>
+  <text x="70" y="1348" class="small">声音由同一真实仿真差分采样提取基频 / 包络；正式实时性能与全流程录屏须实际验收，不凭静态图、三点或手填判完成。</text>
 </svg>

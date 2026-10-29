@@ -4,12 +4,12 @@ import { join, resolve } from 'node:path'
 import { type ElectronApplication, _electron as electron, expect, type Page, test } from '@playwright/test'
 import { Module } from '../../src/shared/schema/module'
 import { Project } from '../../src/shared/schema/project'
-import { addInstrumentWireFromList, selectJackFromList } from './helpers/instruments'
+import { mouseJack, sd22Wire } from './helpers/sd22'
 
 const project = Project.parse(JSON.parse(readFileSync('content/projects/SD-22/project.json', 'utf8')))
 const module = Module.parse(JSON.parse(readFileSync('content/modules/mod-555-app/module.json', 'utf8')))
 const recordingTitle = 'SD-22 原板断电参考接线检查、手填保护与确认重置（非声音验收）'
-const recordingPath = resolve('build/t015-sd22-content-wiring.webm')
+const recordingPath = resolve('build/t015-sd22-content-wiring-v2.webm')
 
 let app: ElectronApplication | undefined
 let page: Page
@@ -84,6 +84,12 @@ test('SD-22 36 个真实 GLB 插孔、六项指导书、原创原理图和双模
   const projected = JSON.parse((await viewport().getAttribute('data-jack-targets')) ?? '[]') as { ref: string }[]
   const mounted = projected.filter((jack) => jack.ref.startsWith('timer1.')).map((jack) => jack.ref)
   expect(mounted.sort()).toEqual(module.jacks.map((jack) => `timer1.${jack.id}`).sort())
+  expect(
+    projected
+      .filter((jack) => jack.ref.startsWith('follower1.'))
+      .map((jack) => jack.ref)
+      .sort(),
+  ).toEqual(['VCC', 'GND', 'IN', 'OUT'].map((id) => `follower1.${id}`).sort())
   expect(projected.some((jack) => jack.ref.startsWith('dc1.'))).toBe(false)
   await expect(viewport()).toHaveAttribute('data-placed-instruments', '[]')
 
@@ -95,6 +101,7 @@ test('SD-22 36 个真实 GLB 插孔、六项指导书、原创原理图和双模
   await expect(guide).toContainText('0.99 Hz')
   await expect(guide).toContainText('消防车')
   await expect(guide).toContainText('缓冲')
+  await expect(guide).toContainText('TLV9001')
   await expect(guide).toContainText('未完成')
 
   await page.getByRole('tab', { name: '原理图', exact: true }).click()
@@ -110,6 +117,10 @@ test('SD-22 36 个真实 GLB 插孔、六项指导书、原创原理图和双模
   await page.getByRole('button', { name: '放大原理图', exact: true }).click()
   const dialog = page.getByRole('dialog')
   await expect(dialog.getByRole('img', { name: 'SD-22 放大原理图', exact: true })).toBeVisible()
+  await expect.poll(() => dialog.evaluate((element) => getComputedStyle(element).opacity)).toBe('1')
+  await expect
+    .poll(() => page.locator('[data-slot="dialog-overlay"]').evaluate((element) => getComputedStyle(element).opacity))
+    .toBe('1')
   await page.screenshot({ path: resolve('build/t015-sd22-schematic.png') })
   await page.keyboard.press('Escape')
   await expect(dialog).toBeHidden()
@@ -142,28 +153,15 @@ test(recordingTitle, async () => {
   await page.getByRole('button', { name: '检查接线', exact: true }).click()
   await expect(editor().getByRole('status')).not.toContainText('电路拓扑连接正确。')
   await page.screenshot({ path: resolve('build/t015-sd22-unwired-report.png') })
-  // Esc only cancels an active cord; it does not dismiss this long report.
+  // The bounded public report must leave ordinary mouse endpoint selection usable.
   await page.getByRole('button', { name: '检查接线', exact: true }).focus()
   await page.keyboard.press('Escape')
   await expect(editor().getByRole('status')).toHaveCount(1)
-  // A genuine color change clears the notice through the existing editor action.
-  // The crowded report remains a public UI defect, not fixed by forced clicks.
-  const color = editor().getByRole('combobox', { name: '新导线颜色', exact: true })
-  for (const name of ['黑色', '红色']) {
-    await color.press('Enter')
-    const option = page.getByRole('option', { name, exact: true })
-    await option.focus()
-    await option.press('Enter')
-    await expect(color).toHaveAttribute('aria-expanded', 'false')
-    await expect(color).toContainText(name)
-  }
-  await expect(editor().getByRole('status')).toHaveCount(0)
-
   let count = 0
   for (const [first, ...rest] of project.reference.nets) {
     if (!first) throw new Error('Reference net is empty')
     for (const jack of rest) {
-      await addInstrumentWireFromList(page, first, jack)
+      await sd22Wire(page, first, jack)
       count++
       await expect(editor()).toHaveAttribute('data-wire-count', String(count))
     }
@@ -183,13 +181,14 @@ test(recordingTitle, async () => {
   await expect(supply).toHaveAttribute('data-captured-from', '')
   await steps().getByRole('button', { name: '完成当前步骤', exact: true }).click()
   await expect(steps()).toHaveAttribute('data-current-step', 'supply')
-  await expect(steps().locator('[data-task-notice]')).toContainText('尚未就绪')
+  await expect(steps().locator('[data-task-notice]')).toContainText('请检查当前接线')
+  await expect(steps().locator('[data-task-notice]')).toContainText('测量 supply')
   await page.getByRole('button', { name: '记录读数', exact: true }).click()
   await expect(supply).toHaveAttribute('data-captured-from', '')
   await expect(steps()).toHaveAttribute('data-completed-count', '2')
   await page.screenshot({ path: resolve('build/t015-sd22-content-wiring.png') })
 
-  await selectJackFromList(page, '接线起点', 'timer1.T1_OUT')
+  await mouseJack(page, '接线起点', 'timer1.T1_OUT')
   await supply.fill('4.8')
   await page.getByRole('button', { name: '重置', exact: true }).click()
   const reset = page.getByRole('dialog', { name: '重置当前实训？', exact: true })
