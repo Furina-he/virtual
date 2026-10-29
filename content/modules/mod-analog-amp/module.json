@@ -1,0 +1,46 @@
+{
+  "id": "mod-analog-amp",
+  "name": "共射极单管放大器实验板",
+  "form": "board",
+  "model": "module.glb",
+  "netlist": "module.cir",
+  "jacks": [
+    { "id": "AMP_VCC", "label": "+12V", "kind": "banana4", "polarityHint": "+" },
+    { "id": "AMP_GND1", "label": "GND", "kind": "banana4", "polarityHint": "-" },
+    { "id": "AMP_GND2", "label": "GND", "kind": "banana4", "polarityHint": "-" },
+    { "id": "AMP_US", "label": "Us", "kind": "banana4" },
+    { "id": "AMP_UI", "label": "Ui", "kind": "banana4" },
+    { "id": "AMP_UB", "label": "B", "kind": "banana4" },
+    { "id": "AMP_UC", "label": "C", "kind": "banana4" },
+    { "id": "AMP_UE", "label": "E", "kind": "banana4" },
+    { "id": "AMP_UO", "label": "Uo", "kind": "banana4" },
+    { "id": "AMP_RL", "label": "RL", "kind": "banana4" }
+  ],
+  "controls": [
+    {
+      "id": "RW",
+      "label": "偏置电位器 RW",
+      "kind": "pot",
+      "param": "rw",
+      "range": [0, 100000],
+      "step": 1000,
+      "targets": [{ "element": "RW", "min": 0.001 }],
+      "unit": "Ω",
+      "default": 22000
+    },
+    {
+      "id": "KCE",
+      "label": "发射极旁路 CE",
+      "kind": "switch",
+      "param": "kce",
+      "steps": [0, 1],
+      "stepLabels": ["断开", "接入"],
+      "targets": [{ "element": "RKCE", "values": [1000000000000, 0.001] }],
+      "unit": "",
+      "default": 1
+    }
+  ],
+  "indicators": [],
+  "commonNets": [["AMP_GND1", "AMP_GND2"]],
+  "simulation": { "analysis": "tran", "maxStep": 0.000001, "pacing": "window" }
+}

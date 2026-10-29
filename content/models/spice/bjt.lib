@@ -12,3 +12,19 @@
 .model S9013 NPN(IS=3e-14 BF=175 NF=1 VAF=100 IKF=1.2 ISE=1e-14 NE=1.5 BR=8 NR=1 VAR=20
 + IKR=0.2 RB=10 RE=0.2 RC=0.5 CJE=25e-12 VJE=0.75 MJE=0.33 CJC=8e-12 VJC=0.75 MJC=0.33
 + TF=0.9e-9 TR=50e-9 XTB=1.5 EG=1.11 XTI=3)
+
+* NPN_3DG6_EST -- independently authored M0 teaching estimate, NOT a vendor model.
+*   Intended board: mod-analog-amp, docs/原型选型说明.md section 5.3.
+*   BF=60 is the prototype's estimated forward gain, not a measured 3DG6 grade.
+*   IS=5e-15 A and NF=1 are chosen to give approximately 0.7 V VBE at a few mA
+*   at 27 C. BR=2 and NR=1 are modelling assumptions for qualitative saturation.
+*   Junction capacitances/potentials and transit times below are M0 estimates;
+*   no 3DG6 datasheet capacitance, fT, breakdown or temperature fit is claimed.
+*   Early effect and high-injection roll-off are omitted (ngspice defaults).
+*   Therefore output resistance is dominated by the board's RC, not a claimed
+*   device output characteristic. Use the active region for Au/Ri/Ro only.
+*   This model is separate from S9013; no S9013 parameter set was renamed.
+*   License: project-owned content, freely redistributable with this project.
+*
+.model NPN_3DG6_EST NPN(IS=5e-15 BF=60 NF=1 BR=2 NR=1 TNOM=27
++ CJE=12p VJE=0.7 MJE=0.33 CJC=5p VJC=0.7 MJC=0.33 TF=2n TR=20n)

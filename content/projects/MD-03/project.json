@@ -1,0 +1,136 @@
+{
+  "id": "MD-03",
+  "group": "基本放大电路",
+  "title": "单管放大电路的研究",
+  "type": "basic",
+  "modules": [{ "instanceId": "amp1", "moduleId": "mod-analog-amp", "slot": "SLOT_BOX_L1" }],
+  "allowedInstruments": ["ins-func-gen", "ins-oscilloscope", "ins-multimeter"],
+  "reference": {
+    "nets": [
+      ["ins-dc-power.CH1P", "amp1.AMP_VCC"],
+      ["ins-dc-power.CH1N", "amp1.AMP_GND1", "amp1.AMP_GND2", "ins-func-gen.GND"],
+      ["ins-func-gen.CH1", "amp1.AMP_US"]
+    ],
+    "measurePoints": [
+      { "id": "vcc", "kind": "voltage", "mode": "dcv", "between": ["amp1.AMP_VCC", "amp1.AMP_GND1"] },
+      { "id": "ub", "kind": "voltage", "mode": "dcv", "between": ["amp1.AMP_UB", "amp1.AMP_GND1"] },
+      { "id": "uc", "kind": "voltage", "mode": "dcv", "between": ["amp1.AMP_UC", "amp1.AMP_GND1"] },
+      { "id": "ue", "kind": "voltage", "mode": "dcv", "between": ["amp1.AMP_UE", "amp1.AMP_GND1"] },
+      { "id": "us_vpp", "kind": "waveform", "quantity": "vpp", "between": ["amp1.AMP_US", "amp1.AMP_GND2"] },
+      { "id": "ui_vpp", "kind": "waveform", "quantity": "vpp", "between": ["amp1.AMP_UI", "amp1.AMP_GND2"] },
+      { "id": "uo_vpp", "kind": "waveform", "quantity": "vpp", "between": ["amp1.AMP_UO", "amp1.AMP_GND2"] },
+      { "id": "signal_frequency", "kind": "waveform", "quantity": "frequency", "between": ["amp1.AMP_UI", "amp1.AMP_GND2"] },
+      { "id": "collector_frequency", "kind": "waveform", "quantity": "frequency", "between": ["amp1.AMP_UC", "amp1.AMP_GND2"] },
+      { "id": "uc_vpp", "kind": "waveform", "quantity": "vpp", "between": ["amp1.AMP_UC", "amp1.AMP_GND2"] },
+      { "id": "vce_min", "kind": "waveform", "quantity": "min", "between": ["amp1.AMP_UC", "amp1.AMP_UE"] },
+      { "id": "vce_max", "kind": "waveform", "quantity": "max", "between": ["amp1.AMP_UC", "amp1.AMP_UE"] },
+      { "id": "vce_mean", "kind": "waveform", "quantity": "mean", "between": ["amp1.AMP_UC", "amp1.AMP_UE"] }
+    ]
+  },
+  "steps": [
+    { "id": "prepare", "text": "阅读指导和原理图。本切片采用独立的 NPN_3DG6_EST 估计模型（β约60），不是 S9013。保持断电，RW恢复22 kΩ、CE接入；将信号源CH1输出关闭，CH2输出关闭。", "measurePoints": [], "dataTable": "static" },
+    { "id": "wire", "text": "从仪表柜拖入信号发生器和示波器。电源CH1设12 V并接AMP_VCC/GND1；信号源CH1接Us、GND接GND2，先保持输出关。两GND孔板内相连。检查电源与输入源接线，静态测量时示波器信号线不接B/C/E。", "measurePoints": [], "checkWiring": true, "dataTable": "static" },
+    { "id": "static-vcc", "text": "固定电压表用20 V档、10 MΩ输入内阻，正端接+12V、负端接GND1。上电后记录实际VCC；不直接把设定值填入数据表。移动表线前先断电。", "measurePoints": ["vcc"], "dataTable": "static" },
+    { "id": "static-b", "text": "断电并移除原两根表线，电压表正端接B、负端仍接GND1。保持20 V档与10 MΩ，重新上电并记录UB。", "measurePoints": ["ub"], "dataTable": "static" },
+    { "id": "static-c", "text": "断电后将电压表正端移到C、负端接GND1，上电并记录UC。信号源仍不输出，示波器信号输入保持不接线。", "measurePoints": ["uc"], "dataTable": "static" },
+    { "id": "static-e", "text": "断电后将电压表正端移到E、负端接GND1，用20 V档上电记录UE。表格据真实分次电压计算UCE与RC压降法IC估算，解释表内阻和分辨率影响。", "measurePoints": ["ue"], "dataTable": "static", "recordTable": "static" },
+    { "id": "gain", "text": "断电并拆除固定电压表两根表线。Uo与RL用外接短线接通；示波器CH1接Ui、CH2接Uo、GND接GND2。两通道DC耦合，信号源正弦1 kHz、0.1 Vpp、偏置0并开输出；RW22 kΩ、CE接入。上电待稳定，记录实际频率/Ui/Uo Vpp并计算幅值增益，观察真实反相波形而不预填负号。", "measurePoints": ["signal_frequency", "ui_vpp", "uo_vpp"], "dataTable": "gain", "recordTable": "gain" },
+    { "id": "ri", "text": "断电后CH1改接Us、CH2改接Ui，地线仍接GND2。保持RW22 kΩ和CE接入，信号源改为5 kHz、0.1 Vpp；建议20 μs/div。待稳定后记录两端Vpp和实际频率，以已知串联R1=5.1 kΩ计算幅度法输入电阻估算；不要把相量差当精确纯电阻结论。", "measurePoints": ["signal_frequency", "us_vpp", "ui_vpp"], "dataTable": "ri", "recordTable": "ri" },
+    { "id": "ro-open", "text": "保持5 kHz、0.1 Vpp、RW22 kΩ、CE接入。断电后拆除Uo与RL短线，CH1接Ui、CH2接Uo。上电记录本阶段Ui/Uo和频率；1 MΩ示波器是近似空载，不是无限大阻抗。本次不得覆盖带载列。", "measurePoints": ["signal_frequency", "ui_vpp", "uo_vpp"], "dataTable": "ro" },
+    { "id": "ro-load", "text": "断电后仅把Uo与RL孔用短线接通，保持其余设置和两通道测量位置不变。重新上电记录带载Ui/Uo与频率。以RL=2.4 kΩ及两次实测归一化增益计算Ro估算；确认空载列保留。", "measurePoints": ["signal_frequency", "ui_vpp", "uo_vpp"], "dataTable": "ro", "recordTable": "ro" },
+    { "id": "cutoff", "text": "断电将示波器CH1接C、CH2接E，GND仍接板GND2，真实RL保持接入；不要把地夹接E。两通道DC耦合，CH1用2 V/div与-3 div位移、CH2用1 V/div，避免显示范围截断。信号源1 kHz、2 Vpp，RW改100 kΩ、CE接入；待新参数采样稳定后记录C频率/Vpp，以及同步CH1-CH2所得VCE的最小/最大/均值，观察截止平顶。仅把RW调100 kΩ不会使无信号直流IC为零。", "measurePoints": ["collector_frequency", "uc_vpp", "vce_min", "vce_max", "vce_mean"], "dataTable": "distortion" },
+    { "id": "saturation", "text": "保持CH1接C、CH2接E、GND接板GND2，两路DC耦合与真实RL负载。信号源改1 kHz、1 Vpp，RW调18 kΩ、CE仍接入。观察饱和削顶，待稳定记录本阶段C频率/Vpp与同步差分VCE各量，不覆盖截止列。VCE=VC-VE来自同一时刻的两路实测，不是C对地电压，也不是历史UE减当前C。", "measurePoints": ["collector_frequency", "uc_vpp", "vce_min", "vce_max", "vce_mean"], "dataTable": "distortion", "recordTable": "distortion" },
+    { "id": "analyse", "text": "断电并核对五张表。说明幅值增益与相位、Ri/Ro幅度法和仪表加载、截止/饱和与显示量程截断的区别；指出3DG6估计模型和缺少模拟主板/交流毫伏表的正式验收边界。保留真实测量结果与记录来源，不改填理论值。", "measurePoints": [], "dataTable": "distortion", "recordTable": "distortion" }
+  ],
+  "dataTables": [
+    {
+      "id": "static", "title": "静态工作点记录", "rows": 1,
+      "columns": [
+        { "id": "vcc", "title": "VCC", "unit": "V", "measurePoint": "vcc", "captureSteps": ["static-vcc"] },
+        { "id": "ub", "title": "UB", "unit": "V", "measurePoint": "ub", "captureSteps": ["static-b"] },
+        { "id": "uc", "title": "UC", "unit": "V", "measurePoint": "uc", "captureSteps": ["static-c"] },
+        { "id": "ue", "title": "UE", "unit": "V", "measurePoint": "ue", "captureSteps": ["static-e"] },
+        { "id": "uce", "title": "UCE计算", "unit": "V", "computed": "uc-ue" },
+        { "id": "ic_est", "title": "IC压降法估算", "unit": "A", "computed": "(vcc-uc)/2400" }
+      ],
+      "sanity": [
+        { "column": "vcc", "min": 11.5, "max": 12.5, "message": "本实验建议12 V供电。请记录实际读数，检查源设置和电源正负线。" },
+        { "column": "ub", "min": 0, "max": 12.5, "message": "UB超出本实验供电范围，检查B点与参考地、极性和电压表量程。" },
+        { "column": "uc", "min": 0, "max": 12.5, "message": "UC超出本实验供电范围，确认测C点而非Uo，检查极性与参考地。" },
+        { "column": "ue", "min": 0, "max": 12.5, "message": "UE超出本实验供电范围，检查E点、地线与量程。" }
+      ]
+    },
+    {
+      "id": "gain", "title": "带载幅值增益记录", "rows": 1,
+      "columns": [
+        { "id": "frequency", "title": "频率", "unit": "Hz", "measurePoint": "signal_frequency", "captureSteps": ["gain"] },
+        { "id": "ui_vpp", "title": "Ui Vpp", "unit": "V", "measurePoint": "ui_vpp", "captureSteps": ["gain"] },
+        { "id": "uo_vpp", "title": "Uo Vpp", "unit": "V", "measurePoint": "uo_vpp", "captureSteps": ["gain"] },
+        { "id": "au", "title": "幅值增益", "computed": "uo_vpp/ui_vpp" }
+      ],
+      "sanity": [
+        { "column": "frequency", "min": 950, "max": 1050, "message": "增益记录采用1 kHz小信号条件。请核对真实频率与示波器接线。" },
+        { "column": "ui_vpp", "min": 0.0001, "max": 0.1, "message": "Ui可能未接入或已偏离小信号条件。先检查信号输出、输入幅值与实际波形，不用固定增益替代。" }
+      ]
+    },
+    {
+      "id": "ri", "title": "输入电阻幅度法估算", "rows": 1,
+      "columns": [
+        { "id": "frequency", "title": "频率", "unit": "Hz", "measurePoint": "signal_frequency", "captureSteps": ["ri"] },
+        { "id": "us_vpp", "title": "Us Vpp", "unit": "V", "measurePoint": "us_vpp", "captureSteps": ["ri"] },
+        { "id": "ui_vpp", "title": "Ui Vpp", "unit": "V", "measurePoint": "ui_vpp", "captureSteps": ["ri"] },
+        { "id": "ri_est", "title": "Ri幅度法估算", "unit": "Ω", "computed": "5100*ui_vpp/(us_vpp-ui_vpp)" }
+      ],
+      "sanity": [
+        { "column": "frequency", "min": 4750, "max": 5250, "message": "Ri幅度法记录建议5 kHz，以减小耦合和旁路容抗影响；结果仍不等于全频带复阻抗。" },
+        { "column": "ri_est", "min": 0, "max": 1000000, "message": "Ri估算无物理意义，检查Us是否大于Ui、同频条件、测量插孔和地线。" }
+      ]
+    },
+    {
+      "id": "ro", "title": "空载与带载输出电阻估算", "rows": 1,
+      "columns": [
+        { "id": "frequency_open", "title": "空载频率", "unit": "Hz", "measurePoint": "signal_frequency", "captureSteps": ["ro-open"] },
+        { "id": "ui_open_vpp", "title": "空载Ui Vpp", "unit": "V", "measurePoint": "ui_vpp", "captureSteps": ["ro-open"] },
+        { "id": "uo_open_vpp", "title": "空载Uo Vpp", "unit": "V", "measurePoint": "uo_vpp", "captureSteps": ["ro-open"] },
+        { "id": "frequency_load", "title": "带载频率", "unit": "Hz", "measurePoint": "signal_frequency", "captureSteps": ["ro-load"] },
+        { "id": "ui_load_vpp", "title": "带载Ui Vpp", "unit": "V", "measurePoint": "ui_vpp", "captureSteps": ["ro-load"] },
+        { "id": "uo_load_vpp", "title": "带载Uo Vpp", "unit": "V", "measurePoint": "uo_vpp", "captureSteps": ["ro-load"] },
+        { "id": "ro_est", "title": "Ro归一化估算", "unit": "Ω", "computed": "2400*(uo_open_vpp/ui_open_vpp/(uo_load_vpp/ui_load_vpp)-1)" }
+      ],
+      "sanity": [
+        { "column": "frequency_open", "min": 4750, "max": 5250, "message": "Ro空载记录应保持5 kHz与小信号条件。" },
+        { "column": "frequency_load", "min": 4750, "max": 5250, "message": "Ro带载记录应与空载保持同一频率、RW和CE设置。" },
+        { "column": "ro_est", "min": 100, "max": 100000, "message": "Ro估算异常。检查Uo与RL外接线是否按阶段断开/接通，输入是否稳定，勿把两列填成同一次测量。" }
+      ]
+    },
+    {
+      "id": "distortion", "title": "截止与饱和失真观察", "rows": 1,
+      "columns": [
+        { "id": "frequency_cutoff", "title": "截止C频率", "unit": "Hz", "measurePoint": "collector_frequency", "captureSteps": ["cutoff"] },
+        { "id": "vce_cutoff_min", "title": "截止VCE最小", "unit": "V", "measurePoint": "vce_min", "captureSteps": ["cutoff"] },
+        { "id": "vce_cutoff_max", "title": "截止VCE最大", "unit": "V", "measurePoint": "vce_max", "captureSteps": ["cutoff"] },
+        { "id": "vce_cutoff_mean", "title": "截止VCE均值", "unit": "V", "measurePoint": "vce_mean", "captureSteps": ["cutoff"] },
+        { "id": "uc_cutoff_vpp", "title": "截止C Vpp", "unit": "V", "measurePoint": "uc_vpp", "captureSteps": ["cutoff"] },
+        { "id": "frequency_saturation", "title": "饱和C频率", "unit": "Hz", "measurePoint": "collector_frequency", "captureSteps": ["saturation"] },
+        { "id": "vce_saturation_min", "title": "饱和VCE最小", "unit": "V", "measurePoint": "vce_min", "captureSteps": ["saturation"] },
+        { "id": "vce_saturation_max", "title": "饱和VCE最大", "unit": "V", "measurePoint": "vce_max", "captureSteps": ["saturation"] },
+        { "id": "vce_saturation_mean", "title": "饱和VCE均值", "unit": "V", "measurePoint": "vce_mean", "captureSteps": ["saturation"] },
+        { "id": "uc_saturation_vpp", "title": "饱和C Vpp", "unit": "V", "measurePoint": "uc_vpp", "captureSteps": ["saturation"] }
+      ],
+      "sanity": [
+        { "column": "frequency_cutoff", "min": 950, "max": 1050, "message": "截止观察采用1 kHz大信号。确认不是停采、GND耦合或信号源未输出。" },
+        { "column": "frequency_saturation", "min": 950, "max": 1050, "message": "饱和观察采用1 kHz大信号，保持真实RL负载和DC耦合。" }
+      ]
+    }
+  ],
+  "charts": [],
+  "questions": [
+    "为什么UCE应由UC减UE得到，而不是直接把C对地电压写成UCE？RC压降法IC估算包含哪些测量误差？",
+    "为什么本表的Uo/Ui是幅值增益，不能据此宣称相位严格为180°或强制填入负放大倍数？",
+    "Us和Ui跨过已知5.1 kΩ电阻。何时可以用幅度法估算Ri，为什么有限频率下不能忽略相量关系？",
+    "接入RL会改变输入阻抗与Ui。Ro估算为什么采用两次Uo/Ui的比值，而不是只用输出幅度之比？",
+    "CE接入/断开改变哪些交流通路，为什么它不应改变无信号直流工作点？",
+    "为什么RW100 kΩ不等于无信号直流截止？如何区分C相对地电压、VBE、VCE、真实削顶与示波器显示范围截断？",
+    "缺少原型模拟主板与交流毫伏表、自建3DG6估计参数，会影响哪些正式教学/参数审核与设备一致性验收？"
+  ]
+}

@@ -2023,6 +2023,89 @@
         512,
         512
       ]
+    },
+    {
+      "id": "mod-analog-amp",
+      "name": "共射极单管放大器实验板",
+      "kind": "module",
+      "bodyStyle": "module",
+      "dimensionsMm": [264, 184, 40],
+      "model": "content/modules/mod-analog-amp/module.glb",
+      "estimatedDimensions": true,
+      "dimensionNote": "264 x 184 mm panel and all ten jack/control XY positions retain prototype selection section 5.3. The 40 mm protective carrier is an M0 visual estimate; the analog base and its original board slot are not yet delivered. VT1 is the separately named estimated 3DG6 model, not a relabeled S9013.",
+      "textureSize": [2048, 1428],
+      "jacks": [
+        { "id": "AMP_VCC", "label": "+12V", "x": 245, "y": 16, "color": "red", "kind": "banana4" },
+        { "id": "AMP_GND1", "label": "GND", "x": 245, "y": 170, "color": "black", "kind": "banana4" },
+        { "id": "AMP_GND2", "label": "GND", "x": 16, "y": 170, "color": "black", "kind": "banana4" },
+        { "id": "AMP_US", "label": "Us", "x": 16, "y": 95, "color": "yellow", "kind": "banana4" },
+        { "id": "AMP_UI", "label": "Ui", "x": 55, "y": 95, "color": "yellow", "kind": "banana4" },
+        { "id": "AMP_UB", "label": "B", "x": 108, "y": 95, "color": "yellow", "kind": "banana4" },
+        { "id": "AMP_UC", "label": "C", "x": 158, "y": 70, "color": "yellow", "kind": "banana4" },
+        { "id": "AMP_UE", "label": "E", "x": 158, "y": 122, "color": "yellow", "kind": "banana4" },
+        { "id": "AMP_UO", "label": "Uo", "x": 222, "y": 70, "color": "yellow", "kind": "banana4" },
+        { "id": "AMP_RL", "label": "RL", "x": 222, "y": 110, "color": "yellow", "kind": "banana4" }
+      ],
+      "controls": [
+        { "id": "RW", "label": "RW 100k ohm", "kind": "knob", "x": 105, "y": 32, "radiusMm": 8, "param": "rw", "labelX": 75, "labelY": 35 },
+        { "id": "KCE", "label": "CE 接入/断开", "kind": "switch", "shape": "toggle", "x": 185, "y": 122, "radiusMm": 4, "param": "kce", "labelX": 189, "labelY": 133 }
+      ],
+      "screens": [],
+      "panel": {
+        "title": "共射极单管放大器",
+        "titleSize": 4.5,
+        "footer": "3DG6 beta 60 估计 / Uo 与 RL 外接短线选负载",
+        "lines": [
+          { "points": [[245, 16], [158, 16], [105, 16], [105, 24]] },
+          { "points": [[105, 40], [108, 40], [108, 43]] },
+          { "points": [[108, 57], [108, 95]] },
+          { "points": [[158, 16], [158, 23]] },
+          { "points": [[158, 37], [158, 70]] },
+          { "points": [[16, 95], [20, 95]] },
+          { "points": [[34, 95], [55, 95], [78, 95]] },
+          { "points": [[78, 90], [78, 100]] },
+          { "points": [[82, 90], [82, 100]] },
+          { "points": [[82, 95], [108, 95], [130, 95]] },
+          { "points": [[108, 95], [108, 105]] },
+          { "points": [[108, 119], [108, 164]] },
+          { "points": [[130, 84], [130, 106]] },
+          { "points": [[130, 89], [148, 78], [158, 78], [158, 70]] },
+          { "points": [[130, 101], [148, 114], [158, 114], [158, 122]] },
+          { "points": [[148, 114], [141, 112], [145, 108], [148, 114]] },
+          { "points": [[158, 70], [188, 70]] },
+          { "points": [[188, 65], [188, 75]] },
+          { "points": [[192, 65], [192, 75]] },
+          { "points": [[192, 70], [222, 70]] },
+          { "points": [[158, 122], [158, 133]] },
+          { "points": [[158, 147], [158, 164]] },
+          { "points": [[158, 122], [181, 122]] },
+          { "points": [[189, 122], [202, 122], [202, 142], [185, 142]] },
+          { "points": [[179, 143], [191, 143]] },
+          { "points": [[179, 147], [191, 147]] },
+          { "points": [[185, 147], [185, 164]] },
+          { "points": [[222, 110], [222, 123]] },
+          { "points": [[222, 137], [222, 164]] },
+          { "points": [[16, 170], [16, 164], [245, 164], [245, 170]] }
+        ],
+        "symbols": [
+          { "kind": "resistor", "x": 27, "y": 95, "length": 14, "label": "R1 5.1k ohm", "labelX": 32, "labelY": 108 },
+          { "kind": "resistor", "x": 108, "y": 50, "length": 14, "angle": 90, "label": "RB1 20k ohm", "labelX": 131, "labelY": 52 },
+          { "kind": "resistor", "x": 108, "y": 112, "length": 14, "angle": 90, "label": "RB2 20k ohm", "labelX": 83, "labelY": 116 },
+          { "kind": "resistor", "x": 158, "y": 30, "length": 14, "angle": 90, "label": "RC 2.4k ohm", "labelX": 183, "labelY": 31 },
+          { "kind": "resistor", "x": 158, "y": 140, "length": 14, "angle": 90, "label": "RE 1k ohm", "labelX": 137, "labelY": 143 },
+          { "kind": "resistor", "x": 222, "y": 130, "length": 14, "angle": 90, "label": "RL 2.4k ohm", "labelX": 243, "labelY": 138 }
+        ],
+        "texts": [
+          { "text": "C1 10 uF", "x": 80, "y": 82, "size": 3.1 },
+          { "text": "+", "x": 86, "y": 92, "size": 3.4 },
+          { "text": "VT1 3DG6", "x": 131, "y": 123, "size": 3.1 },
+          { "text": "C2 10 uF", "x": 191, "y": 57, "size": 3.1 },
+          { "text": "+", "x": 183, "y": 67, "size": 3.4 },
+          { "text": "CE 47 uF", "x": 203, "y": 153, "size": 3.1 },
+          { "text": "+", "x": 174, "y": 141, "size": 3.4 },
+          { "text": "Uo / RL 外接线", "x": 240, "y": 91, "size": 2.5 }
+        ]
+      }
     }
   ],
   "preview": {

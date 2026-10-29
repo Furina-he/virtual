@@ -1,0 +1,24 @@
+* Common-emitter teaching board; prototype topology: docs/原型选型说明.md section 5.3.
+* Component values and the distinct 3DG6 model are M0 estimates, not vendor certification.
+.subckt mod_analog_amp AMP_VCC AMP_GND1 AMP_GND2 AMP_US AMP_UI AMP_UB AMP_UC AMP_UE AMP_UO AMP_RL params: rw=22000 kce=1
+* The two exposed grounds are the same copper net, represented by 1 micro-ohm.
+Rcu_ground AMP_GND1 AMP_GND2 1u
+* Us -> R1 -> Ui -> C1 -> base; electrolytic C1 positive terminal is the base.
+R1 AMP_US AMP_UI 5.1k
+C1 AMP_UB AMP_UI 10u
+* RW is a rheostat in series with RB1. A 1 milliohm floor avoids a zero resistor.
+RW AMP_VCC n_rw {max(rw,1m)}
+RB1 n_rw AMP_UB 20k
+RB2 AMP_UB AMP_GND1 20k
+QVT1 AMP_UC AMP_UB AMP_UE NPN_3DG6_EST
+RC AMP_VCC AMP_UC 2.4k
+RE AMP_UE AMP_GND1 1k
+* KCE changes resistance, never circuit topology; CE is positive at the emitter.
+RKCE AMP_UE n_ce {kce > 0.5 ? 1m : 1T}
+CE n_ce AMP_GND1 47u
+C2 AMP_UC AMP_UO 10u
+* RL is NOT connected to Uo internally. The learner must wire AMP_UO to AMP_RL.
+RL AMP_RL AMP_GND1 2.4k
+.ends mod_analog_amp
+* Keep library inclusion after the board header for the common subcircuit parser.
+.include "bjt.lib"
