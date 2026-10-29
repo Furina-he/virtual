@@ -165,6 +165,15 @@ describe('Capture actual project measurement points', () => {
     expect(captureMeasurePoint(state, current)).toMatchObject({ ok: false, reason: 'not-connected' })
   })
 
+  it('does not accept a shorted voltage probe as measuring across a real ammeter burden', () => {
+    const state = snapshot([...iWires, ['vm.POS', 'dc1.KH_I1A'], ['vm.NEG', 'dc1.KH_I1A']], {
+      vm: { status: 'ok', value: 0 },
+    })
+    const point: MeasurePoint = { id: 'burden', kind: 'voltage', mode: 'dcv', between: ['dc1.KH_I1A', 'dc1.KH_I1B'] }
+    expect(state.plan.assembled.nodeOf['dc1.KH_I1A']).not.toBe(state.plan.assembled.nodeOf['dc1.KH_I1B'])
+    expect(captureMeasurePoint(state, point)).toMatchObject({ ok: false, reason: 'not-connected' })
+  })
+
   it('requires explicit selection when multiple voltage meters match', () => {
     const state = snapshot(
       [...vWires, ['mm.VOHM', 'dc1.KH_F'], ['mm.COM', 'dc1.KH_A']],

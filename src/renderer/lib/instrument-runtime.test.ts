@@ -5,6 +5,7 @@ import { getInstrumentDefaults } from '../../domain/instruments'
 import type { SimCommand, SimEvent } from '../../shared/ipc/sim'
 import type { CircuitState } from '../../shared/schema/circuit'
 import { Instrument } from '../../shared/schema/instrument'
+import { Module } from '../../shared/schema/module'
 import { getInstrumentReading, instrumentReadings } from './instrument-readings'
 import { connectInstrumentRuntime, currentMeasurementSnapshot } from './instrument-runtime'
 import { RingBuffer } from './ring-buffer'
@@ -15,6 +16,8 @@ type SamplesListener = (samples: Float32Array, t0: number, dt: number) => void
 const fixture = vi.hoisted(() => ({
   state: undefined as unknown as CircuitState,
   instruments: [] as InstrumentInput[],
+  modules: [] as { id: string }[],
+  netlist: '',
   events: new Set<(event: LowFreqEvent) => void>(),
   restarts: new Set<() => void>(),
   changes: new Set<(state: CircuitState) => void>(),
@@ -29,13 +32,16 @@ const fixture = vi.hoisted(() => ({
 }))
 
 vi.mock('./sim-client', () => ({ getSimClient: () => fixture.sim }))
-vi.mock('../features/practice/practice-content', () => ({ moduleCatalog: [], moduleNetlist: vi.fn() }))
+vi.mock('../features/practice/practice-content', () => ({
+  moduleCatalog: fixture.modules,
+  moduleNetlist: () => fixture.netlist,
+}))
 vi.mock('../features/practice/instrument-settings', () => ({
   benchInstruments: () => fixture.instruments,
   setBenchInstrumentSettings: vi.fn(),
 }))
 vi.mock('../features/practice/wiring-state', () => ({
-  getActivePlacements: () => [],
+  getActivePlacements: () => fixture.modules.map((module) => ({ instanceId: 'box1', assetId: module.id })),
   circuitStore: {
     getState: () => fixture.state,
     subscribe: (listener: (state: CircuitState) => void) => {
@@ -56,6 +62,49 @@ const gen = load('ins-func-gen')
 const scope = load('ins-oscilloscope')
 const meter = load('ins-multimeter')
 let disconnect: (() => void) | undefined
+
+function useModule(transient = true) {
+  fixture.modules.push(
+    Module.parse({
+      id: 'mod-runtime-test',
+      name: 'Runtime parameter fixture',
+      form: 'board',
+      model: 'test.glb',
+      netlist: 'test.cir',
+      jacks: [
+        { id: 'P', label: '+', kind: 'banana4' },
+        { id: 'N', label: '-', kind: 'banana4' },
+      ],
+      controls: [
+        {
+          id: 'RP',
+          kind: 'pot',
+          param: 'rp',
+          range: [1, 10_000],
+          unit: 'Ω',
+          default: 1000,
+          targets: [{ element: 'R1' }],
+        },
+      ],
+      ...(transient ? { simulation: { analysis: 'tran', maxStep: 1e-4 } } : {}),
+    }),
+  )
+  fixture.netlist = '.subckt runtime_test P N params: rp=1000\nR1 P N {rp}\n.ends runtime_test'
+}
+
+function changeControl(value: number) {
+  fixture.state = { ...fixture.state, controlValues: { ...fixture.state.controlValues, 'box1.RP': value } }
+  for (const listener of fixture.changes) listener(fixture.state)
+}
+
+function latestAlter() {
+  const command = vi
+    .mocked(fixture.sim.send)
+    .mock.calls.filter(([entry]) => entry.type === 'alter')
+    .at(-1)?.[0]
+  if (command?.type !== 'alter') throw new Error('Missing live module alteration')
+  return command
+}
 
 function emit(event: LowFreqEvent) {
   for (const listener of fixture.events) listener(event)
@@ -81,6 +130,8 @@ beforeEach(() => {
   fixture.restarts.clear()
   fixture.changes.clear()
   fixture.samples.clear()
+  fixture.modules.length = 0
+  fixture.netlist = ''
   fixture.instruments = [
     { instanceId: 'gen1', instrument: gen, settings: { ...getInstrumentDefaults(gen), ch1_freq: 5000 } },
     { instanceId: 'scope1', instrument: scope, settings: getInstrumentDefaults(scope) },
@@ -136,6 +187,124 @@ afterEach(() => {
 })
 
 describe('instrument runtime integration', () => {
+  it('updates only numeric module parameters without reloading or replacing live subscriptions', async () => {
+    useModule()
+    const command = await start()
+    const values = Object.fromEntries(command.probes.map((probe) => [probe.id, 1]))
+    emit({ type: 'readings', simTime: 0.2, values })
+    const originalPlan = currentMeasurementSnapshot()?.plan
+    const originalListeners = [...fixture.samples.values()].map((group) => [...group])
+    changeControl(2000)
+    const update = latestAlter()
+    expect(currentMeasurementSnapshot()?.current).toBe(false)
+    expect(update.changes).toEqual([
+      { param: 'p_box1_rp', value: 2000, targets: [{ element: 'r.xbox1.r1', value: 2000 }] },
+    ])
+    expect(vi.mocked(fixture.sim.send).mock.calls.filter(([entry]) => entry.type === 'load')).toHaveLength(1)
+    expect(currentMeasurementSnapshot()?.plan.command.probes).toEqual(originalPlan?.command.probes)
+    expect([...fixture.samples.values()].map((group) => [...group])).toEqual(originalListeners)
+    emit({ type: 'readings', simTime: 0.3, values })
+    expect(currentMeasurementSnapshot()?.current).toBe(false)
+    emit({ type: 'altered', requestId: update.requestId, changes: update.changes, simTime: 0.3 })
+    emit({ type: 'readings', simTime: 0.3, values })
+    expect(currentMeasurementSnapshot()?.current).toBe(false)
+    emit({ type: 'readings', simTime: 0.35, values })
+    expect(currentMeasurementSnapshot()?.current).toBe(true)
+    expect(getInstrumentReading('meter1').status).toBe('pending')
+  })
+
+  it('uses a correlated acknowledgement followed by OP output for a DC module alteration', async () => {
+    useModule(false)
+    fixture.instruments = [{ instanceId: 'meter1', instrument: meter, settings: { range: 'dcv20' } }]
+    fixture.state.wires = [
+      { id: 'w1', a: 'box1.P', b: 'meter1.VOHM', color: 'red' },
+      { id: 'w2', a: 'box1.N', b: 'meter1.COM', color: 'black' },
+    ]
+    const command = await start()
+    expect(command.analysis.kind).toBe('op')
+    const values = Object.fromEntries(command.probes.map((probe) => [probe.id, 2]))
+    emit({ type: 'op', values })
+    expect(currentMeasurementSnapshot()?.current).toBe(true)
+    changeControl(2000)
+    const update = latestAlter()
+    emit({ type: 'op', values })
+    expect(currentMeasurementSnapshot()?.current).toBe(false)
+    emit({ type: 'altered', requestId: update.requestId, changes: update.changes, simTime: 0 })
+    emit({ type: 'op', values: Object.fromEntries(command.probes.map((probe) => [probe.id, 3])) })
+    expect(currentMeasurementSnapshot()?.current).toBe(true)
+    expect(currentMeasurementSnapshot()?.readings.meter1).toMatchObject({ status: 'ok', value: 3 })
+    expect(vi.mocked(fixture.sim.send).mock.calls.filter(([entry]) => entry.type === 'load')).toHaveLength(1)
+  })
+
+  it('never allows an old successful request to acknowledge a newer control change', async () => {
+    useModule()
+    const command = await start()
+    const values = Object.fromEntries(command.probes.map((probe) => [probe.id, 1]))
+    changeControl(2000)
+    const first = latestAlter()
+    changeControl(3000)
+    const second = latestAlter()
+    emit({ type: 'altered', requestId: first.requestId, changes: first.changes, simTime: 0.1 })
+    emit({ type: 'readings', simTime: 0.2, values })
+    expect(currentMeasurementSnapshot()?.current).toBe(false)
+    emit({ type: 'altered', requestId: second.requestId, changes: second.changes, simTime: 0.2 })
+    emit({ type: 'readings', simTime: 0.25, values })
+    expect(currentMeasurementSnapshot()?.current).toBe(true)
+  })
+
+  it('clears a current stopped session even when an older in-flight request reports the failure', async () => {
+    useModule()
+    await start()
+    changeControl(2000)
+    const first = latestAlter()
+    changeControl(3000)
+    emit({ type: 'error', requestId: first.requestId, code: 'model', message: 'Parameter failed' })
+    expect(fixture.state.powered).toBe(false)
+    expect(currentMeasurementSnapshot()).toBeUndefined()
+    expect([...fixture.samples.values()].every((group) => group.size === 0)).toBe(true)
+  })
+
+  it('captures a live wired scope channel only from post-ack samples and rejects disabled/frozen acquisition', async () => {
+    useModule()
+    const command = await start()
+    if (command.analysis.kind !== 'tran') throw new Error('Missing transient')
+    const probe = command.probes.find((entry) => entry.id === 'scope:scope1:CH1')
+    if (!probe) throw new Error('Missing scope probe')
+    const dt = command.analysis.step
+    chunk(
+      probe.id,
+      Float32Array.from({ length: 20_000 }, (_, i) => 4 + Math.sin(2 * Math.PI * 5000 * i * dt)),
+      0,
+      dt,
+    )
+    const values = Object.fromEntries(command.probes.map((entry) => [entry.id, 1]))
+    emit({ type: 'readings', simTime: 0.1, values })
+    expect(currentMeasurementSnapshot()?.waveforms?.[0]).toMatchObject({
+      current: true,
+      positiveRef: 'scope1.CH1',
+      negativeRef: 'scope1.GND',
+      measurement: { vpp: 2 },
+    })
+    changeControl(2000)
+    const update = latestAlter()
+    emit({ type: 'altered', requestId: update.requestId, changes: update.changes, simTime: 0.1 })
+    emit({ type: 'readings', simTime: 0.11, values })
+    expect(currentMeasurementSnapshot()?.waveforms?.[0]?.current).toBe(false)
+    chunk(
+      probe.id,
+      Float32Array.from({ length: 20_000 }, (_, i) => 1 + 3 * Math.sin(2 * Math.PI * 5000 * i * dt)),
+      0.12,
+      dt,
+    )
+    emit({ type: 'readings', simTime: 0.13, values })
+    expect(currentMeasurementSnapshot()?.waveforms?.[0]).toMatchObject({ current: true, measurement: { vpp: 6 } })
+    fixture.instruments = fixture.instruments.map((entry) =>
+      entry.instanceId === 'scope1' ? { ...entry, settings: { ...entry.settings, run: 0 } } : entry,
+    )
+    changeControl(2000)
+    expect(currentMeasurementSnapshot()?.waveforms?.[0]?.current).toBe(false)
+  })
+
   it('exposes only the currently published job and invalidates captures synchronously on a range change', async () => {
     const command = await start()
     expect(currentMeasurementSnapshot()?.current).toBe(false)

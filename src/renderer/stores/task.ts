@@ -7,12 +7,14 @@ import {
   createTaskState,
   currentTaskStep,
   type MeasurementSnapshot,
+  measurementUnit,
   recordCurrentReading,
   scopedReference,
   type TaskState,
   writeTableCell,
 } from '../../domain/task'
 import { checkWiring, detectDanger } from '../../domain/wiring-check'
+import { evaluateFormula } from '../../shared/formula'
 import type { Project, Step } from '../../shared/schema/project'
 import { circuitStore } from '../features/practice/wiring-state'
 import { benchCircuitInput, currentMeasurementSnapshot } from '../lib/instrument-runtime'
@@ -118,13 +120,22 @@ export function selectTaskSource(instanceId: string): void {
 
 function sanityWarnings(project: Project, task: TaskState): string[] {
   const warnings = project.dataTables.flatMap((table) =>
-    (task.tables[table.id] ?? []).flatMap((values, row) =>
-      table.columns.flatMap((column) =>
-        writeTableCell(project, task, table.id, row, column.id, values[column.id] ?? null).warnings.map(
-          (message) => `${table.title} 第 ${row + 1} 行：${message}`,
-        ),
-      ),
-    ),
+    (task.tables[table.id] ?? []).flatMap((values, row) => [
+      ...(table.sanity ?? [])
+        .filter((rule) => {
+          const value = values[rule.column]
+          return (
+            typeof value === 'number' &&
+            ((rule.min !== undefined && value < rule.min) || (rule.max !== undefined && value > rule.max))
+          )
+        })
+        .map((rule) => `${table.title} 第 ${row + 1} 行：${rule.message}`),
+      ...table.columns.flatMap((column) => {
+        if (!column.computed) return []
+        const result = evaluateFormula(column.computed, values)
+        return result.message ? [`${column.title}：${result.message}`] : []
+      }),
+    ]),
   )
   return [...new Set(warnings)]
 }
@@ -186,24 +197,25 @@ function captureFeedback(
 ): string {
   const meter = snapshot?.plan.meters.find((item) => item.instanceId === capture.instanceId)
   const point = project.reference.measurePoints.find((item) => item.id === capture.measurePoint)
-  const unit = point?.kind === 'current' ? 'A' : 'V'
+  const unit = point ? measurementUnit(point) : ''
   const ac = meter?.config.mode === 'acv' || meter?.config.mode === 'aca'
   const number = (value: number) => String(Number(value.toPrecision(12)))
-  return `${capture.measurePoint}：${meter?.config.instrument.name ?? capture.instanceId}（${capture.instanceId}）表屏 ${number(capture.displayValueSI)} ${unit}，按参考方向记录 ${number(capture.referenceValueSI)} ${unit}。${capture.reversed ? (ac ? '表线正负端接反，有效值的非负幅度不因反接改变。' : '表线正负端接反，记录按声明方向换算；未取绝对值。') : ''}`
+  return `${capture.measurePoint}：${meter?.config.instrument.name ?? capture.instanceId}（${capture.instanceId}${capture.channelId ? `.${capture.channelId}` : ''}）${capture.channelId ? '波形实测' : '表屏'} ${number(capture.displayValueSI)} ${unit}，按参考方向记录 ${number(capture.referenceValueSI)} ${unit}。${capture.reversed ? (ac ? '表线正负端接反，有效值的非负幅度不因反接改变。' : '表线正负端接反，记录按声明方向换算；未取绝对值。') : ''}`
 }
 
 export function recordTaskReadings(project: Project): boolean {
   taskStore.setState({ bottomTab: 'data', leftTab: 'steps' })
   if (!active(project)) return false
   const state = taskStore.getState()
-  const table = project.dataTables.find((item) => item.id === state.selectedTable)
+  const step = currentTaskStep(project, state.task)
+  const table = project.dataTables.find((item) => item.id === (step?.dataTable ?? state.selectedTable))
   if (!table) {
     taskStore.setState({ notice: '当前项目没有可记录的数据表，请选择已配置的数据表。' })
     return false
   }
+  const row = Math.min(state.selectedRow, table.rows - 1)
   const snapshot = currentMeasurementSnapshot()
   const meters = selectedMeters(project, state.selectedSource)
-  const step = currentTaskStep(project, state.task)
   const required = requiredPoints(step)
   let task = state.task
   const captures = { ...state.captures }
@@ -211,10 +223,11 @@ export function recordTaskReadings(project: Project): boolean {
   const failures = new Map<string, string>()
   for (const column of table.columns) {
     if (!column.measurePoint) continue
-    const update = recordCurrentReading(project, task, table.id, state.selectedRow, column.id, {
+    if (column.captureSteps && (!step || !column.captureSteps.includes(step.id))) continue
+    const update = recordCurrentReading(project, task, table.id, row, column.id, {
       snapshot,
       selectedMeters: meters,
-      row: state.selectedRow,
+      row,
       advance: false,
     })
     if (!update.ok || !update.measurement) {
@@ -223,7 +236,7 @@ export function recordTaskReadings(project: Project): boolean {
     }
     task = update.state
     successful.push(update.measurement)
-    captures[taskCellKey(table.id, state.selectedRow, column.id)] = update.measurement
+    captures[taskCellKey(table.id, row, column.id)] = update.measurement
   }
   if (!successful.length) {
     const preferred = required.map((id) => failures.get(id)).find(Boolean)
@@ -239,14 +252,18 @@ export function recordTaskReadings(project: Project): boolean {
     const completion = completeTaskStep(project, task, step.id, {
       snapshot,
       selectedMeters: meters,
-      row: state.selectedRow,
+      row,
       wiringCorrect: wiring?.correct,
     })
     if (completion.ok) task = completion.state
     completionMessage = `${completion.message}${wiring && !wiring.correct ? wiring.messages.join(' ') : ''}`
   }
+  const nextTable = currentTaskStep(project, task)?.dataTable ?? table.id
+  const nextRows = project.dataTables.find((entry) => entry.id === nextTable)?.rows ?? table.rows
   taskStore.setState({
     task,
+    selectedTable: nextTable,
+    selectedRow: Math.min(row, nextRows - 1),
     captures,
     notice: `已记录 ${successful.length} 项当前读数。${successful.map((capture) => captureFeedback(project, snapshot, capture)).join(' ')}${completionMessage}`,
     warnings: sanityWarnings(project, task),
@@ -270,8 +287,12 @@ export function completeCurrentTaskStep(project: Project): boolean {
     row: state.selectedRow,
     wiringCorrect: wiring?.correct,
   })
+  const nextTable = currentTaskStep(project, update.state)?.dataTable ?? state.selectedTable
+  const nextRows = project.dataTables.find((entry) => entry.id === nextTable)?.rows ?? 1
   taskStore.setState({
     task: update.state,
+    selectedTable: nextTable,
+    selectedRow: Math.min(state.selectedRow, nextRows - 1),
     leftTab: 'steps',
     notice: `${update.message}${wiring && !wiring.correct ? wiring.messages.join(' ') : ''}`,
     warnings: [...new Set([...sanityWarnings(project, update.state), ...(wiring?.messages ?? [])])],

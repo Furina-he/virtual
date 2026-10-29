@@ -43,6 +43,7 @@ import { InstrumentScreens } from './instrument-screens'
 import { createSlotTargets, pickInstrumentSlot, type SlotTarget } from './instrument-slot-picking'
 import { JackNode3D, readHighlightColor } from './jack-node'
 import { cloneQualityModel } from './model-quality'
+import { ModuleControls3D } from './module-controls'
 import { DraftCord, PatchCords3D } from './patch-cords'
 import { qualityOptions, qualityPreset, useQuality } from './quality-store'
 import { useWiringInteraction } from './wiring-interaction'
@@ -138,18 +139,21 @@ function SceneMetrics({
   jacks,
   actualJacks,
   slots,
+  controls,
 }: {
   region: RefObject<HTMLElement | null>
   onContextLost: () => void
   jacks: WorldJack[]
   actualJacks: WiringJack[]
   slots: SlotTarget[]
+  controls: WorldJack[]
 }) {
   const gl = useThree((state) => state.gl)
   const projection = useMemo(() => new Vector3(), [])
   const viewDirection = useMemo(() => new Vector3(), [])
   const wires = useCircuit((state) => state.wires)
   const placed = useCircuit((state) => state.placedInstruments)
+  const controlValues = useCircuit((state) => state.controlValues)
   const frameCount = useRef(0)
   const wireTargets = useMemo(
     () =>
@@ -196,6 +200,22 @@ function SceneMetrics({
             Math.abs(projection.y) < 1 &&
             Math.abs(projection.z) < 1 &&
             viewDirection.subVectors(camera.position, jack.position).dot(jack.normal) > 0,
+        }
+      }),
+    )
+    region.current.dataset.moduleControlTargets = JSON.stringify(
+      controls.map((control) => {
+        projection.copy(control.position).project(camera)
+        return {
+          id: control.id,
+          x: (projection.x + 1) / 2,
+          y: (1 - projection.y) / 2,
+          value: controlValues[control.id],
+          visible:
+            Math.abs(projection.x) < 1 &&
+            Math.abs(projection.y) < 1 &&
+            Math.abs(projection.z) < 1 &&
+            viewDirection.subVectors(camera.position, control.position).dot(control.normal) > 0,
         }
       }),
     )
@@ -396,6 +416,28 @@ function PreviewModels({
       }),
     [worldJacks, electricalJacks],
   )
+  const worldControls = useMemo(
+    () =>
+      models.flatMap((item) => {
+        if (item.asset.kind !== 'module') return []
+        const rotation = new Euler(...(item.rotation ?? [0, 0, 0]))
+        const origin = new Vector3(...item.position)
+        return item.anchors
+          .filter((anchor) => anchor.kind === 'KNOB' || anchor.kind === 'SW')
+          .map((anchor) => ({
+            id: `${item.instanceId}.${anchor.id}`,
+            assetId: item.asset.id,
+            label: anchor.label,
+            position: anchor.position
+              .clone()
+              .add(new Vector3(0, 0, 0.011).applyQuaternion(anchor.quaternion))
+              .applyEuler(rotation)
+              .add(origin),
+            normal: new Vector3(0, 0, 1).applyQuaternion(anchor.quaternion).applyEuler(rotation),
+          }))
+      }),
+    [models],
+  )
   const pending = useCircuit((state) => state.pendingJack)
   const wires = useCircuit((state) => state.wires)
   const interaction = useWiringInteraction(actualJacks, region, enabled)
@@ -422,6 +464,7 @@ function PreviewModels({
         jacks={worldJacks}
         actualJacks={actualJacks}
         slots={slots}
+        controls={worldControls}
       />
       <InstrumentSlotTargets targets={slots} />
       <PatchCords3D jacks={actualJacks} highlight={highlight} />
@@ -438,6 +481,15 @@ function PreviewModels({
             onClick={blockOccludedJacks}
           />
           {asset.kind === 'instrument' && <InstrumentScreens model={model} instanceId={instanceId} />}
+          {asset.kind === 'module' && (
+            <ModuleControls3D
+              model={model}
+              instanceId={instanceId}
+              assetId={asset.id}
+              anchors={anchors}
+              enabled={enabled}
+            />
+          )}
           {anchors
             .filter((anchor) => anchor.kind === 'JACK')
             .map((anchor) => (

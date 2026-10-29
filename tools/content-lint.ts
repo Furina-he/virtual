@@ -82,6 +82,7 @@ export function lintContent(root: string): LintIssue[] {
       const path = `allowedInstruments[${i}]`
       if (!ins) issues.push({ file, path, message: `仪表 ${id} 不存在` })
       else if (ins.mounting === 'fixed') issues.push({ file, path, message: `仪表 ${id} 固定在控制屏上，不放进仪表柜` })
+      else jacksOf.set(ins.id, new Set(ins.jacks.map((jack) => jack.id)))
     })
     const checkRef = (ref: string, path: string) => {
       const [inst = '', jack = ''] = ref.split('.')

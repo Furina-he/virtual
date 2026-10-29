@@ -5,10 +5,10 @@
 // "let v = v[末点]" 把本 plot 每个向量截成 1 点：let 对已有向量原地换数据缓冲，tran 写入用的 dvec 指针不变，
 // 电路与 XSPICE 状态不受影响，不需要重启 tran（重启会丢数字状态、源相位从 0 开始）。
 // XSPICE 事件节点历史另用 "esave none" 关闭；已执行命令的控制结构每片用 ngSpice_Command(NULL) 释放。
-// 运行中改参数（ADR-009）：片间隙 "alterparam p=v" + "reset"，reset 重新展开参数，tran 时间与状态继续。
+// 声明的电阻目标在片间隙直接 alter，不 reset 储能支路；旧参数接口仍保留原 reset 行为。
 // 不用 SendData 逐点回调：koffi 把每个点从后台线程排队回 JS 主线程，Electron 中实测
 // 只有约 2.7 万点/秒，20 µs 步长跟不上实时；也不在后台线程运行中调 bg_halt（会与排队回调互等）。
-import type { Analysis, Probe, SimCommand, SimEvent } from '../shared/ipc/sim'
+import { type Analysis, type Probe, patchNetlistParameters, type SimCommand, type SimEvent } from '../shared/ipc/sim'
 import { Chunker } from './chunker'
 import { classifyError, NgSpice, NgSpiceError } from './ngspice'
 
@@ -139,7 +139,7 @@ export class SimSession {
         this.resetPace()
         break
       case 'alter':
-        this.whenIdle(() => this.alter(cmd.changes))
+        this.whenIdle(() => this.alter(cmd))
         break
     }
   }
@@ -156,19 +156,66 @@ export class SimSession {
     this.paceWall = performance.now() / 1000
   }
 
-  // ADR-009：只改参数不改拓扑。alterparam 改全局 .param，reset 让 ngspice 重新代入；
-  // 时间片间隙执行，tran 从当前时刻继续，电容电压与数字状态保留（tests/golden/sim-runtime.test.ts）
-  private alter(changes: { param: string; value: number }[]): void {
+  // Direct declared R targets preserve the active circuit state; reset is only the legacy fallback.
+  private alter(update: Extract<SimCommand, { type: 'alter' }>): void {
     const cmd = this.current
-    if (!cmd || this.state === 'error') return
+    if (!cmd || this.state === 'error') {
+      this.emit({
+        type: 'error',
+        code: 'model',
+        message: '当前没有可更新的仿真会话，请重新上电后重试。',
+        requestId: update.requestId,
+      })
+      return
+    }
     try {
-      for (const c of changes) this.ng.command(`alterparam ${c.param}=${c.value}`)
-      this.ng.command('reset')
-      this.quietEvents()
-      if (cmd.analysis.kind === 'op') this.runOp(cmd)
+      const netlist = patchNetlistParameters(cmd.netlist, update.changes)
+      const direct = update.changes.every((change) => change.targets?.length)
+      if (update.changes.some((change) => change.targets?.length) && !direct)
+        throw new Error('Cannot mix direct resistor targets with reset-based parameter updates')
+      if (direct) {
+        for (const change of update.changes) {
+          const declaration = cmd.parameterTargets?.find(
+            (entry) => entry.param.toLowerCase() === change.param.toLowerCase(),
+          )
+          const allowed = declaration?.elements.map((element) => element.toLowerCase())
+          const supplied = change.targets?.map((target) => target.element.toLowerCase()) ?? []
+          if (
+            !allowed ||
+            allowed.length !== supplied.length ||
+            new Set(supplied).size !== supplied.length ||
+            supplied.some((element) => !allowed.includes(element))
+          )
+            throw new Error(`Undeclared resistor targets for ${change.param}`)
+        }
+        for (const change of update.changes) {
+          for (const target of change.targets ?? []) this.ng.command(`alter ${target.element}=${target.value}`)
+        }
+        if (cmd.analysis.kind === 'op') {
+          for (const change of update.changes) this.ng.command(`alterparam ${change.param}=${change.value}`)
+          this.ng.command('reset')
+          this.quietEvents()
+        }
+      } else {
+        for (const c of update.changes) this.ng.command(`alterparam ${c.param}=${c.value}`)
+        this.ng.command('reset')
+        this.quietEvents()
+      }
+      this.current = { ...cmd, netlist }
+      this.emit({ type: 'altered', requestId: update.requestId, simTime: this.simTime, changes: update.changes })
+      if (cmd.analysis.kind === 'op') this.runOp(this.current)
     } catch (e) {
       const detail = e instanceof NgSpiceError ? e.detail : String(e)
-      this.emit({ type: 'log', line: `改参数失败：${detail}` })
+      this.cancelResume()
+      this.emit({
+        type: 'error',
+        code: 'model',
+        message: '参数更新失败，仿真已停止。请检查模块参数并重新上电。',
+        detail,
+        requestId: update.requestId,
+      })
+      this.setState('error')
+      return
     }
     if (this.state === 'running' && this.started && !this.bgRunning) this.scheduleResume()
   }

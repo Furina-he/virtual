@@ -1,7 +1,7 @@
 // sim 子进程入口（utilityProcess，技术设计 §4.1）。
 // parentPort：main 下发控制命令与数据端口；数据端口：直连渲染端，推送 SimEvent。
 import type { MessagePortMain } from 'electron'
-import { SimCommandSchema, type SimEvent, type SimHostMessage } from '../shared/ipc/sim'
+import { type SimChildMessage, SimCommandSchema, type SimEvent, type SimHostMessage } from '../shared/ipc/sim'
 import { SimSession } from './session'
 
 const dir = process.env.VIRTUAL_NGSPICE_DIR
@@ -11,6 +11,13 @@ const ports = new Set<MessagePortMain>()
 
 // MessagePortMain 只能 transfer 端口，Float32Array 走结构化克隆（每块拷贝一次）
 function send(event: SimEvent): void {
+  if (event.type === 'altered') {
+    const message: SimChildMessage = { type: 'altered', event }
+    process.parentPort.postMessage(message)
+  } else if (event.type === 'error' && event.requestId) {
+    const message: SimChildMessage = { type: 'parameter-error', event }
+    process.parentPort.postMessage(message)
+  }
   for (const port of ports) port.postMessage(event)
 }
 

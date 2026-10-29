@@ -1,3 +1,4 @@
+import { evaluateFormula, formulaColumns } from '../../shared/formula.ts'
 import type { Project, Step } from '../../shared/schema/project.ts'
 import { type CapturedMeasurement, captureMeasurePoint, type MeasurementSnapshot, tableValue } from './measurements.ts'
 
@@ -67,6 +68,29 @@ function failure(state: TaskState, message: string): TaskUpdate {
   return { ok: false, state, message, warnings: [] }
 }
 
+function recompute(
+  table: Project['dataTables'][number],
+  row: Record<string, number | null>,
+): { values: Record<string, number | null>; warnings: string[] } {
+  const values = { ...row }
+  const warnings: string[] = []
+  const pending = new Map(table.columns.filter((column) => column.computed).map((column) => [column.id, column]))
+  while (pending.size) {
+    let changed = false
+    for (const [id, column] of pending) {
+      const formula = column.computed as string
+      if (formulaColumns(formula).some((reference) => pending.has(reference))) continue
+      const result = evaluateFormula(formula, values)
+      values[id] = result.value
+      if (result.message) warnings.push(`${column.title}：${result.message}`)
+      pending.delete(id)
+      changed = true
+    }
+    if (!changed) break
+  }
+  return { values, warnings }
+}
+
 export function writeTableCell(
   project: Project,
   state: TaskState,
@@ -93,12 +117,13 @@ export function writeTableCell(
     .map((rule) => rule.message)
   if (Object.is(values[columnId], value)) return { ok: true, state, message: '数据未改变。', warnings }
   const rows = [...(state.tables[tableId] ?? [])]
-  rows[row] = { ...values, [columnId]: value }
+  const calculated = recompute(table, { ...values, [columnId]: value })
+  rows[row] = calculated.values
   return {
     ok: true,
     state: { ...state, tables: { ...state.tables, [tableId]: rows } },
     message: '数据已更新。',
-    warnings,
+    warnings: [...warnings, ...calculated.warnings],
   }
 }
 
@@ -146,6 +171,9 @@ export function recordCurrentReading(
   evidence: CompletionEvidence = {},
 ): TaskUpdate {
   const column = project.dataTables.find((table) => table.id === tableId)?.columns.find((item) => item.id === columnId)
+  const activeStep = currentTaskStep(project, state)
+  if (column?.captureSteps && (!activeStep || !column.captureSteps.includes(activeStep.id)))
+    return failure(state, '该列不属于当前测量阶段，保留已记录的数据。')
   const point = project.reference.measurePoints.find((item) => item.id === column?.measurePoint)
   if (!column || !point) return failure(state, '该列未绑定可记录的测量点，请手动填写或选择其他列。')
   const capture = captureMeasurePoint(evidence.snapshot, point, evidence.selectedMeters?.[point.id])

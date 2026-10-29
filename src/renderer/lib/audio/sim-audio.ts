@@ -34,6 +34,7 @@ export class SimAudioOutput {
   private recent = new Float32Array(0)
   private recentFill = 0
   private lastTimbre = Number.NEGATIVE_INFINITY
+  private stopped = false
 
   private constructor(
     readonly ctx: BaseAudioContext,
@@ -71,6 +72,7 @@ export class SimAudioOutput {
   }
 
   feed(samples: Float32Array, t0: number, dt: number): void {
+    if (this.stopped) return
     if (this.node) {
       const copy = samples.slice()
       this.node.port.postMessage({ samples: copy }, [copy.buffer])
@@ -90,9 +92,20 @@ export class SimAudioOutput {
   }
 
   stop(): void {
+    if (this.stopped) return
+    this.stopped = true
+    this.amp?.gain.cancelScheduledValues(this.ctx.currentTime)
+    this.osc?.frequency.cancelScheduledValues(this.ctx.currentTime)
+    if (this.amp) this.amp.gain.setValueAtTime(0, this.ctx.currentTime)
     this.node?.disconnect()
     this.osc?.stop()
+    this.osc?.disconnect()
     this.amp?.disconnect()
+    this.node = undefined
+    this.osc = undefined
+    this.amp = undefined
+    this.tracker = undefined
+    this.recent = new Float32Array(0)
   }
 
   private keep(samples: Float32Array): void {
