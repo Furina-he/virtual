@@ -11,6 +11,7 @@ import {
   resolveSource,
   WAVEFORM_LABEL,
 } from '../../domain/instruments'
+import { LONG_WINDOW_SECONDS } from '../../domain/instruments/long-window'
 import { RmsWindow } from '../../domain/instruments/rms-window'
 import {
   buildMeasurementPlan,
@@ -20,6 +21,7 @@ import {
   sameSimulation,
 } from '../../domain/measurement/plan'
 import type { MeasurementSnapshot, WaveformReading } from '../../domain/task'
+import type { WaveformWindow } from '../../domain/task/measurements'
 import { detectDanger } from '../../domain/wiring-check'
 import type { SimEvent } from '../../shared/ipc/sim'
 import type { CircuitState } from '../../shared/schema/circuit'
@@ -34,6 +36,7 @@ import {
   setInstrumentReading,
 } from './instrument-readings'
 import { createModuleAudio } from './module-audio'
+import { acquireScope, resetScopeAcquisition } from './scope-acquisition'
 import { getSimClient } from './sim-client'
 
 const blank = (status: InstrumentReading['status'], message: string, unit = ''): InstrumentReading => ({
@@ -149,6 +152,14 @@ export function connectInstrumentRuntime(onStatus: (status: RuntimeStatus) => vo
       const input = current.input.instruments.find((entry) => entry.instanceId === scope.instanceId)
       if (!input?.instrument.scope) return []
       const settings = resolveScope(input.instrument, input.settings)
+      const frame = acquireScope(
+        scope.instanceId,
+        input.instrument,
+        input.settings,
+        performance.now(),
+        (id) => sim.buffer(id),
+        typeof sim.observation === 'function' ? (id) => sim.observation(id) : undefined,
+      )
       const channelSamples = new Map<string, { samples: Float32Array; dt: number; lastTime: number }>()
       const captured = scope.channels.flatMap((channel, index) => {
         const configured = input.instrument.scope?.channels[index]
@@ -159,11 +170,13 @@ export function connectInstrumentRuntime(onStatus: (status: RuntimeStatus) => vo
           channel.groundWired &&
           displayed.enabled &&
           settings.running &&
+          !(settings.trigger.mode === 'single' && frame.state === 'stopped') &&
           displayed.coupling !== 'gnd' &&
           current.powered &&
           !pendingAlter &&
           current === publishedJob
         let measurement: ReturnType<typeof measureSignal> = null
+        let window: WaveformWindow | undefined
         if (allowed && channel.probe) {
           const buffer = sim.buffer(channel.probe)
           const available = Number.isFinite(waveformAfterTime)
@@ -175,7 +188,38 @@ export function connectInstrumentRuntime(onStatus: (status: RuntimeStatus) => vo
             const samples = waveformScratch.subarray(0, retained)
             buffer.copyLatest(samples)
             measurement = measureSignal(samples, buffer.dt)
+            window = {
+              start: buffer.lastTime - (retained - 1) * buffer.dt,
+              end: buffer.lastTime,
+              rawStep: buffer.dt,
+              completeCycles: measurement?.completeCycles ?? 0,
+              source: 'raw',
+              revision: current.revision,
+              frozen: false,
+            }
             channelSamples.set(channel.id, { samples: samples.slice(), dt: buffer.dt, lastTime: buffer.lastTime })
+          }
+          if (typeof sim.observation === 'function') {
+            const seconds = Math.min(
+              LONG_WINDOW_SECONDS,
+              Math.max(settings.secondsPerDiv * settings.config.divisions.x * 2, 0.2),
+            )
+            const extended = sim.observation(channel.probe).snapshot(seconds)
+            if (
+              extended.measurement &&
+              extended.window.completeCycles >= 2 &&
+              extended.window.completeCycles > (measurement?.completeCycles ?? 0)
+            ) {
+              measurement = extended.measurement
+              window = { ...extended.window, source: 'stream', revision: current.revision, frozen: false }
+            }
+            if (
+              settings.secondsPerDiv * settings.config.divisions.x > buffer.capacity * buffer.dt &&
+              extended.measurement
+            ) {
+              measurement = extended.measurement
+              window = { ...extended.window, source: 'stream', revision: current.revision, frozen: false }
+            }
           }
         }
         return [
@@ -187,6 +231,7 @@ export function connectInstrumentRuntime(onStatus: (status: RuntimeStatus) => vo
             coupling: displayed.coupling,
             current: allowed && measurement !== null,
             measurement,
+            ...(window ? { window } : {}),
           },
         ]
       })
@@ -217,6 +262,15 @@ export function connectInstrumentRuntime(onStatus: (status: RuntimeStatus) => vo
               negativeRef: negative.positiveRef,
               current: measurement !== null,
               measurement,
+              window: {
+                start: a.lastTime - (count - 1) * a.dt,
+                end: a.lastTime,
+                rawStep: a.dt,
+                completeCycles: measurement?.completeCycles ?? 0,
+                source: 'raw' as const,
+                revision: current.revision,
+                frozen: false,
+              },
             },
           ]
         }),
@@ -315,6 +369,7 @@ export function connectInstrumentRuntime(onStatus: (status: RuntimeStatus) => vo
     loadBoundary = undefined
     waveformAfterTime = Number.NEGATIVE_INFINITY
     waveformBoundary.clear()
+    resetScopeAcquisition()
     moduleAudio?.dispose()
     moduleAudio = undefined
     clearTimeout(timer)
@@ -558,6 +613,7 @@ export function connectInstrumentRuntime(onStatus: (status: RuntimeStatus) => vo
       publishedJob = undefined
       waveformAfterTime = Number.NEGATIVE_INFINITY
       waveformBoundary.clear()
+      resetScopeAcquisition()
       for (const window of rmsWindows.values()) window.clear()
       if (replayed && moduleAudio && current.plan.command.analysis.kind === 'tran') {
         moduleAudio.dispose()

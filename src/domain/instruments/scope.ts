@@ -42,6 +42,8 @@ export type SignalMeasurement = {
   /** 未检测到至少一个完整周期时为 null */
   frequency: number | null
   period: number | null
+  /** Actual complete rising-edge intervals retained in the measurement window. */
+  completeCycles?: number
 }
 
 const key = (channel: { id: string }, field: string) => `${channel.id.toLowerCase()}_${field}`
@@ -204,6 +206,7 @@ export function measureSignal(data: ArrayLike<number>, dt: number): SignalMeasur
   let mean = sum / count
   let frequency: number | null = null
   let period: number | null = null
+  let completeCycles = 0
   // 小于 1 mV 或相对直流电平 0.1% 的起伏不当作周期信号
   if (vpp > Math.max(1e-3, Math.abs(mean) * 1e-3)) {
     const mid = (max + min) / 2
@@ -225,6 +228,7 @@ export function measureSignal(data: ArrayLike<number>, dt: number): SignalMeasur
       }
     }
     if (crossings >= 2 && last > first) {
+      completeCycles = crossings - 1
       period = ((last - first) * dt) / (crossings - 1)
       frequency = 1 / period
       // 整周期平均值，供 AC 耦合去直流
@@ -235,7 +239,7 @@ export function measureSignal(data: ArrayLike<number>, dt: number): SignalMeasur
       if (b > a) mean = s / (b - a)
     }
   }
-  return { max, min, vpp, mean, frequency, period }
+  return { max, min, vpp, mean, frequency, period, completeCycles }
 }
 
 /** 耦合后的直流偏移：AC 去掉平均值，GND 输入接地 */

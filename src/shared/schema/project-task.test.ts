@@ -161,4 +161,12 @@ describe('Project task content', () => {
       'steps.0.measurePoints',
     )
   })
+
+  it('accepts explicit periodic evidence only for waveform points with at least two complete cycles', () => {
+    const point = { id: 'f', kind: 'waveform', quantity: 'frequency', between: ['dc1.KH_F', 'dc1.KH_A'] }
+    expect(MeasurePoint.parse({ ...point, minCycles: 3 }).minCycles).toBe(3)
+    for (const value of [0, 1, 1.5, -1, Number.NaN])
+      expect(MeasurePoint.safeParse({ ...point, minCycles: value }).success).toBe(false)
+    expect(MeasurePoint.safeParse({ ...point, kind: 'voltage', quantity: undefined, minCycles: 2 }).success).toBe(false)
+  })
 })

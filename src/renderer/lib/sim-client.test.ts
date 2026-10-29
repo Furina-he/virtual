@@ -53,6 +53,36 @@ const sampleGroups = (client: SimClient) => Reflect.get(client, 'sampleListeners
 afterEach(() => vi.unstubAllGlobals())
 
 describe('SimClient session buffers', () => {
+  it('retains bounded long-cycle evidence alongside the unchanged raw ring and resets it at load/alter boundaries', () => {
+    const f = fixture()
+    const id = 'scope:scope1:CH1'
+    const observation = f.client.observation(id)
+    const dt = 2e-6
+    const chunkSize = 25_000
+    for (let chunk = 0; chunk < 70; chunk++) {
+      const t0 = chunk * chunkSize * dt
+      f.port.deliver({
+        type: 'chunk',
+        seq: chunk,
+        t0,
+        dt,
+        data: { [id]: Float32Array.from({ length: chunkSize }, (_, i) => Math.sin(2 * Math.PI * (t0 + i * dt))) },
+      })
+    }
+    expect(f.client.buffer(id).capacity).toBe(1 << 18)
+    expect(f.client.buffer(id).data.byteLength).toBe(1 << 20)
+    expect(f.client.buffer(id).length).toBe(1 << 18)
+    expect(observation.snapshot(4).measurement?.frequency).toBeCloseTo(1, 5)
+    expect(observation.snapshot(4).window.completeCycles).toBeGreaterThanOrEqual(2)
+    f.port.deliver({ type: 'altered', simTime: 3.5, changes: [{ param: 'p_r', value: 1000 }] })
+    expect(observation.snapshot().measurement).toBeNull()
+    expect(f.client.buffer(id).length).toBe(1 << 18)
+    f.loaded()
+    expect(observation.snapshot().measurement).toBeNull()
+    expect(f.client.observation(id)).not.toBe(observation)
+    expect(f.client.buffer(id).length).toBe(0)
+  })
+
   it('invalidates old handles and allocates fresh buffers for the next validated load', () => {
     const f = fixture()
     f.chunk('m1:meter:v')
