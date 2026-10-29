@@ -234,9 +234,15 @@ export class SimSession {
     this.emit({ type: 'status', state, simTime: this.simTime })
   }
 
-  private fail(e: unknown): void {
+  private fail(e: unknown, requestId?: string): void {
     const err = e instanceof NgSpiceError ? e : new NgSpiceError('model', String(e))
-    this.emit({ type: 'error', code: err.code, message: err.message, detail: err.detail })
+    this.emit({
+      type: 'error',
+      code: err.code,
+      message: err.message,
+      detail: err.detail,
+      ...(requestId ? { requestId } : {}),
+    })
     this.setState('error')
   }
 
@@ -251,12 +257,16 @@ export class SimSession {
     try {
       this.ng.load(buildNetlist(cmd))
       this.quietEvents()
-      this.emit({ type: 'loaded', vectors: saveList(cmd.probes) })
+      this.emit({
+        type: 'loaded',
+        vectors: saveList(cmd.probes),
+        ...(cmd.requestId ? { requestId: cmd.requestId } : {}),
+      })
       if (cmd.analysis.kind === 'op') this.runOp(cmd)
       else if (cmd.analysis.kind === 'ac') throw new NgSpiceError('model', '交流分析尚未接入会话')
       else this.setState('idle')
     } catch (e) {
-      this.fail(e)
+      this.fail(e, cmd.requestId)
     }
   }
 

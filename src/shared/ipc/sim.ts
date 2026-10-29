@@ -41,6 +41,7 @@ const ParameterChangesSchema = z.array(ParameterChangeSchema).min(1)
 export const SimCommandSchema = z.discriminatedUnion('type', [
   z.object({
     type: z.literal('load'),
+    requestId: z.string().min(1).optional(),
     netlist: z.string().min(1),
     probes: z.array(ProbeSchema),
     analysis: AnalysisSchema,
@@ -66,7 +67,7 @@ export type SimCommand = z.infer<typeof SimCommandSchema>
 export const SimErrorCodeSchema = z.enum(['no-convergence', 'singular', 'model', 'crash'])
 
 export const SimEventSchema = z.discriminatedUnion('type', [
-  z.object({ type: z.literal('loaded'), vectors: z.array(z.string()) }),
+  z.object({ type: z.literal('loaded'), requestId: z.string().min(1).optional(), vectors: z.array(z.string()) }),
   z.object({
     type: z.literal('altered'),
     requestId: z.string().min(1).optional(),
