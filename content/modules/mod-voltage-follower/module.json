@@ -1,0 +1,16 @@
+{
+  "id": "mod-voltage-follower",
+  "name": "5 V 高输入阻抗跟随器适配板（TLV9001 估计）",
+  "form": "board",
+  "model": "module.glb",
+  "netlist": "module.cir",
+  "jacks": [
+    { "id": "VCC", "label": "+5V", "kind": "banana4", "polarityHint": "+" },
+    { "id": "GND", "label": "GND", "kind": "banana4", "polarityHint": "-" },
+    { "id": "IN", "label": "IN", "kind": "banana4" },
+    { "id": "OUT", "label": "OUT", "kind": "banana4" }
+  ],
+  "controls": [],
+  "indicators": [],
+  "simulation": { "analysis": "tran", "maxStep": 0.000002, "pacing": "realtime" }
+}
