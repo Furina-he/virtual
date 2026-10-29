@@ -10,7 +10,9 @@ import {
   triggerColumn,
 } from '@domain/instruments'
 import { scopeProbeId } from '@domain/measurement/plan'
+import type { WaveformWindow } from '@domain/task/measurements'
 import type { Instrument } from '@shared/schema/instrument'
+import { LONG_WINDOW_SECONDS, type LongWindow, type LongWindowTrace } from '../../domain/instruments/long-window'
 import { getInstrumentReading } from './instrument-readings'
 import type { RingBuffer } from './ring-buffer'
 import { getSimClient } from './sim-client'
@@ -27,6 +29,9 @@ export type ScopeFrame = {
   /** 各通道一屏原始电压（耦合在绘制时处理），未接入或关闭为 null */
   traces: (Float32Array | null)[]
   measurements: (SignalMeasurement | null)[]
+  windows?: (WaveformWindow | null)[]
+  /** Long timebases retain real min/max envelopes, never interpolated synthetic raw waveforms. */
+  envelopes?: (LongWindowTrace | null)[]
 }
 
 /** 自动测量所用记录长度与刷新间隔 */
@@ -58,6 +63,7 @@ const emptyFrame = (): ScopeFrame => ({
 })
 
 type BufferSource = (probeId: string) => RingBuffer
+type ObservationSource = (probeId: string) => LongWindow
 
 function latest(buffer: RingBuffer, out: Float32Array, count: number): Float32Array {
   const view = out.subarray(0, Math.min(count, buffer.length))
@@ -71,10 +77,13 @@ export function acquireScope(
   instrument: Instrument,
   settingsRecord: Record<string, unknown>,
   now = performance.now(),
-  buffers: BufferSource = (id) => getSimClient().buffer(id),
+  buffers?: BufferSource,
+  observations?: ObservationSource,
 ): ScopeFrame {
   const settings = resolveScope(instrument, settingsRecord)
-  const channelBuffers = settings.channels.map((channel) => buffers(scopeProbeId(instanceId, channel.id)))
+  const bufferSource = buffers ?? ((id) => getSimClient().buffer(id))
+  const observationSource = observations ?? (buffers ? undefined : (id: string) => getSimClient().observation(id))
+  const channelBuffers = settings.channels.map((channel) => bufferSource(scopeProbeId(instanceId, channel.id)))
   let acq = acquisitions.get(instanceId)
   if (!acq) {
     acq = {
@@ -106,7 +115,13 @@ export function acquireScope(
 
   const frozen = !settings.running || (settings.trigger.mode === 'single' && acq.captured)
   if (frozen) {
-    if (acq.frame.state !== 'stopped') acq.frame = { ...acq.frame, state: 'stopped', revision: acq.frame.revision + 1 }
+    if (acq.frame.state !== 'stopped')
+      acq.frame = {
+        ...acq.frame,
+        state: 'stopped',
+        revision: acq.frame.revision + 1,
+        windows: acq.frame.windows?.map((window) => (window ? { ...window, frozen: true } : null)),
+      }
     return acq.frame
   }
 
@@ -130,6 +145,7 @@ export function acquireScope(
   acq.key = key
 
   const dt = reference.dt
+  const screenSec = screenSeconds(settings)
   const screenPoints = Math.max(2, Math.round(screenSeconds(settings) / dt))
   const pointsPerDiv = screenPoints / settings.config.divisions.x
   const pre = Math.round(triggerColumn(settings) * pointsPerDiv)
@@ -137,18 +153,70 @@ export function acquireScope(
 
   // 自动测量：长记录、10 Hz 刷新
   let measurements = acq.frame.measurements
+  let windows = acq.frame.windows
   if (now - acq.measuredAt >= MEASURE_INTERVAL_MS || measurements.length !== settings.channels.length) {
     acq.measuredAt = now
     if (acq.measureScratch.length < MEASURE_POINTS) acq.measureScratch = new Float32Array(MEASURE_POINTS)
-    measurements = channelBuffers.map((buffer, index) =>
-      live[index] && settings.channels[index]?.coupling !== 'gnd'
-        ? measureSignal(latest(buffer, acq.measureScratch, MEASURE_POINTS), dt)
+    windows = []
+    measurements = channelBuffers.map((buffer, index) => {
+      if (!live[index] || settings.channels[index]?.coupling === 'gnd') {
+        windows?.push(null)
+        return null
+      }
+      const raw = latest(buffer, acq.measureScratch, MEASURE_POINTS)
+      let measured = measureSignal(raw, dt)
+      let window: WaveformWindow = {
+        start: buffer.lastTime - (raw.length - 1) * dt,
+        end: buffer.lastTime,
+        rawStep: dt,
+        completeCycles: measured?.completeCycles ?? 0,
+        source: 'raw',
+        revision: reference.written,
+        frozen: false,
+      }
+      const observation = observationSource?.(scopeProbeId(instanceId, settings.channels[index]?.id ?? ''))
+      const extended = observation?.snapshot(Math.min(LONG_WINDOW_SECONDS, Math.max(screenSec * 2, 0.2)))
+      if (
+        extended?.measurement &&
+        (screenPoints > buffer.capacity ||
+          (extended.window.completeCycles >= 2 && extended.window.completeCycles > (measured?.completeCycles ?? 0)))
+      ) {
+        measured = extended.measurement
+        window = { ...extended.window, source: 'stream', revision: extended.revision, frozen: false }
+      }
+      windows?.push(window)
+      return measured
+    })
+  }
+
+  if (screenPoints > reference.capacity && observationSource) {
+    // Fine solver steps coexist with a bounded long screen; frequency still comes from every raw crossing.
+    const envelopes = settings.channels.map((channel, index) =>
+      live[index]
+        ? observationSource(scopeProbeId(instanceId, channel.id)).traces(Math.min(screenSec, LONG_WINDOW_SECONDS))
         : null,
     )
+    // The envelope is a rolling observation, not a synthetic trigger waveform.
+    const state: ScopeState =
+      settings.trigger.mode === 'auto' ? 'auto' : settings.trigger.mode === 'single' ? 'ready' : 'waiting'
+    acq.frame = {
+      revision: acq.frame.revision + 1,
+      state,
+      dt,
+      pointsPerDiv,
+      traces: settings.channels.map(() => null),
+      measurements,
+      windows,
+      envelopes,
+    }
+    return acq.frame
   }
 
   // 仿真按 50 ms 分片送达，单次尖峰可能早于最近三屏；搜索保留的有界历史。
-  const search = settings.trigger.mode === 'single' ? (sourceBuffer?.length ?? 0) : screenPoints * 3 + 2
+  const search = Math.min(
+    reference.capacity,
+    settings.trigger.mode === 'single' ? (sourceBuffer?.length ?? 0) : screenPoints * 3 + 2,
+  )
   if (acq.scratch.length < search) acq.scratch = new Float32Array(search)
   const source = settings.trigger.source
   const sourceSettings = settings.channels[source]
@@ -194,11 +262,25 @@ export function acquireScope(
     measurements = traces.map((trace, index) =>
       trace && settings.channels[index]?.coupling !== 'gnd' ? measureSignal(trace, dt) : null,
     )
+    windows = traces.map((trace, index) => {
+      const buffer = channelBuffers[index]
+      if (!trace || !buffer) return null
+      const startTime = buffer.lastTime - Math.min(start, buffer.length - 1) * dt
+      return {
+        start: startTime,
+        end: startTime + (trace.length - 1) * dt,
+        rawStep: dt,
+        completeCycles: measurements[index]?.completeCycles ?? 0,
+        source: 'raw' as const,
+        revision: acq.frame.revision + 1,
+        frozen: true,
+      }
+    })
     acq.measuredAt = now
     acq.captured = true
     state = 'stopped'
   }
-  acq.frame = { revision: acq.frame.revision + 1, state, dt, pointsPerDiv, traces, measurements }
+  acq.frame = { revision: acq.frame.revision + 1, state, dt, pointsPerDiv, traces, measurements, windows }
   return acq.frame
 }
 
@@ -223,6 +305,8 @@ export type ScopeSummary = {
     bottom: number | null
     /** 离触发位置最近的一次按触发边沿穿越触发电平处（格，从左缘算起） */
     crossing: number | null
+    window?: WaveformWindow
+    traceMode?: 'raw' | 'envelope'
   }[]
 }
 
@@ -233,6 +317,7 @@ export function scopeSummary(frame: ScopeFrame, settings: ScopeSettings): ScopeS
     revision: frame.revision,
     channels: settings.channels.map((channel, index) => {
       const trace = frame.traces[index]
+      const envelope = frame.envelopes?.[index]
       const measurement = frame.measurements[index] ?? null
       const offset = channel.coupling === 'ac' ? (measurement?.mean ?? 0) : 0
       let top: number | null = null
@@ -253,6 +338,18 @@ export function scopeSummary(frame: ScopeFrame, settings: ScopeSettings): ScopeS
           }
         }
       }
+      if (envelope && channel.enabled) {
+        for (let i = 0; i < envelope.min.length; i++) {
+          const min =
+            (channel.coupling === 'gnd' ? 0 : (envelope.min[i] as number) - offset) / channel.voltsPerDiv +
+            channel.position
+          const max =
+            (channel.coupling === 'gnd' ? 0 : (envelope.max[i] as number) - offset) / channel.voltsPerDiv +
+            channel.position
+          if (Number.isFinite(min)) bottom = bottom === null ? min : Math.min(bottom, min)
+          if (Number.isFinite(max)) top = top === null ? max : Math.max(top, max)
+        }
+      }
       return {
         id: channel.id,
         vpp: measurement?.vpp ?? null,
@@ -264,6 +361,8 @@ export function scopeSummary(frame: ScopeFrame, settings: ScopeSettings): ScopeS
         top,
         bottom,
         crossing,
+        ...(frame.windows?.[index] ? { window: frame.windows[index] as WaveformWindow } : {}),
+        traceMode: envelope ? 'envelope' : 'raw',
       }
     }),
   }

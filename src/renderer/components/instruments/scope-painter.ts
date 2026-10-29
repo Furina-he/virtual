@@ -28,7 +28,8 @@ export function channelScaleText(settings: ScopeSettings, index: number): string
 /** 自动测量文字；未接入、关闭或 GND 耦合时为 "--" */
 export function measurementText(frame: ScopeFrame, settings: ScopeSettings, index: number): string {
   const m = frame.measurements[index]
-  if (!settings.channels[index]?.enabled || !frame.traces[index] || !m) return 'Vpp --  f --  T --'
+  if (!settings.channels[index]?.enabled || (!frame.traces[index] && !frame.envelopes?.[index]) || !m)
+    return 'Vpp --  f --  T --'
   const f = m.frequency === null ? null : formatFrequency(m.frequency)
   return `Vpp ${formatVoltage(m.vpp)}  f ${f ? `${f.text} ${f.unit}` : '--'}  T ${m.period === null ? '--' : formatSeconds(m.period)}`
 }
@@ -104,8 +105,26 @@ export function paintScope(context: CanvasRenderingContext2D, frame: ScopeFrame,
   context.lineJoin = 'round'
   settings.channels.forEach((channel, index) => {
     const trace = frame.traces[index]
-    if (!channel.enabled || !trace || trace.length < 2) return
+    const envelope = frame.envelopes?.[index]
+    if (!channel.enabled || (!envelope && (!trace || trace.length < 2))) return
     const offset = channel.coupling === 'ac' ? (frame.measurements[index]?.mean ?? 0) : 0
+    context.strokeStyle = color(CHANNEL_TOKENS[index] ?? '--scope-text')
+    if (envelope) {
+      context.beginPath()
+      const end = envelope.end
+      const start = end - settings.secondsPerDiv * divX
+      for (let i = 0; i < envelope.min.length; i++) {
+        const min = channel.coupling === 'gnd' ? 0 : (envelope.min[i] as number) - offset
+        const max = channel.coupling === 'gnd' ? 0 : (envelope.max[i] as number) - offset
+        if (!Number.isFinite(min) || !Number.isFinite(max)) continue
+        const x = left + ((envelope.start + i * envelope.dt - start) / settings.secondsPerDiv) * div
+        context.moveTo(x, centerY - (min / channel.voltsPerDiv + channel.position) * div)
+        context.lineTo(x, centerY - (max / channel.voltsPerDiv + channel.position) * div)
+      }
+      context.stroke()
+      return
+    }
+    if (!trace) return
     const pxPerPoint = div / frame.pointsPerDiv
     const stride = Math.max(1, Math.floor(trace.length / ((right - left) * 2)))
     context.strokeStyle = color(CHANNEL_TOKENS[index] ?? '--scope-text')

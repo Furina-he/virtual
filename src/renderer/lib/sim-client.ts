@@ -1,6 +1,7 @@
 // 渲染端仿真客户端（技术设计 §4.2）：接收数据端口，把采样块写进各探针的环形缓冲。
 // 高频数据只进 RingBuffer，绝不进 React state；读数快照、状态等低频事件通过 onEvent 分发。
 import { SIM_PORT_MESSAGE, type SimCommand, type SimEvent, SimEventSchema } from '@shared/ipc/sim'
+import { LongWindow } from '../../domain/instruments/long-window'
 import { RingBuffer } from './ring-buffer'
 
 /** 每个探针默认保留的点数（约 1 MB） */
@@ -27,6 +28,7 @@ export interface SimStats {
 export class SimClient {
   readonly stats: SimStats = { blocks: 0, lostBlocks: 0, lastSeq: -1, points: 0, sessions: 0, restarts: 0 }
   private readonly buffers = new Map<string, RingBuffer>()
+  private readonly observations = new Map<string, LongWindow>()
   private readonly listeners = new Set<(e: LowFreqEvent) => void>()
   private readonly restartListeners = new Set<() => void>()
   private readonly sampleListeners = new Map<string, Set<SamplesListener>>()
@@ -57,6 +59,16 @@ export class SimClient {
       this.buffers.set(probeId, b)
     }
     return b
+  }
+
+  /** Bounded raw-crossing/min-max history for scope channels, not an enlarged waveform ring. */
+  observation(probeId: string): LongWindow {
+    let observation = this.observations.get(probeId)
+    if (!observation) {
+      observation = new LongWindow()
+      this.observations.set(probeId, observation)
+    }
+    return observation
   }
 
   /** 订阅低频事件（loaded / op / readings / status / error / log） */
@@ -103,8 +115,13 @@ export class SimClient {
       // 清空旧句柄后释放上个会话的探针分配；读数探针 ID 含 revision，不能长期保留。
       for (const b of this.buffers.values()) b.clear()
       this.buffers.clear()
+      for (const observation of this.observations.values()) observation.clear()
+      this.observations.clear()
       Object.assign(this.stats, { blocks: 0, lastSeq: -1, points: 0 })
       this.stats.sessions++
+    }
+    if (ev.type === 'altered') {
+      for (const observation of this.observations.values()) observation.clear()
     }
     for (const l of this.listeners) l(ev)
   }
@@ -117,6 +134,7 @@ export class SimClient {
     let n = 0
     for (const [id, samples] of Object.entries(ev.data)) {
       this.buffer(id).push(samples, ev.t0, ev.dt)
+      if (id.startsWith('scope:')) this.observation(id).push(samples, ev.t0, ev.dt)
       const ls = this.sampleListeners.get(id)
       if (ls) for (const l of ls) l(samples, ev.t0, ev.dt)
       n = samples.length

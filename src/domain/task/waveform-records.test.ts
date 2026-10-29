@@ -35,7 +35,7 @@ const reading: WaveformReading = {
   negativeRef: 'scope1.GND',
   current: true,
   coupling: 'dc',
-  measurement: { mean: 2, min: 1, max: 3, vpp: 2, frequency: 1000, period: 0.001 },
+  measurement: { mean: 2, min: 1, max: 3, vpp: 2, frequency: 1000, period: 0.001, completeCycles: 4 },
 }
 const snapshot = (entry = reading): MeasurementSnapshot => ({ current: true, plan, readings: {}, waveforms: [entry] })
 
@@ -112,6 +112,41 @@ describe('actual scope recording', () => {
         { ...point, quantity: 'frequency' },
       ).ok,
     ).toBe(false)
+  })
+  it('requires two real complete intervals for periodic records but permits nonperiodic platform statistics', () => {
+    const oneCycle = snapshot({
+      ...reading,
+      measurement: { ...(reading.measurement as NonNullable<WaveformReading['measurement']>), completeCycles: 1 },
+    })
+    expect(captureMeasurePoint(oneCycle, { ...point, quantity: 'frequency' }).ok).toBe(false)
+    expect(captureMeasurePoint(oneCycle, { ...point, quantity: 'period' }).ok).toBe(false)
+    expect(captureMeasurePoint(oneCycle, { ...point, quantity: 'vpp', minCycles: 2 }).ok).toBe(false)
+    expect(captureMeasurePoint(oneCycle, { ...point, quantity: 'mean' }).ok).toBe(true)
+    const steady = snapshot({
+      ...reading,
+      measurement: { mean: 3.265, min: 3.26, max: 3.27, vpp: 0.01, frequency: null, period: null, completeCycles: 0 },
+    })
+    expect(captureMeasurePoint(steady, { ...point, quantity: 'mean' }).ok).toBe(true)
+    expect(captureMeasurePoint(steady, { ...point, quantity: 'min' }).ok).toBe(true)
+    expect(captureMeasurePoint(steady, { ...point, quantity: 'frequency' }).ok).toBe(false)
+  })
+
+  it('keeps the actual bounded measurement window with a capture, not just a displayed number', () => {
+    const window = {
+      start: 1,
+      end: 4,
+      rawStep: 2e-6,
+      completeCycles: 2,
+      source: 'stream' as const,
+      revision: 8,
+      frozen: false,
+    }
+    const result = captureMeasurePoint(snapshot({ ...reading, window }), { ...point, quantity: 'frequency' })
+    expect(result.ok).toBe(true)
+    if (result.ok) {
+      expect(result.measurement.window).toEqual(window)
+      expect(result.measurement.window).not.toBe(window)
+    }
   })
   it('orients DC means and extrema but never invents negative Vpp or frequency on reverse leads', () => {
     const reversed = snapshot({ ...reading, positiveRef: 'scope1.GND', negativeRef: 'scope1.CH1' })

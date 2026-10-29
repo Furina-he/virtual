@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { afterEach, describe, expect, it } from 'vitest'
 import { resolveScope } from '../../domain/instruments/index.ts'
+import { LongWindow } from '../../domain/instruments/long-window.ts'
 import { scopeProbeId } from '../../domain/measurement/plan.ts'
 import { Instrument } from '../../shared/schema/instrument.ts'
 import { clearInstrumentReadings, setInstrumentReading } from './instrument-readings'
@@ -49,6 +50,86 @@ afterEach(() => {
 })
 
 describe('示波器采集', () => {
+  it('uses sufficient certified stream history even when the shorter raw window already has two periods', () => {
+    live()
+    const raw = new RingBuffer(1 << 18)
+    const observed = new LongWindow()
+    const step = 2e-6
+    for (let chunk = 0; chunk < 8; chunk++) {
+      const t0 = chunk * 25_000 * step
+      const samples = Float32Array.from({ length: 25_000 }, (_, i) => Math.sin(2 * Math.PI * 40 * (t0 + i * step)))
+      raw.push(samples, t0, step)
+      observed.push(samples, t0, step)
+    }
+    const frame = acquireScope(
+      's',
+      scope,
+      {},
+      1000,
+      () => raw,
+      () => observed,
+    )
+    expect(frame.measurements[0]?.completeCycles).toBeGreaterThanOrEqual(6)
+    expect(frame.windows?.[0]?.source).toBe('stream')
+    expect(frame.measurements[0]?.frequency).toBeCloseTo(40, 5)
+  })
+
+  it('measures 1 Hz and a 1025 Hz carrier on a bounded 2 us long screen without enlarging raw buffers', () => {
+    live()
+    const raw = new Map<string, RingBuffer>()
+    const observed = new Map<string, LongWindow>()
+    for (const id of ['CH1', 'CH2']) {
+      raw.set(scopeProbeId('s', id), new RingBuffer(1 << 18))
+      observed.set(scopeProbeId('s', id), new LongWindow())
+    }
+    const step = 2e-6
+    for (let chunk = 0; chunk < 70; chunk++) {
+      const t0 = chunk * 25_000 * step
+      for (const [id, frequency] of [
+        ['CH1', 1],
+        ['CH2', 1025],
+      ] as const) {
+        const key = scopeProbeId('s', id)
+        const samples = Float32Array.from({ length: 25_000 }, (_, i) =>
+          Math.sin(2 * Math.PI * frequency * (t0 + i * step)),
+        )
+        raw.get(key)?.push(samples, t0, step)
+        observed.get(key)?.push(samples, t0, step)
+      }
+    }
+    const frame = acquireScope(
+      's',
+      scope,
+      { tdiv: 0.2 },
+      1000,
+      (id) => raw.get(id) as RingBuffer,
+      (id) => observed.get(id) as LongWindow,
+    )
+    expect(frame.state).toBe('auto')
+    expect(frame.dt).toBe(step)
+    expect(frame.traces).toEqual([null, null])
+    expect(frame.envelopes?.[0]?.min.length).toBeLessThanOrEqual(2048)
+    expect(frame.envelopes?.[1]?.max.length).toBeLessThanOrEqual(2048)
+    expect(frame.measurements[0]?.frequency).toBeCloseTo(1, 5)
+    expect(frame.measurements[1]?.frequency).toBeCloseTo(1025, 3)
+    expect(frame.windows?.[0]).toMatchObject({ rawStep: step, source: 'stream', frozen: false })
+    expect(raw.get(scopeProbeId('s', 'CH1'))?.data.byteLength).toBe(1 << 20)
+    const summary = scopeSummary(frame, resolveScope(scope, { tdiv: 0.2 }))
+    expect(summary.channels[0]?.top).toBeCloseTo(2, 5)
+    expect(summary.channels[0]?.bottom).toBeCloseTo(-2, 5)
+    const stopped = acquireScope(
+      's',
+      scope,
+      { tdiv: 0.2, run: 0 },
+      1200,
+      (id) => raw.get(id) as RingBuffer,
+      (id) => observed.get(id) as LongWindow,
+    )
+    expect(stopped.state).toBe('stopped')
+    expect(stopped.windows?.[0]?.frozen).toBe(true)
+    expect(stopped.envelopes).toBe(frame.envelopes)
+  })
+
   it('未上电或通道未接入时不显示轨迹', () => {
     feed(0.01, sine)
     expect(acquire().state).toBe('off')

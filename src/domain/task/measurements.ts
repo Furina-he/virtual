@@ -6,6 +6,15 @@ import type { MeasurementPlan, MeterPlan } from '../measurement/plan.ts'
 import { applyModuleInternals, type CheckInput, circuitPartition, wiredJacks } from '../wiring-check/common.ts'
 
 export type ReadingValue = { status: string; value?: number | null }
+export type WaveformWindow = {
+  start: number
+  end: number
+  rawStep: number
+  completeCycles: number
+  source: 'raw' | 'stream'
+  revision: number
+  frozen: boolean
+}
 export type WaveformReading = {
   instanceId: string
   channelId: string
@@ -14,6 +23,7 @@ export type WaveformReading = {
   coupling: Coupling
   current: boolean
   measurement: SignalMeasurement | null
+  window?: WaveformWindow
 }
 export type MeasurementSnapshot = {
   /** The renderer verifies this is the current, ready runtime job before supplying the snapshot. */
@@ -29,6 +39,7 @@ export type CapturedMeasurement = {
   referenceValueSI: number
   reversed: boolean
   channelId?: string
+  window?: WaveformWindow
 }
 export type CaptureResult =
   | { ok: true; measurement: CapturedMeasurement; message: string }
@@ -203,6 +214,13 @@ function captureWaveform(snapshot: MeasurementSnapshot, point: MeasurePoint, sel
       message: '当前通道数据尚未就绪或耦合设置不符。直流均值/极值请使用 DC 耦合并接好 GND。',
     }
   const value = measured[quantity]
+  const requiredCycles = Math.max(point.minCycles ?? 0, ['frequency', 'period'].includes(quantity) ? 2 : 0)
+  if (requiredCycles > 0 && (measured.completeCycles ?? 0) < requiredCycles)
+    return {
+      ok: false,
+      reason: 'unavailable',
+      message: `当前波形不足 ${requiredCycles} 个完整有效周期，请等待至少 ${requiredCycles + 1} 个有效上升沿。`,
+    }
   if (typeof value !== 'number' || !Number.isFinite(value))
     return { ok: false, reason: 'unavailable', message: '当前波形尚无有效测量，请调整时基并等待完整采样。' }
   const reference =
@@ -224,6 +242,7 @@ function captureWaveform(snapshot: MeasurementSnapshot, point: MeasurePoint, sel
       displayValueSI: value,
       referenceValueSI: reference === 0 ? 0 : reference,
       reversed: sign === -1,
+      ...(reading.window ? { window: { ...reading.window } } : {}),
     },
     message:
       sign === -1
