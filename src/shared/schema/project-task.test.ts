@@ -37,6 +37,46 @@ const paths = (value: unknown) => {
 }
 
 describe('Project task content', () => {
+  it('accepts complete step topology replacements while retaining the default reference', () => {
+    const data = sample()
+    const referenceNets = [['dc1.KH_F', 'dc1.KH_A']]
+    const project = Project.parse({
+      ...data,
+      steps: [{ ...data.steps[0], referenceNets }, ...data.steps.slice(1)],
+    })
+    expect(project.steps[0]?.referenceNets).toEqual(referenceNets)
+    expect(project.reference.nets).toEqual(data.reference.nets)
+    expect(project.steps[1]?.referenceNets).toBeUndefined()
+  })
+
+  it('rejects malformed or multiply owned step topology jacks without combining modes', () => {
+    const data = sample()
+    expect(paths({ ...data, steps: [{ ...data.steps[0], referenceNets: [] }] })).toContain('steps.0.referenceNets')
+    expect(paths({ ...data, steps: [{ ...data.steps[0], referenceNets: [['dc1.KH_F']] }] })).toContain(
+      'steps.0.referenceNets.0',
+    )
+    expect(
+      paths({
+        ...data,
+        steps: [{ ...data.steps[0], referenceNets: [['dc1.KH_F', 'unknown']] }],
+      }),
+    ).toContain('steps.0.referenceNets.0.1')
+    expect(
+      paths({
+        ...data,
+        steps: [
+          {
+            ...data.steps[0],
+            referenceNets: [
+              ['dc1.KH_F', 'dc1.KH_A'],
+              ['dc1.KH_F', 'dc1.KH_D'],
+            ],
+          },
+        ],
+      }),
+    ).toContain('steps.0.referenceNets.1.0')
+  })
+
   it('accepts optional sequential scopes, wiring and table prerequisites', () => {
     const project = Project.parse(sample())
     expect(project.steps[0]).toMatchObject({ measurePoints: [], checkWiring: true })

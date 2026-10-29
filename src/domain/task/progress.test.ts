@@ -279,6 +279,41 @@ describe('Current reading records', () => {
 })
 
 describe('Scoped current-step wiring references', () => {
+  it('replaces rather than merges a step topology and preserves its measurement scope', () => {
+    const configured = Project.parse({
+      ...project,
+      reference: { ...project.reference, nets: [['dc1.KH_A', 'dc1.KH_F']] },
+      steps: [
+        { id: 'first', text: 'First', measurePoints: [] },
+        {
+          id: 'second',
+          text: 'Alternative',
+          referenceNets: [['dc1.KH_A', 'dc1.KH_D']],
+          measurePoints: ['i'],
+        },
+      ],
+    })
+    const scoped = scopedReference(configured, configured.steps[1])
+    expect(scoped.nets).toEqual([['dc1.KH_A', 'dc1.KH_D']])
+    expect(scoped.measurePoints.map((point) => point.id)).toEqual(['i'])
+    expect(scopedReference(configured, configured.steps[0]).nets).toBe(configured.reference.nets)
+    expect(configured.reference.nets).toEqual([['dc1.KH_A', 'dc1.KH_F']])
+  })
+
+  it('keeps the strict checker from accepting the default graph for an alternative step', () => {
+    const defaultNets = [['dc1.KH_F', 'dc1.KH_A']]
+    const alternateNets = [['dc1.KH_F', 'dc1.KH_D']]
+    const configured = Project.parse({
+      ...project,
+      reference: { ...project.reference, nets: defaultNets },
+      steps: [{ id: 'alternate', text: 'Alternative', referenceNets: alternateNets, measurePoints: [] }],
+    })
+    const input = snapshot([['dc1.KH_F', 'dc1.KH_A']]).plan.checkInput
+    expect(checkWiring(input, scopedReference(configured, configured.steps[0])).circuitOk).toBe(false)
+    const correct = snapshot([['dc1.KH_F', 'dc1.KH_D']]).plan.checkInput
+    expect(checkWiring(correct, scopedReference(configured, configured.steps[0])).circuitOk).toBe(true)
+  })
+
   it('filters only measurement points without changing the strict existing checker', () => {
     const state = snapshot(wiring.slice(2))
     const step = project.steps.find((item) => item.id === 'i')

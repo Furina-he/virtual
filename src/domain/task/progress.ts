@@ -40,14 +40,15 @@ export function currentTaskStep(project: Project, state: TaskState): Step | unde
 }
 
 export function scopedReference(project: Project, step?: Step): Project['reference'] {
+  const reference = step?.referenceNets ? { ...project.reference, nets: step.referenceNets } : project.reference
   if (step?.measurePoints === undefined) {
-    if (step || !project.steps.some((item) => item.measurePoints !== undefined)) return project.reference
-    return { ...project.reference, measurePoints: [] }
+    if (step || !project.steps.some((item) => item.measurePoints !== undefined)) return reference
+    return { ...reference, measurePoints: [] }
   }
   const required = new Set(step.measurePoints)
   return {
-    ...project.reference,
-    measurePoints: project.reference.measurePoints.filter((point) => required.has(point.id)),
+    ...reference,
+    measurePoints: reference.measurePoints.filter((point) => required.has(point.id)),
   }
 }
 

@@ -1,3 +1,6 @@
+import { cpSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { lintContent } from './content-lint.ts'
 
@@ -17,5 +20,17 @@ describe('content:lint', () => {
       ]),
     )
     expect(issues).toHaveLength(4)
+  })
+
+  it('checks actual jack membership in step topology replacements', () => {
+    const root = mkdtempSync(join(tmpdir(), 'virtual-step-reference-'))
+    cpSync('content', root, { recursive: true })
+    const file = join(root, 'projects', 'DG-05', 'project.json')
+    const data = JSON.parse(readFileSync(file, 'utf8'))
+    data.steps[0].referenceNets = [['dc1.KH_F', 'dc1.UNKNOWN']]
+    writeFileSync(file, JSON.stringify(data))
+    const issues = lintContent(root)
+    expect(issues).toHaveLength(1)
+    expect(issues[0]).toMatchObject({ path: 'steps[0].referenceNets[0][1]', message: 'dc1 上没有插孔 UNKNOWN' })
   })
 })
