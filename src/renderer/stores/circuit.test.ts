@@ -67,6 +67,89 @@ describe('circuit editor initialization', () => {
   })
 })
 
+describe('scene reset', () => {
+  it('resets powered graph, transient state and both histories while replacing endpoint membership', () => {
+    const store = createCircuitStore(['old.POS', 'old.NEG'], undefined, placementOptions)
+    store.getState().placeInstrument(desktop)
+    store.getState().addWire('old.POS', 'meter1.COM')
+    store.getState().setControlValue('old.K1', 0)
+    store.getState().undo()
+    expect(historyLengths(store)).toEqual([2, 1])
+    store.getState().togglePower()
+    store.setState({ activeFault: 'old-fault', pendingJack: 'old.NEG', notice: 'old-notice', wireColor: 'blue' })
+    const controls = { 'new.K1': 1 }
+    store
+      .getState()
+      .resetScene({ jackRefs: ['new.POS', 'new.NEG'], reservedInstanceIds: ['bench'], controlValues: controls })
+    controls['new.K1'] = 0
+    expect(store.getState()).toMatchObject({
+      wires: [],
+      placedInstruments: [],
+      controlValues: { 'new.K1': 1 },
+      powered: false,
+      activeFault: undefined,
+      selectedWireId: null,
+      pendingJack: null,
+      notice: null,
+      wireColor: 'red',
+    })
+    expect(historyLengths(store)).toEqual([0, 0])
+    expect(store.temporal.getState().isTracking).toBe(true)
+    expect(store.getState().undo()).toBe(false)
+    expect(store.getState().redo()).toBe(false)
+    expect(store.getState().addWire('old.POS', 'new.POS')).toBe(false)
+    expect(store.getState().addWire('new.POS', 'new.NEG')).toBe(true)
+    expect(store.getState().undo()).toBe(true)
+    expect(store.getState().wires).toEqual([])
+    expect(store.getState().controlValues).toEqual({ 'new.K1': 1 })
+    expect(store.getState().undo()).toBe(false)
+  })
+
+  it('replaces reserved base IDs rather than accumulating previous projects', () => {
+    const store = createCircuitStore(['old.POS'], undefined, placementOptions)
+    store.getState().resetScene({ jackRefs: ['new.POS'], reservedInstanceIds: ['bench', 'meter1'] })
+    expect(store.getState().placeInstrument(desktop)).toBe(false)
+    expect(store.getState().placeInstrument({ ...desktop, instanceId: 'old' })).toBe(true)
+    expect(store.getState().addWire('new.POS', 'old.COM')).toBe(true)
+    expect(store.getState().addWire('old.POS', 'new.POS')).toBe(false)
+  })
+
+  it('validates a new context before changing graph, membership, reservations or history', () => {
+    const store = createCircuitStore(refs, { wires: [legacyWire] }, placementOptions)
+    store.getState().setControlValue('board.K1', 0)
+    const before = store.getState()
+    const history = historyLengths(store)
+    for (const scene of [
+      { jackRefs: ['bad-ref'] },
+      { jackRefs: ['new.POS'], reservedInstanceIds: ['bad.id'] },
+      { jackRefs: ['new.POS'], controlValues: { 'new.K1': Infinity } },
+    ]) {
+      expect(() => store.getState().resetScene(scene)).toThrow()
+      expect(store.getState()).toBe(before)
+      expect(historyLengths(store)).toEqual(history)
+      expect(store.temporal.getState().isTracking).toBe(true)
+    }
+    expect(store.getState().addWire('meter.NEG', 'board.J0')).toBe(true)
+    expect(store.getState().placeInstrument({ ...desktop, instanceId: 'bench' })).toBe(false)
+  })
+
+  it('preserves explicitly paused tracking and keeps scene context outside recorded snapshots', () => {
+    const store = createCircuitStore(refs)
+    store.temporal.getState().pause()
+    store.getState().resetScene({ jackRefs: ['new.POS', 'new.NEG'], controlValues: { 'new.K1': 1 } })
+    expect(store.temporal.getState().isTracking).toBe(false)
+    store.getState().setControlValue('new.K1', 0)
+    expect(historyLengths(store)).toEqual([0, 0])
+    store.temporal.getState().resume()
+    store.getState().addWire('new.POS', 'new.NEG')
+    expect(Object.keys(store.temporal.getState().pastStates[0] ?? {}).sort()).toEqual([
+      'controlValues',
+      'placedInstruments',
+      'wires',
+    ])
+  })
+})
+
 describe('wire editing', () => {
   it('adds a cross-device wire using a UUID, selected color and meter-scale default slack', () => {
     const store = createCircuitStore(refs)

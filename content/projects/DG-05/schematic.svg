@@ -1,0 +1,122 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 550" role="img" aria-labelledby="title description">
+  <title id="title">DG-05 基尔霍夫双电源电阻网络原理图</title>
+  <desc id="description">挂箱上半部的 F、A、B 和 E、D、C 六个节点。CH1 设定六伏、CH2 设定十二伏。R1、R3、R4 为五百一十欧，R2 为一千欧，R5 为三百三十欧。三个电流插座在未插表时常闭。I1 的参考方向为 F 到 A，I2 为 A 到 B，I3 为 A 到 D；虚线标明左侧 KVL 回路。</desc>
+  <metadata>Original code-native teaching schematic authored for this project. No third-party panel artwork or remote assets. Current estimated model, K1=1, K2=1, K3=0.</metadata>
+  <style>
+    text { font-family: "Noto Sans SC Variable", sans-serif; fill: black; font-size: 16px; }
+    .wire { fill: none; stroke: black; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    .component { fill: white; stroke: black; stroke-width: 2; }
+    .jack { fill: white; stroke: black; stroke-width: 2; }
+    .node { fill: black; }
+    .small { font-size: 13px; fill: dimgray; }
+    .center { text-anchor: middle; }
+    .direction { fill: none; stroke: black; stroke-width: 1.5; }
+    .loop { fill: none; stroke: dimgray; stroke-width: 1.5; stroke-dasharray: 6 5; }
+  </style>
+  <rect width="820" height="550" fill="white"/>
+  <text x="410" y="34" class="center" style="font-size: 24px; font-weight: 600">基尔霍夫定律：双电源电阻网络</text>
+  <text x="410" y="64" class="center small">DG-05 · 仅绘制上半部 · K1=1，K2=1，K3=0</text>
+
+  <g class="wire">
+    <path d="M120 170 H155 M207 170 H243 M273 170 H390"/>
+    <path d="M390 170 H429 M459 170 H495 M557 170 H660"/>
+    <path d="M390 170 V218 M390 244 V285 M390 337 V390"/>
+    <path d="M120 390 H210 M270 390 H390 M390 390 H497 M557 390 H660"/>
+    <path d="M120 170 V185 M120 208 V252 M120 308 V390"/>
+    <path d="M660 170 V185 M660 208 V252 M660 308 V390"/>
+  </g>
+
+  <g class="component">
+    <rect x="155" y="162" width="52" height="16"/>
+    <rect x="495" y="162" width="62" height="16"/>
+    <rect x="382" y="285" width="16" height="52"/>
+    <rect x="210" y="382" width="60" height="16"/>
+    <rect x="497" y="382" width="60" height="16"/>
+    <circle cx="120" cy="280" r="28"/>
+    <circle cx="660" cy="280" r="28"/>
+  </g>
+  <text x="181" y="143" class="center">R1</text>
+  <text x="181" y="197" class="center small">510 Ω</text>
+  <text x="526" y="143" class="center">R2</text>
+  <text x="526" y="197" class="center small">1000 Ω</text>
+  <text x="426" y="304">R3</text>
+  <text x="426" y="327" class="small">510 Ω</text>
+  <text x="240" y="423" class="center">R4 · 510 Ω</text>
+  <text x="527" y="423" class="center">R5 · 330 Ω</text>
+  <text x="527" y="447" class="center small">K3=0：选择 R5，二极管支路不接入</text>
+
+  <g class="wire">
+    <path d="M120 185 L116 203 L120 208"/>
+    <path d="M660 185 L664 203 L660 208"/>
+  </g>
+  <circle cx="120" cy="185" r="2.5" class="jack"/>
+  <circle cx="120" cy="208" r="2.5" class="jack"/>
+  <circle cx="660" cy="185" r="2.5" class="jack"/>
+  <circle cx="660" cy="208" r="2.5" class="jack"/>
+  <text x="63" y="202" class="small">K1 接入</text>
+  <text x="681" y="202" class="small">K2 接入</text>
+  <text x="120" y="275" class="center">+</text>
+  <text x="120" y="299" class="center">−</text>
+  <text x="660" y="275" class="center">+</text>
+  <text x="660" y="299" class="center">−</text>
+  <text x="27" y="272">CH1</text>
+  <text x="27" y="295" class="small">设定 6 V</text>
+  <text x="703" y="272">CH2</text>
+  <text x="703" y="295" class="small">设定 12 V</text>
+
+  <g class="direction">
+    <path d="M216 116 H285 M279 111 L285 116 L279 121"/>
+    <path d="M414 116 H490 M484 111 L490 116 L484 121"/>
+    <path d="M349 217 V269 M344 263 L349 269 L354 263"/>
+  </g>
+  <text x="250" y="101" class="center small">I1：F→A</text>
+  <text x="452" y="101" class="center small">I2：A→B</text>
+  <text x="414" y="269" class="small">I3：A→D</text>
+
+  <path class="loop" d="M164 226 H322 V350 H164 Z"/>
+  <path class="direction" d="M317 321 L322 329 L327 321"/>
+  <text x="243" y="268" class="center small">F→A→D→E→F</text>
+  <text x="243" y="294" class="center">KVL 左回路</text>
+  <text x="243" y="319" class="center small">U_FA + U_AD + U_DE</text>
+
+  <g class="wire">
+    <path d="M243 170 H273"/>
+    <path d="M429 170 H459"/>
+    <path d="M390 218 V244"/>
+  </g>
+  <circle id="JACK_KH_I1A" data-jack="dc1.KH_I1A" cx="243" cy="170" r="4" class="jack"/>
+  <circle id="JACK_KH_I1B" data-jack="dc1.KH_I1B" cx="273" cy="170" r="4" class="jack"/>
+  <circle id="JACK_KH_I2A" data-jack="dc1.KH_I2A" cx="429" cy="170" r="4" class="jack"/>
+  <circle id="JACK_KH_I2B" data-jack="dc1.KH_I2B" cx="459" cy="170" r="4" class="jack"/>
+  <circle id="JACK_KH_I3A" data-jack="dc1.KH_I3A" cx="390" cy="218" r="4" class="jack"/>
+  <circle id="JACK_KH_I3B" data-jack="dc1.KH_I3B" cx="390" cy="244" r="4" class="jack"/>
+  <text x="258" y="195" class="center small">I1 常闭插座</text>
+  <text x="444" y="195" class="center small">I2 常闭插座</text>
+  <text x="409" y="234" class="small">I3 常闭插座</text>
+
+  <circle id="JACK_KH_U1P" data-jack="dc1.KH_U1P" cx="120" cy="230" r="4" class="jack"/>
+  <circle id="JACK_KH_U1N" data-jack="dc1.KH_U1N" cx="120" cy="340" r="4" class="jack"/>
+  <circle id="JACK_KH_U2P" data-jack="dc1.KH_U2P" cx="660" cy="230" r="4" class="jack"/>
+  <circle id="JACK_KH_U2N" data-jack="dc1.KH_U2N" cx="660" cy="340" r="4" class="jack"/>
+  <text x="69" y="237" class="small">U1+</text>
+  <text x="69" y="347" class="small">U1−</text>
+  <text x="680" y="237" class="small">U2+</text>
+  <text x="680" y="347" class="small">U2−</text>
+
+  <circle id="JACK_KH_F" data-jack="dc1.KH_F" cx="120" cy="170" r="3.5" class="node"/>
+  <circle id="JACK_KH_A" data-jack="dc1.KH_A" cx="390" cy="170" r="3.5" class="node"/>
+  <circle id="JACK_KH_B" data-jack="dc1.KH_B" cx="660" cy="170" r="3.5" class="node"/>
+  <circle id="JACK_KH_E" data-jack="dc1.KH_E" cx="120" cy="390" r="3.5" class="node"/>
+  <circle id="JACK_KH_D" data-jack="dc1.KH_D" cx="390" cy="390" r="3.5" class="node"/>
+  <circle id="JACK_KH_C" data-jack="dc1.KH_C" cx="660" cy="390" r="3.5" class="node"/>
+  <text x="120" y="152" class="center" style="font-weight: 600">F</text>
+  <text x="390" y="152" class="center" style="font-weight: 600">A</text>
+  <text x="660" y="152" class="center" style="font-weight: 600">B</text>
+  <text x="108" y="416" style="font-weight: 600">E</text>
+  <text x="385" y="416" style="font-weight: 600">D</text>
+  <text x="655" y="416" style="font-weight: 600">C</text>
+
+  <text x="410" y="486" class="center small">图示电流插座未插表时短接；两根表线均插入后，对应短接断开，串入表内阻。</text>
+  <text x="410" y="510" class="center small">虚线仅表示回路方向，不是导线。省略铜箔与开关的微小导通电阻；参数见指导。</text>
+  <text x="410" y="534" class="center small">本项目自绘 · 当前估计电路模型 · CH1−与 CH2−不得外部短接</text>
+</svg>

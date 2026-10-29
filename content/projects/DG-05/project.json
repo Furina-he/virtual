@@ -1,0 +1,105 @@
+{
+  "id": "DG-05",
+  "group": "直流电路",
+  "title": "基尔霍夫定律的验证与应用",
+  "type": "basic",
+  "modules": [{ "instanceId": "dc1", "moduleId": "mod-dc-circuit", "slot": "SLOT_BOX_L1" }],
+  "allowedInstruments": [],
+  "reference": {
+    "nets": [
+      ["ins-dc-power.CH1P", "dc1.KH_U1P"],
+      ["ins-dc-power.CH1N", "dc1.KH_U1N"],
+      ["ins-dc-power.CH2P", "dc1.KH_U2P"],
+      ["ins-dc-power.CH2N", "dc1.KH_U2N"]
+    ],
+    "measurePoints": [
+      { "id": "i1", "kind": "current", "mode": "dca", "branch": ["dc1.KH_I1A", "dc1.KH_I1B"] },
+      { "id": "i2", "kind": "current", "mode": "dca", "branch": ["dc1.KH_I2A", "dc1.KH_I2B"] },
+      { "id": "i3", "kind": "current", "mode": "dca", "branch": ["dc1.KH_I3A", "dc1.KH_I3B"] },
+      { "id": "u-fa", "kind": "voltage", "mode": "dcv", "between": ["dc1.KH_F", "dc1.KH_A"] },
+      { "id": "u-ad", "kind": "voltage", "mode": "dcv", "between": ["dc1.KH_A", "dc1.KH_D"] },
+      { "id": "u-de", "kind": "voltage", "mode": "dcv", "between": ["dc1.KH_D", "dc1.KH_E"] }
+    ]
+  },
+  "steps": [
+    {
+      "id": "prepare",
+      "text": "阅读指导和原理图。使用挂箱上半部；确认 K1、K2 接入电源，K3 接入 R5。电源保持断电，万用表和挂箱下半部不接线。",
+      "measurePoints": []
+    },
+    {
+      "id": "wire",
+      "text": "CH1 设置 6 V，CH2 设置 12 V。将 CH1 正负端分别接 U1+、U1−，CH2 正负端分别接 U2+、U2−，不要短接两路负端。检查接线。",
+      "measurePoints": [],
+      "checkWiring": true
+    },
+    {
+      "id": "i1",
+      "text": "断电时将固定毫安表正端接 I1 左孔、负端接 I1 右孔，选择 20 mA 档。电压表不接线；上电稳定后记录 i1，单位 A。",
+      "measurePoints": ["i1"]
+    },
+    {
+      "id": "i2",
+      "text": "先断电并拆除 I1 的两根表线，再将毫安表正端接 I2 左孔、负端接 I2 右孔，仍用 20 mA 档。上电后记录有符号的 i2；本接法出现负数是正常结果。",
+      "measurePoints": ["i2"]
+    },
+    {
+      "id": "i3",
+      "text": "先断电并拆除 I2 的两根表线，再将毫安表正端接 I3 上孔、负端接 I3 下孔，仍用 20 mA 档。上电稳定后记录 i3。",
+      "measurePoints": ["i3"]
+    },
+    {
+      "id": "u-fa",
+      "text": "断电并拆除毫安表的两根表线，使三个电流插座恢复常闭。电压表输入电阻选 10 MΩ，正端接 F、负端接 A，选择 2 V 档；上电后记录 u-fa。",
+      "measurePoints": ["u-fa"]
+    },
+    {
+      "id": "u-ad",
+      "text": "先断电，将电压表正端移到 A、负端移到 D，选择 20 V 档并保持 10 MΩ 输入电阻。上电后记录 u-ad，毫安表保持不接线。",
+      "measurePoints": ["u-ad"]
+    },
+    {
+      "id": "u-de",
+      "text": "先断电，将电压表正端移到 D、负端移到 E，选择 2 V 档并保持 10 MΩ 输入电阻。上电后记录 u-de。",
+      "measurePoints": ["u-de"]
+    },
+    {
+      "id": "analyse",
+      "text": "补齐 kirchhoff 表的六个有符号读数，断电。计算 I1−I2−I3 和 U_FA+U_AD+U_DE−6 V，结合分辨率、表内阻和精度估计解释残差，不把分次测量强行当作同一电路状态。",
+      "measurePoints": [],
+      "recordTable": "kirchhoff"
+    }
+  ],
+  "dataTables": [
+    {
+      "id": "kirchhoff",
+      "title": "基尔霍夫定律测量记录",
+      "rows": 1,
+      "columns": [
+        { "id": "i1", "title": "I1", "unit": "A", "measurePoint": "i1" },
+        { "id": "i2", "title": "I2", "unit": "A", "measurePoint": "i2" },
+        { "id": "i3", "title": "I3", "unit": "A", "measurePoint": "i3" },
+        { "id": "u-fa", "title": "U_FA", "unit": "V", "measurePoint": "u-fa" },
+        { "id": "u-ad", "title": "U_AD", "unit": "V", "measurePoint": "u-ad" },
+        { "id": "u-de", "title": "U_DE", "unit": "V", "measurePoint": "u-de" }
+      ],
+      "sanity": [
+        { "column": "i1", "min": -0.02, "max": 0.02, "message": "I1 超出推荐 20 mA 档的范围。确认电源设置和串联接法；本列单位为 A，1.91 mA 应填 0.00191。" },
+        { "column": "i2", "min": -0.02, "max": 0.02, "message": "I2 超出推荐 20 mA 档的范围。检查单位和接法，保留负号；−5.95 mA 应填 −0.00595 A。" },
+        { "column": "i3", "min": -0.02, "max": 0.02, "message": "I3 超出推荐 20 mA 档的范围。检查电源、表线和单位；7.84 mA 应填 0.00784 A。" },
+        { "column": "u-fa", "min": -20, "max": 20, "message": "U_FA 超出本次电源和量程设置的预期范围。确认记录单位为 V、测量端为 F 与 A，并检查表上的超量程提示。" },
+        { "column": "u-ad", "min": -20, "max": 20, "message": "U_AD 超出本次电源和量程设置的预期范围。确认正端接 A、负端接 D，使用 20 V 档并以 V 记录。" },
+        { "column": "u-de", "min": -20, "max": 20, "message": "U_DE 超出本次电源和量程设置的预期范围。确认测量端为 D 与 E，检查单位、表线和量程。" }
+      ]
+    }
+  ],
+  "charts": [],
+  "questions": [
+    "I2 的参考方向为 A 到 B，为什么按约定接表仍会读到负电流？实际电流方向是什么？",
+    "基尔霍夫电流定律在每个稳定电路状态都成立，为什么分次记录的 I1−I2−I3 不一定严格为零？",
+    "20 mA 档与 200 mA 档的表内阻、分辨率和满量程精度界限不同，应如何权衡？",
+    "沿 F→A→D→E→F 回路，电压项的符号如何确定？为什么不能把所有读数先取绝对值再相加？",
+    "如果把 CH1− 与 CH2− 外部短接，会改变哪些电路节点或支路？为什么这不是本项目的参考接法？",
+    "为什么电压测量前要移除毫安表的两根表线，而不是只断开其中一根？重复测量时应保持哪些条件不变？"
+  ]
+}

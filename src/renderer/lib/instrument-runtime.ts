@@ -16,6 +16,7 @@ import {
   type MeasurementPlan,
   sameSimulation,
 } from '../../domain/measurement/plan'
+import type { MeasurementSnapshot } from '../../domain/task'
 import { detectDanger } from '../../domain/wiring-check'
 import type { SimEvent } from '../../shared/ipc/sim'
 import type { CircuitState } from '../../shared/schema/circuit'
@@ -23,7 +24,12 @@ import { benchInstruments, setBenchInstrumentSettings } from '../features/practi
 import { moduleCatalog, moduleNetlist } from '../features/practice/practice-content'
 import { circuitStore, getActivePlacements } from '../features/practice/wiring-state'
 import { connectInstrumentPanels } from '../stores/instrument-panels'
-import { clearInstrumentReadings, type InstrumentReading, setInstrumentReading } from './instrument-readings'
+import {
+  clearInstrumentReadings,
+  getInstrumentReading,
+  type InstrumentReading,
+  setInstrumentReading,
+} from './instrument-readings'
 import { getSimClient } from './sim-client'
 
 const blank = (status: InstrumentReading['status'], message: string, unit = ''): InstrumentReading => ({
@@ -82,11 +88,19 @@ type RuntimeJob = {
   external: Record<string, number>
 }
 
+let measurementSnapshotReader: (() => MeasurementSnapshot | undefined) | undefined
+
+/** Capture synchronously from the current job, never from the delayed UI view. */
+export function currentMeasurementSnapshot(): MeasurementSnapshot | undefined {
+  return measurementSnapshotReader?.()
+}
+
 /** One producer owns measurements and the continuity tone, including when panels are popped out. */
 export function connectInstrumentRuntime(onStatus: (status: RuntimeStatus) => void): () => void {
   const sim = getSimClient()
   let revision = 0
   let job: RuntimeJob | undefined
+  let publishedJob: RuntimeJob | undefined
   let timer: ReturnType<typeof setTimeout> | undefined
   let timeout: ReturnType<typeof setTimeout> | undefined
   let previousState = circuitStore.getState()
@@ -100,6 +114,18 @@ export function connectInstrumentRuntime(onStatus: (status: RuntimeStatus) => vo
   let lastStatus = ''
   const rmsWindows = new Map<string, RmsWindow>()
   let offMeterSamples: (() => void)[] = []
+  const snapshotReader = (): MeasurementSnapshot | undefined =>
+    job
+      ? {
+          current:
+            !disposed && !job.preflight && job === publishedJob && job.powered === circuitStore.getState().powered,
+          plan: job.plan,
+          readings: Object.fromEntries(
+            job.plan.meters.map((meter) => [meter.instanceId, getInstrumentReading(meter.instanceId)]),
+          ),
+        }
+      : undefined
+  measurementSnapshotReader = snapshotReader
 
   function status(state: RuntimeStatus['state'], message: string) {
     const key = `${state}:${message}`
@@ -184,6 +210,7 @@ export function connectInstrumentRuntime(onStatus: (status: RuntimeStatus) => vo
   function invalidate() {
     revision++
     job = undefined
+    publishedJob = undefined
     clearTimeout(timer)
     clearTimeout(timeout)
     clearRms()
@@ -206,6 +233,7 @@ export function connectInstrumentRuntime(onStatus: (status: RuntimeStatus) => vo
     if (disposed || next.revision !== revision) return
     clearRms()
     job = next
+    publishedJob = undefined
     ownsSession = true
     if (next.plan.command.analysis.kind === 'tran') {
       for (const meter of next.plan.meters) {
@@ -351,6 +379,7 @@ export function connectInstrumentRuntime(onStatus: (status: RuntimeStatus) => vo
       )
     }
     showScopes(current.input, current.plan, current.powered, true)
+    publishedJob = current
     beep(audible)
     status(
       warning ? 'protected' : waiting ? 'pending' : 'ready',
@@ -362,6 +391,7 @@ export function connectInstrumentRuntime(onStatus: (status: RuntimeStatus) => vo
     const current = job
     if (!current || current.revision !== revision || disposed) return
     if (event.type === 'loaded') {
+      publishedJob = undefined
       for (const window of rmsWindows.values()) window.clear()
       return
     }
@@ -416,6 +446,7 @@ export function connectInstrumentRuntime(onStatus: (status: RuntimeStatus) => vo
   update()
   return () => {
     disposed = true
+    if (measurementSnapshotReader === snapshotReader) measurementSnapshotReader = undefined
     invalidate()
     offEvents()
     offRestart()

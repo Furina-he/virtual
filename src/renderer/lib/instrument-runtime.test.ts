@@ -6,7 +6,7 @@ import type { SimCommand, SimEvent } from '../../shared/ipc/sim'
 import type { CircuitState } from '../../shared/schema/circuit'
 import { Instrument } from '../../shared/schema/instrument'
 import { getInstrumentReading, instrumentReadings } from './instrument-readings'
-import { connectInstrumentRuntime } from './instrument-runtime'
+import { connectInstrumentRuntime, currentMeasurementSnapshot } from './instrument-runtime'
 import { RingBuffer } from './ring-buffer'
 
 type LowFreqEvent = Exclude<SimEvent, { type: 'chunk' }>
@@ -136,6 +136,37 @@ afterEach(() => {
 })
 
 describe('instrument runtime integration', () => {
+  it('exposes only the currently published job and invalidates captures synchronously on a range change', async () => {
+    const command = await start()
+    expect(currentMeasurementSnapshot()?.current).toBe(false)
+    emit({ type: 'readings', simTime: 0.1, values: Object.fromEntries(command.probes.map((probe) => [probe.id, 0])) })
+    expect(currentMeasurementSnapshot()?.current).toBe(true)
+    expect(currentMeasurementSnapshot()?.readings.meter1?.status).toBe('pending')
+
+    fixture.instruments = fixture.instruments.map((entry) =>
+      entry.instanceId === 'meter1' ? { ...entry, settings: { range: 'dcv20' } } : entry,
+    )
+    fixture.state = { ...fixture.state, controlValues: { changed: 1 } }
+    for (const listener of fixture.changes) listener(fixture.state)
+    expect(currentMeasurementSnapshot()).toBeUndefined()
+    await vi.advanceTimersByTimeAsync(40)
+    expect(currentMeasurementSnapshot()?.current).toBe(false)
+    const next = vi
+      .mocked(fixture.sim.send)
+      .mock.calls.filter(([entry]) => entry.type === 'load')
+      .at(-1)?.[0]
+    if (next?.type !== 'load') throw new Error('Missing reloaded measurement plan')
+    emit({ type: 'loaded', vectors: next.probes.map((probe) => probe.id) })
+    expect(currentMeasurementSnapshot()?.current).toBe(false)
+    const values = Object.fromEntries(next.probes.map((probe) => [probe.id, 3]))
+    emit({ type: 'readings', simTime: 0.1, values })
+    expect(currentMeasurementSnapshot()?.current).toBe(true)
+    expect(currentMeasurementSnapshot()?.readings.meter1).toMatchObject({ status: 'ok', value: 3 })
+    disconnect?.()
+    disconnect = undefined
+    expect(currentMeasurementSnapshot()).toBeUndefined()
+  })
+
   it('publishes a full AC RMS window even when it exceeds the waveform ring capacity', async () => {
     const command = await start()
     expect(command.analysis).toMatchObject({ kind: 'tran', step: 2e-7 })

@@ -1,7 +1,7 @@
 import { temporal } from 'zundo'
 import { createStore } from 'zustand/vanilla'
 import { CircuitState, PlacedInstrument, Wire, WireColor } from '../../shared/schema/circuit.ts'
-import { JackRef } from '../../shared/schema/common.ts'
+import { InstanceId, JackRef } from '../../shared/schema/common.ts'
 
 export const DEFAULT_WIRE_SLACK = 0.12
 export const POWERED_WIRING_NOTICE = '当前已上电，请先断电再修改接线。'
@@ -19,6 +19,11 @@ export type CircuitStoreOptions = {
   instruments?: readonly CircuitPlacementDefinition[]
   reservedInstanceIds?: readonly string[]
   placementProblem?: (instrument: InstrumentPlacement, placed: readonly InstrumentPlacement[]) => string | null
+}
+export type CircuitSceneContext = {
+  jackRefs: readonly string[]
+  reservedInstanceIds?: readonly string[]
+  controlValues?: Record<string, number>
 }
 export type CircuitEditorState = CircuitState & {
   selectedWireId: string | null
@@ -39,6 +44,7 @@ export type CircuitEditorState = CircuitState & {
   setInstrumentSettings: (instanceId: string, patch: Record<string, unknown>) => boolean
   setControlValue: (id: string, value: number) => boolean
   setControlValues: (patch: Record<string, number>) => boolean
+  resetScene: (scene: CircuitSceneContext) => void
   undo: () => boolean
   redo: () => boolean
 }
@@ -118,6 +124,41 @@ export function createCircuitStore(
     if (Object.entries(patch).every(([id, value]) => state.controlValues[id] === value)) return false
     store.setState({ controlValues: { ...state.controlValues, ...patch }, pendingJack: null, notice: null })
     return true
+  }
+
+  function resetScene(scene: CircuitSceneContext): void {
+    const jacks = new Set(scene.jackRefs.map((ref) => JackRef.parse(ref)))
+    const reserved = new Set([
+      ...scene.jackRefs.map((ref) => ref.split('.')[0]),
+      ...(scene.reservedInstanceIds ?? []).map((id) => InstanceId.parse(id)),
+    ])
+    const next = CircuitState.parse({
+      wires: [],
+      placedInstruments: [],
+      controlValues: structuredClone(scene.controlValues ?? {}),
+      powered: false,
+    })
+    // Scene context is not an undo step; old snapshots must never revive its endpoints.
+    const history = store.temporal.getState()
+    const wasTracking = history.isTracking
+    history.pause()
+    history.clear()
+    try {
+      fixedJacks.clear()
+      for (const ref of jacks) fixedJacks.add(ref)
+      reservedIds.clear()
+      for (const id of reserved) if (id) reservedIds.add(id)
+      store.setState({
+        ...next,
+        activeFault: undefined,
+        selectedWireId: null,
+        wireColor: 'red',
+        pendingJack: null,
+        notice: null,
+      })
+    } finally {
+      if (wasTracking) history.resume()
+    }
   }
 
   function moveHistory(direction: 'undo' | 'redo', steps = 1): boolean {
@@ -288,6 +329,7 @@ export function createCircuitStore(
         },
         setControlValue: (id, value) => setControlValues({ [id]: value }),
         setControlValues,
+        resetScene,
         undo: () => moveHistory('undo'),
         redo: () => moveHistory('redo'),
       }),

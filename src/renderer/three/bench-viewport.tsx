@@ -21,7 +21,7 @@ import {
   useDraggingInstrument,
   useInstrumentPlacement,
 } from '@/features/practice/instrument-placement'
-import { desktopSlots } from '@/features/practice/wiring-context'
+import { desktopSlots, placementSignature } from '@/features/practice/wiring-context'
 import {
   useActivePlacements,
   useCircuit,
@@ -36,7 +36,6 @@ import {
   cameraView,
   catalog,
   localEnvironment,
-  previewAssets,
   previewFov,
 } from './asset-catalog'
 import { jackStackCount, patchCordGeometry } from './cord-geometry'
@@ -412,7 +411,7 @@ function PreviewModels({
   return (
     <>
       <PreviewWarmup
-        key={`${quality}:${placements.map((placement) => placement.instanceId).join(',')}`}
+        key={`${quality}:${placementSignature(placements)}`}
         region={region}
         summary={summary}
         onReady={onReady}
@@ -488,7 +487,7 @@ export function BenchViewport3D({ onReadyChange }: { onReadyChange?: (ready: boo
   })
   const pending = useCircuit((state) => state.pendingJack)
   const wireColor = useCircuit((state) => state.wireColor)
-  const shadowKey = `${quality}:${placements.map((placement) => placement.instanceId).join(',')}:${wires.map((wire) => `${wire.id}:${wire.slack}`).join(',')}`
+  const shadowKey = `${quality}:${placementSignature(placements)}:${wires.map((wire) => `${wire.id}:${wire.slack}`).join(',')}`
   useEffect(() => {
     if (!placements.length) return
     startupTime.current = performance.now()
@@ -516,7 +515,7 @@ export function BenchViewport3D({ onReadyChange }: { onReadyChange?: (ready: boo
       delete region.current.dataset.startupMs
     }
     try {
-      useGLTF.clear(previewAssets().map((item) => item.url))
+      useGLTF.clear(assetsForPlacements(placements).map((item) => item.url))
     } catch {
       // Missing bundle files remain actionable through the same fallback.
     }

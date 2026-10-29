@@ -9,6 +9,7 @@ export const MeasurePoint = z
   .object({
     id: z.string().min(1),
     kind: z.enum(['voltage', 'current', 'waveform']),
+    mode: z.enum(['dcv', 'acv', 'dca', 'aca']).optional(),
     between: z.tuple([JackRef, JackRef]).optional(),
     // 电流测量所在支路：串入电流表时断开的两个插孔
     branch: z.tuple([JackRef, JackRef]).optional(),
@@ -18,31 +19,42 @@ export const MeasurePoint = z
       ctx.addIssue({ code: 'custom', message: '电流测量点需要 branch', path: ['branch'] })
     if (p.kind !== 'current' && !p.between)
       ctx.addIssue({ code: 'custom', message: '电压/波形测量点需要 between', path: ['between'] })
+    if (
+      p.mode &&
+      (p.kind === 'waveform' ||
+        (p.kind === 'current' ? !['dca', 'aca'].includes(p.mode) : !['dcv', 'acv'].includes(p.mode)))
+    )
+      ctx.addIssue({ code: 'custom', message: '测量模式与测量点类型不符', path: ['mode'] })
   })
 
 // 步骤完成条件：某测量点读数落在区间内
-export const Expectation = z.object({
-  measurePoint: z.string().min(1),
-  min: z.number(),
-  max: z.number(),
-})
+export const Expectation = z
+  .object({ measurePoint: z.string().min(1), min: z.number(), max: z.number() })
+  .superRefine((e, ctx) => {
+    if (e.min > e.max) ctx.addIssue({ code: 'custom', message: '上限不能小于下限', path: ['max'] })
+  })
 
 export const Column = z.object({
   id: z.string().min(1),
   title: z.string().min(1),
   unit: z.string().optional(),
   // 绑定测量点后可用"记录当前读数"（TSK-03）
-  measurePoint: z.string().optional(),
+  measurePoint: z.string().min(1).optional(),
   computed: z.string().optional(),
 })
 
 // 明显不合理数据的提示（TSK-03）
-export const SanityRule = z.object({
-  column: z.string().min(1),
-  min: z.number().optional(),
-  max: z.number().optional(),
-  message: z.string().min(1),
-})
+export const SanityRule = z
+  .object({
+    column: z.string().min(1),
+    min: z.number().optional(),
+    max: z.number().optional(),
+    message: z.string().min(1),
+  })
+  .superRefine((rule, ctx) => {
+    if (rule.min !== undefined && rule.max !== undefined && rule.min > rule.max)
+      ctx.addIssue({ code: 'custom', message: '上限不能小于下限', path: ['max'] })
+  })
 
 export const DataTable = z.object({
   id: z.string().min(1),
@@ -70,7 +82,17 @@ export const FaultDef = z.object({
   hint: z.string().min(1),
 })
 
-export const Step = z.object({ id: z.string().min(1), text: z.string().min(1), expect: Expectation.optional() })
+export const Step = z.object({
+  id: z.string().min(1),
+  text: z.string().min(1),
+  expect: Expectation.optional(),
+  measurePoints: z
+    .array(z.string().min(1))
+    .refine((points) => new Set(points).size === points.length, '步骤测量点不能重复')
+    .optional(),
+  checkWiring: z.boolean().optional(),
+  recordTable: z.string().min(1).optional(),
+})
 
 export const Project = z
   .object({
@@ -112,6 +134,7 @@ export const Project = z
       })
     })
     const points = new Set(p.reference.measurePoints.map((m) => m.id))
+    const tables = new Map(p.dataTables.map((t) => [t.id, new Set(t.columns.map((c) => c.id))]))
     p.steps.forEach((s, i) => {
       if (s.expect && !points.has(s.expect.measurePoint))
         ctx.addIssue({
@@ -119,8 +142,35 @@ export const Project = z
           message: `测量点 ${s.expect.measurePoint} 不存在`,
           path: ['steps', i, 'expect', 'measurePoint'],
         })
+      s.measurePoints?.forEach((point, j) => {
+        if (!points.has(point))
+          ctx.addIssue({
+            code: 'custom',
+            message: `测量点 ${point} 不存在`,
+            path: ['steps', i, 'measurePoints', j],
+          })
+      })
+      if (s.recordTable && !tables.has(s.recordTable))
+        ctx.addIssue({ code: 'custom', message: `数据表 ${s.recordTable} 不存在`, path: ['steps', i, 'recordTable'] })
     })
-    const tables = new Map(p.dataTables.map((t) => [t.id, new Set(t.columns.map((c) => c.id))]))
+    p.dataTables.forEach((table, i) => {
+      table.columns.forEach((column, j) => {
+        if (column.measurePoint && !points.has(column.measurePoint))
+          ctx.addIssue({
+            code: 'custom',
+            message: `测量点 ${column.measurePoint} 不存在`,
+            path: ['dataTables', i, 'columns', j, 'measurePoint'],
+          })
+      })
+      table.sanity?.forEach((rule, j) => {
+        if (!tables.get(table.id)?.has(rule.column))
+          ctx.addIssue({
+            code: 'custom',
+            message: `列 ${rule.column} 不存在`,
+            path: ['dataTables', i, 'sanity', j, 'column'],
+          })
+      })
+    })
     p.charts.forEach((c, i) => {
       const cols = tables.get(c.table)
       if (!cols) {
@@ -136,3 +186,6 @@ export const Project = z
 
 export type Project = z.infer<typeof Project>
 export type FaultDef = z.infer<typeof FaultDef>
+export type MeasurePoint = z.infer<typeof MeasurePoint>
+export type Step = z.infer<typeof Step>
+export type DataTable = z.infer<typeof DataTable>

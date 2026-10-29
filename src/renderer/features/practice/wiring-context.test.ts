@@ -5,6 +5,7 @@ import catalogData from '../../../../assets/layouts/catalog.json'
 import sceneData from '../../../../content/bench/scene.json'
 import { CircuitState } from '../../../shared/schema/circuit.ts'
 import { JackRef } from '../../../shared/schema/common.ts'
+import type { Project } from '../../../shared/schema/project.ts'
 import {
   desktopSlots,
   fixedPlacements,
@@ -12,7 +13,9 @@ import {
   instrumentPlacementProblem,
   jackName,
   jacksForPlacements,
+  placementSignature,
   placementsForInstruments,
+  placementsForProject,
   previewInstruments,
   wiringJacks,
   wiringScene,
@@ -184,5 +187,104 @@ describe('content-owned wiring context', () => {
       expect(jackName(jack.ref)).toBe(`${jack.deviceName} / ${jack.label} (${jack.id})`)
     }
     expect(jackName('missing.UNKNOWN')).toBe('missing.UNKNOWN')
+  })
+})
+
+function projectFor(modules: Project['modules']): Project {
+  return {
+    id: 'DG-05',
+    group: '直流电路',
+    title: '配置驱动的实训场景',
+    type: 'basic',
+    modules,
+    allowedInstruments: [],
+    reference: { nets: [], measurePoints: [] },
+    steps: [{ id: 'prepare', text: '准备器材。' }],
+    dataTables: [],
+    charts: [],
+    questions: [],
+  }
+}
+
+describe('project-owned wiring context', () => {
+  const module = { instanceId: 'board1', moduleId: 'mod-dc-circuit', slot: 'SLOT_BOX_L2' }
+
+  it('keeps the legacy fixture only when no project is configured', () => {
+    expect(placementsForProject()).toBe(fixedPlacements)
+    expect(wiringScene.placements).toEqual(sceneData.placements)
+  })
+
+  it('replaces fixture modules with configured IDs and actual module slot transforms', () => {
+    const placements = placementsForProject(projectFor([module]))
+    const hardware = fixedPlacements.filter(
+      (placement) => catalogData.assets.find((asset) => asset.id === placement.assetId)?.kind !== 'module',
+    )
+    expect(placements.filter((placement) => placement.instanceId !== module.instanceId)).toEqual(hardware)
+    const bench = catalogData.assets.find((asset) => asset.kind === 'bench')
+    const slot = bench?.slots?.find((entry) => entry.id === module.slot)
+    expect(slot).toBeDefined()
+    expect(placements.find((placement) => placement.instanceId === module.instanceId)).toMatchObject({
+      assetId: module.moduleId,
+      slot: module.slot,
+      position: slot?.position,
+    })
+    expect(placements.some((placement) => placement.instanceId === 'dc1')).toBe(false)
+    expect(
+      placements.some((placement) => previewInstruments.some((preview) => preview.instanceId === placement.instanceId)),
+    ).toBe(false)
+    const jacks = jacksForPlacements(placements)
+    expect(jacks.some((jack) => jack.ref.startsWith('dc1.'))).toBe(false)
+    expect(jacks.filter((jack) => jack.instanceId === module.instanceId)).toHaveLength(
+      wiringJacks.filter((jack) => jack.instanceId === 'dc1').length,
+    )
+    expect(
+      jacks.filter((jack) => jack.instanceId === module.instanceId).every((jack) => jack.ref.startsWith('board1.')),
+    ).toBe(true)
+  })
+
+  it('rejects unavailable assets, incorrect or duplicate slots, oversized modules and occupied IDs', () => {
+    expect(() => placementsForProject(projectFor([{ ...module, moduleId: 'missing-module' }]))).toThrow('资产')
+    expect(() => placementsForProject(projectFor([{ ...module, moduleId: 'bench' }]))).toThrow('资产')
+    expect(() => placementsForProject(projectFor([{ ...module, slot: 'SLOT_MISSING' }]))).toThrow('安装位')
+    expect(() => placementsForProject(projectFor([{ ...module, slot: 'SLOT_DESK_1' }]))).toThrow('类型')
+    expect(() => placementsForProject(projectFor([{ ...module, slot: 'SLOT_BOX_S1' }]))).toThrow('尺寸')
+    expect(() => placementsForProject(projectFor([module, { ...module, instanceId: 'board2' }]))).toThrow('重复')
+    expect(() => placementsForProject(projectFor([module, { ...module, slot: 'SLOT_BOX_L1' }]))).toThrow('实例编号')
+    expect(() => placementsForProject(projectFor([{ ...module, instanceId: 'bench' }]))).toThrow('实例编号')
+    expect(() => placementsForProject(projectFor([{ ...module, instanceId: 'ins-dc-voltmeter' }]))).toThrow('实例编号')
+    expect(() => placementsForProject(projectFor([{ ...module, instanceId: 'bad.id' }]))).toThrow()
+    expect(() => placementsForProject(projectFor([]))).toThrow('未配置')
+  })
+
+  it('composes desktop instruments and checks collisions against active module geometry', () => {
+    const base = placementsForProject(projectFor([module]))
+    const meter = { instanceId: 'meter1', instrumentId: 'ins-multimeter', slot: 'SLOT_DESK_1', settings: {} }
+    expect(placementsForInstruments([], base)).toEqual(base)
+    expect(placementsForInstruments([meter], base).some((placement) => placement.instanceId === 'dc1')).toBe(false)
+    expect(instrumentPlacementProblem(meter, [], base)).toBeNull()
+    const slot = desktopSlots.find((entry) => entry.id === meter.slot)
+    if (!slot) throw new Error('Missing desktop slot')
+    const overlap = base.map((placement) =>
+      placement.instanceId === module.instanceId ? { ...placement, position: slot.position } : placement,
+    )
+    expect(instrumentPlacementProblem(meter, [], overlap)).toContain('重叠')
+  })
+
+  it('keys geometry by asset, instance, slot, position and rotation without depending on array order', () => {
+    const placements = placementsForProject(projectFor([module]))
+    const signature = placementSignature(placements)
+    expect(placementSignature(placements.slice().reverse())).toBe(signature)
+    expect(placementSignature(placements.map((placement) => ({ ...placement, rotation: [0, 0, 0] })))).toBe(signature)
+    const change = (patch: Partial<(typeof placements)[number]>) =>
+      placementSignature(
+        placements.map((placement) =>
+          placement.instanceId === module.instanceId ? { ...placement, ...patch } : placement,
+        ),
+      )
+    expect(change({ assetId: 'ins-oscilloscope' })).not.toBe(signature)
+    expect(change({ instanceId: 'board2' })).not.toBe(signature)
+    expect(change({ slot: 'SLOT_BOX_L1' })).not.toBe(signature)
+    expect(change({ position: [0.3, 0.865, -0.2] })).not.toBe(signature)
+    expect(change({ rotation: [0, 0.1, 0] })).not.toBe(signature)
   })
 })

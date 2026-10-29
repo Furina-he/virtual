@@ -3,6 +3,7 @@ import { z } from 'zod'
 import catalogData from '../../../../assets/layouts/catalog.json'
 import sceneData from '../../../../content/bench/scene.json'
 import type { CircuitState } from '../../../shared/schema/circuit'
+import type { Project } from '../../../shared/schema/project'
 import { BenchScene } from '../../../shared/schema/scene'
 
 export type WiringJack = {
@@ -96,20 +97,73 @@ const benchPlacement = fixedPlacements.find((placement) =>
 if (!benchPlacement) throw new Error('Missing bench placement')
 const bench = wiringAssets.find((asset) => asset.id === benchPlacement.assetId)
 const benchRotation = new Euler(...(benchPlacement.rotation ?? [0, 0, 0]))
-export const desktopSlots = (bench?.slots ?? [])
-  .filter((slot) => slot.kind === 'desktop')
-  .map((slot) => ({
-    ...slot,
-    position: new Vector3(...slot.position)
-      .applyEuler(benchRotation)
-      .add(new Vector3(...benchPlacement.position))
-      .toArray(),
-    rotation: benchPlacement.rotation,
-  }))
+const benchSlots = (bench?.slots ?? []).map((slot) => ({
+  ...slot,
+  position: new Vector3(...slot.position)
+    .applyEuler(benchRotation)
+    .add(new Vector3(...benchPlacement.position))
+    .toArray(),
+  rotation: benchPlacement.rotation,
+}))
+export const desktopSlots = benchSlots.filter((slot) => slot.kind === 'desktop')
+const hardwarePlacements = fixedPlacements.filter((placement) => {
+  const asset = wiringAssets.find((entry) => entry.id === placement.assetId)
+  return asset?.kind === 'bench' || asset?.mounting === 'fixed'
+})
 
-export function placementsForInstruments(instruments: readonly PlacedInstrument[]): ScenePlacement[] {
+export function placementsForProject(project?: Project): ScenePlacement[] {
+  if (!project) return fixedPlacements
+  if (!project.modules.length) throw new Error('项目未配置实训模块。')
+  const ids = new Set(hardwarePlacements.map((placement) => placement.instanceId))
+  const slots = new Set<string>()
+  const modules = project.modules.map(({ instanceId, moduleId, slot: slotId }) => {
+    const asset = wiringAssets.find((entry) => entry.id === moduleId && entry.kind === 'module')
+    if (!asset) throw new Error(`实训模块资产不可用：${moduleId}。`)
+    const slot = benchSlots.find((entry) => entry.id === slotId && entry.kind === 'module')
+    if (!slot) throw new Error(`实训模块安装位不存在或类型不符：${slotId}。`)
+    if (ids.has(instanceId)) throw new Error(`实训模块实例编号已占用：${instanceId}。`)
+    if (slots.has(slot.id)) throw new Error(`实训模块安装位重复：${slot.id}。`)
+    if (slot.dimensionsMm?.some((limit, axis) => (asset.dimensionsMm[axis] ?? 0) > limit))
+      throw new Error(`实训模块尺寸超过安装位限制：${moduleId} / ${slot.id}。`)
+    ids.add(instanceId)
+    slots.add(slot.id)
+    return { instanceId, assetId: asset.id, position: slot.position, rotation: slot.rotation, slot: slot.id }
+  })
+  const placements = BenchScene.shape.placements.parse([...hardwarePlacements, ...modules])
+  const occupied = placements.filter(
+    (placement) => wiringAssets.find((asset) => asset.id === placement.assetId)?.kind !== 'bench',
+  )
+  for (const module of modules) {
+    const bounds = placementBounds(module).expandByScalar(-1e-6)
+    if (
+      occupied.some((other) => other.instanceId !== module.instanceId && bounds.intersectsBox(placementBounds(other)))
+    )
+      throw new Error(`实训模块与其他设备重叠：${module.instanceId}。`)
+  }
+  return placements
+}
+
+export function placementSignature(placements: readonly ScenePlacement[]): string {
+  return JSON.stringify(
+    placements
+      .slice()
+      .sort((a, b) => a.instanceId.localeCompare(b.instanceId))
+      .map(({ assetId, instanceId, slot, position, rotation }) => [
+        assetId,
+        instanceId,
+        slot ?? null,
+        position,
+        rotation ?? [0, 0, 0],
+      ]),
+  )
+}
+
+export function placementsForInstruments(
+  instruments: readonly PlacedInstrument[],
+  base: readonly ScenePlacement[] = fixedPlacements,
+): ScenePlacement[] {
   return [
-    ...fixedPlacements,
+    ...base,
     ...instruments.map((instrument) => {
       const slot = desktopSlots.find((entry) => entry.id === instrument.slot)
       if (!slot) throw new Error(`Unknown desktop slot ${instrument.slot}`)
@@ -141,6 +195,7 @@ function placementBounds(placement: ScenePlacement): Box3 {
 export function instrumentPlacementProblem(
   instrument: PlacedInstrument,
   placed: readonly PlacedInstrument[],
+  base: readonly ScenePlacement[] = fixedPlacements,
 ): string | null {
   const asset = wiringAssets.find((entry) => entry.id === instrument.instrumentId)
   const slot = desktopSlots.find((entry) => entry.id === instrument.slot)
@@ -168,7 +223,7 @@ export function instrumentPlacementProblem(
   ) {
     return '仪表超出台面边界，请选择其他安装位。'
   }
-  const occupied = placementsForInstruments(placed).filter(
+  const occupied = placementsForInstruments(placed, base).filter(
     (placement) => wiringAssets.find((entry) => entry.id === placement.assetId)?.kind !== 'bench',
   )
   if (occupied.some((placement) => bounds.clone().expandByScalar(-1e-6).intersectsBox(placementBounds(placement)))) {

@@ -4,8 +4,7 @@ import { useStore } from 'zustand'
 import { createStore } from 'zustand/vanilla'
 import { POWERED_INSTRUMENT_NOTICE } from '../../stores/circuit'
 import { instrumentCatalog } from './practice-content'
-import { fixedPlacements, previewInstruments } from './wiring-context'
-import { circuitStore, useCircuit } from './wiring-state'
+import { circuitStore, nextInstrumentInstanceId, useCircuit } from './wiring-state'
 
 export const INSTRUMENT_DRAG_TYPE = 'desktop-instrument'
 export const BENCH_DROP_ID = 'instrument-bench'
@@ -28,21 +27,6 @@ export function useInstrumentPlacement() {
 
 export function useDraggingInstrument() {
   return useStore(dragStore, (state) => state.instrumentId)
-}
-
-function nextInstanceId(instrumentId: string): string {
-  const preview = previewInstruments.find((instrument) => instrument.instrumentId === instrumentId)
-  const prefix = preview?.instanceId.replace(/\d+$/, '') ?? instrumentId
-  const history = circuitStore.temporal.getState()
-  const used = new Set([
-    ...fixedPlacements.map((placement) => placement.instanceId),
-    ...[circuitStore.getState(), ...history.pastStates, ...history.futureStates].flatMap((state) =>
-      (state.placedInstruments ?? []).map((instrument) => instrument.instanceId),
-    ),
-  ])
-  let index = 1
-  while (used.has(`${prefix}${index}`)) index++
-  return `${prefix}${index}`
 }
 
 function PlacementDragLifetime() {
@@ -99,9 +83,12 @@ export function InstrumentPlacementProvider({
       circuitStore.setState({ notice: '未命中可见的台面安装位。请在 SLOT_ 标记内松开，必要时切换俯视。' })
       return
     }
-    circuitStore
-      .getState()
-      .placeInstrument({ instanceId: nextInstanceId(instrument.id), instrumentId: instrument.id, slot, settings: {} })
+    circuitStore.getState().placeInstrument({
+      instanceId: nextInstrumentInstanceId(instrument.id),
+      instrumentId: instrument.id,
+      slot,
+      settings: {},
+    })
   }
   return (
     <PlacementContext value={context}>

@@ -49,7 +49,7 @@ export class SimClient {
     return window.api.sim.send(command)
   }
 
-  /** 探针的环形缓冲；在 rAF / useFrame 中读取 */
+  /** 当前会话的探针缓冲；rAF / useFrame 每次重新取，load 后不保留对象身份 */
   buffer(probeId: string): RingBuffer {
     let b = this.buffers.get(probeId)
     if (!b) {
@@ -73,7 +73,10 @@ export class SimClient {
       this.sampleListeners.set(probeId, set)
     }
     set.add(listener)
-    return () => set.delete(listener)
+    return () => {
+      set.delete(listener)
+      if (set.size === 0 && this.sampleListeners.get(probeId) === set) this.sampleListeners.delete(probeId)
+    }
   }
 
   onRestarted(listener: () => void): () => void {
@@ -97,8 +100,9 @@ export class SimClient {
       return
     }
     if (ev.type === 'loaded') {
-      // 新会话：清空缓冲，块序号重新从 0 计
+      // 清空旧句柄后释放上个会话的探针分配；读数探针 ID 含 revision，不能长期保留。
       for (const b of this.buffers.values()) b.clear()
+      this.buffers.clear()
       Object.assign(this.stats, { blocks: 0, lastSeq: -1, points: 0 })
       this.stats.sessions++
     }
