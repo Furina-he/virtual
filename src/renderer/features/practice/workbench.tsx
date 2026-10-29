@@ -47,10 +47,11 @@ import type { Project } from '../../../shared/schema/project'
 import { InstrumentCabinet } from './instrument-cabinet'
 import { InstrumentDock } from './instrument-dock'
 import { InstrumentPlacementProvider } from './instrument-placement'
+import { ModuleProperties, resetModuleSelection } from './module-controls'
 import { findProject, projectGuide, projectSchematic } from './practice-content'
 import { recordTaskReadings, TaskDataPanel, TaskStepsPanel } from './task-panel'
 import { usePersistedLayout } from './use-persisted-layout'
-import { WiringPanel, WiringShortcuts } from './wiring-panel'
+import { WiringShortcuts } from './wiring-panel'
 import { activateProject, circuitStore, resetProject, useCircuit } from './wiring-state'
 import 'katex/dist/katex.min.css'
 
@@ -254,6 +255,7 @@ export function Workbench() {
       if (changed || taskStore.getState().projectId !== project?.id || activationAttempt > 0) {
         resetTask(project)
         resetScopeAcquisition()
+        resetModuleSelection()
         setResetOpen(false)
       }
       setActivationError(null)
@@ -262,6 +264,7 @@ export function Workbench() {
       resetProject()
       resetTask()
       resetScopeAcquisition()
+      resetModuleSelection()
       setResetOpen(false)
       setActivationError(error instanceof Error ? error.message : '无法挂载本项目的实训模块。')
     }
@@ -436,7 +439,7 @@ export function Workbench() {
               </ResizablePanel>
               <ResizableHandle />
               <ResizablePanel id="properties" defaultSize="62" minSize={240}>
-                <WiringPanel key={`${project?.id ?? 'unconfigured'}:${resetVersion}`} />
+                <ModuleProperties key={`${project?.id ?? 'unconfigured'}:${resetVersion}`} />
               </ResizablePanel>
             </ResizablePanelGroup>
           </ResizablePanel>
@@ -460,6 +463,7 @@ export function Workbench() {
                   resetProject()
                   resetTask(project)
                   resetScopeAcquisition()
+                  resetModuleSelection()
                   setResetOpen(false)
                 }}
               >

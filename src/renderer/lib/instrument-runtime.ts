@@ -5,7 +5,9 @@ import {
   formatFrequency,
   formatVoltage,
   isSelfPoweredMode,
+  measureSignal,
   readInstrument,
+  resolveScope,
   resolveSource,
   WAVEFORM_LABEL,
 } from '../../domain/instruments'
@@ -14,9 +16,10 @@ import {
   buildMeasurementPlan,
   METER_RMS_WINDOW,
   type MeasurementPlan,
+  moduleControlChanges,
   sameSimulation,
 } from '../../domain/measurement/plan'
-import type { MeasurementSnapshot } from '../../domain/task'
+import type { MeasurementSnapshot, WaveformReading } from '../../domain/task'
 import { detectDanger } from '../../domain/wiring-check'
 import type { SimEvent } from '../../shared/ipc/sim'
 import type { CircuitState } from '../../shared/schema/circuit'
@@ -30,6 +33,7 @@ import {
   type InstrumentReading,
   setInstrumentReading,
 } from './instrument-readings'
+import { createModuleAudio } from './module-audio'
 import { getSimClient } from './sim-client'
 
 const blank = (status: InstrumentReading['status'], message: string, unit = ''): InstrumentReading => ({
@@ -101,6 +105,12 @@ export function connectInstrumentRuntime(onStatus: (status: RuntimeStatus) => vo
   let revision = 0
   let job: RuntimeJob | undefined
   let publishedJob: RuntimeJob | undefined
+  let parameterRequest = 0
+  const parameterRequests = new Set<string>()
+  let pendingAlter: { requestId: string; afterTime?: number } | undefined
+  let waveformAfterTime = Number.NEGATIVE_INFINITY
+  const waveformBoundary = new Map<string, number>()
+  let moduleAudio: ReturnType<typeof createModuleAudio> | undefined
   let timer: ReturnType<typeof setTimeout> | undefined
   let timeout: ReturnType<typeof setTimeout> | undefined
   let previousState = circuitStore.getState()
@@ -113,19 +123,72 @@ export function connectInstrumentRuntime(onStatus: (status: RuntimeStatus) => vo
   let sounding = false
   let lastStatus = ''
   const rmsWindows = new Map<string, RmsWindow>()
+  const waveformScratch = new Float32Array(65_536)
   let offMeterSamples: (() => void)[] = []
   const snapshotReader = (): MeasurementSnapshot | undefined =>
     job
       ? {
           current:
-            !disposed && !job.preflight && job === publishedJob && job.powered === circuitStore.getState().powered,
+            !disposed &&
+            !pendingAlter &&
+            !job.preflight &&
+            job === publishedJob &&
+            job.powered === circuitStore.getState().powered,
           plan: job.plan,
           readings: Object.fromEntries(
             job.plan.meters.map((meter) => [meter.instanceId, getInstrumentReading(meter.instanceId)]),
           ),
+          waveforms: snapshotWaveforms(job),
         }
       : undefined
   measurementSnapshotReader = snapshotReader
+
+  function snapshotWaveforms(current: RuntimeJob): WaveformReading[] {
+    return current.plan.scopes.flatMap((scope) => {
+      const input = current.input.instruments.find((entry) => entry.instanceId === scope.instanceId)
+      if (!input?.instrument.scope) return []
+      const settings = resolveScope(input.instrument, input.settings)
+      return scope.channels.flatMap((channel, index) => {
+        const configured = input.instrument.scope?.channels[index]
+        const displayed = settings.channels[index]
+        if (!configured || !displayed) return []
+        const allowed =
+          !!channel.probe &&
+          channel.groundWired &&
+          displayed.enabled &&
+          settings.running &&
+          displayed.coupling !== 'gnd' &&
+          current.powered &&
+          !pendingAlter &&
+          current === publishedJob
+        let measurement: ReturnType<typeof measureSignal> = null
+        if (allowed && channel.probe) {
+          const buffer = sim.buffer(channel.probe)
+          const available = Number.isFinite(waveformAfterTime)
+            ? Math.max(0, Math.ceil((buffer.lastTime - waveformAfterTime) / buffer.dt))
+            : buffer.length
+          const count = Math.min(waveformScratch.length, buffer.length, available)
+          const retained = Math.min(count, Math.max(0, buffer.written - (waveformBoundary.get(channel.probe) ?? 0)))
+          if (retained > 1 && buffer.dt > 0) {
+            const samples = waveformScratch.subarray(0, retained)
+            buffer.copyLatest(samples)
+            measurement = measureSignal(samples, buffer.dt)
+          }
+        }
+        return [
+          {
+            instanceId: scope.instanceId,
+            channelId: channel.id,
+            positiveRef: `${scope.instanceId}.${configured.positiveJack}`,
+            negativeRef: `${scope.instanceId}.${configured.negativeJack}`,
+            coupling: displayed.coupling,
+            current: allowed && measurement !== null,
+            measurement,
+          },
+        ]
+      })
+    })
+  }
 
   function status(state: RuntimeStatus['state'], message: string) {
     const key = `${state}:${message}`
@@ -211,6 +274,12 @@ export function connectInstrumentRuntime(onStatus: (status: RuntimeStatus) => vo
     revision++
     job = undefined
     publishedJob = undefined
+    pendingAlter = undefined
+    parameterRequests.clear()
+    waveformAfterTime = Number.NEGATIVE_INFINITY
+    waveformBoundary.clear()
+    moduleAudio?.dispose()
+    moduleAudio = undefined
     clearTimeout(timer)
     clearTimeout(timeout)
     clearRms()
@@ -249,12 +318,20 @@ export function connectInstrumentRuntime(onStatus: (status: RuntimeStatus) => vo
         offMeterSamples.push(sim.onSamples(probe, (data, t0, dt) => window.push(data, t0, dt)))
       }
     }
+    const speakers =
+      next.powered && !next.preflight && next.plan.command.analysis.kind === 'tran'
+        ? createModuleAudio(sim, next.plan.speakers, next.plan.command.analysis.step)
+        : undefined
+    moduleAudio?.dispose()
+    moduleAudio = speakers
     clearTimeout(timeout)
     timeout = setTimeout(() => failure('仿真未及时返回读数。请断电后重试，并检查接线。'), 8000)
     void sim
       .send(next.plan.command)
       .then(async () => {
         if (disposed || job !== next || next.plan.command.analysis.kind !== 'tran') return
+        await speakers?.ready
+        if (disposed || job !== next) return
         await sim.send(next.plan.pacing)
         if (!disposed && job === next) await sim.send({ type: 'run' })
       })
@@ -270,7 +347,27 @@ export function connectInstrumentRuntime(onStatus: (status: RuntimeStatus) => vo
     if (!force && job && !job.preflight && job.powered === state.powered) {
       try {
         const input = benchCircuitInput(state)
-        if (sameSimulation(buildMeasurementPlan(input, state.powered, `m${revision}`), job.plan)) {
+        const candidate = buildMeasurementPlan(input, state.powered, `m${revision}`)
+        const changes = moduleControlChanges(job.plan, candidate)
+        if (changes?.length && state.powered) {
+          const current = job
+          const requestId = `module-${revision}-${++parameterRequest}`
+          current.input = input
+          current.plan = candidate
+          publishedJob = undefined
+          pendingAlter = { requestId }
+          parameterRequests.add(requestId)
+          status('pending', '正在更新模块参数')
+          clearTimeout(timeout)
+          timeout = setTimeout(() => failure('模块参数未及时更新。请断电后重试。'), 8000)
+          void sim.send({ type: 'alter', requestId, changes }).catch(() => {
+            if (!disposed && job === current && pendingAlter?.requestId === requestId)
+              failure('无法更新模块参数。请断电后重试。')
+          })
+          return
+        }
+        if (sameSimulation(candidate, job.plan)) {
+          job.input = input
           showGenerators(input, state.powered)
           return
         }
@@ -392,14 +489,40 @@ export function connectInstrumentRuntime(onStatus: (status: RuntimeStatus) => vo
     if (!current || current.revision !== revision || disposed) return
     if (event.type === 'loaded') {
       publishedJob = undefined
+      waveformAfterTime = Number.NEGATIVE_INFINITY
+      waveformBoundary.clear()
+      for (const window of rmsWindows.values()) window.clear()
+      return
+    }
+    if (event.type === 'altered') {
+      if (event.requestId) parameterRequests.delete(event.requestId)
+      if (event.requestId !== pendingAlter?.requestId) return
+      pendingAlter = { requestId: event.requestId as string, afterTime: event.simTime }
+      waveformAfterTime = event.simTime
+      waveformBoundary.clear()
+      for (const scope of current.plan.scopes) {
+        for (const channel of scope.channels) {
+          if (channel.probe) waveformBoundary.set(channel.probe, sim.buffer(channel.probe).written)
+        }
+      }
       for (const window of rmsWindows.values()) window.clear()
       return
     }
     if (event.type === 'error') {
+      if (event.requestId && event.requestId !== pendingAlter?.requestId && !parameterRequests.has(event.requestId))
+        return
       failure(event.message)
       return
     }
     if (event.type !== 'op' && event.type !== 'readings') return
+    if (pendingAlter) {
+      if (
+        pendingAlter.afterTime === undefined ||
+        (event.type === 'readings' && event.simTime <= pendingAlter.afterTime)
+      )
+        return
+      pendingAlter = undefined
+    }
     if (!current.plan.command.probes.every((probe) => Object.hasOwn(event.values, probe.id))) return
     clearTimeout(timeout)
     if (current.preflight && event.type === 'op') {

@@ -9,6 +9,7 @@ import {
 } from '../instruments/index.ts'
 import { AssembleError } from './errors.ts'
 import { injectFault } from './fault.ts'
+import { moduleParameters } from './module-controls.ts'
 import { UnionFind } from './union-find.ts'
 
 // 技术设计 §5.2。纯函数：调用方负责读取 module.cir 等文件。
@@ -99,6 +100,12 @@ function expandTemplate(ins: InstrumentInput, suffix: string, nodeOf: (jack: str
 }
 
 export function assembleNetlist(input: AssembleInput): AssembleOutput {
+  let controlParameters: ReturnType<typeof moduleParameters>
+  try {
+    controlParameters = moduleParameters(input.modules, input.controlValues)
+  } catch (error) {
+    throw new AssembleError('content', error instanceof Error ? error.message : '模块参数无效')
+  }
   const uf = new UnionFind<string>()
   const jackOwners = new Map<string, Set<string>>()
   const register = (instanceId: string, jackIds: string[]) => {
@@ -179,11 +186,11 @@ export function assembleNetlist(input: AssembleInput): AssembleOutput {
     for (const c of m.module.controls) {
       if (!subParams.includes(c.param))
         throw new AssembleError('content', `${m.module.id} 子电路没有参数 ${c.param}（控件 ${c.id}）`)
-      const value = input.controlValues[`${m.instanceId}.${c.id}`] ?? c.default
       // 全局参数便于运行中 alterparam（ADR-009）
-      const global = `p_${safe}_${c.param}`
-      params.push(`.param ${global}=${value}`)
-      assigns.push(`${c.param}={${global}}`)
+      const parameter = controlParameters.find((entry) => entry.controlRef === `${m.instanceId}.${c.id}`)
+      if (!parameter) throw new AssembleError('content', `${m.module.id} 缺少控件参数 ${c.id}`)
+      params.push(`.param ${parameter.param}=${parameter.value}`)
+      assigns.push(`${c.param}={${parameter.param}}`)
     }
     const portNodes = jackIds.map((j) => node(`${m.instanceId}.${j}`))
     instances.push(`X${safe} ${portNodes.join(' ')} ${subName}${assigns.length ? ` ${assigns.join(' ')}` : ''}`)

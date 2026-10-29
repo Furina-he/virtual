@@ -1,5 +1,5 @@
 import { afterEach, expect, it, vi } from 'vitest'
-import { renderOffline } from './sim-audio'
+import { renderOffline, SimAudioOutput } from './sim-audio'
 
 type PlaybackStats = { underruns: number; played: number; queued: number }
 const events: string[] = []
@@ -30,6 +30,7 @@ class QueuedWorkletNode {
   }
 
   connect(_destination: unknown): void {}
+  disconnect(): void {}
 }
 
 class TestOfflineContext {
@@ -79,4 +80,39 @@ it('PCM offline rendering waits for every queued sample before starting the rend
   expect(maxDiff).toBeLessThan(1e-3)
   expect(acknowledgements).toEqual([{ underruns: 0, played: 0, queued: samples.length }])
   expect(events).toEqual(['acknowledge', 'render'])
+})
+
+it('stopping synth output cancels queued changes, mutes and disconnects once, then rejects late samples', async () => {
+  const parameter = () => ({
+    cancelScheduledValues: vi.fn(),
+    setValueAtTime: vi.fn(),
+    linearRampToValueAtTime: vi.fn(),
+  })
+  const oscillator = { frequency: parameter(), connect: vi.fn(), disconnect: vi.fn(), start: vi.fn(), stop: vi.fn() }
+  const gain = { gain: parameter(), connect: vi.fn(), disconnect: vi.fn() }
+  oscillator.connect.mockReturnValue(gain)
+  class TestOscillator {
+    constructor() {
+      Object.assign(this, oscillator)
+    }
+  }
+  class TestGain {
+    constructor() {
+      Object.assign(this, gain)
+    }
+  }
+  vi.stubGlobal('OscillatorNode', TestOscillator)
+  vi.stubGlobal('GainNode', TestGain)
+  const context = { currentTime: 2, destination: {} } as unknown as BaseAudioContext
+  const output = await SimAudioOutput.create(context, 'synth', 44_100)
+  output.stop()
+  output.stop()
+  output.feed(new Float32Array(4096), 0, 1 / 44_100)
+  expect(oscillator.stop).toHaveBeenCalledTimes(1)
+  expect(oscillator.disconnect).toHaveBeenCalledTimes(1)
+  expect(gain.disconnect).toHaveBeenCalledTimes(1)
+  expect(oscillator.frequency.cancelScheduledValues).toHaveBeenCalledWith(2)
+  expect(gain.gain.cancelScheduledValues).toHaveBeenCalledWith(2)
+  expect(gain.gain.setValueAtTime).toHaveBeenCalledWith(0, 2)
+  expect(gain.gain.linearRampToValueAtTime).not.toHaveBeenCalled()
 })

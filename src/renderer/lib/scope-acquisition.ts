@@ -213,6 +213,9 @@ export type ScopeSummary = {
   channels: {
     id: string
     vpp: number | null
+    mean: number | null
+    min: number | null
+    max: number | null
     frequency: number | null
     period: number | null
     /** 屏幕上轨迹的最高/最低位置（格，中心为 0，向上为正） */
@@ -253,6 +256,9 @@ export function scopeSummary(frame: ScopeFrame, settings: ScopeSettings): ScopeS
       return {
         id: channel.id,
         vpp: measurement?.vpp ?? null,
+        mean: measurement?.mean ?? null,
+        min: measurement?.min ?? null,
+        max: measurement?.max ?? null,
         frequency: measurement?.frequency ?? null,
         period: measurement?.period ?? null,
         top,

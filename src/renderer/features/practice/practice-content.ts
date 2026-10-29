@@ -1,3 +1,4 @@
+import { expandLocalLibraries } from '../../../domain/circuit/libraries'
 import { Instrument, Module, Project } from '../../../shared/schema/index'
 
 const instruments = import.meta.glob('../../../../content/instruments/*/instrument.json', {
@@ -13,6 +14,14 @@ const netlists = import.meta.glob<string>('../../../../content/modules/*/*.cir',
   query: '?raw',
   import: 'default',
 })
+const modelLibraries = import.meta.glob<string>('../../../../content/models/spice/*.lib', {
+  eager: true,
+  query: '?raw',
+  import: 'default',
+})
+const libraries = Object.fromEntries(
+  Object.entries(modelLibraries).map(([path, text]) => [path.split('/').at(-1) as string, text]),
+)
 const projects = import.meta.glob('../../../../content/projects/*/project.json', {
   eager: true,
   import: 'default',
@@ -35,7 +44,7 @@ export const projectCatalog = Object.values(projects).map((data) => Project.pars
 export function moduleNetlist(module: Module): string {
   const text = netlists[`../../../../content/modules/${module.id}/${module.netlist}`]
   if (!text) throw new Error(`Missing local module netlist: ${module.id}/${module.netlist}`)
-  return text
+  return expandLocalLibraries(text, libraries)
 }
 
 export function projectGuide(project: Project): string {

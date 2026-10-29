@@ -272,6 +272,40 @@ describe('task UI state', () => {
 })
 
 describe('recording current task measurements', () => {
+  it('uses stage-selected tables without overwriting another phase at the same measurement point', () => {
+    const phased = Project.parse({
+      ...project,
+      steps: [
+        { id: 'open', text: '空载', measurePoints: ['u'], dataTable: 'phases' },
+        { id: 'loaded', text: '带载', measurePoints: ['u'], dataTable: 'phases' },
+      ],
+      dataTables: [
+        { id: 'unused', title: 'Other', rows: 2, columns: [{ id: 'value', title: 'Value' }] },
+        {
+          id: 'phases',
+          title: 'Ro',
+          rows: 1,
+          columns: [
+            { id: 'open', title: '空载', unit: 'V', measurePoint: 'u', captureSteps: ['open'] },
+            { id: 'loaded', title: '带载', unit: 'V', measurePoint: 'u', captureSteps: ['loaded'] },
+            { id: 'ro', title: 'Ro', unit: 'Ω', computed: '2400*(open/loaded-1)' },
+          ],
+        },
+      ],
+    })
+    resetTask(phased)
+    selectTaskRow(phased, 1)
+    runtime.snapshot.mockReturnValue(snapshot(allWires, 2))
+    expect(recordTaskReadings(phased)).toBe(true)
+    expect(taskStore.getState().task.tables.phases?.[0]).toEqual({ open: 2, loaded: null, ro: null })
+    expect(taskStore.getState().selectedTable).toBe('phases')
+    expect(taskStore.getState().selectedRow).toBe(0)
+    runtime.snapshot.mockReturnValue(snapshot(allWires, 1))
+    expect(recordTaskReadings(phased)).toBe(true)
+    expect(taskStore.getState().task.tables.phases?.[0]).toEqual({ open: 2, loaded: 1, ro: 2400 })
+    expect(taskStore.getState().task.completedSteps).toEqual(['open', 'loaded'])
+  })
+
   it('uses one snapshot and advances at most one original matching step across duplicate bound columns', () => {
     const repeated = Project.parse({
       ...project,

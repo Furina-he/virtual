@@ -1,5 +1,5 @@
 import { isMeasurementInstrument } from '@domain/instruments'
-import { currentTaskStep } from '@domain/task'
+import { currentTaskStep, measurementUnit } from '@domain/task'
 import type { Project } from '@shared/schema/project'
 import { useEffect, useId, useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
@@ -77,7 +77,7 @@ function TaskCellInput({
   const errorId = useId()
   const captureId = useId()
   const point = project.reference.measurePoints.find((item) => item.id === column.measurePoint)
-  const siUnit = point?.kind === 'current' ? 'A' : 'V'
+  const siUnit = point ? measurementUnit(point) : (column.unit ?? '')
   useEffect(() => {
     if (!editing.current && !dirty.current) {
       setDraft(formatTaskCellValue(value))
@@ -120,8 +120,9 @@ function TaskCellInput({
         data-row-index={row}
         data-measure-point={column.measurePoint ?? ''}
         data-captured-from={capture?.instanceId ?? ''}
+        data-captured-channel={capture?.channelId ?? ''}
         data-reference-value-si={capture?.referenceValueSI}
-        placeholder={column.computed ? '计算列未开放' : '未记录'}
+        placeholder={column.computed ? '等待测量数据' : '未记录'}
         className="font-mono text-xs"
         onFocus={() => {
           editing.current = true
@@ -170,7 +171,14 @@ export function TaskDataPanel({ project }: { project?: Project }) {
   const tableSelectId = useId()
   const rowSelectId = useId()
   const sourceSelectId = useId()
-  const sources = panels.filter((panel) => isMeasurementInstrument(panel.instrument))
+  const sources = panels.flatMap((panel) =>
+    isMeasurementInstrument(panel.instrument)
+      ? [{ id: panel.id, title: panel.title }]
+      : (panel.instrument.scope?.channels ?? []).map((channel) => ({
+          id: `${panel.id}.${channel.id}`,
+          title: `${panel.title} ${channel.label}`,
+        })),
+  )
   if (!project) return <p className="p-3 text-sm text-muted-foreground">当前未选择有效实训项目。</p>
   const step = currentTaskStep(project, state.task)
   const table = project.dataTables.find((item) => item.id === state.selectedTable)

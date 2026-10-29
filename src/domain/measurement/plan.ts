@@ -1,6 +1,7 @@
 import type { Probe, SimCommand } from '../../shared/ipc/sim.ts'
 import type { Instrument } from '../../shared/schema/instrument.ts'
 import { type AssembleInput, type AssembleOutput, assembleNetlist } from '../circuit/assemble.ts'
+import { type ModuleParameter, moduleParameters } from '../circuit/module-controls.ts'
 import {
   activeInstrumentDefinition,
   checkInstrumentJacks,
@@ -40,14 +41,19 @@ export type ScopePlan = {
   channels: { id: string; probe?: string; groundWired: boolean }[]
 }
 export type SimPacing = Extract<SimCommand, { type: 'setPacing' }>
+export type SpeakerPlan = { instanceId: string; indicatorId: string; probe: string; fullScale: number }
 
 /** 示波器通道探针 ID 固定，2D 面板、3D 屏幕和弹出窗口按同一 ID 读环形缓冲 */
 export const scopeProbeId = (instanceId: string, channelId: string) => `scope:${instanceId}:${channelId}`
+export const indicatorProbeId = (instanceId: string, indicatorId: string) => `indicator:${instanceId}:${indicatorId}`
+export const SPEAKER_MAX_STEP = 1 / 44_100
 
 export type MeasurementPlan = {
   command: Extract<SimCommand, { type: 'load' }>
   /** 示波器按屏幕时间窗口推进（SIM-11），其余按真实时间 */
   pacing: SimPacing
+  parameters: ModuleParameter[]
+  speakers: SpeakerPlan[]
   scopes: ScopePlan[]
   assembled: AssembleOutput
   meters: MeterPlan[]
@@ -112,7 +118,24 @@ export function buildMeasurementPlan(
   // 优先取学员已接线的输出负端作参考地，未接线的电源不应把其他仪表的回路悬空
   const ground = input.ground ?? negatives.find((ref) => wired.has(ref)) ?? negatives[0]
   const assembled = assembleNetlist({ ...input, instruments, ground, analysis: [] })
+  const parameters = moduleParameters(input.modules, input.controlValues)
   const probes: Probe[] = []
+  const speakers: SpeakerPlan[] = []
+  if (powered && !options.preflight) {
+    for (const { instanceId, module } of input.modules) {
+      for (const indicator of module.indicators) {
+        if (indicator.kind !== 'speaker') continue
+        const probe = indicatorProbeId(instanceId, indicator.id)
+        probes.push({
+          id: probe,
+          kind: 'v',
+          node: assembled.nodeOf[`${instanceId}.${indicator.between[0]}`],
+          nodeRef: assembled.nodeOf[`${instanceId}.${indicator.between[1]}`],
+        })
+        speakers.push({ instanceId, indicatorId: indicator.id, probe, fullScale: indicator.audio.fullScale })
+      }
+    }
+  }
   for (const meter of meters) {
     if (!assembled.instrumentSuffix[meter.instanceId] || checkInstrumentJacks(meter.config, meter.connectedJacks))
       continue
@@ -183,21 +206,37 @@ export function buildMeasurementPlan(
   const alternating =
     !options.preflight &&
     meters.some((meter) => (meter.config.mode === 'acv' || meter.config.mode === 'aca') && meter.voltageProbe)
-  const transient = !options.preflight && (alternating || (powered && (screens.length > 0 || shortest !== undefined)))
+  const simulations =
+    powered && !options.preflight ? input.modules.flatMap(({ module }) => module.simulation ?? []) : []
+  const realtime = speakers.length > 0 || simulations.some((simulation) => simulation.pacing !== 'window')
+  const transient =
+    !options.preflight &&
+    (alternating ||
+      (powered && (screens.length > 0 || shortest !== undefined || simulations.length > 0 || speakers.length > 0)))
   let step = screens.length
     ? scopeSampleStep(screens, pointsPerScreen, shortest)
     : Math.min(METER_SAMPLE_STEP, shortest ? shortest / 1000 : METER_SAMPLE_STEP)
   if (alternating) step = Math.min(step, METER_SAMPLE_STEP)
+  for (const simulation of simulations) step = Math.min(step, simulation.maxStep)
+  if (speakers.length) step = Math.min(step, SPEAKER_MAX_STEP)
   return {
     command: {
       type: 'load',
       netlist: assembled.netlist,
       probes,
       analysis: transient ? { kind: 'tran', step, continuous: true } : { kind: 'op' },
+      parameterTargets: parameters.flatMap((parameter) =>
+        parameter.targets
+          ? [{ param: parameter.param, elements: parameter.targets.map((target) => target.element) }]
+          : [],
+      ),
     },
-    pacing: screens.length
-      ? { type: 'setPacing', mode: 'window', windowSec: Math.max(...screens) }
-      : { type: 'setPacing', mode: 'realtime' },
+    pacing:
+      screens.length && !realtime
+        ? { type: 'setPacing', mode: 'window', windowSec: Math.max(...screens) }
+        : { type: 'setPacing', mode: 'realtime' },
+    parameters,
+    speakers,
     scopes,
     assembled,
     meters,
@@ -211,20 +250,59 @@ export function buildMeasurementPlan(
 
 /** 只有显示设置（V/div、触发等）变化时网表、分析、探针和仪表档位都不变，不必重新载入仿真 */
 export function sameSimulation(a: MeasurementPlan, b: MeasurementPlan): boolean {
-  const key = (plan: MeasurementPlan) =>
-    JSON.stringify([
-      plan.command.netlist,
-      plan.command.analysis,
-      plan.command.probes.map(({ kind, node, nodeRef, source }) => [kind, node, nodeRef, source]),
-      plan.pacing,
-      plan.needsPreflight,
-      // 换量程只改读数换算、不改网表，也必须重新发布读数
-      plan.meters.map(({ instanceId, config, connectedJacks }) => [
-        instanceId,
-        { ...config, instrument: config.instrument.id },
-        connectedJacks,
-      ]),
-      plan.supplies.map(({ instanceId, screenId, range }) => [instanceId, screenId, range]),
-    ])
-  return key(a) === key(b)
+  return simulationKey(a) === simulationKey(b)
+}
+
+function simulationKey(plan: MeasurementPlan, ignoreParameters = false): string {
+  const mutable = new Set(plan.parameters.map((parameter) => parameter.param))
+  const netlist = ignoreParameters
+    ? plan.command.netlist
+        .split(/\r?\n/)
+        .map((line) => {
+          const match = /^\.param\s+([A-Za-z_]\w*)=.+$/.exec(line)
+          return match && mutable.has(match[1] as string) ? `.param ${match[1]}=<module-setting>` : line
+        })
+        .join('\n')
+    : plan.command.netlist
+  return JSON.stringify([
+    netlist,
+    plan.command.analysis,
+    plan.command.probes.map(({ kind, node, nodeRef, source }) => [kind, node, nodeRef, source]),
+    plan.pacing,
+    plan.needsPreflight,
+    // 换量程只改读数换算、不改网表，也必须重新发布读数
+    plan.meters.map(({ instanceId, config, connectedJacks }) => [
+      instanceId,
+      { ...config, instrument: config.instrument.id },
+      connectedJacks,
+    ]),
+    plan.supplies.map(({ instanceId, screenId, range }) => [instanceId, screenId, range]),
+    plan.speakers,
+    plan.parameters.length ? plan.command.parameterTargets : undefined,
+    plan.parameters.map(({ controlRef, param, value, targets }) => [
+      controlRef,
+      param,
+      targets?.map((target) => (ignoreParameters ? target.element : [target.element, target.value])),
+      ...(ignoreParameters ? [] : [value]),
+    ]),
+  ])
+}
+
+/** Only declared module numeric parameters may change without loading a new circuit. */
+export function moduleControlChanges(
+  a: MeasurementPlan,
+  b: MeasurementPlan,
+): { param: string; value: number; targets?: { element: string; value: number }[] }[] | undefined {
+  if (simulationKey(a, true) !== simulationKey(b, true)) return undefined
+  return b.parameters.flatMap((parameter, index) =>
+    a.parameters[index]?.value === parameter.value
+      ? []
+      : [
+          {
+            param: parameter.param,
+            value: parameter.value,
+            ...(parameter.targets ? { targets: parameter.targets } : {}),
+          },
+        ],
+  )
 }

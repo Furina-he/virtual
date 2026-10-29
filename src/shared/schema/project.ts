@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { formulaColumns } from '../formula.ts'
 import { ContentId, InstanceId, JackRef, uniqueBy } from './common.ts'
 
 // 技术设计 §3.3
@@ -10,6 +11,7 @@ export const MeasurePoint = z
     id: z.string().min(1),
     kind: z.enum(['voltage', 'current', 'waveform']),
     mode: z.enum(['dcv', 'acv', 'dca', 'aca']).optional(),
+    quantity: z.enum(['mean', 'vpp', 'min', 'max', 'frequency', 'period']).optional(),
     between: z.tuple([JackRef, JackRef]).optional(),
     // 电流测量所在支路：串入电流表时断开的两个插孔
     branch: z.tuple([JackRef, JackRef]).optional(),
@@ -25,6 +27,8 @@ export const MeasurePoint = z
         (p.kind === 'current' ? !['dca', 'aca'].includes(p.mode) : !['dcv', 'acv'].includes(p.mode)))
     )
       ctx.addIssue({ code: 'custom', message: '测量模式与测量点类型不符', path: ['mode'] })
+    if (p.quantity && p.kind !== 'waveform')
+      ctx.addIssue({ code: 'custom', message: 'quantity 只用于波形测量点', path: ['quantity'] })
   })
 
 // 步骤完成条件：某测量点读数落在区间内
@@ -41,6 +45,7 @@ export const Column = z.object({
   // 绑定测量点后可用"记录当前读数"（TSK-03）
   measurePoint: z.string().min(1).optional(),
   computed: z.string().optional(),
+  captureSteps: z.array(z.string().min(1)).min(1).optional(),
 })
 
 // 明显不合理数据的提示（TSK-03）
@@ -92,6 +97,7 @@ export const Step = z.object({
     .optional(),
   checkWiring: z.boolean().optional(),
   recordTable: z.string().min(1).optional(),
+  dataTable: z.string().min(1).optional(),
 })
 
 export const Project = z
@@ -135,6 +141,7 @@ export const Project = z
     })
     const points = new Set(p.reference.measurePoints.map((m) => m.id))
     const tables = new Map(p.dataTables.map((t) => [t.id, new Set(t.columns.map((c) => c.id))]))
+    const steps = new Set(p.steps.map((step) => step.id))
     p.steps.forEach((s, i) => {
       if (s.expect && !points.has(s.expect.measurePoint))
         ctx.addIssue({
@@ -152,14 +159,69 @@ export const Project = z
       })
       if (s.recordTable && !tables.has(s.recordTable))
         ctx.addIssue({ code: 'custom', message: `数据表 ${s.recordTable} 不存在`, path: ['steps', i, 'recordTable'] })
+      if (s.dataTable && !tables.has(s.dataTable))
+        ctx.addIssue({ code: 'custom', message: `数据表 ${s.dataTable} 不存在`, path: ['steps', i, 'dataTable'] })
     })
     p.dataTables.forEach((table, i) => {
+      const dependencies = new Map<string, string[]>()
       table.columns.forEach((column, j) => {
         if (column.measurePoint && !points.has(column.measurePoint))
           ctx.addIssue({
             code: 'custom',
             message: `测量点 ${column.measurePoint} 不存在`,
             path: ['dataTables', i, 'columns', j, 'measurePoint'],
+          })
+        column.captureSteps?.forEach((step, index) => {
+          if (!steps.has(step))
+            ctx.addIssue({
+              code: 'custom',
+              message: `步骤 ${step} 不存在`,
+              path: ['dataTables', i, 'columns', j, 'captureSteps', index],
+            })
+        })
+        if (column.captureSteps && !column.measurePoint)
+          ctx.addIssue({
+            code: 'custom',
+            message: 'captureSteps 需要绑定测量点',
+            path: ['dataTables', i, 'columns', j, 'captureSteps'],
+          })
+        if (column.computed) {
+          try {
+            const referenced = formulaColumns(column.computed)
+            dependencies.set(column.id, referenced)
+            for (const id of referenced)
+              if (!tables.get(table.id)?.has(id))
+                ctx.addIssue({
+                  code: 'custom',
+                  message: `计算列引用了不存在的列 ${id}`,
+                  path: ['dataTables', i, 'columns', j, 'computed'],
+                })
+          } catch (error) {
+            ctx.addIssue({
+              code: 'custom',
+              message: error instanceof Error ? error.message : '计算公式无效',
+              path: ['dataTables', i, 'columns', j, 'computed'],
+            })
+          }
+          if (column.measurePoint)
+            ctx.addIssue({
+              code: 'custom',
+              message: '计算列不能同时绑定测量点',
+              path: ['dataTables', i, 'columns', j, 'computed'],
+            })
+        }
+      })
+      function cyclic(id: string, visiting = new Set<string>()): boolean {
+        if (visiting.has(id)) return true
+        const next = new Set(visiting).add(id)
+        return (dependencies.get(id) ?? []).some((reference) => cyclic(reference, next))
+      }
+      table.columns.forEach((column, index) => {
+        if (column.computed && cyclic(column.id))
+          ctx.addIssue({
+            code: 'custom',
+            message: '计算列存在循环引用',
+            path: ['dataTables', i, 'columns', index, 'computed'],
           })
       })
       table.sanity?.forEach((rule, j) => {
