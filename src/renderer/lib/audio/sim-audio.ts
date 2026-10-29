@@ -137,6 +137,8 @@ export async function renderOffline(mode: AudioMode, samples: Float32Array, dt: 
   // 分块送入，模拟数据端口逐块到达
   const block = 2048
   for (let i = 0; i < samples.length; i += block) out.feed(samples.slice(i, i + block), i * dt, dt)
+  // 同一端口的统计应答确认全部采样已按 FIFO 入队，避免离线渲染抢在消息投递前结束。
+  if (mode === 'pcm') await out.stats()
   const rendered = await ctx.startRendering()
   return rendered.getChannelData(0)
 }

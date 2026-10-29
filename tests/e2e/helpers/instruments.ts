@@ -39,14 +39,25 @@ export async function dragInstrumentToSlot(page: Page, slotId = 'SLOT_DESK_2', i
   await page.mouse.up()
 }
 
+export async function selectJackFromList(page: Page, label: string, ref: string) {
+  const editor = page.getByRole('region', { name: '接线编辑', exact: true })
+  const trigger = editor.getByRole('combobox', { name: label, exact: true })
+  await trigger.press('Enter')
+  const option = page.locator(`[role="option"][data-jack-ref="${ref}"]`)
+  await option.focus()
+  await expect(option).toBeFocused()
+  await option.press('Enter')
+  await expect(trigger).toHaveAttribute('aria-expanded', 'false')
+  await expect(trigger).toHaveAttribute('data-selected-jack', ref)
+}
+
 export async function addInstrumentWireFromList(page: Page, aRef: string, bRef: string) {
   const editor = page.getByRole('region', { name: '接线编辑', exact: true })
   for (const [label, ref] of [
     ['接线起点', aRef],
     ['接线终点', bRef],
-  ]) {
-    await editor.getByRole('combobox', { name: label, exact: true }).click()
-    await page.locator(`[role="option"][data-jack-ref="${ref}"]`).click()
+  ] as const) {
+    await selectJackFromList(page, label, ref)
   }
   await editor.getByRole('button', { name: '添加导线', exact: true }).click()
 }

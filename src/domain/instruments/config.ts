@@ -1,4 +1,6 @@
 import type { Instrument, InstrumentAccuracy, InstrumentMode, InstrumentRange } from '../../shared/schema/instrument.ts'
+import { scopeDefaults } from './scope.ts'
+import { signalDefaults } from './signal.ts'
 
 export class InstrumentConfigurationError extends Error {
   constructor(message: string) {
@@ -45,6 +47,7 @@ export function getInstrumentDefaults(instrument: Instrument): Record<string, st
   const range = instrument.defaultRange ?? instrument.ranges[0]?.id
   if (range) defaults.range = range
   for (const control of instrument.settingsControls ?? []) defaults[control.id] = control.default
+  Object.assign(defaults, signalDefaults(instrument), scopeDefaults(instrument))
   return defaults
 }
 

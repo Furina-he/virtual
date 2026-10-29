@@ -6,6 +6,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { cn } from '@/lib/utils'
 import { type PanelDef, useInstrumentPanels } from '@/stores/instrument-panels'
 import assetData from '../../../../assets/layouts/catalog.json'
+import { OscilloscopeControls } from './oscilloscope-controls'
+import { SignalGeneratorControls } from './signal-generator-controls'
 
 export type { PanelDef } from '@/stores/instrument-panels'
 
@@ -45,7 +47,14 @@ export function InstrumentPanel({ panel, className }: { panel: PanelDef; classNa
           {configError}
         </p>
       )}
-      {measurement ? (
+      {instrument.scope ? (
+        <OscilloscopeControls
+          instanceId={panel.id}
+          instrument={instrument}
+          settings={panel.settings}
+          onChange={(patch) => setSettings(panel.id, patch)}
+        />
+      ) : measurement ? (
         <SevenSegDisplay instanceId={panel.id} />
       ) : (
         (asset?.screens ?? [{ id: 'MAIN' }]).map((screen) => (
@@ -118,6 +127,13 @@ export function InstrumentPanel({ panel, className }: { panel: PanelDef; classNa
           onChange={(value) => setSettings(panel.id, { [control.id]: value })}
         />
       ))}
+      {!!instrument.signalSources?.length && !instrument.scope && (
+        <SignalGeneratorControls
+          instrument={instrument}
+          settings={panel.settings}
+          onChange={(patch) => setSettings(panel.id, patch)}
+        />
+      )}
       {instrument.kind === 'dcSupply' && (
         <p className="text-xs text-muted-foreground">当前为恒压输出；恒流限流待后续实现。</p>
       )}

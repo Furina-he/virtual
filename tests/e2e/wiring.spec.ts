@@ -2,6 +2,7 @@ import { mkdtempSync, readFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { type ElectronApplication, _electron as electron, expect, type Page, test } from '@playwright/test'
+import { selectJackFromList } from './helpers/instruments'
 
 let app: ElectronApplication
 let page: Page
@@ -63,13 +64,22 @@ async function dragWire(a: string, b: string) {
   const to = await jackPoint(b)
   await page.mouse.move(from.x, from.y)
   await page.mouse.down()
+  await expect(viewport()).toHaveAttribute('data-pending-jack', a)
   await page.mouse.move(to.x, to.y, { steps: 12 })
   await page.mouse.up()
+  await expect(viewport()).toHaveAttribute('data-pending-jack', '')
 }
 
 async function selectOption(label: string, option: string | RegExp) {
-  await editor().getByRole('combobox', { name: label, exact: true }).click()
-  await page.getByRole('option', { name: option, exact: typeof option === 'string' }).click()
+  const trigger = editor().getByRole('combobox', { name: label, exact: true })
+  await trigger.press('Enter')
+  const item = page.getByRole('option', { name: option, exact: typeof option === 'string' })
+  const ref = await item.getAttribute('data-jack-ref')
+  await item.focus()
+  await expect(item).toBeFocused()
+  await item.press('Enter')
+  await expect(trigger).toHaveAttribute('aria-expanded', 'false')
+  if (ref) await expect(trigger).toHaveAttribute('data-selected-jack', ref)
 }
 
 async function addFromList(a: string | RegExp, b: string | RegExp) {
@@ -216,6 +226,7 @@ test('连续 20 步接线均可撤销重做，输入框中的 Ctrl+Z 不修改�
 test('松手在画布外、重复接线和窗口失焦不留下错误导线或拖拽状态', async () => {
   await expandBench()
   await dragWire('ins-dc-power.CH1P', 'dc1.KH_U1P')
+  await expect(viewport()).toHaveAttribute('data-wire-count', '1')
   await dragWire('ins-dc-power.CH1P', 'dc1.KH_U1P')
   await expect(viewport()).toHaveAttribute('data-wire-count', '1')
   await expect(editor().getByRole('status')).toContainText('已有导线')
@@ -234,4 +245,23 @@ test('松手在画布外、重复接线和窗口失焦不留下错误导线或�
   await page.mouse.up()
   await expect(viewport()).toHaveAttribute('data-pending-jack', '')
   await expect(viewport()).toHaveAttribute('data-wire-count', '1')
+})
+
+test('长插孔列表连续切换首尾项目后提交所选值并关闭列表', async () => {
+  await expandBench()
+  const module: { name: string; jacks: { id: string; label: string }[] } = JSON.parse(
+    readFileSync('content/modules/mod-dc-circuit/module.json', 'utf8'),
+  )
+  const targets = [module.jacks.at(-1), module.jacks[0], module.jacks[16], module.jacks[19]]
+  for (let cycle = 0; cycle < 8; cycle++)
+    for (const jack of targets) {
+      if (!jack) throw new Error('Missing long-list test jack')
+      for (const label of ['接线起点', '接线终点']) {
+        await selectJackFromList(page, label, `dc1.${jack.id}`)
+        await expect(editor().getByRole('combobox', { name: label, exact: true })).toContainText(
+          `${module.name} · ${jack.label} (${jack.id})`,
+        )
+      }
+    }
+  await expect(viewport()).toHaveAttribute('data-wire-count', '0')
 })

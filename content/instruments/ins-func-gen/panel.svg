@@ -83,9 +83,10 @@
 <rect x="1" y="1" width="258" height="98" rx="2" fill="none" stroke="hsl(210, 9%, 57%)" stroke-width="0.5"/>
 <text x="130" y="10" font-size="4.8" text-anchor="middle" font-weight="700" fill="hsl(210, 15%, 23%)">双通道函数信号发生器</text>
 <rect x="16" y="20.5" width="102" height="43" rx="1.5" fill="hsl(210, 15%, 23%)"/>
-<text x="169" y="71" font-size="3.5" text-anchor="middle" font-weight="650" fill="hsl(210, 15%, 23%)">CH 1</text>
-<text x="208" y="71" font-size="3.5" text-anchor="middle" font-weight="650" fill="hsl(210, 15%, 23%)">CH 2</text>
-<text x="245" y="71" font-size="3.5" text-anchor="middle" font-weight="650" fill="hsl(210, 15%, 23%)">TTL</text>
+<text x="158" y="71" font-size="3.5" text-anchor="middle" font-weight="650" fill="hsl(210, 15%, 23%)">CH 1</text>
+<text x="190" y="71" font-size="3.5" text-anchor="middle" font-weight="650" fill="hsl(210, 15%, 23%)">CH 2</text>
+<text x="222" y="71" font-size="3.5" text-anchor="middle" font-weight="650" fill="hsl(210, 15%, 23%)">TTL</text>
+<text x="248" y="72.5" font-size="3.5" text-anchor="middle" font-weight="650" fill="hsl(210, 15%, 23%)">GND</text>
 <path d="M 156.51471862576142 47.48528137423857 L 154.8176623509137 49.182337649086286" stroke="hsl(210, 9%, 57%)" stroke-width="0.55"/>
 <path d="M 153.58732180445816 42.70820393249937 L 152.35094833327446 43.1099260251868" stroke="hsl(210, 9%, 57%)" stroke-width="0.55"/>
 <path d="M 153.14773991285836 37.12278641951723 L 151.86374507008466 36.91942161496493" stroke="hsl(210, 9%, 57%)" stroke-width="0.55"/>

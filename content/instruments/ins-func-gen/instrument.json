@@ -1,0 +1,55 @@
+{
+  "id": "ins-func-gen",
+  "name": "双通道函数信号发生器",
+  "kind": "funcGen",
+  "mounting": "desktop",
+  "model": "instrument.glb",
+  "jacks": [
+    { "id": "CH1", "label": "CH 1", "kind": "bnc", "polarityHint": "+" },
+    { "id": "CH2", "label": "CH 2", "kind": "bnc", "polarityHint": "+" },
+    { "id": "TTL", "label": "TTL", "kind": "bnc", "polarityHint": "+" },
+    { "id": "GND", "label": "GND", "kind": "banana4", "polarityHint": "-" }
+  ],
+  "spiceTemplate": "* 双通道函数信号发生器：各路输出由 signalSources 生成（理想源 + 50 Ω 输出内阻），BNC 屏蔽层共用 GND",
+  "outputs": [
+    ["CH1", "GND"],
+    ["CH2", "GND"],
+    ["TTL", "GND"]
+  ],
+  "signalSources": [
+    {
+      "id": "CH1",
+      "label": "CH1",
+      "positiveJack": "CH1",
+      "negativeJack": "GND",
+      "outputR": 50,
+      "waveforms": ["sine", "square", "triangle", "sawtooth", "ttl"],
+      "frequency": { "min": 0.1, "max": 1000000, "default": 1000 },
+      "amplitude": { "min": 0.02, "max": 20, "default": 2 },
+      "offset": { "min": -10, "max": 10, "default": 0 },
+      "duty": { "min": 10, "max": 90, "default": 50 }
+    },
+    {
+      "id": "CH2",
+      "label": "CH2",
+      "positiveJack": "CH2",
+      "negativeJack": "GND",
+      "outputR": 50,
+      "waveforms": ["sine", "square", "triangle", "sawtooth", "ttl"],
+      "frequency": { "min": 0.1, "max": 1000000, "default": 1000 },
+      "amplitude": { "min": 0.02, "max": 20, "default": 2 },
+      "offset": { "min": -10, "max": 10, "default": 0 },
+      "duty": { "min": 10, "max": 90, "default": 50 }
+    },
+    {
+      "id": "TTL",
+      "label": "TTL 同步",
+      "positiveJack": "TTL",
+      "negativeJack": "GND",
+      "outputR": 50,
+      "waveforms": ["ttl"],
+      "syncTo": "CH1",
+      "ttlHigh": 5
+    }
+  ]
+}

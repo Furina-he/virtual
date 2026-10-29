@@ -34,12 +34,12 @@ function sceneTransform(placement: (typeof wiringScene.placements)[number]): Mat
 }
 
 describe('content-owned wiring context', () => {
-  it('loads the eight configured placements and 42 unique, schema-valid global jack references', () => {
+  it('loads the eight configured placements and 44 unique, schema-valid global jack references', () => {
     expect(wiringScene).toEqual(sceneData)
     expect(wiringScene.placements).toHaveLength(8)
     expect(new Set(wiringScene.placements.map((placement) => placement.instanceId)).size).toBe(8)
-    expect(wiringJacks).toHaveLength(42)
-    expect(new Set(wiringJacks.map((jack) => jack.ref)).size).toBe(42)
+    expect(wiringJacks).toHaveLength(44)
+    expect(new Set(wiringJacks.map((jack) => jack.ref)).size).toBe(44)
     for (const jack of wiringJacks) {
       expect(JackRef.safeParse(jack.ref).success, jack.ref).toBe(true)
       expect(jack.ref).toBe(`${jack.instanceId}.${jack.id}`)
@@ -112,7 +112,7 @@ describe('content-owned wiring context', () => {
         checked++
       }
     }
-    expect(checked).toBe(42)
+    expect(checked).toBe(44)
   })
 
   it('preserves three desktop previews but starts teaching with an empty desktop', () => {

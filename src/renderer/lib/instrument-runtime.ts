@@ -1,10 +1,20 @@
-import type { AssembleInput } from '../../domain/circuit/assemble'
-import { checkInstrumentJacks, isSelfPoweredMode, readInstrument, rms } from '../../domain/instruments'
+import type { AssembleInput, InstrumentInput } from '../../domain/circuit/assemble'
+import {
+  adjustableSources,
+  checkInstrumentJacks,
+  formatFrequency,
+  formatVoltage,
+  isSelfPoweredMode,
+  readInstrument,
+  resolveSource,
+  WAVEFORM_LABEL,
+} from '../../domain/instruments'
+import { RmsWindow } from '../../domain/instruments/rms-window'
 import {
   buildMeasurementPlan,
   METER_RMS_WINDOW,
-  METER_SAMPLE_STEP,
   type MeasurementPlan,
+  sameSimulation,
 } from '../../domain/measurement/plan'
 import { detectDanger } from '../../domain/wiring-check'
 import type { SimEvent } from '../../shared/ipc/sim'
@@ -23,6 +33,30 @@ const blank = (status: InstrumentReading['status'], message: string, unit = ''):
   message,
   beep: false,
 })
+
+/** 信号发生器屏幕：显示当前选中通道的设定值（设定值显示，不是测量值） */
+export function generatorReading(
+  { instrument, settings }: InstrumentInput,
+  powered: boolean,
+): InstrumentReading | undefined {
+  const sources = adjustableSources(instrument)
+  if (!sources.length || instrument.scope) return undefined
+  const selected = typeof settings.display_ch === 'number' ? settings.display_ch : 0
+  const source = sources[selected] ?? sources[0]
+  if (!source) return undefined
+  const resolved = resolveSource(instrument, settings, source)
+  const frequency = formatFrequency(resolved.frequency)
+  const amplitude =
+    resolved.waveform === 'ttl' ? 'TTL' : `${formatVoltage(resolved.amplitude)}pp ${formatVoltage(resolved.offset)}`
+  return {
+    text: frequency.text,
+    unit: frequency.unit,
+    status: powered ? 'ok' : 'off',
+    label: !powered ? '已断电' : resolved.enabled ? '输出开' : '输出关',
+    mode: `${source.label} ${WAVEFORM_LABEL[resolved.waveform]} ${amplitude}`,
+    value: resolved.frequency,
+  }
+}
 
 export function benchCircuitInput(state: CircuitState = circuitStore.getState()): AssembleInput {
   return {
@@ -64,7 +98,8 @@ export function connectInstrumentRuntime(onStatus: (status: RuntimeStatus) => vo
   let gain: GainNode | undefined
   let sounding = false
   let lastStatus = ''
-  const samples = new Float32Array(Math.round(METER_RMS_WINDOW / METER_SAMPLE_STEP))
+  const rmsWindows = new Map<string, RmsWindow>()
+  let offMeterSamples: (() => void)[] = []
 
   function status(state: RuntimeStatus['state'], message: string) {
     const key = `${state}:${message}`
@@ -96,7 +131,54 @@ export function connectInstrumentRuntime(onStatus: (status: RuntimeStatus) => vo
         for (const [index] of (entry.instrument.outputs ?? []).entries())
           setInstrumentReading(entry.instanceId, reading, `CH${index + 1}`)
       } else setInstrumentReading(entry.instanceId, reading)
+      for (const channel of entry.instrument.scope?.channels ?? [])
+        setInstrumentReading(entry.instanceId, reading, channel.id)
     }
+  }
+
+  function showGenerators(input: AssembleInput, powered: boolean) {
+    for (const entry of input.instruments) {
+      const reading = generatorReading(entry, powered)
+      if (reading) setInstrumentReading(entry.instanceId, reading)
+    }
+  }
+
+  function showScopes(input: AssembleInput, plan: MeasurementPlan, powered: boolean, collecting: boolean) {
+    if (!powered) return
+    for (const entry of input.instruments) {
+      const config = entry.instrument.scope
+      if (!config) continue
+      const scope = plan.scopes.find((item) => item.instanceId === entry.instanceId)
+      const live = scope?.channels.some((channel) => channel.probe)
+      const active = collecting
+        ? { text: '', unit: '', status: 'ok' as const, label: '采集中' }
+        : blank('pending', '等待仿真读数。')
+      setInstrumentReading(
+        entry.instanceId,
+        live ? active : blank('disconnected', '请将被测信号接入 CH1 或 CH2，并把 GND 接到被测电路的参考端。'),
+      )
+      for (const channel of config.channels) {
+        const connection = scope?.channels.find((item) => item.id === channel.id)
+        setInstrumentReading(
+          entry.instanceId,
+          connection?.probe
+            ? {
+                ...active,
+                ...(connection.groundWired
+                  ? {}
+                  : { message: `${channel.id} 的 GND 未接线，读数以示波器自身地为参考。` }),
+              }
+            : blank('disconnected', `${channel.id} 未接线。`),
+          channel.id,
+        )
+      }
+    }
+  }
+
+  function clearRms() {
+    for (const off of offMeterSamples) off()
+    offMeterSamples = []
+    rmsWindows.clear()
   }
 
   function invalidate() {
@@ -104,6 +186,7 @@ export function connectInstrumentRuntime(onStatus: (status: RuntimeStatus) => vo
     job = undefined
     clearTimeout(timer)
     clearTimeout(timeout)
+    clearRms()
     beep(false)
   }
 
@@ -121,14 +204,31 @@ export function connectInstrumentRuntime(onStatus: (status: RuntimeStatus) => vo
 
   function start(next: RuntimeJob) {
     if (disposed || next.revision !== revision) return
+    clearRms()
     job = next
     ownsSession = true
+    if (next.plan.command.analysis.kind === 'tran') {
+      for (const meter of next.plan.meters) {
+        const probe =
+          meter.config.mode === 'acv'
+            ? meter.voltageProbe
+            : meter.config.mode === 'aca'
+              ? meter.currentProbe
+              : undefined
+        if (!probe || rmsWindows.has(probe)) continue
+        const window = new RmsWindow(METER_RMS_WINDOW)
+        rmsWindows.set(probe, window)
+        offMeterSamples.push(sim.onSamples(probe, (data, t0, dt) => window.push(data, t0, dt)))
+      }
+    }
     clearTimeout(timeout)
     timeout = setTimeout(() => failure('仿真未及时返回读数。请断电后重试，并检查接线。'), 8000)
     void sim
       .send(next.plan.command)
-      .then(() => {
-        if (!disposed && job === next && next.plan.command.analysis.kind === 'tran') return sim.send({ type: 'run' })
+      .then(async () => {
+        if (disposed || job !== next || next.plan.command.analysis.kind !== 'tran') return
+        await sim.send(next.plan.pacing)
+        if (!disposed && job === next) await sim.send({ type: 'run' })
       })
       .catch(() => {
         // A superseded load may reject after a newer circuit revision started.
@@ -136,10 +236,21 @@ export function connectInstrumentRuntime(onStatus: (status: RuntimeStatus) => vo
       })
   }
 
-  function update() {
+  function update(force = false) {
     if (disposed || protecting) return
-    invalidate()
     const state = circuitStore.getState()
+    if (!force && job && !job.preflight && job.powered === state.powered) {
+      try {
+        const input = benchCircuitInput(state)
+        if (sameSimulation(buildMeasurementPlan(input, state.powered, `m${revision}`), job.plan)) {
+          showGenerators(input, state.powered)
+          return
+        }
+      } catch {
+        // 完整更新会报告同一错误
+      }
+    }
+    invalidate()
     try {
       const input = benchCircuitInput(state)
       let plan = buildMeasurementPlan(input, state.powered, `m${revision}`)
@@ -165,6 +276,8 @@ export function connectInstrumentRuntime(onStatus: (status: RuntimeStatus) => vo
         return
       }
       clearDisplays(input, blank(state.powered ? 'pending' : 'off', state.powered ? '等待仿真读数。' : '台面已断电。'))
+      showGenerators(input, state.powered)
+      showScopes(input, plan, state.powered, false)
       for (const meter of plan.meters) {
         const issue = checkInstrumentJacks(meter.config, meter.connectedJacks)
         if (issue) setInstrumentReading(meter.instanceId, { ...issue, mode: meter.config.mode.toUpperCase() })
@@ -202,14 +315,15 @@ export function connectInstrumentRuntime(onStatus: (status: RuntimeStatus) => vo
       if (transient && (meter.config.mode === 'acv' || meter.config.mode === 'aca')) {
         const id = meter.config.mode === 'acv' ? meter.voltageProbe : meter.currentProbe
         if (id) {
-          const n = sim.buffer(id).copyLatest(samples)
-          if (n < samples.length) {
+          // Aggregate complete raw-sample windows without depending on waveform history capacity.
+          const value = rmsWindows.get(id)?.value
+          if (value === undefined) {
             waiting = true
             setInstrumentReading(meter.instanceId, blank('pending', '正在采集交流有效值窗口。', meter.config.unit))
             continue
           }
-          if (meter.config.mode === 'acv') sample.rmsVoltage = rms(samples)
-          else sample.rmsCurrent = rms(samples)
+          if (meter.config.mode === 'acv') sample.rmsVoltage = value
+          else sample.rmsCurrent = value
         }
       }
       const reading = readInstrument(meter.config, sample)
@@ -236,6 +350,7 @@ export function connectInstrumentRuntime(onStatus: (status: RuntimeStatus) => vo
         supply.screenId,
       )
     }
+    showScopes(current.input, current.plan, current.powered, true)
     beep(audible)
     status(
       warning ? 'protected' : waiting ? 'pending' : 'ready',
@@ -246,6 +361,10 @@ export function connectInstrumentRuntime(onStatus: (status: RuntimeStatus) => vo
   const offEvents = sim.onEvent((event: Exclude<SimEvent, { type: 'chunk' }>) => {
     const current = job
     if (!current || current.revision !== revision || disposed) return
+    if (event.type === 'loaded') {
+      for (const window of rmsWindows.values()) window.clear()
+      return
+    }
     if (event.type === 'error') {
       failure(event.message)
       return
@@ -270,7 +389,7 @@ export function connectInstrumentRuntime(onStatus: (status: RuntimeStatus) => vo
     publish(current, event.values, event.type === 'readings' && current.plan.command.analysis.kind === 'tran')
   })
   const offRestart = sim.onRestarted(() => {
-    if (ownsSession) update()
+    if (ownsSession) update(true)
   })
   const offState = circuitStore.subscribe((state) => {
     const changed =

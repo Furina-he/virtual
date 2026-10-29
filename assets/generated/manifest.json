@@ -1101,9 +1101,9 @@
     {
       "id": "ins-oscilloscope",
       "model": "content/instruments/ins-oscilloscope/instrument.glb",
-      "bytes": 640448,
-      "sha256": "f195d7316ead4c5e67e2ed7216d06c4288f054db962d47c70c93a70f22e636ac",
-      "triangles": 4612,
+      "bytes": 661456,
+      "sha256": "7bcb40189365edf75ccbd307efed911309e882c38e2187a73533f8da4272c8ae",
+      "triangles": 4768,
       "drawCalls": 13,
       "bounds": {
         "min": [
@@ -1121,7 +1121,7 @@
         {
           "name": "JACK_CH1",
           "position": [
-            0.049,
+            0.04,
             0.018,
             0.067
           ],
@@ -1134,7 +1134,7 @@
         {
           "name": "JACK_CH2",
           "position": [
-            0.092,
+            0.076,
             0.018,
             0.067
           ],
@@ -1147,9 +1147,22 @@
         {
           "name": "JACK_OUT",
           "position": [
-            0.136,
+            0.112,
             0.018,
             0.067
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_GND",
+          "position": [
+            0.142,
+            0.018,
+            0.064
           ],
           "normal": [
             0,
@@ -1286,9 +1299,9 @@
     {
       "id": "ins-func-gen",
       "model": "content/instruments/ins-func-gen/instrument.glb",
-      "bytes": 420292,
-      "sha256": "d402d8a7397cce474db3d83cebae8e0285a4a21a9a9a8fce826a5fd5fa66987c",
-      "triangles": 3000,
+      "bytes": 441344,
+      "sha256": "d8468f50cfe16c097c2e929467641a0888b55d7ef956ded69136c36d7766be91",
+      "triangles": 3156,
       "drawCalls": 9,
       "bounds": {
         "min": [
@@ -1306,7 +1319,7 @@
         {
           "name": "JACK_CH1",
           "position": [
-            0.039,
+            0.028,
             0.02,
             0.157
           ],
@@ -1319,7 +1332,7 @@
         {
           "name": "JACK_CH2",
           "position": [
-            0.078,
+            0.06,
             0.02,
             0.157
           ],
@@ -1332,9 +1345,22 @@
         {
           "name": "JACK_TTL",
           "position": [
-            0.115,
+            0.092,
             0.02,
             0.157
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_GND",
+          "position": [
+            0.118,
+            0.02,
+            0.154
           ],
           "normal": [
             0,
@@ -1673,7 +1699,7 @@
     }
   ],
   "preview": {
-    "triangles": 21990,
+    "triangles": 22302,
     "drawCalls": 63
   },
   "issues": []

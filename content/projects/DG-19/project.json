@@ -1,0 +1,38 @@
+{
+  "id": "DG-19",
+  "group": "暂态电路",
+  "title": "一阶电路暂态过程的研究（示波器与信号发生器功能验证）",
+  "type": "basic",
+  "validation": {
+    "purpose": "T0.12 示波器与函数信号发生器功能验证，复用现有挂箱下半部电阻网络观察真实分压波形。",
+    "limitations": [
+      "正式 DG-19 所需的 RC/RL 元件箱尚未交付；本场景不测时间常数 τ，不替代该项目完整教学内容验收。",
+      "信号发生器与示波器的输出内阻、输入阻抗、档位表为原型说明估计值，仍待实物参数确认。",
+      "GTX 1650 级或核显目标机性能及冷启动验收尚未完成。"
+    ]
+  },
+  "modules": [{ "instanceId": "dc1", "moduleId": "mod-dc-circuit", "slot": "SLOT_BOX_L1" }],
+  "allowedInstruments": ["ins-func-gen", "ins-oscilloscope"],
+  "reference": {
+    "nets": [],
+    "measurePoints": [
+      { "id": "u-in", "kind": "waveform", "between": ["dc1.TH_USP", "dc1.TH_USN"] },
+      { "id": "u-ab", "kind": "waveform", "between": ["dc1.TH_A", "dc1.TH_B"] }
+    ]
+  },
+  "steps": [
+    { "id": "choose", "text": "从仪表柜选取函数信号发生器和示波器，分别拖到台面左侧安装位和示波器安装位。" },
+    { "id": "wire", "text": "断电时，信号发生器 CH1 接挂箱下半部 Us+，GND 接 Us−；示波器 CH1 接 Us+，CH2 接 A，GND 接 B。" },
+    { "id": "observe", "text": "上电后依次选择正弦波、方波、三角波、锯齿波，读取示波器自动测量的 Vpp、频率和周期，比较 CH1 与 CH2 的幅值。" },
+    { "id": "adjust", "text": "调节 V/div、s/div、垂直和水平位移，使两路波形各占屏幕上下半区；改变信号幅值和频率，观察测量值变化。" },
+    { "id": "trigger", "text": "分别使用自动、常规、单次触发，改变触发电平和边沿，观察波形稳定与冻结；使用 AC/DC/GND 耦合比较带直流偏置的信号。" },
+    { "id": "builtin", "text": "断电后拆除信号发生器连线，把示波器 OUT 接 CH1，用内置信号源输出四种波形。" }
+  ],
+  "dataTables": [],
+  "charts": [],
+  "questions": [
+    "信号发生器输出内阻为 50 Ω 时，Us+ 端接入电阻网络后幅值为什么低于设定值？",
+    "AC 耦合与 DC 耦合显示带直流偏置的正弦波时有什么区别？",
+    "什么情况下需要使用单次触发？"
+  ]
+}

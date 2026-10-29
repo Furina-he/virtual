@@ -1,8 +1,9 @@
-import { isMeasurementInstrument } from '@domain/instruments'
+import { isMeasurementInstrument, resolveScope } from '@domain/instruments'
 import { useFrame, useThree } from '@react-three/fiber'
 import { useEffect, useRef } from 'react'
 import { CanvasTexture, type Material, MeshBasicMaterial, type Object3D, SRGBColorSpace } from 'three'
 import { knobAngle } from '@/components/instruments/rotary-knob-values'
+import { paintScope } from '@/components/instruments/scope-painter'
 import { instrumentScreenTargets, screenReadingKey } from '@/components/instruments/screen-targets'
 import {
   getInstrumentReading,
@@ -11,6 +12,7 @@ import {
   readingStatusLabel,
   subscribeInstrumentReadings,
 } from '@/lib/instrument-readings'
+import { acquireScope, type ScopeSummary, scopeSummary } from '@/lib/scope-acquisition'
 import { useInstrumentPanels } from '@/stores/instrument-panels'
 
 type ScreenBinding = {
@@ -23,6 +25,14 @@ type ScreenBinding = {
 }
 
 const renderedScreens = new WeakMap<HTMLCanvasElement, Record<string, { text: string; unit: string; status: string }>>()
+const renderedScopes = new WeakMap<HTMLCanvasElement, Record<string, ScopeSummary>>()
+/** 3D 示波器屏幕纹理刷新上限 */
+const SCOPE_TEXTURE_MS = 33
+
+function scopePanel(instanceId: string) {
+  const panel = useInstrumentPanels.getState().panels.find((entry) => entry.id === instanceId)
+  return panel?.instrument.scope ? panel : undefined
+}
 
 function paintReading(context: CanvasRenderingContext2D, reading: InstrumentReading) {
   const { width, height } = context.canvas
@@ -67,8 +77,8 @@ export function InstrumentScreens({ model, instanceId }: { model: Object3D; inst
     )
     const screens = targets.map((target): ScreenBinding => {
       const surface = document.createElement('canvas')
-      surface.width = 512
-      surface.height = Math.max(96, Math.min(384, Math.round((512 * target.height) / target.width)))
+      surface.width = scopePanel(instanceId) ? 768 : 512
+      surface.height = Math.max(96, Math.min(480, Math.round((surface.width * target.height) / target.width)))
       const context = surface.getContext('2d')
       if (!context) throw new Error('Instrument screen requires Canvas 2D')
       const texture = new CanvasTexture(surface)
@@ -119,6 +129,18 @@ export function InstrumentScreens({ model, instanceId }: { model: Object3D; inst
     const offReadings = subscribeInstrumentReadings(instanceId, refresh)
     const observer = new MutationObserver(refresh)
     observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class', 'style'] })
+    // 示波器波形：采样到达或设置变化时才请求重绘（frameloop="demand"），2D 面板读同一缓存帧
+    let scopeRevision = -1
+    let scopeSettings: unknown
+    const scopeTimer = setInterval(() => {
+      const panel = scopePanel(instanceId)
+      if (!panel) return
+      const frame = acquireScope(instanceId, panel.instrument, panel.settings)
+      if (frame.revision === scopeRevision && panel.settings === scopeSettings) return
+      scopeRevision = frame.revision
+      scopeSettings = panel.settings
+      refresh()
+    }, SCOPE_TEXTURE_MS)
     void document.fonts
       .load('64px "DSEG7 Classic"')
       .then(refresh)
@@ -126,6 +148,7 @@ export function InstrumentScreens({ model, instanceId }: { model: Object3D; inst
     refresh()
     return () => {
       disposed = true
+      clearInterval(scopeTimer)
       observer.disconnect()
       offReadings()
       offSettings()
@@ -137,10 +160,15 @@ export function InstrumentScreens({ model, instanceId }: { model: Object3D; inst
         screen.material.dispose()
         const rendered = renderedScreens.get(canvas)
         if (rendered) delete rendered[`${instanceId}.${screen.id}`]
+        const scopes = renderedScopes.get(canvas)
+        if (scopes) delete scopes[`${instanceId}.${screen.id}`]
       }
       bindings.current = []
       const region = canvas.closest<HTMLElement>('[aria-label="3D 实训台"]')
-      if (region) region.dataset.instrumentScreenReadings = JSON.stringify(renderedScreens.get(canvas) ?? {})
+      if (region) {
+        region.dataset.instrumentScreenReadings = JSON.stringify(renderedScreens.get(canvas) ?? {})
+        region.dataset.instrumentScopeScreens = JSON.stringify(renderedScopes.get(canvas) ?? {})
+      }
     }
   }, [model, instanceId, invalidate, canvas])
 
@@ -152,7 +180,21 @@ export function InstrumentScreens({ model, instanceId }: { model: Object3D; inst
       rendered = {}
       renderedScreens.set(canvas, rendered)
     }
+    const panel = scopePanel(instanceId)
+    let scopes = renderedScopes.get(canvas)
+    if (!scopes) {
+      scopes = {}
+      renderedScopes.set(canvas, scopes)
+    }
     for (const binding of bindings.current) {
+      if (panel) {
+        const frame = acquireScope(instanceId, panel.instrument, panel.settings)
+        const settings = resolveScope(panel.instrument, panel.settings)
+        paintScope(binding.context, frame, settings)
+        binding.texture.needsUpdate = true
+        scopes[`${instanceId}.${binding.id}`] = scopeSummary(frame, settings)
+        continue
+      }
       const reading = getInstrumentReading(instanceId, screenReadingKey(binding.id))
       paintReading(binding.context, reading)
       binding.texture.needsUpdate = true
@@ -161,7 +203,10 @@ export function InstrumentScreens({ model, instanceId }: { model: Object3D; inst
       rendered[`${instanceId}.${binding.id}`] = { text: reading.text, unit: reading.unit, status: reading.status }
     }
     const region = canvas.closest<HTMLElement>('[aria-label="3D 实训台"]')
-    if (region) region.dataset.instrumentScreenReadings = JSON.stringify(rendered)
+    if (region) {
+      region.dataset.instrumentScreenReadings = JSON.stringify(rendered)
+      if (panel) region.dataset.instrumentScopeScreens = JSON.stringify(scopes)
+    }
   })
   return null
 }

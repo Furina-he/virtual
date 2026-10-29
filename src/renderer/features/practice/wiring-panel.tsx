@@ -91,9 +91,10 @@ function JackSelect({ value, onChange, label }: { value: string; onChange: (ref:
     instanceId,
     jacks: jacks.filter((jack) => jack.instanceId === instanceId),
   }))
+  const selected = jacks.some((jack) => jack.ref === value) ? value : ''
   return (
-    <Select value={jacks.some((jack) => jack.ref === value) ? value : ''} onValueChange={onChange}>
-      <SelectTrigger aria-label={label} className="w-full min-w-0">
+    <Select value={selected} onValueChange={onChange}>
+      <SelectTrigger aria-label={label} data-selected-jack={selected} className="w-full min-w-0">
         <SelectValue placeholder="选择插孔" />
       </SelectTrigger>
       <SelectContent position="popper">

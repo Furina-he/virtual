@@ -13,6 +13,8 @@ export type InstrumentReading = {
     | 'error'
     | 'unsupported'
   message?: string
+  /** 覆盖默认状态文字，如信号源的"输出开" */
+  label?: string
   mode?: string
   negative?: boolean
   beep?: boolean
@@ -141,6 +143,7 @@ export const clearInstrumentReadings = instrumentReadings.clear
 export const subscribeInstrumentReadings = instrumentReadings.subscribe
 
 export function readingStatusLabel(reading: InstrumentReading): string {
+  if (reading.label) return reading.label
   switch (reading.status) {
     case 'ok':
       return reading.beep ? '通断蜂鸣' : reading.negative ? '反向极性' : '测量中'

@@ -5,6 +5,7 @@ import {
   instrumentTemplate,
   isMeasurementInstrument,
   resolveInstrument,
+  signalSourceTemplate,
 } from '../instruments/index.ts'
 import { AssembleError } from './errors.ts'
 import { injectFault } from './fault.ts'
@@ -60,6 +61,9 @@ function expandTemplate(ins: InstrumentInput, suffix: string, nodeOf: (jack: str
   try {
     if (instrument.ranges.length) range = getRangeSettings(instrument, settings)
     if (isMeasurementInstrument(instrument)) template = instrumentTemplate(resolveInstrument(instrument, settings))
+    // 信号源波形随设置变化，由领域模型生成（INS-08/10）；静态部分（如示波器输入阻抗）仍来自内容模板
+    const sources = signalSourceTemplate(instrument, settings)
+    if (sources) template = `${template}\n${sources}`
   } catch (error) {
     if (error instanceof InstrumentConfigurationError) throw new AssembleError('content', error.message)
     throw error

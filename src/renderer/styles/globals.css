@@ -58,6 +58,12 @@
 :root {
   --success: oklch(0.627 0.194 149.214);
   --warning: oklch(0.666 0.179 58.318);
+  /* 示波器屏幕（INS-09）：屏幕始终为暗底，CH1 黄、CH2 青，与 BNC 色环一致 */
+  --scope-screen: oklch(0.2 0.01 250);
+  --scope-grid: oklch(0.42 0.01 250);
+  --scope-text: oklch(0.9 0.005 250);
+  --scope-ch1: oklch(0.86 0.17 95);
+  --scope-ch2: oklch(0.78 0.13 220);
   --radius: 0.625rem;
   --background: oklch(1 0 0);
   --foreground: oklch(0.141 0.005 285.823);
@@ -95,6 +101,11 @@
 .dark {
   --success: oklch(0.723 0.219 149.579);
   --warning: oklch(0.769 0.188 70.08);
+  --scope-screen: oklch(0.17 0.01 250);
+  --scope-grid: oklch(0.38 0.01 250);
+  --scope-text: oklch(0.88 0.005 250);
+  --scope-ch1: oklch(0.86 0.17 95);
+  --scope-ch2: oklch(0.78 0.13 220);
   --background: oklch(0.141 0.005 285.823);
   --foreground: oklch(0.985 0 0);
   --card: oklch(0.21 0.006 285.885);

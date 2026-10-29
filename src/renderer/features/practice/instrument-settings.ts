@@ -1,5 +1,5 @@
 import type { InstrumentInput } from '../../../domain/circuit/assemble'
-import { getInstrumentDefaults } from '../../../domain/instruments'
+import { getInstrumentDefaults, scopeSettingValid, signalSettingValid } from '../../../domain/instruments'
 import type { CircuitState } from '../../../shared/schema/circuit'
 import { instrumentCatalog } from './practice-content'
 import { circuitStore, wiringScene } from './wiring-state'
@@ -32,7 +32,9 @@ export function setBenchInstrumentSettings(instanceId: string, patch: Record<str
   for (const [key, value] of Object.entries(patch)) {
     const control = instrument.settingsControls?.find((item) => item.id === key)
     const valid =
-      key === 'range'
+      signalSettingValid(instrument, key, value) ??
+      scopeSettingValid(instrument, key, value) ??
+      (key === 'range'
         ? instrument.ranges.some((range) => range.id === value)
         : typeof value === 'number' && Number.isFinite(value)
           ? key === 'internalR'
@@ -40,7 +42,7 @@ export function setBenchInstrumentSettings(instanceId: string, patch: Record<str
             : key === 'accuracyOffset'
               ? Math.abs(value) <= 1
               : control && value >= control.min && value <= control.max
-          : false
+          : false)
     if (!valid) {
       circuitStore.setState({ notice: '仪表设置无效，请选择标注的档位或参数范围。' })
       return

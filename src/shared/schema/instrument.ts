@@ -34,6 +34,42 @@ export const InstrumentRange = z.object({
     .optional(),
 })
 
+// 函数信号发生器与示波器内置信号源（INS-08/10）。幅值为峰峰值，占空比为百分数，均为 SI 单位。
+export const SignalWaveform = z.enum(['sine', 'square', 'triangle', 'sawtooth', 'ttl'])
+const Bounded = z
+  .object({ min: z.number(), max: z.number(), default: z.number() })
+  .refine((v) => v.min < v.max && v.default >= v.min && v.default <= v.max, '范围或默认值无效')
+
+export const SignalSource = z.object({
+  id: JackId,
+  label: z.string().min(1),
+  positiveJack: JackId,
+  negativeJack: JackId,
+  outputR: z.number().positive(),
+  waveforms: z.array(SignalWaveform).min(1),
+  // 跟随另一路的频率与占空比（如 TTL 同步输出），自身不提供频率设置
+  syncTo: JackId.optional(),
+  frequency: Bounded.optional(),
+  amplitude: Bounded.optional(),
+  offset: Bounded.optional(),
+  duty: Bounded.optional(),
+  ttlHigh: z.number().positive().default(5),
+})
+
+export const ScopeConfig = z.object({
+  channels: z
+    .array(z.object({ id: JackId, label: z.string().min(1), positiveJack: JackId, negativeJack: JackId }))
+    .min(1)
+    .superRefine(uniqueBy('id')),
+  voltsPerDiv: z.array(z.number().positive()).min(1),
+  secondsPerDiv: z.array(z.number().positive()).min(1),
+  defaultVoltsPerDiv: z.number().positive(),
+  defaultSecondsPerDiv: z.number().positive(),
+  divisions: z.object({ x: z.number().int().positive(), y: z.number().int().positive() }),
+  // 每屏采样点数上限，决定仿真步长下限（技术设计 §7）
+  pointsPerScreen: z.number().int().positive().default(1000),
+})
+
 export const Instrument = z
   .object({
     id: ContentId,
@@ -93,6 +129,8 @@ export const Instrument = z
       .optional(),
     // 电源输出端（正, 负），用于危险接法检测
     outputs: z.array(z.tuple([JackId, JackId])).optional(),
+    signalSources: z.array(SignalSource).superRefine(uniqueBy('id')).optional(),
+    scope: ScopeConfig.optional(),
   })
   .superRefine((ins, ctx) => {
     const ids = new Set(ins.jacks.map((j) => j.id))
@@ -146,6 +184,42 @@ export const Instrument = z
             ctx.addIssue({ code: 'custom', message: `插孔 ${jack} 不存在`, path: [...field.split('.'), i, k] })
         })
       })
+    ins.signalSources?.forEach((source, i) => {
+      for (const field of ['positiveJack', 'negativeJack'] as const)
+        if (!ids.has(source[field]))
+          ctx.addIssue({ code: 'custom', message: `插孔 ${source[field]} 不存在`, path: ['signalSources', i, field] })
+      const master = source.syncTo ? ins.signalSources?.find((entry) => entry.id === source.syncTo) : undefined
+      if (source.syncTo && (!master || master.syncTo))
+        ctx.addIssue({
+          code: 'custom',
+          message: '同步输出必须跟随一路独立信号源',
+          path: ['signalSources', i, 'syncTo'],
+        })
+      if (!source.syncTo && !source.frequency)
+        ctx.addIssue({ code: 'custom', message: '独立信号源需要频率范围', path: ['signalSources', i, 'frequency'] })
+      if (source.frequency && source.frequency.min <= 0)
+        ctx.addIssue({ code: 'custom', message: '频率必须为正', path: ['signalSources', i, 'frequency'] })
+      if (source.duty && (source.duty.min <= 0 || source.duty.max >= 100))
+        ctx.addIssue({ code: 'custom', message: '占空比必须在 0~100% 之间', path: ['signalSources', i, 'duty'] })
+      if (source.waveforms.some((wave) => wave !== 'ttl') && !source.amplitude)
+        ctx.addIssue({ code: 'custom', message: '模拟波形需要幅值范围', path: ['signalSources', i, 'amplitude'] })
+    })
+    if (ins.scope) {
+      const { channels, voltsPerDiv, secondsPerDiv, defaultVoltsPerDiv, defaultSecondsPerDiv } = ins.scope
+      channels.forEach((channel, i) => {
+        for (const field of ['positiveJack', 'negativeJack'] as const)
+          if (!ids.has(channel[field]))
+            ctx.addIssue({
+              code: 'custom',
+              message: `插孔 ${channel[field]} 不存在`,
+              path: ['scope', 'channels', i, field],
+            })
+      })
+      if (!voltsPerDiv.includes(defaultVoltsPerDiv))
+        ctx.addIssue({ code: 'custom', message: '默认 V/div 不在档位表中', path: ['scope', 'defaultVoltsPerDiv'] })
+      if (!secondsPerDiv.includes(defaultSecondsPerDiv))
+        ctx.addIssue({ code: 'custom', message: '默认 s/div 不在档位表中', path: ['scope', 'defaultSecondsPerDiv'] })
+    }
     if (ins.mounting === 'fixed' && !ins.fixedSlot)
       ctx.addIssue({ code: 'custom', message: '固定在控制屏上的仪表需要 fixedSlot', path: ['fixedSlot'] })
     if (ins.mounting === 'desktop' && ins.fixedSlot)
@@ -153,6 +227,9 @@ export const Instrument = z
   })
 
 export type Instrument = z.infer<typeof Instrument>
+export type SignalSource = z.infer<typeof SignalSource>
+export type SignalWaveform = z.infer<typeof SignalWaveform>
+export type ScopeConfig = z.infer<typeof ScopeConfig>
 export type InstrumentRange = z.infer<typeof InstrumentRange>
 export type InstrumentMode = z.infer<typeof InstrumentMode>
 export type InstrumentAccuracy = z.infer<typeof InstrumentAccuracy>

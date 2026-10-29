@@ -1,0 +1,49 @@
+{
+  "id": "ins-oscilloscope",
+  "name": "双通道数字示波器",
+  "kind": "scope",
+  "mounting": "desktop",
+  "model": "instrument.glb",
+  "jacks": [
+    { "id": "CH1", "label": "CH 1", "kind": "bnc", "polarityHint": "+" },
+    { "id": "CH2", "label": "CH 2", "kind": "bnc", "polarityHint": "+" },
+    { "id": "OUT", "label": "OUT", "kind": "bnc", "polarityHint": "+" },
+    { "id": "GND", "label": "GND", "kind": "banana4", "polarityHint": "-" }
+  ],
+  "spiceTemplate": "* 示波器输入：1 MΩ ∥ 20 pF（对 GND），内置信号源 OUT 由 signalSources 生成\nRin1_{X} {J:CH1} {J:GND} 1Meg\nCin1_{X} {J:CH1} {J:GND} 20p\nRin2_{X} {J:CH2} {J:GND} 1Meg\nCin2_{X} {J:CH2} {J:GND} 20p",
+  "measure": {
+    "voltage": [
+      ["CH1", "GND"],
+      ["CH2", "GND"]
+    ],
+    "series": []
+  },
+  "outputs": [["OUT", "GND"]],
+  "signalSources": [
+    {
+      "id": "OUT",
+      "label": "内置信号源",
+      "positiveJack": "OUT",
+      "negativeJack": "GND",
+      "outputR": 50,
+      "waveforms": ["sine", "square", "triangle", "sawtooth"],
+      "frequency": { "min": 1, "max": 100000, "default": 1000 },
+      "amplitude": { "min": 0.1, "max": 5, "default": 2 }
+    }
+  ],
+  "scope": {
+    "channels": [
+      { "id": "CH1", "label": "CH1", "positiveJack": "CH1", "negativeJack": "GND" },
+      { "id": "CH2", "label": "CH2", "positiveJack": "CH2", "negativeJack": "GND" }
+    ],
+    "voltsPerDiv": [0.002, 0.005, 0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1, 2, 5, 10],
+    "secondsPerDiv": [
+      0.000001, 0.000002, 0.000005, 0.00001, 0.00002, 0.00005, 0.0001, 0.0002, 0.0005, 0.001, 0.002, 0.005, 0.01,
+      0.02, 0.05, 0.1, 0.2, 0.5, 1
+    ],
+    "defaultVoltsPerDiv": 0.5,
+    "defaultSecondsPerDiv": 0.0002,
+    "divisions": { "x": 10, "y": 8 },
+    "pointsPerScreen": 1000
+  }
+}
