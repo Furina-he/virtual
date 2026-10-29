@@ -1,0 +1,23 @@
+* mod-555-app: original, hand-reviewed circuit; prototype section 5.4.
+* Project-owned content, freely redistributable with this project.
+.subckt mod_555_app VCC1 GND1 R5_1 R5_2 T1_TR T1_TH T1_DIS T1_RST T1_CV T1_OUT T1_RA_1 T1_RA_2 T1_RB_1 T1_RB_2 T1_CT_P T1_CT_N T1_CC_1 T1_CC_2 T2_TR T2_TH T2_DIS T2_RST T2_CV T2_OUT T2_RA_1 T2_RA_2 T2_RB_1 T2_RB_2 T2_CT_P T2_CT_N T2_CC_1 T2_CC_2 SPK_P SPK_N C5_P C5_N
+* DIP-8 order: GND, TRIG, OUT, RESET, CTRL, THR, DIS, VCC.
+* Only VCC and GND are copper-connected inside the board.
+XIC1 GND1 T1_TR T1_OUT T1_RST T1_CV T1_TH T1_DIS VCC1 NE555
+XIC2 GND1 T2_TR T2_OUT T2_RST T2_CV T2_TH T2_DIS VCC1 NE555
+* All passive endpoints stay separate until the student wires them.
+RA1 T1_RA_1 T1_RA_2 10k
+RB1 T1_RB_1 T1_RB_2 150k
+C1 T1_CT_P T1_CT_N 4.7u
+C3 T1_CC_1 T1_CC_2 10n
+RA2 T2_RA_1 T2_RA_2 10k
+RB2 T2_RB_1 T2_RB_2 10k
+C2 T2_CT_P T2_CT_N 47n
+C4 T2_CC_1 T2_CC_2 10n
+R5 R5_1 R5_2 10k
+C5 C5_P C5_N 100u
+* Conservative resistive voice-coil load; nominal rating 8 ohm / 0.5 W.
+RLS1 SPK_P SPK_N 8
+.ends mod_555_app
+* The trusted content loader inlines this named local library after the board.
+.include "timers.lib"

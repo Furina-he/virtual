@@ -1,0 +1,155 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1500 1130" role="img" aria-labelledby="title description">
+  <title id="title">SD-22 双 NE555 救护车与消防车原型报警电路</title>
+  <desc id="description">五伏供电。左侧低频 NE555 使用十千欧、百五十千欧和四点七微法定时；右侧音频 NE555 使用两个十千欧和四十七纳法定时。救护车把左侧 OUT 经十千欧调制电阻接到右侧 CV，消防车原型改用左侧 TH。后者因控制端加载停振，缓冲修订待审批。右侧 OUT 经一百微法隔直电容驱动八欧扬声器。所有三十六个插孔标有与实验板一致的编号；两条调制候选线互斥，不是板内开关。</desc>
+  <metadata>Original code-native teaching schematic for mod-555-app, prototype section 5.4. Project-owned artwork. No copied panel, remote font, fixed waveform or prerecorded audio. Fire-prototype loading defect intentionally disclosed.</metadata>
+  <style>
+    text { font-family: "Noto Sans SC Variable", sans-serif; fill: black; font-size: 17px; }
+    .wire { fill: none; stroke: black; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    .component { fill: white; stroke: black; stroke-width: 2; }
+    .jack { fill: white; stroke: black; stroke-width: 2; }
+    .node { fill: black; }
+    .choice { fill: none; stroke: dimgray; stroke-width: 2; stroke-dasharray: 7 6; }
+    .small { font-size: 14px; fill: dimgray; }
+    .jack-label { font-family: "JetBrains Mono Variable", monospace; font-size: 13px; }
+    .pin-label { font-size: 15px; }
+    .center { text-anchor: middle; }
+    .heading { font-size: 22px; font-weight: 600; }
+  </style>
+  <rect width="1500" height="1130" fill="white"/>
+  <text x="750" y="38" class="center heading">救护车 / 消防车声响报警电路：双 555 原型</text>
+  <text x="750" y="68" class="center small">SD-22 · 5 V · 圆圈为插孔 · 电气原理图，不是面板布局 · 消防车原型需缓冲修订</text>
+  <text x="390" y="107" class="center">IC1 低频振荡器：设计约 0.99 Hz</text>
+  <text x="1060" y="107" class="center">IC2 音频振荡器：未调制约 1.02 kHz</text>
+
+  <!-- The VCC/GND pins are the only copper connections inside the board. -->
+  <g class="wire">
+    <path d="M90 140 H1380 M90 760 H1380"/>
+    <path d="M430 140 V280 M1110 140 V280 M430 590 V760 M1110 590 V760"/>
+    <path d="M380 140 V280 M1060 140 V280"/>
+  </g>
+  <text x="94" y="124">+5 V：CH1P</text>
+  <text x="94" y="793">GND：CH1N</text>
+  <g data-jack-id="VCC1"><title>VCC1：两片芯片共用的 +5 V 插孔</title><circle cx="90" cy="140" r="5" class="jack"/><text x="42" y="171" class="jack-label">VCC1</text></g>
+  <g data-jack-id="GND1"><title>GND1：共用地插孔</title><circle cx="90" cy="760" r="5" class="jack"/><text x="42" y="746" class="jack-label">GND1</text></g>
+
+  <rect x="330" y="280" width="170" height="310" class="component"/>
+  <rect x="1010" y="280" width="170" height="310" class="component"/>
+  <text x="415" y="332" class="center heading">IC1</text>
+  <text x="415" y="356" class="center">NE555</text>
+  <text x="1095" y="332" class="center heading">IC2</text>
+  <text x="1095" y="356" class="center">NE555</text>
+  <g class="pin-label">
+    <text x="342" y="303">4 R</text><text x="489" y="303" text-anchor="end">8 VCC</text>
+    <text x="1022" y="303">4 R</text><text x="1169" y="303" text-anchor="end">8 VCC</text>
+    <text x="338" y="380">7 DIS</text><text x="338" y="415">6 TH</text><text x="338" y="455">2 TR</text>
+    <text x="482" y="386" text-anchor="end">3 OUT</text>
+    <text x="424" y="568">1 GND</text><text x="496" y="541" text-anchor="end">5 CV</text>
+    <text x="1018" y="380">7 DIS</text><text x="1018" y="415">6 TH</text><text x="1018" y="455">2 TR</text>
+    <text x="1162" y="386" text-anchor="end">3 OUT</text>
+    <text x="1104" y="568">1 GND</text><text x="1176" y="541" text-anchor="end">5 CV</text>
+  </g>
+  <g data-jack-id="T1_RST"><title>T1_RST：IC1 第四脚复位，接 +5 V</title><circle cx="380" cy="205" r="5" class="jack"/><text x="395" y="210" class="jack-label">T1_RST</text></g>
+  <g data-jack-id="T2_RST"><title>T2_RST：IC2 第四脚复位，接 +5 V</title><circle cx="1060" cy="205" r="5" class="jack"/><text x="1075" y="210" class="jack-label">T2_RST</text></g>
+
+  <!-- Each resistor and capacitor exposes both endpoints for learner wiring. -->
+  <g class="wire">
+    <path d="M170 140 V190 M170 255 V360 M170 425 V640 M170 660 V760"/>
+    <path d="M170 300 H255 V370 H330"/>
+    <path d="M170 490 H240 V410 H330 M240 410 V450 H330"/>
+    <path d="M500 370 H630"/>
+    <path d="M500 530 H555 V650 H540 M540 650 V680 M540 700 V760"/>
+    <path d="M850 140 V190 M850 255 V360 M850 425 V640 M850 660 V760"/>
+    <path d="M850 300 H935 V370 H1010"/>
+    <path d="M850 490 H920 V410 H1010 M920 410 V450 H1010"/>
+    <path d="M1180 370 H1310 V485 M1310 505 V650 M1310 690 V760"/>
+    <path d="M1180 530 H1235 V650 H1220 M1220 650 V680 M1220 700 V760"/>
+  </g>
+
+  <g class="component">
+    <rect x="162" y="190" width="16" height="65"/>
+    <rect x="162" y="360" width="16" height="65"/>
+    <path d="M151 640 H189 M151 660 H189"/>
+    <path d="M521 680 H559 M521 700 H559"/>
+    <rect x="842" y="190" width="16" height="65"/>
+    <rect x="842" y="360" width="16" height="65"/>
+    <path d="M831 640 H869 M831 660 H869"/>
+    <path d="M1201 680 H1239 M1201 700 H1239"/>
+    <path d="M1291 485 H1329 M1291 505 H1329"/>
+    <circle cx="1310" cy="670" r="22"/>
+    <path d="M1300 664 H1307 L1321 655 V685 L1307 676 H1300 Z"/>
+  </g>
+  <text x="197" y="214">RA1</text><text x="197" y="239" class="small">10 kΩ</text>
+  <text x="144" y="384" text-anchor="end">RB1</text><text x="144" y="409" class="small" text-anchor="end">150 kΩ</text>
+  <text x="199" y="646">C1</text><text x="199" y="675" class="small">4.7 μF</text><text x="137" y="624">+</text>
+  <text x="583" y="681">C3</text><text x="583" y="706" class="small">10 nF</text>
+  <text x="877" y="214">RA2</text><text x="877" y="239" class="small">10 kΩ</text>
+  <text x="824" y="384" text-anchor="end">RB2</text><text x="824" y="409" class="small" text-anchor="end">10 kΩ</text>
+  <text x="879" y="646">C2</text><text x="879" y="675" class="small">47 nF</text>
+  <text x="1158" y="681" text-anchor="end">C4</text><text x="1158" y="706" class="small" text-anchor="end">10 nF</text>
+  <text x="1350" y="489">C5</text><text x="1350" y="514" class="small">100 μF</text><text x="1275" y="473">+</text>
+  <text x="1350" y="660">LS1</text><text x="1350" y="687" class="small">8 Ω / 0.5 W</text>
+
+  <g data-jack-id="T1_RA_1"><title>T1_RA_1：RA1 电源端</title><circle cx="170" cy="164" r="5" class="jack"/><text x="195" y="174" class="jack-label">T1_RA_1</text></g>
+  <g data-jack-id="T1_RA_2"><title>T1_RA_2：RA1 放电端</title><circle cx="170" cy="276" r="5" class="jack"/><text x="195" y="282" class="jack-label">T1_RA_2</text></g>
+  <g data-jack-id="T1_RB_1"><title>T1_RB_1：RB1 放电端</title><circle cx="170" cy="326" r="5" class="jack"/><text x="193" y="332" class="jack-label">T1_RB_1</text></g>
+  <g data-jack-id="T1_RB_2"><title>T1_RB_2：RB1 定时电容端</title><circle cx="170" cy="464" r="5" class="jack"/><text x="72" y="458" class="jack-label">T1_RB_2</text></g>
+  <g data-jack-id="T1_DIS"><title>T1_DIS：IC1 第七脚放电</title><circle cx="285" cy="370" r="5" class="jack"/><text x="267" y="356" class="jack-label" text-anchor="end">T1_DIS</text></g>
+  <g data-jack-id="T1_TH"><title>T1_TH：IC1 第六脚阈值，与 TR 和 C1 正端接在同一网络</title><circle cx="285" cy="410" r="5" class="jack"/><text x="291" y="402" class="jack-label" text-anchor="end">T1_TH</text></g>
+  <g data-jack-id="T1_TR"><title>T1_TR：IC1 第二脚触发，与 TH 和 C1 正端相连</title><circle cx="285" cy="450" r="5" class="jack"/><text x="317" y="475" class="jack-label" text-anchor="end">T1_TR</text></g>
+  <g data-jack-id="T1_OUT"><title>T1_OUT：IC1 第三脚低频方波输出</title><circle cx="630" cy="370" r="5" class="jack"/><text x="594" y="353" class="jack-label">T1_OUT</text></g>
+  <g data-jack-id="T1_CV"><title>T1_CV：IC1 第五脚控制电压</title><circle cx="555" cy="577" r="5" class="jack"/><text x="571" y="582" class="jack-label">T1_CV</text></g>
+  <g data-jack-id="T1_CT_P"><title>T1_CT_P：C1 正端</title><circle cx="170" cy="602" r="5" class="jack"/><text x="60" y="607" class="jack-label">T1_CT_P</text></g>
+  <g data-jack-id="T1_CT_N"><title>T1_CT_N：C1 负端</title><circle cx="170" cy="724" r="5" class="jack"/><text x="60" y="729" class="jack-label">T1_CT_N</text></g>
+  <g data-jack-id="T1_CC_1"><title>T1_CC_1：C3 接 CV 的一端</title><circle cx="540" cy="650" r="5" class="jack"/><text x="408" y="655" class="jack-label">T1_CC_1</text></g>
+  <g data-jack-id="T1_CC_2"><title>T1_CC_2：C3 接地端</title><circle cx="540" cy="724" r="5" class="jack"/><text x="408" y="729" class="jack-label">T1_CC_2</text></g>
+
+  <g data-jack-id="T2_RA_1"><title>T2_RA_1：RA2 电源端</title><circle cx="850" cy="164" r="5" class="jack"/><text x="875" y="174" class="jack-label">T2_RA_1</text></g>
+  <g data-jack-id="T2_RA_2"><title>T2_RA_2：RA2 放电端</title><circle cx="850" cy="276" r="5" class="jack"/><text x="875" y="282" class="jack-label">T2_RA_2</text></g>
+  <g data-jack-id="T2_RB_1"><title>T2_RB_1：RB2 放电端</title><circle cx="850" cy="326" r="5" class="jack"/><text x="873" y="332" class="jack-label">T2_RB_1</text></g>
+  <g data-jack-id="T2_RB_2"><title>T2_RB_2：RB2 定时电容端</title><circle cx="850" cy="464" r="5" class="jack"/><text x="752" y="458" class="jack-label">T2_RB_2</text></g>
+  <g data-jack-id="T2_DIS"><title>T2_DIS：IC2 第七脚放电</title><circle cx="965" cy="370" r="5" class="jack"/><text x="947" y="356" class="jack-label" text-anchor="end">T2_DIS</text></g>
+  <g data-jack-id="T2_TH"><title>T2_TH：IC2 第六脚阈值</title><circle cx="965" cy="410" r="5" class="jack"/><text x="971" y="402" class="jack-label" text-anchor="end">T2_TH</text></g>
+  <g data-jack-id="T2_TR"><title>T2_TR：IC2 第二脚触发</title><circle cx="965" cy="450" r="5" class="jack"/><text x="997" y="475" class="jack-label" text-anchor="end">T2_TR</text></g>
+  <g data-jack-id="T2_OUT"><title>T2_OUT：IC2 第三脚音频输出</title><circle cx="1310" cy="370" r="5" class="jack"/><text x="1325" y="376" class="jack-label">T2_OUT</text></g>
+  <g data-jack-id="T2_CV"><title>T2_CV：IC2 第五脚控制电压，由 R5 调制</title><circle cx="1235" cy="577" r="5" class="jack"/><text x="1250" y="582" class="jack-label">T2_CV</text></g>
+  <g data-jack-id="T2_CT_P"><title>T2_CT_P：C2 定时节点端</title><circle cx="850" cy="602" r="5" class="jack"/><text x="740" y="607" class="jack-label">T2_CT_P</text></g>
+  <g data-jack-id="T2_CT_N"><title>T2_CT_N：C2 接地端；此电容无极性</title><circle cx="850" cy="724" r="5" class="jack"/><text x="740" y="729" class="jack-label">T2_CT_N</text></g>
+  <g data-jack-id="T2_CC_1"><title>T2_CC_1：C4 接 CV 的一端</title><circle cx="1220" cy="650" r="5" class="jack"/><text x="1088" y="655" class="jack-label">T2_CC_1</text></g>
+  <g data-jack-id="T2_CC_2"><title>T2_CC_2：C4 接地端</title><circle cx="1220" cy="724" r="5" class="jack"/><text x="1088" y="729" class="jack-label">T2_CC_2</text></g>
+  <g data-jack-id="C5_P"><title>C5_P：输出隔直电解电容正端</title><circle cx="1310" cy="437" r="5" class="jack"/><text x="1325" y="442" class="jack-label">C5_P</text></g>
+  <g data-jack-id="C5_N"><title>C5_N：输出隔直电解电容负端</title><circle cx="1310" cy="558" r="5" class="jack"/><text x="1325" y="563" class="jack-label">C5_N</text></g>
+  <g data-jack-id="SPK_P"><title>SPK_P：扬声器正端，经 C5 隔直</title><circle cx="1310" cy="618" r="5" class="jack"/><text x="1325" y="623" class="jack-label">SPK_P</text></g>
+  <g data-jack-id="SPK_N"><title>SPK_N：扬声器负端，接 GND1</title><circle cx="1310" cy="733" r="5" class="jack"/><text x="1325" y="738" class="jack-label">SPK_N</text></g>
+
+  <g class="node">
+    <circle cx="170" cy="140" r="3"/><circle cx="380" cy="140" r="3"/><circle cx="430" cy="140" r="3"/>
+    <circle cx="850" cy="140" r="3"/><circle cx="1060" cy="140" r="3"/><circle cx="1110" cy="140" r="3"/>
+    <circle cx="170" cy="300" r="3"/><circle cx="170" cy="490" r="3"/><circle cx="240" cy="410" r="3"/>
+    <circle cx="850" cy="300" r="3"/><circle cx="850" cy="490" r="3"/><circle cx="920" cy="410" r="3"/>
+    <circle cx="170" cy="760" r="3"/><circle cx="430" cy="760" r="3"/><circle cx="540" cy="760" r="3"/>
+    <circle cx="850" cy="760" r="3"/><circle cx="1110" cy="760" r="3"/><circle cx="1220" cy="760" r="3"/><circle cx="1310" cy="760" r="3"/>
+  </g>
+
+  <text x="70" y="830" class="heading">调制线二选一：由学员断电改线，不是板内开关</text>
+  <g class="choice">
+    <path d="M630 370 H690 V880 H600 L630 900"/>
+    <path d="M170 490 H110 V930 H600 L630 900"/>
+  </g>
+  <text x="185" y="876" class="small">救护车：T1_OUT → R5_1（双音交替）</text>
+  <text x="185" y="923" class="small">消防车原型：T1_TH → R5_1（加载停振，待缓冲修订）</text>
+  <g class="wire">
+    <path d="M630 900 H660 M740 900 H790 H1255 V778 Q1270 760 1255 742 V650 H1235"/>
+  </g>
+  <rect x="660" y="888" width="80" height="24" class="component"/>
+  <text x="700" y="872" class="center">R5 · 10 kΩ</text>
+  <g data-jack-id="R5_1"><title>R5_1：调制输入端，OUT 与 TH 两种候选线互斥</title><circle cx="630" cy="900" r="5" class="jack"/><text x="614" y="934" class="jack-label">R5_1</text></g>
+  <g data-jack-id="R5_2"><title>R5_2：调制输出端，连接 T2_CV 与 T2_CC_1</title><circle cx="790" cy="900" r="5" class="jack"/><text x="774" y="934" class="jack-label">R5_2</text></g>
+  <circle cx="1235" cy="650" r="3" class="node"/>
+  <text x="835" y="883" class="small">R5_2 接 IC2 CV；跨 GND 处无连接</text>
+
+  <path d="M65 978 H1435" class="wire"/>
+  <text x="70" y="1010" class="small">原型消防车缺陷：NE555 CV 等效为 3.333 V / 3.333 kΩ，经 R5 上拉 C1；放电平衡约 3.061 V &gt; IC1 下阈值 1.667 V。</text>
+  <text x="70" y="1037" class="small">不能把恒定载频当作渐变；高输入阻抗电压跟随缓冲尚待审批。电阻、电容、CV 输入阻抗和旧音频夹具参数不作暗改。</text>
+  <text x="70" y="1074" class="small">测量：低频约 0.2 s/div；高频约 0.2 ms/div；CV 用 DC 耦合；扬声器测 SPK_P−SPK_N。真实波形与声音均来自本次仿真。</text>
+  <text x="70" y="1100" class="small">本图只定义电气连接。公共波形记录 / 分步骤拓扑 / 音频运行时未接通时，不能凭静态图或手填数据宣布实训完成。</text>
+</svg>

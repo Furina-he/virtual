@@ -1,0 +1,172 @@
+{
+  "id": "SD-22",
+  "group": "综合性应用仿真实训项目",
+  "title": "救护车/消防车声响报警电路",
+  "type": "integrated",
+  "validation": {
+    "purpose": "按 5 V 原型接法验证双 555 电路；当前为待集成、待电路修订的正式内容草案，不作为已完成实训项目。",
+    "limitations": [
+      "NE555 的 CV 输入分压网络会经 R5 加载 IC1 定时电容；原型消防车接法无法持续振荡，须审批高输入阻抗缓冲方案后再验收音调渐变。",
+      "模块模型库本地解析、示波器标量快捷记录、分步骤参考拓扑和真实时间扬声器输出尚未接入公共运行时。",
+      "示波器测量步骤保留真实波形证据要求，当前公共记录接口未开放时不能用手填数据冒充完成。"
+    ]
+  },
+  "modules": [{ "instanceId": "timer1", "moduleId": "mod-555-app", "slot": "SLOT_BOX_L1" }],
+  "allowedInstruments": ["ins-oscilloscope", "ins-multimeter"],
+  "reference": {
+    "nets": [
+      ["ins-dc-power.CH1P", "timer1.VCC1", "timer1.T1_RA_1", "timer1.T1_RST", "timer1.T2_RA_1", "timer1.T2_RST"],
+      ["ins-dc-power.CH1N", "timer1.GND1", "timer1.T1_CT_N", "timer1.T1_CC_2", "timer1.T2_CT_N", "timer1.T2_CC_2", "timer1.SPK_N"],
+      ["timer1.T1_RA_2", "timer1.T1_DIS", "timer1.T1_RB_1"],
+      ["timer1.T1_RB_2", "timer1.T1_TH", "timer1.T1_TR", "timer1.T1_CT_P"],
+      ["timer1.T1_CV", "timer1.T1_CC_1"],
+      ["timer1.T1_OUT", "timer1.R5_1"],
+      ["timer1.T2_RA_2", "timer1.T2_DIS", "timer1.T2_RB_1"],
+      ["timer1.T2_RB_2", "timer1.T2_TH", "timer1.T2_TR", "timer1.T2_CT_P"],
+      ["timer1.R5_2", "timer1.T2_CV", "timer1.T2_CC_1"],
+      ["timer1.T2_OUT", "timer1.C5_P"],
+      ["timer1.C5_N", "timer1.SPK_P"]
+    ],
+    "measurePoints": [
+      { "id": "supply", "kind": "voltage", "mode": "dcv", "between": ["timer1.VCC1", "timer1.GND1"] },
+      { "id": "lf-out", "kind": "waveform", "between": ["timer1.T1_OUT", "timer1.GND1"] },
+      { "id": "lf-cap", "kind": "waveform", "between": ["timer1.T1_TH", "timer1.GND1"] },
+      { "id": "hf-out", "kind": "waveform", "between": ["timer1.T2_OUT", "timer1.GND1"] },
+      { "id": "hf-cap", "kind": "waveform", "between": ["timer1.T2_TH", "timer1.GND1"] },
+      { "id": "control", "kind": "waveform", "between": ["timer1.T2_CV", "timer1.GND1"] },
+      { "id": "speaker", "kind": "waveform", "between": ["timer1.SPK_P", "timer1.SPK_N"] }
+    ]
+  },
+  "steps": [
+    {
+      "id": "prepare",
+      "text": "阅读原理图与指导书，核对 36 个插孔及两片 NE555 的引脚。保持断电；CH1 设 5 V，CH2 不接线。确认消防车原型存在负载阻塞，不把单一固定音调当作音调渐变。",
+      "measurePoints": []
+    },
+    {
+      "id": "wire-ambulance",
+      "text": "按救护车参考拓扑完成两路 RC、复位、CV 去耦、电源和扬声器接线；调制线为 T1_OUT→R5_1，R5_2→T2_CV。不得把 T1_OUT 与 T1_TH 同时接入 R5_1。断电时检查接线。",
+      "measurePoints": [],
+      "checkWiring": true
+    },
+    {
+      "id": "supply",
+      "text": "固定电压表或万用表 DCV 20 V 档正端接 VCC1、负端接 GND1。上电，确认供电约 5 V 后记录 supply 表；供电不正确先断电排查。",
+      "measurePoints": ["supply"],
+      "expect": { "measurePoint": "supply", "min": 4.9, "max": 5.1 }
+    },
+    {
+      "id": "ambulance-lf",
+      "text": "示波器 GND 接 GND1；CH1 接 T1_OUT，CH2 接 T1_TH。用 0.2 s/div、DC 耦合观察至少三个完整稳态周期，记录低频频率、周期及电容上下阈值。真实波形记录接口未接通时本步骤不能判完成。",
+      "measurePoints": ["lf-out", "lf-cap"]
+    },
+    {
+      "id": "ambulance-hf",
+      "text": "先断电，将 CH1 移到 T2_OUT、CH2 移到 T2_CV；以 0.2 ms/div 测两种稳态音调的频率和输出 Vpp，避开切换过渡段。低频与声音仍按真实时间推进，不随示波器窗口加速。",
+      "measurePoints": ["hf-out", "control"]
+    },
+    {
+      "id": "ambulance-speaker",
+      "text": "断电后将 CH1 接 SPK_P，GND 接 SPK_N。上电检查隔直后的扬声器波形；只有公共声音接口就绪且从真实仿真提取频率/包络时，才能试听并确认双音交替，禁止使用预录音。",
+      "measurePoints": ["speaker"]
+    },
+    {
+      "id": "record-ambulance",
+      "text": "将救护车表的一行补齐：低频频率/周期、电容阈值、两种音调频率、CV 两平台和扬声器 Vpp。频率用 Hz、周期用 s，暂未开放的波形标量列须从真实示波器手填，不能填理论值。",
+      "measurePoints": [],
+      "recordTable": "ambulance"
+    },
+    {
+      "id": "wire-fire-prototype",
+      "text": "先断电，只移除 T1_OUT→R5_1，将 R5_1 改接 T1_TH，其余 RC、电源、R5_2→T2_CV 和扬声器线不变。该完整替代拓扑见指导书；当前公共接口只有救护车参考，不能把救护车接线通过提示当作消防车检查。",
+      "measurePoints": []
+    },
+    {
+      "id": "fire-prototype-lf",
+      "text": "CH1 接 T1_OUT、CH2 接 T1_TH，以 0.2 s/div 观察至少 4 s。原型模型中电容约停在 3.06 V，IC1 不再周期翻转；如无完整周期，记录为无低频周期，不能计算或填写虚假的 0.99 Hz。",
+      "measurePoints": ["lf-out", "lf-cap"]
+    },
+    {
+      "id": "fire-prototype-hf",
+      "text": "先断电将 CH1 接 T2_OUT、CH2 接 T2_CV；另将固定直流电压表正端接 T1_TH、负端接 GND1，用 20 V 档和 10 MΩ 实测 C1 直流电压。观察 CV 与载频是否持续渐变。当前原型只得到近似固定载频，记录实测结果；缓冲修订未获审批前不能宣布消防车渐变报警完成。",
+      "measurePoints": ["hf-out", "control"]
+    },
+    {
+      "id": "record-fire-prototype",
+      "text": "在消防车原型诊断表的三行分别记录约 1 s、2 s、4 s 的 T1_TH、T2_CV 和载频，以及该段是否有低频完整周期（有填 1、无填 0）。保留无变化现象；手填表不是渐变声验收证据。",
+      "measurePoints": [],
+      "recordTable": "fire-prototype"
+    },
+    {
+      "id": "analyse",
+      "text": "断电。比较 OUT 方波调制与电容电压调制；计算 CV 输入网络的加载，解释消防车原型停振原因。提交电路缓冲修订及公共接口依赖后，须重新完成两种模式的真实测量、声音和录屏才可验收本项目。",
+      "measurePoints": []
+    }
+  ],
+  "dataTables": [
+    {
+      "id": "supply",
+      "title": "供电检查",
+      "rows": 1,
+      "columns": [{ "id": "u-vcc", "title": "实测供电", "unit": "V", "measurePoint": "supply" }],
+      "sanity": [{ "column": "u-vcc", "min": 4.9, "max": 5.1, "message": "本项目使用 5 V；确认 CH1 设置、电源极性和实际端电压，不按 12 V 音频原型参数接线。" }]
+    },
+    {
+      "id": "ambulance",
+      "title": "救护车双音交替测量",
+      "rows": 1,
+      "columns": [
+        { "id": "f-lf", "title": "低频频率", "unit": "Hz" },
+        { "id": "t-lf", "title": "低频周期", "unit": "s" },
+        { "id": "ct-min", "title": "C1 下阈值", "unit": "V" },
+        { "id": "ct-max", "title": "C1 上阈值", "unit": "V" },
+        { "id": "f-tone-low", "title": "低音载频", "unit": "Hz" },
+        { "id": "f-tone-high", "title": "高音载频", "unit": "Hz" },
+        { "id": "cv-low", "title": "CV 低平台", "unit": "V" },
+        { "id": "cv-high", "title": "CV 高平台", "unit": "V" },
+        { "id": "spk-vpp", "title": "扬声器 Vpp", "unit": "V" }
+      ],
+      "sanity": [
+        { "column": "f-lf", "min": 0.8, "max": 1.2, "message": "低频设计约 0.99 Hz。确认 RA1=10 kΩ、RB1=150 kΩ、C1=4.7 μF，以及测量单位为 Hz；此提示不替代真实仿真金标准。" },
+        { "column": "t-lf", "min": 0.8, "max": 1.3, "message": "低频周期约 1 s。只对完整稳态周期测量；切换过渡或首次起振不能当作一个周期。" },
+        { "column": "ct-min", "min": 0, "max": 5, "message": "电容阈值须以 GND1 为参考，单位 V；检查探头、耦合和极性。" },
+        { "column": "ct-max", "min": 0, "max": 5, "message": "电容电压上阈值不应超过 5 V 供电；不要将 Vpp 当作最大电压填写。" },
+        { "column": "f-tone-low", "min": 500, "max": 2000, "message": "载频在音频范围。请填 Hz 而非 kHz 的显示数字，并测 T2_OUT 的稳态平台。" },
+        { "column": "f-tone-high", "min": 500, "max": 2000, "message": "请分别测两种平台，不用整段调频波形的单一平均频率冒充高音频率。" },
+        { "column": "cv-low", "min": 0, "max": 5, "message": "CV 平台是相对 GND1 的直流电平，不是去直流后的幅值。使用 DC 耦合。" },
+        { "column": "cv-high", "min": 0, "max": 5, "message": "CV 高平台应由真实波形读出，不能直接代填 2/3 VCC；R5 会造成加载。" },
+        { "column": "spk-vpp", "min": 0, "max": 5, "message": "测量 SPK_P−SPK_N 的峰峰值。扬声器负载和 555 有限输出阻抗会降低幅度，不应直接代填 5 V。" }
+      ]
+    },
+    {
+      "id": "fire-prototype",
+      "title": "消防车原型加载诊断（未实现渐变）",
+      "rows": 3,
+      "columns": [
+        { "id": "time", "title": "观察时刻", "unit": "s" },
+        { "id": "ct", "title": "C1 电压", "unit": "V" },
+        { "id": "cv", "title": "IC2 CV", "unit": "V" },
+        { "id": "carrier", "title": "瞬时载频", "unit": "Hz" },
+        { "id": "lf-cycle", "title": "存在完整低频周期（1/0）" }
+      ],
+      "sanity": [
+        { "column": "time", "min": 0, "max": 10, "message": "观察时刻使用真实仿真秒数。1 s、2 s、4 s 分别占一行；不要用示波器刷新次数计时。" },
+        { "column": "ct", "min": 0, "max": 5, "message": "C1 电压以 GND1 为参考、DC 耦合。原型停振时仍有非零直流电压，不等于工作正常。" },
+        { "column": "cv", "min": 0, "max": 5, "message": "记录真实控制电平。CV 保持不变而载频存在，不代表消防车音调渐变已实现。" },
+        { "column": "carrier", "min": 500, "max": 2000, "message": "记录当前音频载频，单位 Hz；无连续渐变不能以理论上下限代填。" },
+        { "column": "lf-cycle", "min": 0, "max": 1, "message": "仅填 0（无完整低频周期）或 1（存在）。未观察到重复翻转时不能以 0.99 Hz 理论值替代。" }
+      ]
+    }
+  ],
+  "charts": [],
+  "questions": [
+    "IC1 的 RA1、RB1、C1 如何决定低频周期？为什么首次上电的充电时间不等于稳态周期？",
+    "IC2 的 CV 电压变化时，其两个比较阈值如何变化？为什么较低 CV 通常对应较高载频？",
+    "救护车接法中的两种载频为什么不是简单的同一个 1.02 kHz 理论值？R5 与 CV 内部分压如何共同决定控制电平？",
+    "为什么直接将 C1 电压经 10 kΩ 接到双极型 NE555 的 CV，会使低频振荡停住？请用戴维南等效和放电平衡电压说明。",
+    "高输入阻抗电压跟随缓冲应放在哪两个节点之间？它应保持哪些端电压、负载效应与 5 V 供电约束，才能验证消防车渐变方案？",
+    "C5 的极性和隔直作用是什么？如果把 8 Ω 扬声器直接跨接 IC2 OUT 与地，对直流电流、输出幅度和额定功率有何影响？",
+    "示波器从 0.2 s/div 切到 0.2 ms/div 时，为什么声音与低频变化不能随窗口刷新加速？应如何分别核对真实时间和载频？",
+    "由真实仿真提取基频/包络合成的声音，与固定预录警笛有何区别？接错调制线、断电或拔掉扬声器时应出现什么结果？"
+  ]
+}

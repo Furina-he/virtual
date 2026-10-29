@@ -2023,6 +2023,1179 @@
         512,
         512
       ]
+    },
+    {
+      "estimatedDimensions": true,
+      "jacks": [
+        {
+          "id": "VCC1",
+          "label": "+5 V",
+          "x": 252,
+          "y": 20,
+          "color": "red",
+          "kind": "banana4",
+          "silkLabel": "+5V"
+        },
+        {
+          "id": "GND1",
+          "label": "GND",
+          "x": 252,
+          "y": 165,
+          "color": "black",
+          "kind": "banana4",
+          "silkLabel": "GND"
+        },
+        {
+          "id": "R5_1",
+          "label": "R5 输入端",
+          "x": 238,
+          "y": 118,
+          "color": "yellow",
+          "kind": "banana4",
+          "silkLabel": "R5-1"
+        },
+        {
+          "id": "R5_2",
+          "label": "R5 输出端",
+          "x": 238,
+          "y": 145,
+          "color": "yellow",
+          "kind": "banana4",
+          "silkLabel": "R5-2"
+        },
+        {
+          "id": "T1_TR",
+          "label": "IC1 2 TR",
+          "x": 25,
+          "y": 105,
+          "color": "yellow",
+          "kind": "banana4",
+          "silkLabel": "2 TR"
+        },
+        {
+          "id": "T1_TH",
+          "label": "IC1 6 TH",
+          "x": 25,
+          "y": 80,
+          "color": "yellow",
+          "kind": "banana4",
+          "silkLabel": "6 TH"
+        },
+        {
+          "id": "T1_DIS",
+          "label": "IC1 7 DIS",
+          "x": 62,
+          "y": 60,
+          "color": "yellow",
+          "kind": "banana4",
+          "silkLabel": "7 DIS"
+        },
+        {
+          "id": "T1_RST",
+          "label": "IC1 4 R",
+          "x": 45,
+          "y": 130,
+          "color": "yellow",
+          "kind": "banana4",
+          "silkLabel": "4 R"
+        },
+        {
+          "id": "T1_CV",
+          "label": "IC1 5 CV",
+          "x": 85,
+          "y": 130,
+          "color": "yellow",
+          "kind": "banana4",
+          "silkLabel": "5 CV"
+        },
+        {
+          "id": "T1_OUT",
+          "label": "IC1 3 OUT",
+          "x": 100,
+          "y": 92,
+          "color": "yellow",
+          "kind": "banana4",
+          "silkLabel": "3 OUT"
+        },
+        {
+          "id": "T1_RA_1",
+          "label": "RA1 1",
+          "x": 15,
+          "y": 35,
+          "color": "yellow",
+          "kind": "banana4",
+          "silkLabel": "RA1-1"
+        },
+        {
+          "id": "T1_RA_2",
+          "label": "RA1 2",
+          "x": 45,
+          "y": 35,
+          "color": "yellow",
+          "kind": "banana4",
+          "silkLabel": "RA1-2"
+        },
+        {
+          "id": "T1_RB_1",
+          "label": "RB1 1",
+          "x": 65,
+          "y": 35,
+          "color": "yellow",
+          "kind": "banana4",
+          "silkLabel": "RB1-1"
+        },
+        {
+          "id": "T1_RB_2",
+          "label": "RB1 2",
+          "x": 95,
+          "y": 35,
+          "color": "yellow",
+          "kind": "banana4",
+          "silkLabel": "RB1-2"
+        },
+        {
+          "id": "T1_CT_P",
+          "label": "C1 +",
+          "x": 15,
+          "y": 160,
+          "color": "yellow",
+          "kind": "banana4",
+          "silkLabel": "C1+"
+        },
+        {
+          "id": "T1_CT_N",
+          "label": "C1 -",
+          "x": 45,
+          "y": 160,
+          "color": "yellow",
+          "kind": "banana4",
+          "silkLabel": "C1-"
+        },
+        {
+          "id": "T1_CC_1",
+          "label": "C3 1",
+          "x": 65,
+          "y": 160,
+          "color": "yellow",
+          "kind": "banana4",
+          "silkLabel": "C3-1"
+        },
+        {
+          "id": "T1_CC_2",
+          "label": "C3 2",
+          "x": 95,
+          "y": 160,
+          "color": "yellow",
+          "kind": "banana4",
+          "silkLabel": "C3-2"
+        },
+        {
+          "id": "T2_TR",
+          "label": "IC2 2 TR",
+          "x": 149,
+          "y": 105,
+          "color": "yellow",
+          "kind": "banana4",
+          "silkLabel": "2 TR"
+        },
+        {
+          "id": "T2_TH",
+          "label": "IC2 6 TH",
+          "x": 149,
+          "y": 80,
+          "color": "yellow",
+          "kind": "banana4",
+          "silkLabel": "6 TH"
+        },
+        {
+          "id": "T2_DIS",
+          "label": "IC2 7 DIS",
+          "x": 186,
+          "y": 60,
+          "color": "yellow",
+          "kind": "banana4",
+          "silkLabel": "7 DIS"
+        },
+        {
+          "id": "T2_RST",
+          "label": "IC2 4 R",
+          "x": 169,
+          "y": 130,
+          "color": "yellow",
+          "kind": "banana4",
+          "silkLabel": "4 R"
+        },
+        {
+          "id": "T2_CV",
+          "label": "IC2 5 CV",
+          "x": 209,
+          "y": 130,
+          "color": "yellow",
+          "kind": "banana4",
+          "silkLabel": "5 CV"
+        },
+        {
+          "id": "T2_OUT",
+          "label": "IC2 3 OUT",
+          "x": 224,
+          "y": 92,
+          "color": "yellow",
+          "kind": "banana4",
+          "silkLabel": "3 OUT"
+        },
+        {
+          "id": "T2_RA_1",
+          "label": "RA2 1",
+          "x": 139,
+          "y": 35,
+          "color": "yellow",
+          "kind": "banana4",
+          "silkLabel": "RA2-1"
+        },
+        {
+          "id": "T2_RA_2",
+          "label": "RA2 2",
+          "x": 169,
+          "y": 35,
+          "color": "yellow",
+          "kind": "banana4",
+          "silkLabel": "RA2-2"
+        },
+        {
+          "id": "T2_RB_1",
+          "label": "RB2 1",
+          "x": 189,
+          "y": 35,
+          "color": "yellow",
+          "kind": "banana4",
+          "silkLabel": "RB2-1"
+        },
+        {
+          "id": "T2_RB_2",
+          "label": "RB2 2",
+          "x": 219,
+          "y": 35,
+          "color": "yellow",
+          "kind": "banana4",
+          "silkLabel": "RB2-2"
+        },
+        {
+          "id": "T2_CT_P",
+          "label": "C2 +",
+          "x": 139,
+          "y": 160,
+          "color": "yellow",
+          "kind": "banana4",
+          "silkLabel": "C2+"
+        },
+        {
+          "id": "T2_CT_N",
+          "label": "C2 -",
+          "x": 169,
+          "y": 160,
+          "color": "yellow",
+          "kind": "banana4",
+          "silkLabel": "C2-"
+        },
+        {
+          "id": "T2_CC_1",
+          "label": "C4 1",
+          "x": 189,
+          "y": 160,
+          "color": "yellow",
+          "kind": "banana4",
+          "silkLabel": "C4-1"
+        },
+        {
+          "id": "T2_CC_2",
+          "label": "C4 2",
+          "x": 219,
+          "y": 160,
+          "color": "yellow",
+          "kind": "banana4",
+          "silkLabel": "C4-2"
+        },
+        {
+          "id": "SPK_P",
+          "label": "LS1 +",
+          "x": 252,
+          "y": 45,
+          "color": "yellow",
+          "kind": "banana4",
+          "silkLabel": "SPK+"
+        },
+        {
+          "id": "SPK_N",
+          "label": "LS1 -",
+          "x": 252,
+          "y": 75,
+          "color": "black",
+          "kind": "banana4",
+          "silkLabel": "SPK-"
+        },
+        {
+          "id": "C5_P",
+          "label": "C5 +",
+          "x": 252,
+          "y": 105,
+          "color": "yellow",
+          "kind": "banana4",
+          "silkLabel": "C5+"
+        },
+        {
+          "id": "C5_N",
+          "label": "C5 -",
+          "x": 252,
+          "y": 135,
+          "color": "yellow",
+          "kind": "banana4",
+          "silkLabel": "C5-"
+        }
+      ],
+      "controls": [],
+      "screens": [],
+      "id": "mod-555-app",
+      "name": "555 定时器应用实验板",
+      "kind": "module",
+      "bodyStyle": "module",
+      "dimensionsMm": [
+        264,
+        184,
+        18
+      ],
+      "model": "content/modules/mod-555-app/module.glb",
+      "textureSize": [
+        2048,
+        1428
+      ],
+      "dimensionNote": "Prototype section 5.4: exact 264 x 184 mm panel and all 36 jack/component centers; original neutral housing with estimated 18 mm depth. Chip 1/8 pins share the exposed GND/VCC; all RC/modulation/speaker endpoints remain independent.",
+      "panel": {
+        "title": "555 定时器应用",
+        "titleSize": 5.2,
+        "frames": [
+          {
+            "x": 42.19,
+            "y": 69.19,
+            "width": 32,
+            "height": 38
+          },
+          {
+            "x": 166.19,
+            "y": 69.19,
+            "width": 32,
+            "height": 38
+          }
+        ],
+        "lines": [
+          {
+            "points": [
+              [
+                25,
+                80
+              ],
+              [
+                42.19,
+                80
+              ]
+            ],
+            "width": 0.6
+          },
+          {
+            "points": [
+              [
+                25,
+                105
+              ],
+              [
+                42.19,
+                105
+              ]
+            ],
+            "width": 0.6
+          },
+          {
+            "points": [
+              [
+                62,
+                60
+              ],
+              [
+                62,
+                69.19
+              ]
+            ],
+            "width": 0.6
+          },
+          {
+            "points": [
+              [
+                45,
+                130
+              ],
+              [
+                45,
+                107.19
+              ]
+            ],
+            "width": 0.6
+          },
+          {
+            "points": [
+              [
+                85,
+                130
+              ],
+              [
+                85,
+                113
+              ],
+              [
+                68,
+                113
+              ],
+              [
+                68,
+                107.19
+              ]
+            ],
+            "width": 0.6
+          },
+          {
+            "points": [
+              [
+                100,
+                92
+              ],
+              [
+                74.19,
+                92
+              ]
+            ],
+            "width": 0.6
+          },
+          {
+            "points": [
+              [
+                15,
+                35
+              ],
+              [
+                20,
+                35
+              ]
+            ],
+            "width": 0.6
+          },
+          {
+            "points": [
+              [
+                30,
+                35
+              ],
+              [
+                45,
+                35
+              ]
+            ],
+            "width": 0.6
+          },
+          {
+            "points": [
+              [
+                65,
+                35
+              ],
+              [
+                70,
+                35
+              ]
+            ],
+            "width": 0.6
+          },
+          {
+            "points": [
+              [
+                80,
+                35
+              ],
+              [
+                95,
+                35
+              ]
+            ],
+            "width": 0.6
+          },
+          {
+            "points": [
+              [
+                15,
+                160
+              ],
+              [
+                28,
+                160
+              ]
+            ],
+            "width": 0.6
+          },
+          {
+            "points": [
+              [
+                30,
+                160
+              ],
+              [
+                45,
+                160
+              ]
+            ],
+            "width": 0.6
+          },
+          {
+            "points": [
+              [
+                28,
+                156
+              ],
+              [
+                28,
+                164
+              ]
+            ],
+            "width": 0.6
+          },
+          {
+            "points": [
+              [
+                30,
+                156
+              ],
+              [
+                30,
+                164
+              ]
+            ],
+            "width": 0.6
+          },
+          {
+            "points": [
+              [
+                65,
+                160
+              ],
+              [
+                76.5,
+                160
+              ]
+            ],
+            "width": 0.6
+          },
+          {
+            "points": [
+              [
+                78.5,
+                160
+              ],
+              [
+                95,
+                160
+              ]
+            ],
+            "width": 0.6
+          },
+          {
+            "points": [
+              [
+                76.5,
+                156
+              ],
+              [
+                76.5,
+                164
+              ]
+            ],
+            "width": 0.6
+          },
+          {
+            "points": [
+              [
+                78.5,
+                156
+              ],
+              [
+                78.5,
+                164
+              ]
+            ],
+            "width": 0.6
+          },
+          {
+            "points": [
+              [
+                149,
+                80
+              ],
+              [
+                166.19,
+                80
+              ]
+            ],
+            "width": 0.6
+          },
+          {
+            "points": [
+              [
+                149,
+                105
+              ],
+              [
+                166.19,
+                105
+              ]
+            ],
+            "width": 0.6
+          },
+          {
+            "points": [
+              [
+                186,
+                60
+              ],
+              [
+                186,
+                69.19
+              ]
+            ],
+            "width": 0.6
+          },
+          {
+            "points": [
+              [
+                169,
+                130
+              ],
+              [
+                169,
+                107.19
+              ]
+            ],
+            "width": 0.6
+          },
+          {
+            "points": [
+              [
+                209,
+                130
+              ],
+              [
+                209,
+                113
+              ],
+              [
+                192,
+                113
+              ],
+              [
+                192,
+                107.19
+              ]
+            ],
+            "width": 0.6
+          },
+          {
+            "points": [
+              [
+                224,
+                92
+              ],
+              [
+                198.19,
+                92
+              ]
+            ],
+            "width": 0.6
+          },
+          {
+            "points": [
+              [
+                139,
+                35
+              ],
+              [
+                144,
+                35
+              ]
+            ],
+            "width": 0.6
+          },
+          {
+            "points": [
+              [
+                154,
+                35
+              ],
+              [
+                169,
+                35
+              ]
+            ],
+            "width": 0.6
+          },
+          {
+            "points": [
+              [
+                189,
+                35
+              ],
+              [
+                194,
+                35
+              ]
+            ],
+            "width": 0.6
+          },
+          {
+            "points": [
+              [
+                204,
+                35
+              ],
+              [
+                219,
+                35
+              ]
+            ],
+            "width": 0.6
+          },
+          {
+            "points": [
+              [
+                139,
+                160
+              ],
+              [
+                152,
+                160
+              ]
+            ],
+            "width": 0.6
+          },
+          {
+            "points": [
+              [
+                154,
+                160
+              ],
+              [
+                169,
+                160
+              ]
+            ],
+            "width": 0.6
+          },
+          {
+            "points": [
+              [
+                152,
+                156
+              ],
+              [
+                152,
+                164
+              ]
+            ],
+            "width": 0.6
+          },
+          {
+            "points": [
+              [
+                154,
+                156
+              ],
+              [
+                154,
+                164
+              ]
+            ],
+            "width": 0.6
+          },
+          {
+            "points": [
+              [
+                189,
+                160
+              ],
+              [
+                200.5,
+                160
+              ]
+            ],
+            "width": 0.6
+          },
+          {
+            "points": [
+              [
+                202.5,
+                160
+              ],
+              [
+                219,
+                160
+              ]
+            ],
+            "width": 0.6
+          },
+          {
+            "points": [
+              [
+                200.5,
+                156
+              ],
+              [
+                200.5,
+                164
+              ]
+            ],
+            "width": 0.6
+          },
+          {
+            "points": [
+              [
+                202.5,
+                156
+              ],
+              [
+                202.5,
+                164
+              ]
+            ],
+            "width": 0.6
+          },
+          {
+            "points": [
+              [
+                238,
+                118
+              ],
+              [
+                238,
+                121
+              ]
+            ],
+            "width": 0.6
+          },
+          {
+            "points": [
+              [
+                238,
+                131
+              ],
+              [
+                238,
+                145
+              ]
+            ],
+            "width": 0.6
+          },
+          {
+            "points": [
+              [
+                252,
+                105
+              ],
+              [
+                252,
+                117
+              ]
+            ],
+            "width": 0.6
+          },
+          {
+            "points": [
+              [
+                248,
+                117
+              ],
+              [
+                256,
+                117
+              ]
+            ],
+            "width": 0.6
+          },
+          {
+            "points": [
+              [
+                248,
+                119
+              ],
+              [
+                256,
+                119
+              ]
+            ],
+            "width": 0.6
+          },
+          {
+            "points": [
+              [
+                252,
+                119
+              ],
+              [
+                252,
+                135
+              ]
+            ],
+            "width": 0.6
+          },
+          {
+            "points": [
+              [
+                252,
+                45
+              ],
+              [
+                252,
+                53
+              ]
+            ],
+            "width": 0.6
+          },
+          {
+            "points": [
+              [
+                248,
+                54
+              ],
+              [
+                250,
+                54
+              ],
+              [
+                254,
+                51
+              ],
+              [
+                254,
+                65
+              ],
+              [
+                250,
+                62
+              ],
+              [
+                248,
+                62
+              ],
+              [
+                248,
+                54
+              ]
+            ],
+            "width": 0.6
+          },
+          {
+            "points": [
+              [
+                252,
+                63.5
+              ],
+              [
+                252,
+                75
+              ]
+            ],
+            "width": 0.6
+          }
+        ],
+        "symbols": [
+          {
+            "kind": "resistor",
+            "x": 25,
+            "y": 35,
+            "length": 10,
+            "label": "RA1 10 kΩ",
+            "labelX": 30,
+            "labelY": 47
+          },
+          {
+            "kind": "resistor",
+            "x": 75,
+            "y": 35,
+            "length": 10,
+            "label": "RB1 150 kΩ",
+            "labelX": 80,
+            "labelY": 47
+          },
+          {
+            "kind": "resistor",
+            "x": 149,
+            "y": 35,
+            "length": 10,
+            "label": "RA2 10 kΩ",
+            "labelX": 154,
+            "labelY": 47
+          },
+          {
+            "kind": "resistor",
+            "x": 199,
+            "y": 35,
+            "length": 10,
+            "label": "RB2 10 kΩ",
+            "labelX": 204,
+            "labelY": 47
+          },
+          {
+            "kind": "resistor",
+            "x": 238,
+            "y": 126,
+            "length": 10,
+            "angle": 90,
+            "label": "R5",
+            "labelX": 225,
+            "labelY": 143
+          }
+        ],
+        "texts": [
+          {
+            "text": "IC1",
+            "x": 58.19,
+            "y": 86,
+            "size": 3.8,
+            "align": "middle",
+            "weight": 700
+          },
+          {
+            "text": "NE555",
+            "x": 58.19,
+            "y": 92,
+            "size": 3.5,
+            "align": "middle",
+            "weight": 650
+          },
+          {
+            "text": "8 +5V",
+            "x": 58.19,
+            "y": 76,
+            "size": 2.6,
+            "align": "middle",
+            "weight": 500
+          },
+          {
+            "text": "1 GND",
+            "x": 58.19,
+            "y": 102.2,
+            "size": 2.6,
+            "align": "middle",
+            "weight": 500
+          },
+          {
+            "text": "C1 4.7 µF",
+            "x": 30.0,
+            "y": 172,
+            "size": 3.1,
+            "align": "middle",
+            "weight": 500
+          },
+          {
+            "text": "C3 0.01 µF",
+            "x": 80.0,
+            "y": 172,
+            "size": 3.1,
+            "align": "middle",
+            "weight": 500
+          },
+          {
+            "text": "IC2",
+            "x": 182.19,
+            "y": 86,
+            "size": 3.8,
+            "align": "middle",
+            "weight": 700
+          },
+          {
+            "text": "NE555",
+            "x": 182.19,
+            "y": 92,
+            "size": 3.5,
+            "align": "middle",
+            "weight": 650
+          },
+          {
+            "text": "8 +5V",
+            "x": 182.19,
+            "y": 76,
+            "size": 2.6,
+            "align": "middle",
+            "weight": 500
+          },
+          {
+            "text": "1 GND",
+            "x": 182.19,
+            "y": 102.2,
+            "size": 2.6,
+            "align": "middle",
+            "weight": 500
+          },
+          {
+            "text": "C2 0.047 µF",
+            "x": 154.0,
+            "y": 172,
+            "size": 3.1,
+            "align": "middle",
+            "weight": 500
+          },
+          {
+            "text": "C4 0.01 µF",
+            "x": 204.0,
+            "y": 172,
+            "size": 3.1,
+            "align": "middle",
+            "weight": 500
+          },
+          {
+            "text": "10 kΩ",
+            "x": 239,
+            "y": 157,
+            "size": 2.9,
+            "align": "middle",
+            "weight": 500
+          },
+          {
+            "text": "C5 100 µF",
+            "x": 252,
+            "y": 150,
+            "size": 2.7,
+            "align": "middle",
+            "weight": 500
+          },
+          {
+            "text": "LS1 8 Ω/0.5 W",
+            "x": 251,
+            "y": 86,
+            "size": 2.4,
+            "align": "middle",
+            "weight": 500
+          },
+          {
+            "text": "扬声器装于背面",
+            "x": 251,
+            "y": 92,
+            "size": 2.2,
+            "align": "middle",
+            "weight": 500
+          },
+          {
+            "text": "芯片 1/8 脚板内接 GND/+5V；其余元件插孔由学员接线",
+            "x": 132,
+            "y": 180,
+            "size": 2.6,
+            "align": "middle",
+            "weight": 500
+          }
+        ]
+      }
     }
   ],
   "preview": {
