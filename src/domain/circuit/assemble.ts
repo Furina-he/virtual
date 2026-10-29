@@ -9,6 +9,7 @@ import {
 } from '../instruments/index.ts'
 import { AssembleError } from './errors.ts'
 import { injectFault } from './fault.ts'
+import { deduplicateSpiceDefinitions } from './libraries.ts'
 import { moduleParameters } from './module-controls.ts'
 import { UnionFind } from './union-find.ts'
 
@@ -210,5 +211,9 @@ export function assembleNetlist(input: AssembleInput): AssembleOutput {
   const leaks = [...new Set(Object.values(nodeOf))].filter((n) => n !== '0').map((n) => `Rleak_${n} ${n} 0 ${LEAK_R}`)
 
   out.push(...subckts.values(), ...params, ...instances, ...instrumentLines, ...leaks, ...input.analysis, '.end')
-  return { netlist: out.join('\n'), nodeOf, nets, instrumentSuffix }
+  try {
+    return { netlist: deduplicateSpiceDefinitions(out.join('\n')), nodeOf, nets, instrumentSuffix }
+  } catch (error) {
+    throw new AssembleError('content', error instanceof Error ? error.message : '本地模型定义冲突')
+  }
 }

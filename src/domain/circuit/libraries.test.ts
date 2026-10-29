@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest'
-import { expandLocalLibraries } from './libraries.ts'
+import { deduplicateSpiceDefinitions, expandLocalLibraries } from './libraries.ts'
 
 it('inlines only named bundled libraries and preserves the circuit and model license text', () => {
   const text = '.subckt TEST A B\nR1 A B 1k\n.ends TEST\n.include "bjt.lib"'
@@ -41,4 +41,15 @@ it('deduplicates repeated and transitive dependencies without suppressing the bo
   expect(() => expandLocalLibraries(text, { 'a.lib': '.include a.lib', 'b.lib': '', 'shared.lib': '' })).toThrow(
     '循环引用',
   )
+})
+
+it('deduplicates exact shared definitions across modules but retains subcircuit-local model scopes', () => {
+  const common = '.subckt CORE A B\nR1 A B 1k\n.model LOCAL D(IS=1p)\n.ends CORE\n.model GLOBAL NPN(BF=60)\n+ IS=1p'
+  const output = deduplicateSpiceDefinitions(`Board\n${common}\n${common}\nX1 a b CORE\n.end`)
+  expect(output.match(/\.subckt CORE/g)).toHaveLength(1)
+  expect(output.match(/\.model GLOBAL/g)).toHaveLength(1)
+  expect(output).toContain('.model LOCAL D(IS=1p)')
+  expect(output).toContain('X1 a b CORE')
+  expect(() => deduplicateSpiceDefinitions(`${common}\n.model GLOBAL NPN(BF=100)`)).toThrow('重复定义不一致')
+  expect(() => deduplicateSpiceDefinitions('.subckt M A B\nR1 A B 1k')).toThrow('未结束')
 })

@@ -22,3 +22,41 @@ export function expandLocalLibraries(
       .join('\n')
   return expand(text, stack)
 }
+
+/** Bundled dependencies shared by different modules must define a global model/subcircuit only once. */
+export function deduplicateSpiceDefinitions(text: string): string {
+  const definitions = new Map<string, string>()
+  const lines = text.split(/\r?\n/)
+  const output: string[] = []
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i] as string
+    const header = /^\s*\.(subckt|model)\s+(\S+)/i.exec(line)
+    if (!header) {
+      output.push(line)
+      continue
+    }
+    const block = [line]
+    if (header[1]?.toLowerCase() === 'subckt') {
+      let depth = 1
+      while (depth > 0 && i + 1 < lines.length) {
+        const next = lines[++i] as string
+        block.push(next)
+        if (/^\s*\.subckt\b/i.test(next)) depth++
+        if (/^\s*\.ends\b/i.test(next)) depth--
+      }
+      if (depth) throw new Error(`本地子电路未结束：${header[2]}。`)
+    } else {
+      while (i + 1 < lines.length && /^\s*\+/.test(lines[i + 1] as string)) block.push(lines[++i] as string)
+    }
+    const name = `${header[1]}:${header[2]}`.toLowerCase()
+    const definition = block.join('\n')
+    const previous = definitions.get(name)
+    if (previous !== undefined && previous !== definition)
+      throw new Error(`本地模型/子电路重复定义不一致：${header[2]}。`)
+    if (previous === undefined) {
+      definitions.set(name, definition)
+      output.push(definition)
+    }
+  }
+  return output.join('\n')
+}
