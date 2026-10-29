@@ -104,12 +104,12 @@
 <polyline points="21,33 27,33" fill="none" stroke="hsl(210, 15%, 23%)" stroke-width="0.6"/>
 <polyline points="23,35 25,35" fill="none" stroke="hsl(210, 15%, 23%)" stroke-width="0.6"/>
 <text x="108" y="10" font-size="3.5" text-anchor="middle" font-weight="650" fill="hsl(210, 15%, 23%)">+5V</text>
-<text x="96" y="69" font-size="3.5" text-anchor="middle" font-weight="650" fill="hsl(210, 15%, 23%)">GND</text>
+<text x="96" y="75" font-size="3.5" text-anchor="middle" font-weight="650" fill="hsl(210, 15%, 23%)">GND</text>
 <text x="12" y="34.5" font-size="3.5" text-anchor="middle" font-weight="650" fill="hsl(210, 15%, 23%)">IN</text>
 <text x="108" y="34.5" font-size="3.5" text-anchor="middle" font-weight="650" fill="hsl(210, 15%, 23%)">OUT</text>
 <text x="52" y="38" font-size="3.5" text-anchor="middle" font-weight="500" fill="hsl(210, 15%, 23%)">+</text>
 <text x="52" y="51" font-size="3.5" text-anchor="middle" font-weight="500" fill="hsl(210, 15%, 23%)">−</text>
 <text x="41" y="25" font-size="2.7" text-anchor="middle" font-weight="500" fill="hsl(210, 15%, 23%)">C1 100 nF</text>
-<text x="61" y="60" font-size="2.4" text-anchor="middle" font-weight="500" fill="hsl(210, 15%, 23%)">单位增益负反馈</text>
+<text x="80" y="57" font-size="2.4" text-anchor="middle" font-weight="500" fill="hsl(210, 15%, 23%)">单位增益负反馈</text>
 <text x="60" y="71" font-size="2" text-anchor="middle" font-weight="500" fill="hsl(197, 27%, 31%)">TLV9001IDBVR 估计模型 / 5 V</text>
 </g></svg>
