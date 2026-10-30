@@ -129,13 +129,22 @@ async function showSteps() {
 
 async function selectOption(container: ReturnType<typeof panel>, label: string, optionName: string) {
   const trigger = container.getByRole('combobox', { name: label, exact: true })
+  await page.mouse.move(0, 0)
+  const selectedValue = trigger.locator('[data-slot="select-value"]')
+  await expect(selectedValue).toBeVisible()
+  const selectedName = ((await selectedValue.textContent()) ?? '').trim()
   await trigger.press('Enter')
+  // Wait for Radix initial focus before moving to a different option.
+  await expect(page.getByRole('option', { name: selectedName, exact: true })).toBeFocused()
   const option = page.getByRole('option', { name: optionName, exact: true })
+  await expect(option).toBeVisible()
   await option.focus()
   await expect(option).toBeFocused()
-  await option.press('Enter')
+  await page.keyboard.press('Enter')
   await expect(trigger).toHaveAttribute('aria-expanded', 'false')
   await expect(trigger).toContainText(optionName)
+  // Closing autofocus must finish before the next selector receives a key.
+  await expect(trigger).toBeFocused()
 }
 
 async function showTable(table: TableId) {
@@ -144,13 +153,7 @@ async function showTable(table: TableId) {
   if ((await data().getAttribute('data-task-table')) !== table) {
     const title = project.dataTables.find((entry) => entry.id === table)?.title
     if (!title) throw new Error(`Missing configured table ${table}`)
-    const trigger = data().getByRole('combobox', { name: '记录数据表', exact: true })
-    await trigger.press('Enter')
-    const actual = page.getByRole('option', { name: title, exact: true })
-    await actual.focus()
-    await expect(actual).toBeFocused()
-    await actual.press('Enter')
-    await expect(trigger).toHaveAttribute('aria-expanded', 'false')
+    await selectOption(data(), '记录数据表', title)
   }
   await expect(data()).toHaveAttribute('data-task-table', table)
 }
