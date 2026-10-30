@@ -416,7 +416,7 @@
     },
     {
       "id": "ambulance-lf",
-      "text": "示波器 GND 接 GND1，CH1 接 T1_OUT、CH2 接 T1_TH，DC 耦合、0.2 s/div、自动触发。等待至少三个稳态上升沿（两个完整周期）后记录低频频率/周期及 C1 极值；原设计约 0.99 Hz，此时 CH2 的 1 MΩ∥20 pF 加载 C1，使实测约 0.934 Hz；手填不能替代真实周期证据。",
+      "text": "示波器 GND 接 GND1，CH1 接 T1_OUT、CH2 接 T1_TH，DC 耦合、0.2 s/div、自动触发。等待至少三个稳态上升沿（两个完整周期）且启动 0 V 已退出当前约 4 s 的整个极值窗口后，记录低频频率/周期及 C1 极值；原设计约 0.99 Hz，此时 CH2 的 1 MΩ∥20 pF 加载 C1，使实测约 0.934 Hz；手填不能替代真实周期证据。 近期周期证据不证明整个极值窗已稳态；步骤同时检查实测 C1 下阈值 1.64–1.90 V、上阈值 3.10–3.60 V。真实启动值仍可记录并提示，但不能据此完成阈值步骤，不裁剪历史或代填理论电压。",
       "measurePoints": [
         "lf-frequency",
         "lf-period",
@@ -491,11 +491,23 @@
         "measurePoint": "lf-frequency",
         "min": 0.9243085,
         "max": 0.9429814
-      }
+      },
+      "expects": [
+        {
+          "measurePoint": "lf-cap-min",
+          "min": 1.64,
+          "max": 1.9
+        },
+        {
+          "measurePoint": "lf-cap-max",
+          "min": 3.1,
+          "max": 3.6
+        }
+      ]
     },
     {
       "id": "ambulance-tone-low",
-      "text": "先断电将 CH1 接 T2_OUT、CH2 接 T2_CV，DC 耦合、0.2 ms/div。进入低音平台中间并让最近至少 0.2 s 完全处于平台，确认真实载频约 1.023 kHz 后记录频率、输出 Vpp 与 CV 高平台短窗均值；不能用整低频窗平均。",
+      "text": "先断电将 CH1 接 T2_OUT、CH2 接 T2_CV，DC 耦合、0.2 ms/div。进入低音平台中间并让最近至少 0.2 s 完全处于平台，确认真实载频约 1.023 kHz 后记录频率、输出 Vpp 与 CV 高平台短窗均值；不能用整低频窗平均。 步骤同时检查当前真实 CV 短窗均值 3.31–3.34 V；载频的近期周期已有效不代表 CV 均值窗已完整进入平台。",
       "measurePoints": [
         "carrier-frequency",
         "carrier-vpp",
@@ -569,11 +581,18 @@
         "measurePoint": "carrier-frequency",
         "min": 1013.202,
         "max": 1033.67
-      }
+      },
+      "expects": [
+        {
+          "measurePoint": "control-mean",
+          "min": 3.31,
+          "max": 3.34
+        }
+      ]
     },
     {
       "id": "ambulance-tone-high",
-      "text": "保留当前表线与短时基，等待高音平台中间且最近至少 0.2 s 完全在平台；记录真实约 1.408 kHz 载频、输出 Vpp 与 CV 低平台短窗均值。低音/高音列按阶段隔离，不互相覆盖。",
+      "text": "保留当前表线与短时基，等待高音平台中间且最近至少 0.2 s 完全在平台；记录真实约 1.408 kHz 载频、输出 Vpp 与 CV 低平台短窗均值。低音/高音列按阶段隔离，不互相覆盖。 步骤同时检查当前真实 CV 短窗均值 2.49–2.51 V；载频的近期周期已有效不代表 CV 均值窗已完整进入平台。",
       "measurePoints": [
         "carrier-frequency",
         "carrier-vpp",
@@ -647,7 +666,14 @@
         "measurePoint": "carrier-frequency",
         "min": 1394.168,
         "max": 1422.334
-      }
+      },
+      "expects": [
+        {
+          "measurePoint": "control-mean",
+          "min": 2.49,
+          "max": 2.51
+        }
+      ]
     },
     {
       "id": "ambulance-speaker",
@@ -863,7 +889,7 @@
     },
     {
       "id": "fire-buffered-lf",
-      "text": "示波器 GND 接 GND1，CH1 接 T1_OUT、CH2 接 T1_TH，DC 耦合、0.2 s/div、自动触发。上电等三个稳态上升沿，记录低频频率/周期和 C1 极值；原设计约 0.99 Hz，CH2 的 1 MΩ∥20 pF 加载后实测约 0.934 Hz，确认加入缓冲后低频持续工作。",
+      "text": "示波器 GND 接 GND1，CH1 接 T1_OUT、CH2 接 T1_TH，DC 耦合、0.2 s/div、自动触发。上电等待至少三个稳态上升沿，并等待启动 0 V 退出当前约 4 s 的整个极值窗口后，记录低频频率/周期和 C1 极值；原设计约 0.99 Hz，CH2 的 1 MΩ∥20 pF 加载后实测约 0.934 Hz，确认加入缓冲后低频持续工作。 近期周期证据不证明整个极值窗已稳态；步骤同时检查实测 C1 下阈值 1.64–1.90 V、上阈值 3.10–3.60 V。真实启动值仍可记录并提示，但不能据此完成阈值步骤，不裁剪历史或代填理论电压。",
       "measurePoints": [
         "lf-frequency",
         "lf-period",
@@ -941,7 +967,19 @@
         "measurePoint": "lf-frequency",
         "min": 0.9243085,
         "max": 0.9429814
-      }
+      },
+      "expects": [
+        {
+          "measurePoint": "lf-cap-min",
+          "min": 1.64,
+          "max": 1.9
+        },
+        {
+          "measurePoint": "lf-cap-max",
+          "min": 3.1,
+          "max": 3.6
+        }
+      ]
     },
     {
       "id": "fire-buffered-cv",

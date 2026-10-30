@@ -2,6 +2,7 @@ import { copyFileSync, mkdtempSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 import { _electron as electron, expect, type Page, test } from '@playwright/test'
+import { requiredMeasurements } from '../../src/domain/task/progress'
 import type { Step } from '../../src/shared/schema/project'
 import {
   region,
@@ -51,7 +52,8 @@ function displayedChannel(pointId: string): number {
 
 async function ready(page: Page, step: Step): Promise<boolean> {
   const scope = await sd22Scope(page)
-  return (step.measurePoints ?? []).every((id) => {
+  const ranges = [...(step.expect ? [step.expect] : []), ...(step.expects ?? [])]
+  return requiredMeasurements(step).every((id) => {
     const point = sd22Project.reference.measurePoints.find((item) => item.id === id)
     if (point?.kind !== 'waveform') return false
     const channel = scope?.channels[displayedChannel(id)]
@@ -59,12 +61,7 @@ async function ready(page: Page, step: Step): Promise<boolean> {
     const value = channel?.[quantity]
     if (typeof value !== 'number' || !Number.isFinite(value)) return false
     if ((channel?.window?.completeCycles ?? 0) < (point.minCycles ?? 0)) return false
-    if (step.expect?.measurePoint === id && (value < step.expect.min || value > step.expect.max)) return false
-    // Only capture a static CV plateau after the entire voltage window is on that plateau.
-    if (step.id === 'ambulance-tone-low' && id === 'control-mean') return value > 3.31 && value < 3.34
-    if (step.id === 'ambulance-tone-high' && id === 'control-mean') return value > 2.49 && value < 2.51
-    if (id === 'lf-cap-min' && value < 1.64) return false
-    return true
+    return ranges.every((range) => range.measurePoint !== id || (value >= range.min && value <= range.max))
   })
 }
 
@@ -159,8 +156,14 @@ test('SD-22 双模式完整真实操作：检查、供电、长周期/载频/CV/
     await sd22ScopeLeads(page, 'timer1.T2_OUT', 'timer1.T2_CV')
     await sd22Timebase(page, 0.0002)
     await page.getByRole('button', { name: '上电', exact: true }).click()
-    records['ambulance-tone-low'] = await capture(page, 'ambulance-tone-low')
-    records['ambulance-tone-high'] = await capture(page, 'ambulance-tone-high')
+    const lowTone = await capture(page, 'ambulance-tone-low')
+    records['ambulance-tone-low'] = lowTone
+    expect(lowTone['cv-high']?.value).toBeGreaterThan(3.31)
+    expect(lowTone['cv-high']?.value).toBeLessThan(3.34)
+    const highTone = await capture(page, 'ambulance-tone-high')
+    records['ambulance-tone-high'] = highTone
+    expect(highTone['cv-low']?.value).toBeGreaterThan(2.49)
+    expect(highTone['cv-low']?.value).toBeLessThan(2.51)
     await sd22Tab(page, '仪表')
     await page.screenshot({ path: `${stem}-ambulance-tones.png` })
     records['ambulance-tone-evidence'] = await sd22Evidence(page)

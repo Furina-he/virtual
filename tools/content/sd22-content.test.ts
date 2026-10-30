@@ -72,7 +72,13 @@ function stateAt(stepId: string) {
 }
 
 // Protocol-only samples exercise content gates; real circuit evidence lives in the ngspice golden suite.
-function snapshot(reference: Project['reference'], jack: string, measurement: SignalMeasurement): MeasurementSnapshot {
+function snapshot(
+  reference: Project['reference'],
+  jack: string,
+  measurement: SignalMeasurement,
+  second?: { jack: string; measurement: SignalMeasurement },
+): MeasurementSnapshot {
+  const channels = [{ id: 'CH1', jack, measurement }, ...(second ? [{ id: 'CH2', ...second }] : [])]
   const circuit: AssembleInput = {
     title: 'SD-22 protocol-only content evidence',
     modules: [
@@ -89,7 +95,7 @@ function snapshot(reference: Project['reference'], jack: string, measurement: Si
     ],
     wires: [
       ...wires(reference.nets, 'star'),
-      { a: 'scope1.CH1', b: `timer1.${jack}` },
+      ...channels.map((channel) => ({ a: `scope1.${channel.id}`, b: `timer1.${channel.jack}` })),
       { a: 'scope1.GND', b: 'timer1.GND1' },
     ],
     controlValues: {},
@@ -100,26 +106,24 @@ function snapshot(reference: Project['reference'], jack: string, measurement: Si
     current: true,
     plan,
     readings: {},
-    waveforms: [
-      {
-        instanceId: 'scope1',
-        channelId: 'CH1',
-        positiveRef: 'scope1.CH1',
-        negativeRef: 'scope1.GND',
-        coupling: 'dc',
-        current: true,
-        measurement,
-        window: {
-          start: 1,
-          end: 1.2,
-          rawStep: 2e-6,
-          completeCycles: measurement.completeCycles ?? 0,
-          source: 'raw',
-          revision: 1,
-          frozen: false,
-        },
+    waveforms: channels.map((channel) => ({
+      instanceId: 'scope1',
+      channelId: channel.id,
+      positiveRef: `scope1.${channel.id}`,
+      negativeRef: 'scope1.GND',
+      coupling: 'dc',
+      current: true,
+      measurement: channel.measurement,
+      window: {
+        start: 1,
+        end: 1.2,
+        rawStep: 2e-6,
+        completeCycles: channel.measurement.completeCycles ?? 0,
+        source: 'raw',
+        revision: 1,
+        frozen: false,
       },
-    ],
+    })),
   }
 }
 
@@ -278,6 +282,137 @@ describe('SD-22 approved two-mode content and evidence contracts', () => {
     }
     const result = captureMeasurePoint(snapshot(project.reference, 'T2_CV', measurement), point('control-mean'))
     expect(result).toMatchObject({ ok: true, measurement: { referenceValueSI: 3.325 } })
+  })
+
+  it('adds only the four explicit steady-phase gate sets without replacing original single-point ranges', () => {
+    const lowFrequency = { measurePoint: 'lf-frequency', min: 0.9243085, max: 0.9429814 }
+    const extrema = [
+      { measurePoint: 'lf-cap-min', min: 1.64, max: 1.9 },
+      { measurePoint: 'lf-cap-max', min: 3.1, max: 3.6 },
+    ]
+    for (const id of ['ambulance-lf', 'fire-buffered-lf']) {
+      expect(step(id).expect).toEqual(lowFrequency)
+      expect(step(id).expects).toEqual(extrema)
+    }
+    expect(step('ambulance-tone-low').expect).toEqual({
+      measurePoint: 'carrier-frequency',
+      min: 1013.202,
+      max: 1033.67,
+    })
+    expect(step('ambulance-tone-low').expects).toEqual([{ measurePoint: 'control-mean', min: 3.31, max: 3.34 }])
+    expect(step('ambulance-tone-high').expect).toEqual({
+      measurePoint: 'carrier-frequency',
+      min: 1394.168,
+      max: 1422.334,
+    })
+    expect(step('ambulance-tone-high').expects).toEqual([{ measurePoint: 'control-mean', min: 2.49, max: 2.51 }])
+    expect(project.steps.filter((entry) => entry.expects?.length).map((entry) => entry.id)).toEqual([
+      'ambulance-lf',
+      'ambulance-tone-low',
+      'ambulance-tone-high',
+      'fire-buffered-lf',
+    ])
+  })
+
+  it('keeps startup zero recordable in both low-frequency modes without completing a steady-extrema phase', () => {
+    const low = { ...carrier, frequency: 0.933625, period: 1 / 0.933625, completeCycles: 2 }
+    const capacitor = { ...low, min: 0, max: 3.3333, vpp: 3.3333, mean: 2.2 }
+    for (const id of ['ambulance-lf', 'fire-buffered-lf']) {
+      const entry = step(id)
+      const evidence = snapshot(scopedReference(project, entry), 'T1_OUT', low, {
+        jack: 'T1_TH',
+        measurement: capacitor,
+      })
+      for (const reading of evidence.waveforms ?? [])
+        reading.window = {
+          start: 0,
+          end: 4,
+          rawStep: 2e-6,
+          completeCycles: 2,
+          source: 'stream',
+          revision: 1,
+          frozen: false,
+        }
+      const recorded = recordCurrentReading(project, stateAt(id), entry.dataTable as string, 0, 'ct-min', {
+        snapshot: evidence,
+        wiringCorrect: true,
+      })
+      expect(recorded.ok).toBe(true)
+      expect(recorded.state.tables[entry.dataTable as string]?.[0]?.['ct-min']).toBe(0)
+      expect(recorded.warnings.join(' ')).toContain('C1 下阈值')
+      expect(recorded.measurement?.window).toMatchObject({ start: 0, end: 4, source: 'stream', completeCycles: 2 })
+      expect(recorded.state.completedSteps).not.toContain(id)
+      expect(completeTaskStep(project, recorded.state, id, { snapshot: evidence, wiringCorrect: true }).ok).toBe(false)
+      expect(evidence.waveforms?.[1]?.measurement?.min).toBe(0)
+    }
+  })
+
+  it('completes both low-frequency modes only when current steady minimum and maximum both satisfy their gates', () => {
+    const low = { ...carrier, frequency: 0.933625, period: 1 / 0.933625, completeCycles: 3 }
+    const capacitor = { ...low, min: 1.66664, max: 3.33329, vpp: 3.33329 - 1.66664, mean: 2.55 }
+    for (const id of ['ambulance-lf', 'fire-buffered-lf']) {
+      const entry = step(id)
+      const reference = scopedReference(project, entry)
+      const evidence = snapshot(reference, 'T1_OUT', low, { jack: 'T1_TH', measurement: capacitor })
+      for (const reading of evidence.waveforms ?? [])
+        reading.window = {
+          start: 1.5,
+          end: 5.5,
+          rawStep: 2e-6,
+          completeCycles: 3,
+          source: 'stream',
+          revision: 1,
+          frozen: false,
+        }
+      const completed = completeTaskStep(project, stateAt(id), id, { snapshot: evidence, wiringCorrect: true })
+      expect(completed.ok).toBe(true)
+      expect(completed.state.completedSteps).toContain(id)
+      const recorded = recordCurrentReading(project, stateAt(id), entry.dataTable as string, 0, 'ct-max', {
+        snapshot: evidence,
+        wiringCorrect: true,
+        advance: false,
+      })
+      expect(recorded.ok).toBe(true)
+      expect(recorded.measurement?.window).toMatchObject({ start: 1.5, end: 5.5, source: 'stream' })
+      for (const invalid of [
+        { ...capacitor, min: 2 },
+        { ...capacitor, max: 2.9 },
+      ]) {
+        const wrongRange = snapshot(reference, 'T1_OUT', low, { jack: 'T1_TH', measurement: invalid })
+        expect(completeTaskStep(project, stateAt(id), id, { snapshot: wrongRange, wiringCorrect: true }).ok).toBe(false)
+      }
+    }
+  })
+
+  it('rejects mixed CV means despite a matched recent carrier and accepts each actual static tone plateau', () => {
+    for (const [id, frequency, voltage] of [
+      ['ambulance-tone-low', 1023.436, 3.325],
+      ['ambulance-tone-high', 1408.251, 2.5006],
+    ] as const) {
+      const entry = step(id)
+      const matchedCarrier = { ...carrier, frequency, period: 1 / frequency }
+      const mixed = { ...carrier, min: 2.5006, max: 3.325, mean: 3.1, vpp: 3.325 - 2.5006 }
+      const reference = scopedReference(project, entry)
+      const evidence = snapshot(reference, 'T2_OUT', matchedCarrier, { jack: 'T2_CV', measurement: mixed })
+      expect(captureMeasurePoint(evidence, point('carrier-frequency')).ok).toBe(true)
+      expect(captureMeasurePoint(evidence, point('control-mean')).ok).toBe(true)
+      expect(completeTaskStep(project, stateAt(id), id, { snapshot: evidence, wiringCorrect: true }).ok).toBe(false)
+      const plateau = {
+        ...mixed,
+        min: voltage,
+        max: voltage,
+        mean: voltage,
+        vpp: 0,
+        frequency: null,
+        period: null,
+        completeCycles: 0,
+      }
+      const current = snapshot(reference, 'T2_OUT', matchedCarrier, { jack: 'T2_CV', measurement: plateau })
+      const completed = completeTaskStep(project, stateAt(id), id, { snapshot: current, wiringCorrect: true })
+      expect(completed.ok).toBe(true)
+      expect(completed.state.completedSteps).toContain(id)
+      expect(current.waveforms?.[1]?.measurement).toMatchObject({ mean: voltage, completeCycles: 0 })
+    }
   })
 
   it('keeps the three gradual-tone gate ranges non-overlapping', () => {
