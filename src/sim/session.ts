@@ -8,13 +8,55 @@
 // 声明的电阻目标在片间隙直接 alter，不 reset 储能支路；旧参数接口仍保留原 reset 行为。
 // 不用 SendData 逐点回调：koffi 把每个点从后台线程排队回 JS 主线程，Electron 中实测
 // 只有约 2.7 万点/秒，20 µs 步长跟不上实时；也不在后台线程运行中调 bg_halt（会与排队回调互等）。
-import { type Analysis, type Probe, patchNetlistParameters, type SimCommand, type SimEvent } from '../shared/ipc/sim'
-import { Chunker } from './chunker'
-import { classifyError, NgSpice, NgSpiceError } from './ngspice'
+import { createHash } from 'node:crypto'
+import { type Analysis, type Probe, patchNetlistParameters, type SimCommand, type SimEvent } from '../shared/ipc/sim.ts'
+import { Chunker } from './chunker.ts'
+import { classifyError, NgSpice, NgSpiceError } from './ngspice.ts'
 
 type Emit = (event: SimEvent) => void
 type State = 'idle' | 'running' | 'paused' | 'error'
 type Load = Extract<SimCommand, { type: 'load' }>
+
+/** Opt-in local diagnostics. All timestamps use this process's monotonic clock; no new IPC events. */
+export interface SimSliceProfile {
+  loadId: string | null
+  circuitHash: string
+  sliceSeq: number
+  firstSeq: number | null
+  lastSeq: number | null
+  simFrom: number
+  simTo: number
+  startedAt: number
+  bgIssuedAt: number
+  bgStoppedAt: number
+  afterSliceAt: number
+  endedAt: number
+  rawPoints: number
+  outputPoints: number
+  probeCount: number
+  readCalls: number
+  distinctVectors: string[]
+  readBytes: number
+  outputBytes: number
+  trimVectors: number
+  trimCommands: number
+  /** The pacing wait immediately preceding this slice, not time spent solving it. */
+  paceBefore: { plannedWaitMs: number; actualWaitMs: number; latenessMs: number } | null
+  ms: {
+    sliceCommands: number
+    bgCommand: number
+    /** Includes native solve and callback handoff; not a pure solve timer. */
+    bgObserved: number
+    callbackQueue: number
+    readVector: number
+    /** Difference/interpolation/flush excluding the nested emit call. */
+    differenceChunker: number
+    emit: number
+    trim: number
+    freeCommands: number
+    afterSlice: number
+  }
+}
 
 /** 每块最多点数 */
 export const BLOCK_POINTS = 2048
@@ -88,15 +130,21 @@ export class SimSession {
   private readIdx = 0
   private probeValues = new Float64Array(0)
   private readonly timers: ReturnType<typeof setInterval>[] = []
+  private profile?: SimSliceProfile
+  private circuitHash = ''
+  private sliceSeq = 0
+  private paceBefore: SimSliceProfile['paceBefore'] = null
 
   constructor(
     dir: string,
     private readonly emit: Emit,
     private readonly onFatal: () => void,
+    private readonly onProfile?: (profile: SimSliceProfile) => void,
   ) {
     this.ng = NgSpice.open(dir, {
       onBgRunning: (running) => {
         this.bgRunning = running
+        if (!running && this.profile) this.profile.bgStoppedAt = performance.now()
         // 回调期间后台线程在等待返回，不能在这里调 ngspice
         if (!running) setImmediate(() => this.afterSlice())
       },
@@ -202,6 +250,7 @@ export class SimSession {
         this.quietEvents()
       }
       this.current = { ...cmd, netlist }
+      if (this.onProfile) this.circuitHash = createHash('sha256').update(buildNetlist(this.current)).digest('hex')
       this.emit({ type: 'altered', requestId: update.requestId, simTime: this.simTime, changes: update.changes })
       if (cmd.analysis.kind === 'op') this.runOp(this.current)
     } catch (e) {
@@ -254,8 +303,13 @@ export class SimSession {
     this.chunker = undefined
     this.readIdx = 0
     this.probeValues = new Float64Array(cmd.probes.length)
+    this.profile = undefined
+    this.paceBefore = null
+    this.sliceSeq = 0
     try {
-      this.ng.load(buildNetlist(cmd))
+      const netlist = buildNetlist(cmd)
+      if (this.onProfile) this.circuitHash = createHash('sha256').update(netlist).digest('hex')
+      this.ng.load(netlist)
       this.quietEvents()
       this.emit({
         type: 'loaded',
@@ -303,9 +357,18 @@ export class SimSession {
         this.resetPace()
         if (!this.started) {
           const ids = cmd.probes.map((p) => p.id)
-          this.chunker = new Chunker(ids, step, BLOCK_POINTS, (b) =>
-            this.emit({ type: 'chunk', seq: b.seq, t0: b.t0, dt: b.dt, data: b.data }),
-          )
+          this.chunker = new Chunker(ids, step, BLOCK_POINTS, (b) => {
+            const profile = this.profile
+            const before = profile ? performance.now() : 0
+            if (profile) {
+              profile.firstSeq ??= b.seq
+              profile.lastSeq = b.seq
+              profile.outputPoints += Object.values(b.data)[0]?.length ?? 0
+              for (const samples of Object.values(b.data)) profile.outputBytes += samples.byteLength
+            }
+            this.emit({ type: 'chunk', seq: b.seq, t0: b.t0, dt: b.dt, data: b.data })
+            if (profile) profile.ms.emit += performance.now() - before
+          })
           this.started = true
           this.nextSlice('bg_run')
         } else this.nextSlice('bg_resume')
@@ -316,25 +379,89 @@ export class SimSession {
   }
 
   private nextSlice(verb: 'bg_run' | 'bg_resume'): void {
+    const startedAt = this.onProfile ? performance.now() : 0
+    if (this.onProfile) {
+      this.profile = {
+        loadId: this.current?.requestId ?? null,
+        circuitHash: this.circuitHash,
+        sliceSeq: this.sliceSeq++,
+        firstSeq: null,
+        lastSeq: null,
+        simFrom: this.simTime,
+        simTo: this.simTime,
+        startedAt,
+        bgIssuedAt: startedAt,
+        bgStoppedAt: startedAt,
+        afterSliceAt: startedAt,
+        endedAt: startedAt,
+        rawPoints: 0,
+        outputPoints: 0,
+        probeCount: this.current?.probes.length ?? 0,
+        readCalls: 0,
+        distinctVectors: [],
+        readBytes: 0,
+        outputBytes: 0,
+        trimVectors: 0,
+        trimCommands: 0,
+        paceBefore: this.paceBefore,
+        ms: {
+          sliceCommands: 0,
+          bgCommand: 0,
+          bgObserved: 0,
+          callbackQueue: 0,
+          readVector: 0,
+          differenceChunker: 0,
+          emit: 0,
+          trim: 0,
+          freeCommands: 0,
+          afterSlice: 0,
+        },
+      }
+      this.paceBefore = null
+    }
     this.sliceEnd = this.simTime + SLICE_SEC
     this.bgErrors = []
     // 首片之前不能 delete all：.save 也是 debug 项，会被一并删掉而改为保存全部向量
     if (verb === 'bg_resume') this.ng.command('delete all')
     this.ng.command(`stop when time > ${this.sliceEnd}`)
     this.bgRunning = true
+    if (this.profile) {
+      this.profile.bgIssuedAt = performance.now()
+      this.profile.ms.sliceCommands = this.profile.bgIssuedAt - startedAt
+    }
     this.ng.command(verb)
+    if (this.profile) this.profile.ms.bgCommand = performance.now() - this.profile.bgIssuedAt
   }
 
   private afterSlice(): void {
     if (this.bgRunning) return
+    const profile = this.profile
+    if (profile) {
+      profile.afterSliceAt = performance.now()
+      profile.ms.bgObserved = profile.bgStoppedAt - profile.bgIssuedAt
+      profile.ms.callbackQueue = profile.afterSliceAt - profile.bgStoppedAt
+    }
     try {
       this.drain()
       // 每条命令的控制结构 ngspice 不自动释放（约 0.3 KB/条），每片清一次
+      const before = profile ? performance.now() : 0
       this.ng.freeCommandMemory()
+      if (profile) profile.ms.freeCommands = performance.now() - before
     } catch (e) {
       this.started = false
       this.fail(e)
       return
+    }
+    if (profile) {
+      profile.simTo = this.simTime
+      profile.endedAt = performance.now()
+      profile.ms.afterSlice = profile.endedAt - profile.afterSliceAt
+      this.profile = undefined
+      try {
+        this.onProfile?.(profile)
+      } catch {
+        // A diagnostic consumer failure does not fail the simulation.
+      }
     }
     if (this.bgErrors.length) {
       const detail = this.bgErrors.join('\n')
@@ -367,9 +494,15 @@ export class SimSession {
       ahead = (this.simTime - this.paceSim) / this.rate - (performance.now() / 1000 - this.paceWall)
       if (ahead < -MAX_LAG_SEC) this.resetPace()
     }
+    const scheduledAt = this.onProfile ? performance.now() : 0
+    const plannedWaitMs = Math.max(0, ahead * 1000)
     const go = () => {
       this.resumeNow = undefined
       if (this.state !== 'running' || this.bgRunning) return
+      if (this.onProfile) {
+        const actualWaitMs = performance.now() - scheduledAt
+        this.paceBefore = { plannedWaitMs, actualWaitMs, latenessMs: Math.max(0, actualWaitMs - plannedWaitMs) }
+      }
       try {
         this.nextSlice('bg_resume')
       } catch (e) {
@@ -393,18 +526,35 @@ export class SimSession {
     const chunker = this.chunker
     if (!cmd || !chunker) return
     const from = this.readIdx
-    const time = this.ng.readVector('time', from)
+    const profile = this.profile
+    const readStartedAt = profile ? performance.now() : 0
+    const vector = (name: string) => {
+      const values = this.ng.readVector(name, from)
+      if (profile) {
+        profile.readCalls++
+        if (!profile.distinctVectors.includes(name)) profile.distinctVectors.push(name)
+        profile.readBytes += values.byteLength
+      }
+      return values
+    }
+    const time = vector('time')
     const n = time.length
     if (n === 0) return
     const read = (node?: string) => {
       const v = node && vecName(node)
-      return v ? this.ng.readVector(v, from) : undefined
+      return v ? vector(v) : undefined
     }
     const series = cmd.probes.map((p): [Float64Array | undefined, Float64Array | undefined] =>
       p.kind === 'i'
-        ? [this.ng.readVector(`${(p.source ?? '').toLowerCase()}#branch`, from), undefined]
+        ? [vector(`${(p.source ?? '').toLowerCase()}#branch`), undefined]
         : [read(p.node), read(p.nodeRef)],
     )
+    if (profile) {
+      profile.ms.readVector = performance.now() - readStartedAt
+      profile.rawPoints = n
+    }
+    const transformStartedAt = profile ? performance.now() : 0
+    const emitBefore = profile?.ms.emit ?? 0
     const pv = this.probeValues
     for (let k = 0; k < n; k++) {
       for (let i = 0; i < pv.length; i++) {
@@ -414,6 +564,7 @@ export class SimSession {
       chunker.push(time[k] as number, pv)
     }
     chunker.flush()
+    if (profile) profile.ms.differenceChunker = performance.now() - transformStartedAt - (profile.ms.emit - emitBefore)
     this.readIdx = from + n
     this.simTime = time[n - 1] as number
     if (this.readIdx >= TRIM_POINTS) this.trim()
@@ -421,12 +572,19 @@ export class SimSession {
 
   // 每个向量只留末点，下一片新数据从下标 1 开始
   private trim(): void {
+    const profile = this.profile
+    const before = profile ? performance.now() : 0
     for (const v of this.ng.vectors()) {
+      if (profile) profile.trimVectors++
       const n = this.ng.vectorLength(v)
-      if (n > 1 && /^[\w.#]+$/.test(v)) this.ng.command(`let ${v} = ${v}[${n - 1}]`)
+      if (n > 1 && /^[\w.#]+$/.test(v)) {
+        this.ng.command(`let ${v} = ${v}[${n - 1}]`)
+        if (profile) profile.trimCommands++
+      }
     }
     this.readIdx = 1
     this.trims++
+    if (profile) profile.ms.trim = performance.now() - before
   }
 
   private sendReadings(): void {
