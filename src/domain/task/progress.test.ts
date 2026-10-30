@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import { Instrument, Module, Project } from '../../shared/schema/index.ts'
 import { getInstrumentDefaults } from '../instruments/index.ts'
+import { LongWindow } from '../instruments/long-window.ts'
 import { buildMeasurementPlan } from '../measurement/plan.ts'
 import { checkWiring } from '../wiring-check/index.ts'
 import type { MeasurementSnapshot } from './measurements.ts'
@@ -10,6 +11,7 @@ import {
   createTaskState,
   currentTaskStep,
   recordCurrentReading,
+  requiredMeasurements,
   scopedReference,
   tableRowComplete,
   writeTableCell,
@@ -194,6 +196,79 @@ describe('Current-step completion', () => {
     expect(completeTaskStep(bounded, state, 'i', { snapshot: snapshot(wiring, 1.234, -0.0025) }).ok).toBe(true)
   })
 
+  it('requires both the legacy and additional ranges against one current SI snapshot', () => {
+    const bounded = Project.parse({
+      ...project,
+      steps: [
+        {
+          id: 'measure',
+          text: 'Measure',
+          measurePoints: [],
+          expect: { measurePoint: 'i', min: 0.002, max: 0.003 },
+          expects: [{ measurePoint: 'u', min: 1, max: 1.5 }],
+        },
+      ],
+    })
+    let state = createTaskState(bounded)
+    state = writeTableCell(bounded, state, 'readings', 0, 'i', 2.5).state
+    state = writeTableCell(bounded, state, 'readings', 0, 'u', 1.234).state
+    expect(completeTaskStep(bounded, state, 'measure').ok).toBe(false)
+    expect(completeTaskStep(bounded, state, 'measure', { snapshot: snapshot(wiring, 0.5) }).ok).toBe(false)
+    expect(completeTaskStep(bounded, state, 'measure', { snapshot: snapshot(wiring, 1.234, 0.001) }).ok).toBe(false)
+    expect(completeTaskStep(bounded, state, 'measure', { snapshot: snapshot(wiring.slice(2)) }).ok).toBe(false)
+    expect(completeTaskStep(bounded, state, 'measure', { snapshot: { ...snapshot(), current: false } }).ok).toBe(false)
+    expect(completeTaskStep(bounded, state, 'measure', { snapshot: snapshot() }).ok).toBe(true)
+    expect(state.completedSteps).toEqual([])
+  })
+
+  it('applies every overlapping range for a point and preserves reference-oriented polarity', () => {
+    const bounded = Project.parse({
+      ...project,
+      steps: [
+        {
+          id: 'measure',
+          text: 'Measure',
+          expect: { measurePoint: 'u', min: 0.5, max: 2 },
+          expects: [
+            { measurePoint: 'u', min: 1, max: 1.5 },
+            { measurePoint: 'u', min: 1.1, max: 1.3 },
+          ],
+        },
+      ],
+    })
+    const state = createTaskState(bounded)
+    for (const voltage of [0.4, 0.8, 1.4, 2.1])
+      expect(completeTaskStep(bounded, state, 'measure', { snapshot: snapshot(wiring, voltage) }).ok).toBe(false)
+    const reversed = snapshot(
+      [
+        ['vm.POS', 'dc1.KH_A'],
+        ['vm.NEG', 'dc1.KH_F'],
+      ],
+      -1.234,
+    )
+    expect(completeTaskStep(bounded, state, 'measure', { snapshot: reversed }).ok).toBe(true)
+    expect(requiredMeasurements(bounded.steps[0])).toEqual(['u'])
+    expect(requiredMeasurements()).toEqual([])
+  })
+
+  it('allows a measured zero with an explicit zero range even when table sanity warns', () => {
+    const bounded = Project.parse({
+      ...project,
+      steps: [{ id: 'zero', text: 'Measure zero', expects: [{ measurePoint: 'u', min: 0, max: 0 }] }],
+      dataTables: project.dataTables.map((table) => ({
+        ...table,
+        sanity: [{ column: 'u', min: 1, max: 2, message: 'Check voltage range' }],
+      })),
+    })
+    const result = recordCurrentReading(bounded, createTaskState(bounded), 'readings', 0, 'u', {
+      snapshot: snapshot(wiring, 0),
+    })
+    expect(result.ok).toBe(true)
+    expect(result.state.tables.readings?.[0]?.u).toBe(0)
+    expect(result.warnings).toEqual(['Check voltage range'])
+    expect(result.state.completedSteps).toEqual(['zero'])
+  })
+
   it('requires a filled selected table row, permits zeros and ignores unfinished other rows', () => {
     let state = { ...createTaskState(project), completedSteps: ['prepare', 'wire', 'i', 'u'] }
     expect(completeTaskStep(project, state, 'analyse').ok).toBe(false)
@@ -324,6 +399,40 @@ describe('Scoped current-step wiring references', () => {
     expect(checkWiring(state.plan.checkInput, scoped).measurementsOk).toBe(true)
   })
 
+  it('includes expectation-only references in an explicit scope while deduplicating shared points', () => {
+    const configured = Project.parse({
+      ...project,
+      steps: [
+        {
+          id: 'measure',
+          text: 'Measure',
+          measurePoints: ['i'],
+          expect: { measurePoint: 'u', min: 1, max: 2 },
+          expects: [
+            { measurePoint: 'u', min: 1, max: 1.5 },
+            { measurePoint: 'i', min: 0.002, max: 0.003 },
+          ],
+        },
+      ],
+    })
+    expect(requiredMeasurements(configured.steps[0])).toEqual(['i', 'u'])
+    const scoped = scopedReference(configured, configured.steps[0])
+    expect(scoped.measurePoints.map((point) => point.id)).toEqual(['i', 'u'])
+    expect(scoped.nets).toBe(configured.reference.nets)
+    expect(checkWiring(snapshot(wiring.slice(2)).plan.checkInput, scoped).measurementsOk).toBe(false)
+    expect(checkWiring(snapshot().plan.checkInput, scoped).measurementsOk).toBe(true)
+    expect(configured.steps[0]?.measurePoints).toEqual(['i'])
+  })
+
+  it('preserves an undefined legacy scope even when additive expectations are present', () => {
+    const configured = Project.parse({
+      ...project,
+      steps: [{ id: 'measure', text: 'Measure', expects: [{ measurePoint: 'u', min: 1, max: 2 }] }],
+    })
+    expect(scopedReference(configured, configured.steps[0])).toBe(configured.reference)
+    expect(scopedReference(configured)).toBe(configured.reference)
+  })
+
   it('uses topology only for explicit empty scopes and after sequential completion', () => {
     expect(scopedReference(project, project.steps[0]).measurePoints).toEqual([])
     expect(scopedReference(project).measurePoints).toEqual([])
@@ -333,5 +442,129 @@ describe('Scoped current-step wiring references', () => {
     const legacy = Project.parse({ ...project, steps: [{ id: 'legacy', text: 'Legacy' }] })
     expect(scopedReference(legacy, legacy.steps[0])).toBe(legacy.reference)
     expect(scopedReference(legacy)).toBe(legacy.reference)
+  })
+})
+
+describe('Explicit waveform phase expectations', () => {
+  const scope = Instrument.parse(load('content/instruments/ins-oscilloscope/instrument.json'))
+  const steadyProject = Project.parse({
+    ...project,
+    reference: {
+      nets: [],
+      measurePoints: [
+        {
+          id: 'frequency',
+          kind: 'waveform',
+          quantity: 'frequency',
+          minCycles: 2,
+          between: ['dc1.KH_F', 'dc1.KH_A'],
+        },
+        {
+          id: 'minimum',
+          kind: 'waveform',
+          quantity: 'min',
+          minCycles: 2,
+          between: ['dc1.KH_F', 'dc1.KH_A'],
+        },
+      ],
+    },
+    steps: [
+      {
+        id: 'steady',
+        text: 'Record steady waveform',
+        measurePoints: ['frequency'],
+        expect: { measurePoint: 'frequency', min: 0.99, max: 1.01 },
+        expects: [{ measurePoint: 'minimum', min: 1.4, max: 1.9 }],
+      },
+    ],
+    dataTables: [
+      {
+        id: 'readings',
+        title: 'Waveform',
+        rows: 1,
+        columns: [{ id: 'minimum', title: 'Steady minimum', unit: 'V', measurePoint: 'minimum' }],
+        sanity: [{ column: 'minimum', min: 1.4, max: 1.9, message: 'Check the measured minimum and window' }],
+      },
+    ],
+  })
+
+  function streamedSnapshot(window: LongWindow): MeasurementSnapshot {
+    const observed = window.snapshot(4)
+    return {
+      current: true,
+      readings: {},
+      plan: buildMeasurementPlan(
+        {
+          title: 'Protocol-only waveform phase test',
+          modules: [{ instanceId: 'dc1', module, subckt }],
+          instruments: [{ instanceId: 'scope1', instrument: scope, settings: getInstrumentDefaults(scope) }],
+          wires: [
+            { a: 'scope1.CH1', b: 'dc1.KH_F' },
+            { a: 'scope1.GND', b: 'dc1.KH_A' },
+          ],
+          controlValues: {},
+          analysis: [],
+        },
+        true,
+        'waveform-phase',
+      ),
+      waveforms: [
+        {
+          instanceId: 'scope1',
+          channelId: 'CH1',
+          positiveRef: 'scope1.CH1',
+          negativeRef: 'scope1.GND',
+          coupling: 'dc',
+          current: true,
+          measurement: observed.measurement,
+          window: { ...observed.window, source: 'stream', revision: observed.revision, frozen: false },
+        },
+      ],
+    }
+  }
+
+  function pushCapacitor(window: LongWindow, start: number, count: number): void {
+    const dt = 1e-3
+    const samples = Float32Array.from({ length: count }, (_, index) => {
+      const time = start + index * dt
+      return time < 1 ? (10 / 3) * time : 10 / 3 - (5 / 3) * (1 - Math.abs(2 * ((time - 1) % 1) - 1))
+    })
+    window.push(samples, start, dt)
+  }
+
+  it('retains real startup zero and its warning without claiming a steady phase from recent cycles', () => {
+    const window = new LongWindow()
+    pushCapacitor(window, 0, 3800)
+    const snapshot = streamedSnapshot(window)
+    expect(snapshot.waveforms?.[0]?.measurement).toMatchObject({ min: 0, completeCycles: 2 })
+    expect(snapshot.waveforms?.[0]?.measurement?.frequency).toBeCloseTo(1, 5)
+    const state = createTaskState(steadyProject)
+    const recorded = recordCurrentReading(steadyProject, state, 'readings', 0, 'minimum', { snapshot })
+    expect(recorded.ok).toBe(true)
+    expect(recorded.state.tables.readings?.[0]?.minimum).toBe(0)
+    expect(recorded.warnings).toEqual(['Check the measured minimum and window'])
+    expect(recorded.state.completedSteps).toEqual([])
+    expect(recorded.measurement?.window).toMatchObject({ start: 0, source: 'stream' })
+    const manual = writeTableCell(steadyProject, recorded.state, 'readings', 0, 'minimum', 5 / 3)
+    expect(manual.ok).toBe(true)
+    expect(completeTaskStep(steadyProject, manual.state, 'steady', { snapshot }).ok).toBe(false)
+    expect(window.snapshot(16).measurement?.min).toBe(0)
+  })
+
+  it('advances only after actual steady evidence fills the current window while preserving longer startup history', () => {
+    const window = new LongWindow()
+    pushCapacitor(window, 0, 6000)
+    const snapshot = streamedSnapshot(window)
+    const measured = snapshot.waveforms?.[0]
+    expect(measured?.measurement?.min).toBeCloseTo(5 / 3, 5)
+    expect(measured?.window?.start).toBeGreaterThan(1)
+    expect(window.snapshot(16).measurement?.min).toBe(0)
+    const recorded = recordCurrentReading(steadyProject, createTaskState(steadyProject), 'readings', 0, 'minimum', {
+      snapshot,
+    })
+    expect(recorded.ok).toBe(true)
+    expect(recorded.state.completedSteps).toEqual(['steady'])
+    expect(recorded.measurement?.window).toEqual(measured?.window)
+    expect(completeTaskStep(steadyProject, createTaskState(steadyProject), 'steady', { snapshot }).ok).toBe(true)
   })
 })

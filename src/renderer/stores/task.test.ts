@@ -272,6 +272,68 @@ describe('task UI state', () => {
 })
 
 describe('recording current task measurements', () => {
+  it('records and advances at most one expects-only step from a single current snapshot', () => {
+    const measured = Project.parse({
+      ...measuredProject('u'),
+      steps: [
+        { id: 'first', text: 'First', expects: [{ measurePoint: 'u', min: 1, max: 1.5 }] },
+        { id: 'second', text: 'Second', expects: [{ measurePoint: 'u', min: 1, max: 1.5 }] },
+      ],
+    })
+    resetTask(measured)
+    runtime.snapshot.mockReturnValue(snapshot())
+    expect(recordTaskReadings(measured)).toBe(true)
+    expect(runtime.snapshot).toHaveBeenCalledTimes(1)
+    expect(taskStore.getState().task.tables.readings?.[0]?.u).toBe(1.234)
+    expect(taskStore.getState().task.completedSteps).toEqual(['first'])
+    expect(taskStore.getState().captures[taskCellKey('readings', 0, 'u')]?.referenceValueSI).toBe(1.234)
+  })
+
+  it('keeps genuine zero records and manual edits when an expects-only phase is not yet in range', () => {
+    const measured = Project.parse({
+      ...measuredProject('u'),
+      steps: [{ id: 'measure', text: 'Measure', expects: [{ measurePoint: 'u', min: 1, max: 1.5 }] }],
+      dataTables: [
+        {
+          id: 'readings',
+          title: 'Readings',
+          rows: 1,
+          columns: [{ id: 'u', title: 'U', unit: 'V', measurePoint: 'u' }],
+          sanity: [{ column: 'u', min: 1, max: 1.5, message: 'Check measured voltage' }],
+        },
+      ],
+    })
+    resetTask(measured)
+    runtime.snapshot.mockReturnValue(snapshot(allWires, 0))
+    expect(recordTaskReadings(measured)).toBe(true)
+    expect(taskStore.getState().task.tables.readings?.[0]?.u).toBe(0)
+    expect(taskStore.getState().task.completedSteps).toEqual([])
+    expect(taskStore.getState().notice).toContain('尚未满足步骤范围')
+    expect(taskStore.getState().warnings.join(' ')).toContain('Check measured voltage')
+    expect(writeTaskCell(measured, 'readings', 0, 'u', 1.234)).toBe(true)
+    expect(completeCurrentTaskStep(measured)).toBe(false)
+    expect(taskStore.getState().task.tables.readings?.[0]?.u).toBe(1.234)
+    expect(taskStore.getState().task.completedSteps).toEqual([])
+  })
+
+  it('reports an unavailable expects-only measurement without overwriting prior data', () => {
+    const measured = Project.parse({
+      ...measuredProject('u'),
+      steps: [{ id: 'measure', text: 'Measure', expects: [{ measurePoint: 'u', min: 1, max: 1.5 }] }],
+    })
+    resetTask(measured)
+    writeTaskCell(measured, 'readings', 0, 'u', 1.234)
+    const current = snapshot()
+    runtime.snapshot.mockReturnValue({
+      ...current,
+      readings: { ...current.readings, vm: { status: 'overload', value: null } },
+    })
+    expect(recordTaskReadings(measured)).toBe(false)
+    expect(taskStore.getState().task.tables.readings?.[0]?.u).toBe(1.234)
+    expect(taskStore.getState().task.completedSteps).toEqual([])
+    expect(taskStore.getState().notice).toContain('有效读数')
+  })
+
   it('uses stage-selected tables without overwriting another phase at the same measurement point', () => {
     const phased = Project.parse({
       ...project,

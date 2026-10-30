@@ -95,7 +95,58 @@ describe('Project task content', () => {
       steps: [{ id: 'measure', text: 'Measure' }],
     })
     expect(project.steps[0]?.measurePoints).toBeUndefined()
+    expect(project.steps[0]?.expects).toBeUndefined()
     expect(project.reference.measurePoints[0]?.mode).toBeUndefined()
+  })
+
+  it('retains additive measurement expectations without replacing the legacy expectation', () => {
+    const data = sample()
+    const expectRange = { measurePoint: 'u', min: 0, max: 2 }
+    const expects = [
+      { measurePoint: 'u', min: 1, max: 1.5 },
+      { measurePoint: 'i', min: 0.002, max: 0.003 },
+    ]
+    const project = Project.parse({
+      ...data,
+      steps: [{ id: 'measure', text: 'Measure', expect: expectRange, expects }],
+    })
+    expect(project.steps[0]?.expect).toEqual(expectRange)
+    expect(project.steps[0]?.expects).toEqual(expects)
+    expect(project.steps[0]?.measurePoints).toBeUndefined()
+    expect(
+      Project.parse({ ...data, steps: [{ id: 'measure', text: 'Measure', expect: expectRange, expects: [] }] }).steps[0]
+        ?.expect,
+    ).toEqual(expectRange)
+  })
+
+  it('rejects invalid additional ranges and missing measurement references at their own paths', () => {
+    const data = sample()
+    expect(
+      paths({
+        ...data,
+        steps: [{ id: 'measure', text: 'Measure', expects: [{ measurePoint: 'absent', min: 0, max: 1 }] }],
+      }),
+    ).toContain('steps.0.expects.0.measurePoint')
+    expect(
+      paths({
+        ...data,
+        steps: [{ id: 'measure', text: 'Measure', expects: [{ measurePoint: 'u', min: 2, max: 1 }] }],
+      }),
+    ).toContain('steps.0.expects.0.max')
+    for (const value of [Number.NaN, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY]) {
+      expect(
+        paths({
+          ...data,
+          steps: [{ id: 'measure', text: 'Measure', expects: [{ measurePoint: 'u', min: value, max: 1 }] }],
+        }),
+      ).toContain('steps.0.expects.0.min')
+    }
+    expect(
+      Project.safeParse({
+        ...data,
+        steps: [{ id: 'measure', text: 'Measure', expects: [{ measurePoint: 'u', min: 0, max: 0 }] }],
+      }).success,
+    ).toBe(true)
   })
 
   it.each([

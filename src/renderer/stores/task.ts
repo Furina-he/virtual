@@ -9,6 +9,7 @@ import {
   type MeasurementSnapshot,
   measurementUnit,
   recordCurrentReading,
+  requiredMeasurements,
   scopedReference,
   type TaskState,
   writeTableCell,
@@ -165,10 +166,6 @@ export function writeTaskCell(
   return true
 }
 
-function requiredPoints(step?: Step): string[] {
-  return [...new Set([...(step?.measurePoints ?? []), ...(step?.expect ? [step.expect.measurePoint] : [])])]
-}
-
 function selectedMeters(project: Project, source: string): Record<string, string> | undefined {
   return source === 'auto'
     ? undefined
@@ -216,7 +213,7 @@ export function recordTaskReadings(project: Project): boolean {
   const row = Math.min(state.selectedRow, table.rows - 1)
   const snapshot = currentMeasurementSnapshot()
   const meters = selectedMeters(project, state.selectedSource)
-  const required = requiredPoints(step)
+  const required = requiredMeasurements(step)
   let task = state.task
   const captures = { ...state.captures }
   const successful: CapturedMeasurement[] = []

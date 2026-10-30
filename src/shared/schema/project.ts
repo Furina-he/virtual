@@ -94,6 +94,7 @@ export const Step = z.object({
   id: z.string().min(1),
   text: z.string().min(1),
   expect: Expectation.optional(),
+  expects: z.array(Expectation).optional(),
   measurePoints: z
     .array(z.string().min(1))
     .refine((points) => new Set(points).size === points.length, '步骤测量点不能重复')
@@ -157,6 +158,14 @@ export const Project = z
           message: `测量点 ${s.expect.measurePoint} 不存在`,
           path: ['steps', i, 'expect', 'measurePoint'],
         })
+      s.expects?.forEach((expectation, j) => {
+        if (!points.has(expectation.measurePoint))
+          ctx.addIssue({
+            code: 'custom',
+            message: `测量点 ${expectation.measurePoint} 不存在`,
+            path: ['steps', i, 'expects', j, 'measurePoint'],
+          })
+      })
       s.measurePoints?.forEach((point, j) => {
         if (!points.has(point))
           ctx.addIssue({

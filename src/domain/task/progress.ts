@@ -45,7 +45,7 @@ export function scopedReference(project: Project, step?: Step): Project['referen
     if (step || !project.steps.some((item) => item.measurePoints !== undefined)) return reference
     return { ...reference, measurePoints: [] }
   }
-  const required = new Set(step.measurePoints)
+  const required = new Set(requiredMeasurements(step))
   return {
     ...reference,
     measurePoints: reference.measurePoints.filter((point) => required.has(point.id)),
@@ -128,8 +128,14 @@ export function writeTableCell(
   }
 }
 
-function requiredMeasurements(step: Step): string[] {
-  return [...new Set([...(step.measurePoints ?? []), ...(step.expect ? [step.expect.measurePoint] : [])])]
+function expectations(step: Step) {
+  return [...(step.expect ? [step.expect] : []), ...(step.expects ?? [])]
+}
+
+export function requiredMeasurements(step?: Step): string[] {
+  return step
+    ? [...new Set([...(step.measurePoints ?? []), ...expectations(step).map((range) => range.measurePoint)])]
+    : []
 }
 
 export function completeTaskStep(
@@ -142,14 +148,18 @@ export function completeTaskStep(
   if (!step || step.id !== stepId) return failure(state, '请先完成当前步骤，不能跳过或重复完成步骤。')
   if (step.checkWiring && evidence.wiringCorrect !== true)
     return failure(state, '请检查当前接线，确认电路和本步骤测量点连接正确后再继续。')
+  const ranges = expectations(step)
   for (const id of requiredMeasurements(step)) {
     const point = project.reference.measurePoints.find((item) => item.id === id)
     if (!point) return failure(state, `当前步骤引用的测量点 ${id} 不存在。`)
     const capture = captureMeasurePoint(evidence.snapshot, point, evidence.selectedMeters?.[id])
     if (!capture.ok) return failure(state, capture.message)
     if (
-      step.expect?.measurePoint === id &&
-      (capture.measurement.referenceValueSI < step.expect.min || capture.measurement.referenceValueSI > step.expect.max)
+      ranges.some(
+        (range) =>
+          range.measurePoint === id &&
+          (capture.measurement.referenceValueSI < range.min || capture.measurement.referenceValueSI > range.max),
+      )
     )
       return failure(state, '当前实测读数尚未满足步骤范围，请检查设置与接线，不要改填预期数值。')
   }
