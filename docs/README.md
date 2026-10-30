@@ -59,7 +59,69 @@
 ## 文档校验操作说明
 
 <!-- docs-usage:start -->
-本区由 GOV-01 交付参数、命令顺序、错误定位及输出样例，用于开发和验收操作。已验收能力只按上一节第 6 条声明；这里不维护第二份启用状态，不因示例存在就视为新门禁已经验收。
+以下是检查操作方法，不是任务状态或最新成绩副本。已验收能力仍只按上一节第 6 条声明；参数与示例存在不代表新门禁已经通过架构验收。
+
+**推荐顺序**：领取前记录完整 HEAD、任务卡和用户已有改动；完成获准改动后先查当前工作区，再选择性暂存并审计暂存树，提交后用最终 SHA 审计交付提交。工具只读，不修复文件、不暂存、不提交、不联网、不自动写报告。
+
+```powershell
+pnpm docs:lint
+node tools/docs-lint.ts "<可选检查目录>"
+node tools/docs-lint.ts --task "<任务ID>" --base "<领取时完整SHA>" --staged
+# 选择性提交后，把实际交付 SHA 作为目标；不要把 SHA 写回自身提交或 amend。
+node tools/docs-lint.ts --task "<任务ID>" --base "<领取时完整SHA>" --commit "<交付SHA>"
+```
+
+- 无模式参数时是 `static`：读取磁盘上的当前文件。可选目录保留原命名/本地链接的目录及后代检查范围；登记与任务结构始终以所在 Git 仓库为准，不能换目录绕过治理。
+- `--staged`：审查指派基线到实际暂存树的差异，不混入未暂存的修改/删除；空暂存返回 `STAGED_EMPTY`，`git add -N` 也不把文件变成交付内容。基线须是当前 HEAD 的祖先。
+- `--commit <SHA>`：只读取目标提交，目标必须是基线的后继提交，不以当前工作区替换目标。两种增量模式都必须给 `--task` 和 `--base`，不能同时使用；无模式时不能携带这两个参数。
+- 授权只读基线中的本任务 `task-policy`。使用已记录的完整领取 SHA，不用会变化的 `HEAD` 代替；执行回执的 `ClaimBase` 必须等于解析后的基线。新增、删除及重命名两端分别需要明确 `add`/`retire` 授权，新增并不隐式放开登记和导航编辑。
+- 增量审计不替代静态检查：它不把未变化的退役旧 blob 当作恢复，也不证明所有未变化文档可用。具名块仅允许内文变化；本卡授权/验收/架构评审、其他卡及区块外原文仍受保护。归档历史只能保留完整 CRLF/LF 规范化前缀后追加，改写例外只来自基线的 `history_rewrite`。
+- 故障注入只在最小隔离 Git fixture 中做。真实工作树只运行合法检查和本人交付审计；遇到用户已有删除，报告问题或保留未暂存状态，不擅自恢复或混入提交。
+
+**输出与定位**：成功退出 `0`，有问题退出非 `0`。默认 stdout 为数量/模式及增量目标摘要，stderr 每条问题包含 `文件:行号`、稳定错误码和字段/基线说明，例如：
+
+```text
+<文档数> Markdown files; <问题数> issues (staged)
+task=<任务ID>; base=<已解析的基线SHA>; target=index; changes=<变更路径数>
+docs/执行计划.md:<行号>: [TASK_SCOPE] 仅本人执行块和首次开工状态可改，授权/验收/评审/其他任务受保护
+```
+
+机器消费时直接调用 Node 并加 `--json`，避免包管理器的命令横幅混进输出。成功、规则失败、参数错误和 Git 错误都返回一个合法 JSON 对象；stdout 不混入文本，包含 `mode/task/base/target/files/changes/issues`。下面仅示意核心字段，不表示一次项目检查结果：
+
+```powershell
+node tools/docs-lint.ts --task "<任务ID>" --base "<领取时完整SHA>" --staged --json
+node tools/docs-lint.ts --task "<任务ID>" --base "<领取时完整SHA>" --commit "<交付SHA>" --json
+```
+
+```json
+{
+  "mode": "staged",
+  "task": "<任务ID>",
+  "base": "<已解析的指派SHA>",
+  "target": "index",
+  "issues": [
+    {
+      "code": "TASK_SCOPE",
+      "file": "docs/执行计划.md",
+      "line": 1,
+      "message": "<具体字段、受保护范围和基线说明>"
+    }
+  ]
+}
+```
+
+**常见错误处理**：先根据 `file/line/message` 查看实际差异，再在授权内修正并重新检查；不能自改当前白名单、删掉历史失败或放宽任务验收来消除错误。
+
+| 错误码/类别 | 处理方式 |
+|-------------|----------|
+| `REGISTRY_UNREGISTERED`、`REGISTRY_DUPLICATE`、`REGISTRY_MISSING_DOCUMENT` | 核对登记与实际文件；缺新增/登记授权先回报架构，不自动补表或恢复用户文件。 |
+| `REGISTRY_RETIRED_PRESENT`、`RETIRED_TARGET`、`RETIRED_CHANGED` | 退役路径不能作为现行文件或有效链接；只在已批准范围修复引用，旧未暂存删除不强行纳入交付。 |
+| `BLOCK_*`、`JSON_*`、`POLICY_*`、`RECEIPT_*`、`REVIEW_*`、`TASK_ENTRY_*` | 检查唯一完整标记、JSON 字段/类型、任务 ID、ClaimBase 和阶段收据；基线策略有问题须架构重新指派。 |
+| `SCOPE_DENIED`、`TASK_SCOPE`、`SECTION_SCOPE`、`HISTORY_REWRITE`、`ADD_*`、`RETIRE_*` | 检查文件、区块、历史或新增闭环是否越权；保留用户改动，缺权限先回报，不自动回滚或清理。 |
+| `CLI_*`、`BASE_INVALID`、`BASE_NOT_ANCESTOR`、`COMMIT_INVALID`、`COMMIT_NOT_DESCENDANT` | 检查参数组合、领取基线和实际目标，不能猜 SHA 或改回执冒充另一指派。 |
+| `STAGED_EMPTY`、`INDEX_UNMERGED`、`GIT_*`、`FILE_*`、`LOCAL_*`、`MARKDOWN_NAME` | 核对真实暂存、冲突、对象/文件可读性和命名/本地目标；缺对象只报错，不获取远程对象，身份/权限问题交架构核对。 |
+
+输出可以由调用者保存到任务批准的证据目录，红/绿分别存档，不覆盖原输出。一次机械检查通过不认证编辑者、审批真实性、锚点语义、SyncImpact 的语义同步、证据真实性或产品验收；任务仍按 [执行计划](执行计划.md) 的架构回执验收。
 <!-- docs-usage:end -->
 
 ## 新增与交付闭环
