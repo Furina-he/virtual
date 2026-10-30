@@ -49,11 +49,17 @@ export async function selectJackFromList(page: Page, label: string, ref: string)
   const trigger = editor.getByRole('combobox', { name: label, exact: true })
   // Keep stationary pointer hover from competing with this keyboard-only selection sequence.
   await page.mouse.move(0, 0)
+  const selectedRef = await trigger.getAttribute('data-selected-jack')
   await trigger.press('Enter')
+  // Radix focuses the prior selection only after positioning; wait before moving focus to the target.
+  const initialOption = selectedRef
+    ? page.locator(`[role="option"][data-jack-ref="${selectedRef}"]`)
+    : page.locator('[role="option"][data-jack-ref]:not([data-disabled])').first()
+  await expect(initialOption).toBeFocused()
   const option = page.locator(`[role="option"][data-jack-ref="${ref}"]`)
   await option.focus()
   await expect(option).toBeFocused()
-  await option.press('Enter')
+  await page.keyboard.press('Enter')
   await expect(trigger).toHaveAttribute('aria-expanded', 'false')
   await expect(trigger).toHaveAttribute('data-selected-jack', ref)
 }
