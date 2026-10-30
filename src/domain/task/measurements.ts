@@ -23,6 +23,10 @@ export type WaveformReading = {
   coupling: Coupling
   current: boolean
   measurement: SignalMeasurement | null
+  /** A requested bounded window is tagged so default captures cannot silently reuse it. */
+  requestedWindowSec?: number
+  /** Statistics from the exact requested capture window, before reference orientation. */
+  statistics?: SignalMeasurement
   window?: WaveformWindow
 }
 export type MeasurementSnapshot = {
@@ -40,6 +44,8 @@ export type CapturedMeasurement = {
   reversed: boolean
   channelId?: string
   window?: WaveformWindow
+  requestedWindowSec?: number
+  statistics?: SignalMeasurement
 }
 export type CaptureResult =
   | { ok: true; measurement: CapturedMeasurement; message: string }
@@ -173,10 +179,13 @@ function captureWaveform(snapshot: MeasurementSnapshot, point: MeasurePoint, sel
             : 0
       return sign ? [{ reading, sign }] : []
     })
-    .filter(
-      ({ reading }) =>
-        !selected || selected === reading.instanceId || selected === `${reading.instanceId}.${reading.channelId}`,
-    )
+    .filter(({ reading }) => {
+      if (selected && selected !== reading.instanceId && selected !== `${reading.instanceId}.${reading.channelId}`)
+        return false
+      return point.windowSec === undefined
+        ? reading.requestedWindowSec === undefined
+        : reading.requestedWindowSec !== undefined && Math.abs(reading.requestedWindowSec - point.windowSec) <= 1e-12
+    })
     .filter((candidate, index, candidates) => {
       if (selected || !candidate.reading.channelId.includes('-')) return true
       const pair = candidate.reading.channelId.split('-').sort().join('-')
@@ -201,6 +210,7 @@ function captureWaveform(snapshot: MeasurementSnapshot, point: MeasurePoint, sel
     return { ok: false, reason: 'not-connected', message: `请将示波器通道和 GND 接到波形测量点 ${point.id}。` }
   const { reading, sign } = match
   const measured = reading.measurement
+  const statistics = reading.statistics
   const quantity = point.quantity ?? 'vpp'
   if (
     !reading.current ||
@@ -213,6 +223,24 @@ function captureWaveform(snapshot: MeasurementSnapshot, point: MeasurePoint, sel
       reason: 'unavailable',
       message: '当前通道数据尚未就绪或耦合设置不符。直流均值/极值请使用 DC 耦合并接好 GND。',
     }
+  if (point.windowSec !== undefined) {
+    const window = reading.window
+    const covered =
+      window &&
+      Number.isFinite(window.start) &&
+      Number.isFinite(window.end) &&
+      Number.isFinite(window.rawStep) &&
+      window.rawStep > 0 &&
+      window.end >= window.start &&
+      !window.frozen &&
+      window.end - window.start + window.rawStep >= point.windowSec - Math.max(1e-9, point.windowSec * 1e-9)
+    if (!covered || reading.requestedWindowSec === undefined || statistics === undefined)
+      return {
+        ok: false,
+        reason: 'unavailable',
+        message: `当前波形尚未覆盖声明的 ${point.windowSec} s 实际窗口，请继续采样。`,
+      }
+  }
   const value = measured[quantity]
   const requiredCycles = Math.max(point.minCycles ?? 0, ['frequency', 'period'].includes(quantity) ? 2 : 0)
   if (requiredCycles > 0 && (measured.completeCycles ?? 0) < requiredCycles)
@@ -242,6 +270,8 @@ function captureWaveform(snapshot: MeasurementSnapshot, point: MeasurePoint, sel
       displayValueSI: value,
       referenceValueSI: reference === 0 ? 0 : reference,
       reversed: sign === -1,
+      ...(reading.requestedWindowSec !== undefined ? { requestedWindowSec: reading.requestedWindowSec } : {}),
+      ...(statistics ? { statistics: { ...statistics } } : {}),
       ...(reading.window ? { window: { ...reading.window } } : {}),
     },
     message:

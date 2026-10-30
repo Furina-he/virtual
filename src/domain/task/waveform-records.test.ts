@@ -148,6 +148,121 @@ describe('actual scope recording', () => {
       expect(result.measurement.window).not.toBe(window)
     }
   })
+
+  it('selects a declared observation window without making the default channel ambiguous', () => {
+    const window = {
+      start: 2,
+      end: 2.199998,
+      rawStep: 2e-6,
+      completeCycles: 0,
+      source: 'stream' as const,
+      revision: 12,
+      frozen: false,
+    }
+    const requested = {
+      ...reading,
+      requestedWindowSec: 0.2,
+      measurement: { mean: 3.325, min: 3.32, max: 3.33, vpp: 0.01, frequency: null, period: null, completeCycles: 0 },
+      statistics: { mean: 3.325, min: 3.32, max: 3.33, vpp: 0.01, frequency: null, period: null, completeCycles: 0 },
+      window,
+    }
+    const value = { ...snapshot(), waveforms: [reading, { ...requested, requestedWindowSec: 0.1 }, requested] }
+    const original = captureMeasurePoint(value, { ...point, quantity: 'mean' })
+    expect(original).toMatchObject({ ok: true, measurement: { referenceValueSI: 2 } })
+    const captured = captureMeasurePoint(value, { ...point, quantity: 'mean', windowSec: 0.2 })
+    expect(captured).toMatchObject({
+      ok: true,
+      measurement: { referenceValueSI: 3.325, requestedWindowSec: 0.2, window, statistics: requested.measurement },
+    })
+    if (captured.ok) {
+      expect(captured.measurement.window).not.toBe(window)
+      expect(captured.measurement.statistics).not.toBe(requested.measurement)
+    }
+  })
+
+  it('does not substitute an untagged, mismatched, truncated or frozen plateau window', () => {
+    const requestedPoint = { ...point, quantity: 'mean' as const, windowSec: 0.2 }
+    const window = {
+      start: 2,
+      end: 2.199998,
+      rawStep: 2e-6,
+      completeCycles: 0,
+      source: 'stream' as const,
+      revision: 12,
+      frozen: false,
+    }
+    const requested = {
+      ...reading,
+      requestedWindowSec: 0.2,
+      measurement: { mean: 0, min: 0, max: 0, vpp: 0, frequency: null, period: null, completeCycles: 0 },
+      statistics: { mean: 0, min: 0, max: 0, vpp: 0, frequency: null, period: null, completeCycles: 0 },
+      window,
+    }
+    expect(captureMeasurePoint(snapshot({ ...reading, window }), requestedPoint).ok).toBe(false)
+    expect(captureMeasurePoint(snapshot({ ...requested, requestedWindowSec: 0.1 }), requestedPoint).ok).toBe(false)
+    for (const invalidWindow of [
+      { ...window, end: 2.13107 },
+      { ...window, end: 2.199996 },
+      { ...window, rawStep: Number.NaN },
+      { ...window, frozen: true },
+      { ...window, start: Number.NaN },
+      { ...window, end: Infinity },
+      { ...window, rawStep: 0 },
+      { ...window, start: 3 },
+    ])
+      expect(captureMeasurePoint(snapshot({ ...requested, window: invalidWindow }), requestedPoint).ok).toBe(false)
+    expect(captureMeasurePoint(snapshot({ ...requested, window: undefined }), requestedPoint).ok).toBe(false)
+    expect(captureMeasurePoint({ ...snapshot(requested), current: false }, requestedPoint).ok).toBe(false)
+    expect(captureMeasurePoint(snapshot(requested), requestedPoint)).toMatchObject({
+      ok: true,
+      measurement: { referenceValueSI: 0, requestedWindowSec: 0.2 },
+    })
+  })
+
+  it('keeps same-window static statistics and reverse-lead orientation without requiring cycles', () => {
+    const requested = {
+      ...reading,
+      requestedWindowSec: 0.2,
+      positiveRef: 'scope1.GND',
+      negativeRef: 'scope1.CH1',
+      measurement: {
+        mean: -3.325,
+        min: -3.33,
+        max: -3.32,
+        vpp: 0.01,
+        frequency: null,
+        period: null,
+        completeCycles: 0,
+      },
+      statistics: {
+        mean: -3.325,
+        min: -3.33,
+        max: -3.32,
+        vpp: 0.01,
+        frequency: null,
+        period: null,
+        completeCycles: 0,
+      },
+      window: {
+        start: 2,
+        end: 2.207,
+        rawStep: 2e-6,
+        completeCycles: 0,
+        source: 'stream' as const,
+        revision: 12,
+        frozen: false,
+      },
+    }
+    for (const [quantity, value] of [
+      ['mean', 3.325],
+      ['min', 3.32],
+      ['max', 3.33],
+    ] as const) {
+      const result = captureMeasurePoint(snapshot(requested), { ...point, quantity, windowSec: 0.2 })
+      expect(result).toMatchObject({ ok: true, measurement: { referenceValueSI: value, reversed: true } })
+      if (result.ok) expect(result.measurement.statistics).toEqual(requested.measurement)
+    }
+  })
   it('orients DC means and extrema but never invents negative Vpp or frequency on reverse leads', () => {
     const reversed = snapshot({ ...reading, positiveRef: 'scope1.GND', negativeRef: 'scope1.CH1' })
     for (const [quantity, expected] of [

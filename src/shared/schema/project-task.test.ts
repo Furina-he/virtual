@@ -220,4 +220,16 @@ describe('Project task content', () => {
       expect(MeasurePoint.safeParse({ ...point, minCycles: value }).success).toBe(false)
     expect(MeasurePoint.safeParse({ ...point, kind: 'voltage', quantity: undefined, minCycles: 2 }).success).toBe(false)
   })
+
+  it('retains finite bounded observation windows only on waveform points', () => {
+    const point = { id: 'platform', kind: 'waveform', quantity: 'mean', between: ['dc1.KH_F', 'dc1.KH_A'] }
+    expect(MeasurePoint.parse({ ...point, windowSec: 0.2 }).windowSec).toBe(0.2)
+    expect(MeasurePoint.parse({ ...point, windowSec: 16 }).windowSec).toBe(16)
+    expect(MeasurePoint.parse(point).windowSec).toBeUndefined()
+    for (const windowSec of [0, -1, 16.001, Infinity, -Infinity, Number.NaN, '0.2'])
+      expect(MeasurePoint.safeParse({ ...point, windowSec }).success).toBe(false)
+    expect(MeasurePoint.safeParse({ ...point, kind: 'voltage', quantity: undefined, windowSec: 0.2 }).success).toBe(
+      false,
+    )
+  })
 })

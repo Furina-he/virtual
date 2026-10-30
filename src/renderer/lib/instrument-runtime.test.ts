@@ -2,6 +2,8 @@ import { readFileSync } from 'node:fs'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { InstrumentInput } from '../../domain/circuit/assemble'
 import { getInstrumentDefaults } from '../../domain/instruments'
+import { LongWindow } from '../../domain/instruments/long-window'
+import type { MeasurementSnapshot } from '../../domain/task'
 import type { SimCommand, SimEvent } from '../../shared/ipc/sim'
 import type { CircuitState } from '../../shared/schema/circuit'
 import { Instrument } from '../../shared/schema/instrument'
@@ -22,9 +24,12 @@ const fixture = vi.hoisted(() => ({
   restarts: new Set<() => void>(),
   changes: new Set<(state: CircuitState) => void>(),
   samples: new Map<string, Set<SamplesListener>>(),
+  buffers: new Map<string, RingBuffer>(),
+  observations: new Map<string, LongWindow>(),
   sim: undefined as unknown as {
     send: (command: SimCommand) => Promise<void>
     buffer: (id: string) => RingBuffer
+    observation?: (id: string) => LongWindow
     onEvent: (listener: (event: LowFreqEvent) => void) => () => void
     onRestarted: (listener: () => void) => () => void
     onSamples: (id: string, listener: SamplesListener) => () => void
@@ -116,11 +121,22 @@ function latestAlter() {
 }
 
 function emit(event: LowFreqEvent) {
+  if (fixture.sim.observation) {
+    if (event.type === 'loaded') {
+      for (const buffer of fixture.buffers.values()) buffer.clear()
+      fixture.buffers.clear()
+      for (const observation of fixture.observations.values()) observation.clear()
+      fixture.observations.clear()
+    } else if (event.type === 'altered') {
+      for (const observation of fixture.observations.values()) observation.clear()
+    }
+  }
   for (const listener of fixture.events) listener(event)
 }
 
 function chunk(id: string, data: Float32Array, t0: number, dt: number) {
   fixture.sim.buffer(id).push(data, t0, dt)
+  if (id.startsWith('scope:')) fixture.sim.observation?.(id).push(data, t0, dt)
   for (const listener of fixture.samples.get(id) ?? []) listener(data, t0, dt)
 }
 
@@ -147,12 +163,63 @@ function acknowledgeLoad(command: Extract<SimCommand, { type: 'load' }>) {
   emit({ type: 'loaded', requestId: command.requestId, vectors: command.probes.map((probe) => probe.id) })
 }
 
+function withWindowObservations() {
+  fixture.sim.observation = (id) => {
+    let observation = fixture.observations.get(id)
+    if (!observation) {
+      observation = new LongWindow()
+      fixture.observations.set(id, observation)
+    }
+    return observation
+  }
+  fixture.instruments = fixture.instruments.map((entry) => ({
+    ...entry,
+    settings: {
+      ...entry.settings,
+      ...(entry.instanceId === 'gen1' ? { ch1_freq: 500, ch2_on: 0 } : {}),
+      ...(entry.instanceId === 'scope1' ? { out_on: 0 } : {}),
+    },
+  }))
+}
+
+function feedScope(
+  command: Extract<SimCommand, { type: 'load' }>,
+  seconds: number,
+  value: (time: number) => number,
+  from = 0,
+  channel = 'CH1',
+) {
+  if (command.analysis.kind !== 'tran') throw new Error('Missing transient sample grid')
+  const dt = command.analysis.step
+  const count = Math.round(seconds / dt)
+  for (let offset = 0; offset < count; offset += 25_000) {
+    const size = Math.min(25_000, count - offset)
+    chunk(
+      `scope:scope1:${channel}`,
+      Float32Array.from({ length: size }, (_, index) => value(from + (offset + index) * dt)),
+      from + offset * dt,
+      dt,
+    )
+  }
+  return from + count * dt
+}
+
+function publishScope(command: Extract<SimCommand, { type: 'load' }>, simTime: number) {
+  emit({ type: 'readings', simTime, values: Object.fromEntries(command.probes.map((probe) => [probe.id, 0])) })
+}
+
+function requested(snapshot: MeasurementSnapshot | undefined, seconds: number, channel = 'CH1') {
+  return snapshot?.waveforms?.find((reading) => reading.channelId === channel && reading.requestedWindowSec === seconds)
+}
+
 beforeEach(() => {
   vi.useFakeTimers()
   fixture.events.clear()
   fixture.restarts.clear()
   fixture.changes.clear()
   fixture.samples.clear()
+  fixture.buffers.clear()
+  fixture.observations.clear()
   fixture.modules.length = 0
   fixture.netlist = ''
   sound.outputs.length = 0
@@ -188,14 +255,13 @@ beforeEach(() => {
       { id: 'w4', a: 'gen1.GND', b: 'meter1.COM', color: 'black' },
     ],
   }
-  const buffers = new Map<string, RingBuffer>()
   fixture.sim = {
     send: vi.fn(async () => {}),
     buffer(id) {
-      let buffer = buffers.get(id)
+      let buffer = fixture.buffers.get(id)
       if (!buffer) {
         buffer = new RingBuffer(1 << 18)
-        buffers.set(id, buffer)
+        fixture.buffers.set(id, buffer)
       }
       return buffer
     },
@@ -606,5 +672,329 @@ describe('instrument runtime integration', () => {
     expect(getInstrumentReading('scope1', 'CH1').status).toBe('disconnected')
     expect(getInstrumentReading('scope1', 'CH2').status).toBe('disconnected')
     expect(getInstrumentReading('scope1').message).toContain('GND')
+  })
+})
+
+describe('requested waveform windows', () => {
+  it('keeps the default raw reading and adds a complete no-cycle stream window without enlarging raw storage', async () => {
+    withWindowObservations()
+    const command = await start()
+    const end = feedScope(command, 0.7, () => 3)
+    publishScope(command, end)
+    const legacy = currentMeasurementSnapshot()
+    const snapshot = currentMeasurementSnapshot([0.2])
+    expect(snapshot?.waveforms?.filter((reading) => reading.requestedWindowSec === undefined)).toEqual(
+      legacy?.waveforms,
+    )
+    expect(legacy?.waveforms?.[0]?.window?.source).toBe('raw')
+    const capture = requested(snapshot, 0.2)
+    expect(capture).toMatchObject({
+      current: true,
+      requestedWindowSec: 0.2,
+      measurement: { min: 3, max: 3, mean: 3, completeCycles: 0, frequency: null },
+      window: { rawStep: 2e-6, source: 'stream', frozen: false },
+    })
+    if (!capture?.window) throw new Error('Missing real requested window')
+    expect(capture.window.end - capture.window.start + capture.window.rawStep).toBeGreaterThanOrEqual(0.2)
+    const raw = fixture.sim.buffer('scope:scope1:CH1')
+    expect(raw.written).toBeGreaterThan(raw.capacity)
+    expect(raw.data.byteLength).toBe(1 << 20)
+    expect(legacy?.waveforms?.[0]?.window?.end ?? 0).toBe(capture.window.end)
+    expect((legacy?.waveforms?.[0]?.window?.end ?? 0) - (legacy?.waveforms?.[0]?.window?.start ?? 0)).toBeLessThan(
+      65_536 * capture.window.rawStep,
+    )
+  })
+
+  it('deduplicates numeric requests and keeps different windows on the same probe separate', async () => {
+    withWindowObservations()
+    const command = await start()
+    const end = feedScope(command, 0.62, (time) => (time < 0.5 ? -5 : 2))
+    publishScope(command, end)
+    const observed = fixture.sim.observation?.('scope:scope1:CH1')
+    if (!observed) throw new Error('Missing source observation')
+    const stats = vi.spyOn(observed, 'snapshot')
+    const snapshot = currentMeasurementSnapshot([0.3, 0.1, 0.3])
+    const longer = requested(snapshot, 0.3)
+    const shorter = requested(snapshot, 0.1)
+    expect(
+      snapshot?.waveforms?.filter((reading) => reading.channelId === 'CH1' && reading.requestedWindowSec === 0.3),
+    ).toHaveLength(1)
+    expect(stats.mock.calls.filter(([seconds]) => seconds === 0.3)).toHaveLength(1)
+    const result = stats.mock.results[stats.mock.calls.findIndex(([seconds]) => seconds === 0.3)]?.value
+    expect(longer?.measurement).toBe(result?.measurement)
+    expect(longer).toMatchObject({ current: true, measurement: { min: -5, max: 2 } })
+    expect(shorter).toMatchObject({ current: true, measurement: { min: 2, max: 2, mean: 2, completeCycles: 0 } })
+    expect(longer?.window?.start).toBeLessThan(shorter?.window?.start ?? 0)
+    expect(longer?.window?.end).toBe(shorter?.window?.end)
+    expect(longer?.window?.revision).toBe(shorter?.window?.revision)
+  })
+
+  it('shares same-probe same-window measurement and provenance objects with a chosen default stream reading', async () => {
+    withWindowObservations()
+    const command = await start()
+    const end = feedScope(command, 0.5, (time) => Math.sin(2 * Math.PI * 40 * time))
+    publishScope(command, end)
+    const snapshot = currentMeasurementSnapshot([0.2, 0.2])
+    const legacy = snapshot?.waveforms?.find(
+      (reading) => reading.channelId === 'CH1' && reading.requestedWindowSec === undefined,
+    )
+    const capture = requested(snapshot, 0.2)
+    expect(legacy?.window?.source).toBe('stream')
+    expect(capture?.current).toBe(true)
+    expect(capture?.measurement).toBe(legacy?.measurement)
+    expect(capture?.window).toBe(legacy?.window)
+  })
+
+  it('marks an incomplete real observation unavailable rather than padding or using a shorter raw window', async () => {
+    withWindowObservations()
+    const command = await start()
+    const end = feedScope(command, 0.199, () => 2)
+    publishScope(command, end)
+    const capture = requested(currentMeasurementSnapshot([0.2]), 0.2)
+    expect(capture).toMatchObject({ current: false, requestedWindowSec: 0.2, measurement: null })
+    if (!capture?.window) throw new Error('Incomplete coverage must report its actual available window')
+    expect(capture.window.end - capture.window.start + capture.window.rawStep).toBeLessThan(0.2)
+  })
+
+  it('does not certify a full 16 seconds from bins that only retain a partial 16-second raw span', async () => {
+    withWindowObservations()
+    fixture.instruments = fixture.instruments
+      .filter((entry) => entry.instanceId !== 'meter1')
+      .map((entry) => ({
+        ...entry,
+        settings: {
+          ...entry.settings,
+          ...(entry.instanceId === 'gen1' ? { ch1_freq: 1 } : {}),
+          ...(entry.instanceId === 'scope1' ? { tdiv: 0.1 } : {}),
+        },
+      }))
+    fixture.state.wires = fixture.state.wires.filter(
+      (wire) => !wire.a.startsWith('meter1.') && !wire.b.startsWith('meter1.'),
+    )
+    const command = await start()
+    const end = feedScope(command, 16, () => 4)
+    publishScope(command, end)
+    expect(requested(currentMeasurementSnapshot([16]), 16)?.current).toBe(true)
+    const next = feedScope(command, 0.005, () => 4, end)
+    publishScope(command, next)
+    const snapshot = currentMeasurementSnapshot([16, 15.9])
+    const capture = requested(snapshot, 16)
+    expect(capture).toMatchObject({ current: false, measurement: null })
+    if (!capture?.window) throw new Error('Missing bounded available span')
+    expect(capture.window.end - capture.window.start + capture.window.rawStep).toBeLessThan(16)
+    expect(requested(snapshot, 15.9)?.current).toBe(true)
+    const observed = fixture.sim.observation?.('scope:scope1:CH1')
+    expect(observed?.traces(16)?.min.length).toBeLessThanOrEqual(2048)
+    expect(fixture.sim.buffer('scope:scope1:CH1').data.byteLength).toBe(1 << 20)
+  })
+
+  it('does not fall back to raw samples when the requested source observation is unavailable', async () => {
+    const command = await start()
+    const end = feedScope(command, 0.002, () => 5)
+    publishScope(command, end)
+    expect(currentMeasurementSnapshot()?.waveforms?.[0]?.current).toBe(true)
+    expect(requested(currentMeasurementSnapshot([0.001]), 0.001)).toMatchObject({ current: false, measurement: null })
+  })
+
+  it.each([0, -1, Number.NaN, Number.POSITIVE_INFINITY, 16.000001])(
+    'rejects out-of-contract window %s without clamping',
+    async (seconds) => {
+      await start()
+      expect(() => currentMeasurementSnapshot([seconds])).toThrow(RangeError)
+    },
+  )
+
+  it('waits for the matching load, full fresh coverage and a current publication, including replay', async () => {
+    withWindowObservations()
+    disconnect = connectInstrumentRuntime(vi.fn())
+    await vi.advanceTimersByTimeAsync(40)
+    const command = latestLoad()
+    feedScope(command, 0.25, () => 9, 10)
+    publishScope(command, 10.25)
+    expect(requested(currentMeasurementSnapshot([0.2]), 0.2)?.current).toBe(false)
+    emit({ type: 'loaded', requestId: 'superseded-load', vectors: [] })
+    expect(requested(currentMeasurementSnapshot([0.2]), 0.2)?.current).toBe(false)
+    acknowledgeLoad(command)
+    const partial = feedScope(command, 0.1, () => 3)
+    publishScope(command, partial)
+    expect(requested(currentMeasurementSnapshot([0.2]), 0.2)?.current).toBe(false)
+    const complete = feedScope(command, 0.11, () => 3, partial)
+    publishScope(command, complete)
+    expect(requested(currentMeasurementSnapshot([0.2]), 0.2)).toMatchObject({ current: true, measurement: { mean: 3 } })
+    acknowledgeLoad(command)
+    publishScope(command, 0)
+    expect(requested(currentMeasurementSnapshot([0.2]), 0.2)).toMatchObject({ current: false, measurement: null })
+  })
+
+  it('requires full post-correlated-alter coverage and never mixes the old stream or in-flight tail', async () => {
+    withWindowObservations()
+    useModule()
+    const command = await start()
+    const oldEnd = feedScope(command, 0.25, () => -7)
+    publishScope(command, oldEnd)
+    expect(requested(currentMeasurementSnapshot([0.2]), 0.2)?.current).toBe(true)
+    changeControl(2000)
+    const update = latestAlter()
+    const tailEnd = feedScope(command, 0.05, () => -7, oldEnd)
+    publishScope(command, tailEnd)
+    expect(requested(currentMeasurementSnapshot([0.2]), 0.2)?.current).toBe(false)
+    emit({ type: 'altered', requestId: 'older-request', changes: update.changes, simTime: oldEnd })
+    publishScope(command, tailEnd)
+    expect(requested(currentMeasurementSnapshot([0.2]), 0.2)?.current).toBe(false)
+    emit({ type: 'altered', requestId: update.requestId, changes: update.changes, simTime: tailEnd })
+    publishScope(command, tailEnd)
+    expect(requested(currentMeasurementSnapshot([0.2]), 0.2)?.current).toBe(false)
+    if (command.analysis.kind !== 'tran') throw new Error('Missing transient sample grid')
+    const first = tailEnd + command.analysis.step
+    const partial = feedScope(command, 0.1, () => 2, first)
+    publishScope(command, partial)
+    expect(requested(currentMeasurementSnapshot([0.2]), 0.2)?.current).toBe(false)
+    const complete = feedScope(command, 0.11, () => 2, partial)
+    publishScope(command, complete)
+    const capture = requested(currentMeasurementSnapshot([0.2]), 0.2)
+    expect(capture).toMatchObject({ current: true, measurement: { min: 2, max: 2, mean: 2 } })
+    expect(capture?.window?.start).toBeGreaterThan(tailEnd)
+  })
+
+  it.each(['paused', 'idle'] as const)(
+    'rejects native %s evidence and requires a full post-resume request window',
+    async (state) => {
+      withWindowObservations()
+      const command = await start()
+      const oldEnd = feedScope(command, 0.25, () => 4)
+      publishScope(command, oldEnd)
+      expect(requested(currentMeasurementSnapshot([0.2]), 0.2)?.current).toBe(true)
+      emit({ type: 'status', state, simTime: oldEnd })
+      expect(requested(currentMeasurementSnapshot([0.2]), 0.2)).toMatchObject({ current: false, measurement: null })
+      expect(currentMeasurementSnapshot()?.waveforms?.[0]?.current).toBe(true)
+      const tailEnd = feedScope(command, 0.3, () => 9, oldEnd)
+      publishScope(command, tailEnd)
+      expect(requested(currentMeasurementSnapshot([0.2]), 0.2)?.current).toBe(false)
+      emit({ type: 'status', state: 'running', simTime: tailEnd })
+      expect(requested(currentMeasurementSnapshot([0.2]), 0.2)?.current).toBe(false)
+      if (command.analysis.kind !== 'tran') throw new Error('Missing transient sample grid')
+      const partial = feedScope(command, 0.1, () => 3, tailEnd + command.analysis.step)
+      publishScope(command, partial)
+      expect(requested(currentMeasurementSnapshot([0.2]), 0.2)?.current).toBe(false)
+      const complete = feedScope(command, 0.11, () => 3, partial)
+      publishScope(command, complete)
+      const capture = requested(currentMeasurementSnapshot([0.2]), 0.2)
+      expect(capture).toMatchObject({ current: true, measurement: { min: 3, max: 3, mean: 3 } })
+      expect(capture?.window?.start).toBeGreaterThan(tailEnd)
+    },
+  )
+
+  it.each([{ run: 0 }, { ch1_on: 0 }, { ch1_coupling: 2 }])(
+    'rejects stopped, disabled or GND requested acquisition %j',
+    async (settings) => {
+      withWindowObservations()
+      const command = await start()
+      const end = feedScope(command, 0.3, (time) => Math.sin(2 * Math.PI * 1000 * time))
+      publishScope(command, end)
+      fixture.instruments = fixture.instruments.map((entry) =>
+        entry.instanceId === 'scope1' ? { ...entry, settings: { ...entry.settings, ...settings } } : entry,
+      )
+      changeControl(1000)
+      expect(requested(currentMeasurementSnapshot([0.2]), 0.2)).toMatchObject({ current: false, measurement: null })
+    },
+  )
+
+  it('does not replace a genuinely single-frozen acquisition with a live requested stream', async () => {
+    withWindowObservations()
+    fixture.instruments = fixture.instruments.map((entry) =>
+      entry.instanceId === 'scope1'
+        ? { ...entry, settings: { ...entry.settings, trig_mode: 2, trig_level: 0 } }
+        : entry,
+    )
+    const command = await start()
+    publishScope(command, 0)
+    currentMeasurementSnapshot([0.2])
+    const end = feedScope(command, 0.3, (time) => Math.sin(2 * Math.PI * 1000 * time))
+    publishScope(command, end)
+    expect(requested(currentMeasurementSnapshot([0.2]), 0.2)).toMatchObject({ current: false, measurement: null })
+  })
+
+  it('measures a requested short DC difference from one synchronized raw window, including its full-window mean', async () => {
+    withWindowObservations()
+    fixture.state.wires.push({ id: 'scope2', a: 'scope1.CH2', b: 'gen1.CH1', color: 'red' })
+    const command = await start()
+    const end = feedScope(command, 0.04, (time) => 3.2 + 0.3 * Math.sin(2 * Math.PI * 1000 * time))
+    feedScope(command, 0.04, (time) => 2.8 + 0.2 * Math.sin(2 * Math.PI * 1000 * time), 0, 'CH2')
+    publishScope(command, end)
+    const capture = requested(currentMeasurementSnapshot([0.0035]), 0.0035, 'CH1-CH2')
+    expect(capture).toMatchObject({
+      current: true,
+      negativeRef: 'scope1.CH2',
+      window: { source: 'raw', frozen: false },
+    })
+    const a = fixture.sim.buffer('scope:scope1:CH1')
+    const b = fixture.sim.buffer('scope:scope1:CH2')
+    const count = Math.ceil(0.0035 / a.dt)
+    const actual = Float32Array.from(
+      { length: count },
+      (_, index) => a.latest(count - 1 - index) - b.latest(count - 1 - index),
+    )
+    const mean = actual.reduce((sum, sample) => sum + sample, 0) / count
+    expect(capture?.measurement?.mean).toBeCloseTo(mean, 8)
+    expect(Math.abs(mean - 0.4)).toBeGreaterThan(0.001)
+    expect(capture?.measurement?.min).toBeCloseTo(Math.min(...actual), 6)
+    expect(capture?.measurement?.max).toBeCloseTo(Math.max(...actual), 6)
+    expect(capture?.window?.end).toBe(a.lastTime)
+    expect(capture?.window?.start).toBe(a.lastTime - (count - 1) * a.dt)
+  })
+
+  it('retains the connected identity but refuses a long difference instead of subtracting channel envelopes', async () => {
+    withWindowObservations()
+    fixture.state.wires.push({ id: 'scope2', a: 'scope1.CH2', b: 'gen1.CH1', color: 'red' })
+    const command = await start()
+    const end = feedScope(command, 0.3, () => 4)
+    feedScope(command, 0.3, () => 3, 0, 'CH2')
+    publishScope(command, end)
+    const snapshot = currentMeasurementSnapshot([0.2])
+    expect(requested(snapshot, 0.2, 'CH1')?.current).toBe(true)
+    expect(requested(snapshot, 0.2, 'CH2')?.current).toBe(true)
+    expect(requested(snapshot, 0.2, 'CH1-CH2')).toMatchObject({
+      current: false,
+      measurement: null,
+      positiveRef: 'scope1.CH1',
+      negativeRef: 'scope1.CH2',
+    })
+    expect(requested(snapshot, 0.2, 'CH1-CH2')?.window).toBeUndefined()
+    expect(
+      snapshot?.waveforms?.find(
+        (reading) => reading.channelId === 'CH1-CH2' && reading.requestedWindowSec === undefined,
+      )?.current,
+    ).toBe(true)
+  })
+
+  it('rejects requested differences across missing raw continuity even when old ring tails and latest grids align', async () => {
+    withWindowObservations()
+    fixture.state.wires.push({ id: 'scope2', a: 'scope1.CH2', b: 'gen1.CH1', color: 'red' })
+    const command = await start()
+    feedScope(command, 0.22, () => 8)
+    feedScope(command, 0.22, () => 2, 0, 'CH2')
+    const end = feedScope(command, 0.03, () => 4, 0.3)
+    feedScope(command, 0.03, () => 3, 0.3, 'CH2')
+    publishScope(command, end)
+    const snapshot = currentMeasurementSnapshot([0.04, 0.02])
+    expect(fixture.sim.buffer('scope:scope1:CH1').length).toBeGreaterThan(0.04 / 2e-6)
+    expect(requested(snapshot, 0.04, 'CH1-CH2')).toMatchObject({ current: false, measurement: null })
+    expect(requested(snapshot, 0.02, 'CH1-CH2')).toMatchObject({
+      current: true,
+      measurement: { min: 1, max: 1, mean: 1 },
+    })
+  })
+
+  it('refuses a requested raw difference when two complete channel windows have different latest times', async () => {
+    withWindowObservations()
+    fixture.state.wires.push({ id: 'scope2', a: 'scope1.CH2', b: 'gen1.CH1', color: 'red' })
+    const command = await start()
+    const end = feedScope(command, 0.04, () => 4)
+    feedScope(command, 0.04, () => 3, 0.001, 'CH2')
+    publishScope(command, end + 0.001)
+    const snapshot = currentMeasurementSnapshot([0.02])
+    expect(requested(snapshot, 0.02, 'CH1')?.current).toBe(true)
+    expect(requested(snapshot, 0.02, 'CH2')?.current).toBe(true)
+    expect(requested(snapshot, 0.02, 'CH1-CH2')).toMatchObject({ current: false, measurement: null })
   })
 })

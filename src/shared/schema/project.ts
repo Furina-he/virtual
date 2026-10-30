@@ -13,6 +13,8 @@ export const MeasurePoint = z
     mode: z.enum(['dcv', 'acv', 'dca', 'aca']).optional(),
     quantity: z.enum(['mean', 'vpp', 'min', 'max', 'frequency', 'period']).optional(),
     minCycles: z.number().int().min(2).optional(),
+    // Optional bounded raw/stream window for static waveform evidence.
+    windowSec: z.number().finite().gt(0).lte(16).optional(),
     between: z.tuple([JackRef, JackRef]).optional(),
     // 电流测量所在支路：串入电流表时断开的两个插孔
     branch: z.tuple([JackRef, JackRef]).optional(),
@@ -32,6 +34,8 @@ export const MeasurePoint = z
       ctx.addIssue({ code: 'custom', message: 'quantity 只用于波形测量点', path: ['quantity'] })
     if (p.minCycles && p.kind !== 'waveform')
       ctx.addIssue({ code: 'custom', message: 'minCycles 只用于波形测量点', path: ['minCycles'] })
+    if (p.windowSec !== undefined && p.kind !== 'waveform')
+      ctx.addIssue({ code: 'custom', message: 'windowSec 只用于波形测量点', path: ['windowSec'] })
   })
 
 // 步骤完成条件：某测量点读数落在区间内

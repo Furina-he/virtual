@@ -122,6 +122,9 @@ function TaskCellInput({
         data-captured-from={capture?.instanceId ?? ''}
         data-captured-channel={capture?.channelId ?? ''}
         data-reference-value-si={capture?.referenceValueSI}
+        data-requested-window-sec={capture?.requestedWindowSec}
+        data-captured-window={capture?.window ? JSON.stringify(capture.window) : ''}
+        data-captured-statistics={capture?.statistics ? JSON.stringify(capture.statistics) : ''}
         placeholder={column.computed ? '等待测量数据' : '未记录'}
         className="font-mono text-xs"
         onFocus={() => {

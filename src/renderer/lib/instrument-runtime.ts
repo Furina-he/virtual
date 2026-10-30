@@ -11,8 +11,9 @@ import {
   resolveSource,
   WAVEFORM_LABEL,
 } from '../../domain/instruments'
-import { LONG_WINDOW_SECONDS } from '../../domain/instruments/long-window'
+import { LONG_WINDOW_SECONDS, type LongWindowSnapshot } from '../../domain/instruments/long-window'
 import { RmsWindow } from '../../domain/instruments/rms-window'
+import type { SignalMeasurement } from '../../domain/instruments/scope'
 import {
   buildMeasurementPlan,
   METER_RMS_WINDOW,
@@ -94,12 +95,57 @@ type RuntimeJob = {
   preflight: boolean
   external: Record<string, number>
 }
+type ScopeSampleState = { dt: number; nextTime: number; lastTime: number; points: number }
 
-let measurementSnapshotReader: (() => MeasurementSnapshot | undefined) | undefined
+type SnapshotReader = (windowSeconds?: readonly number[]) => MeasurementSnapshot | undefined
+let measurementSnapshotReader: SnapshotReader | undefined
+
+function validateWindowSeconds(windowSeconds: readonly number[]): number[] {
+  const unique = new Set<number>()
+  for (const seconds of windowSeconds) {
+    if (!Number.isFinite(seconds) || seconds <= 0 || seconds > LONG_WINDOW_SECONDS)
+      throw new RangeError(`Observation window must be finite and in (0, ${LONG_WINDOW_SECONDS}]`)
+    unique.add(seconds)
+  }
+  return [...unique].sort((a, b) => a - b)
+}
+
+function snapshotWindow(
+  snapshot: LongWindowSnapshot,
+  seconds: number,
+  revision: number,
+): {
+  measurement: SignalMeasurement | null
+  window: WaveformWindow
+  complete: boolean
+} {
+  const window: WaveformWindow = {
+    ...snapshot.window,
+    source: 'stream',
+    revision,
+    frozen: false,
+  }
+  const covered =
+    Number.isFinite(window.start) &&
+    Number.isFinite(window.end) &&
+    Number.isFinite(window.rawStep) &&
+    window.rawStep > 0 &&
+    window.end + window.rawStep >= window.start + seconds - Math.max(1e-9, seconds * 1e-9)
+  return { measurement: snapshot.measurement, window, complete: covered }
+}
+
+function rawMeasurement(data: Float32Array, dt: number): SignalMeasurement | null {
+  const measured = measureSignal(data, dt)
+  if (!measured) return null
+  let sum = 0
+  for (const value of data) sum += value
+  // Requested DC statistics must describe this exact tail, not measureSignal's cycle-only mean.
+  return { ...measured, mean: sum / data.length }
+}
 
 /** Capture synchronously from the current job, never from the delayed UI view. */
-export function currentMeasurementSnapshot(): MeasurementSnapshot | undefined {
-  return measurementSnapshotReader?.()
+export function currentMeasurementSnapshot(windowSeconds: readonly number[] = []): MeasurementSnapshot | undefined {
+  return measurementSnapshotReader?.(windowSeconds)
 }
 
 /** One producer owns measurements and the continuity tone, including when panels are popped out. */
@@ -112,8 +158,11 @@ export function connectInstrumentRuntime(onStatus: (status: RuntimeStatus) => vo
   let loadBoundary: { requestId: string; applied: boolean; resolve: () => void } | undefined
   const parameterRequests = new Set<string>()
   let pendingAlter: { requestId: string; afterTime?: number } | undefined
+  let requestedPaused = false
+  let requestedResumeAfter: number | undefined
   let waveformAfterTime = Number.NEGATIVE_INFINITY
   const waveformBoundary = new Map<string, number>()
+  const scopeContinuity = new Map<string, ScopeSampleState>()
   let moduleAudio: ReturnType<typeof createModuleAudio> | undefined
   let timer: ReturnType<typeof setTimeout> | undefined
   let timeout: ReturnType<typeof setTimeout> | undefined
@@ -129,7 +178,8 @@ export function connectInstrumentRuntime(onStatus: (status: RuntimeStatus) => vo
   const rmsWindows = new Map<string, RmsWindow>()
   const waveformScratch = new Float32Array(65_536)
   let offMeterSamples: (() => void)[] = []
-  const snapshotReader = (): MeasurementSnapshot | undefined =>
+  let offScopeSamples: (() => void)[] = []
+  const snapshotReader = (requestedSeconds: readonly number[] = []): MeasurementSnapshot | undefined =>
     job
       ? {
           current:
@@ -142,12 +192,46 @@ export function connectInstrumentRuntime(onStatus: (status: RuntimeStatus) => vo
           readings: Object.fromEntries(
             job.plan.meters.map((meter) => [meter.instanceId, getInstrumentReading(meter.instanceId)]),
           ),
-          waveforms: snapshotWaveforms(job),
+          waveforms: snapshotWaveforms(job, validateWindowSeconds(requestedSeconds)),
         }
       : undefined
   measurementSnapshotReader = snapshotReader
 
-  function snapshotWaveforms(current: RuntimeJob): WaveformReading[] {
+  function resetScopeContinuity(current?: RuntimeJob): void {
+    for (const off of offScopeSamples) off()
+    offScopeSamples = []
+    scopeContinuity.clear()
+    if (!current || typeof sim.onSamples !== 'function') return
+    const probes = new Set(
+      current.plan.scopes.flatMap((scope) =>
+        scope.channels.flatMap((channel) => (channel.probe ? [channel.probe] : [])),
+      ),
+    )
+    for (const probe of probes) {
+      offScopeSamples.push(
+        sim.onSamples(probe, (samples, t0, dt) => {
+          const previous = scopeContinuity.get(probe)
+          const tolerance = Math.max(
+            dt * 1e-6,
+            4 * Number.EPSILON * Math.max(dt, Math.abs(t0), Math.abs(previous?.nextTime ?? t0)),
+          )
+          const continuous =
+            previous !== undefined && previous.dt === dt && Math.abs(t0 - previous.nextTime) <= tolerance
+          const points = continuous
+            ? Math.min(waveformScratch.length, previous.points + samples.length)
+            : samples.length
+          scopeContinuity.set(probe, {
+            dt,
+            nextTime: t0 + samples.length * dt,
+            lastTime: t0 + (samples.length - 1) * dt,
+            points,
+          })
+        }),
+      )
+    }
+  }
+
+  function snapshotWaveforms(current: RuntimeJob, requestedSeconds: readonly number[] = []): WaveformReading[] {
     return current.plan.scopes.flatMap((scope) => {
       const input = current.input.instruments.find((entry) => entry.instanceId === scope.instanceId)
       if (!input?.instrument.scope) return []
@@ -161,6 +245,26 @@ export function connectInstrumentRuntime(onStatus: (status: RuntimeStatus) => vo
         typeof sim.observation === 'function' ? (id) => sim.observation(id) : undefined,
       )
       const channelSamples = new Map<string, { samples: Float32Array; dt: number; lastTime: number }>()
+      const probeByChannel = new Map(
+        scope.channels.flatMap((channel) => (channel.probe ? [[channel.id, channel.probe] as const] : [])),
+      )
+      const streamCache = new Map<string, Map<number, ReturnType<typeof snapshotWindow>>>()
+      const requestedCaptured: WaveformReading[] = []
+      const streamSnapshot = (probe: string, seconds: number) => {
+        let byWindow = streamCache.get(probe)
+        if (!byWindow) {
+          byWindow = new Map()
+          streamCache.set(probe, byWindow)
+        }
+        const cached = byWindow.get(seconds)
+        if (cached) return cached
+        const observation = typeof sim.observation === 'function' ? sim.observation(probe) : undefined
+        const result = observation
+          ? snapshotWindow(observation.snapshot(seconds), seconds, current.revision)
+          : undefined
+        if (result) byWindow.set(seconds, result)
+        return result
+      }
       const captured = scope.channels.flatMap((channel, index) => {
         const configured = input.instrument.scope?.channels[index]
         const displayed = settings.channels[index]
@@ -204,36 +308,75 @@ export function connectInstrumentRuntime(onStatus: (status: RuntimeStatus) => vo
               LONG_WINDOW_SECONDS,
               Math.max(settings.secondsPerDiv * settings.config.divisions.x * 2, 0.2),
             )
-            const extended = sim.observation(channel.probe).snapshot(seconds)
+            const stream = streamSnapshot(channel.probe, seconds)
+            const extended = stream ? { measurement: stream.measurement, window: stream.window } : undefined
             if (
-              extended.measurement &&
+              extended?.measurement &&
               extended.window.completeCycles >= 2 &&
               extended.window.completeCycles > (measurement?.completeCycles ?? 0)
             ) {
               measurement = extended.measurement
-              window = { ...extended.window, source: 'stream', revision: current.revision, frozen: false }
+              window = extended.window
             }
             if (
               settings.secondsPerDiv * settings.config.divisions.x > buffer.capacity * buffer.dt &&
-              extended.measurement
+              extended?.measurement
             ) {
               measurement = extended.measurement
-              window = { ...extended.window, source: 'stream', revision: current.revision, frozen: false }
+              window = extended.window
             }
           }
         }
-        return [
-          {
+        const base: WaveformReading = {
+          instanceId: scope.instanceId,
+          channelId: channel.id,
+          positiveRef: `${scope.instanceId}.${configured.positiveJack}`,
+          negativeRef: `${scope.instanceId}.${configured.negativeJack}`,
+          coupling: displayed.coupling,
+          current: allowed && measurement !== null,
+          measurement,
+          ...(window ? { window } : {}),
+        }
+        const requested = requestedSeconds.map((seconds) => {
+          const identity = {
             instanceId: scope.instanceId,
             channelId: channel.id,
             positiveRef: `${scope.instanceId}.${configured.positiveJack}`,
             negativeRef: `${scope.instanceId}.${configured.negativeJack}`,
             coupling: displayed.coupling,
-            current: allowed && measurement !== null,
-            measurement,
-            ...(window ? { window } : {}),
-          },
-        ]
+            requestedWindowSec: seconds,
+          }
+          const bounded = channel.probe ? streamSnapshot(channel.probe, seconds) : undefined
+          const sourceBuffer = channel.probe ? sim.buffer(channel.probe) : undefined
+          const alignmentTolerance = sourceBuffer ? Math.max(sourceBuffer.dt * 1e-6, 1e-12) : 0
+          const aligned = Boolean(
+            bounded?.window &&
+              sourceBuffer &&
+              bounded.window.rawStep === sourceBuffer.dt &&
+              Math.abs(bounded.window.end - sourceBuffer.lastTime) <= alignmentTolerance,
+          )
+          const resumed = Boolean(
+            requestedResumeAfter === undefined ||
+              (bounded?.window !== undefined && bounded.window.start >= requestedResumeAfter - alignmentTolerance),
+          )
+          const usable =
+            allowed &&
+            !requestedPaused &&
+            bounded?.complete === true &&
+            bounded?.measurement !== null &&
+            aligned &&
+            resumed &&
+            !(settings.trigger.mode === 'single' && frame.state === 'stopped')
+          return {
+            ...identity,
+            current: usable,
+            measurement: usable ? (bounded?.measurement ?? null) : null,
+            ...(bounded?.window ? { window: bounded.window } : {}),
+            ...(usable && bounded?.measurement ? { statistics: bounded.measurement } : {}),
+          } satisfies WaveformReading
+        })
+        requestedCaptured.push(...requested)
+        return [base]
       })
       const difference = captured.flatMap((positive) =>
         captured.flatMap((negative) => {
@@ -257,9 +400,11 @@ export function connectInstrumentRuntime(onStatus: (status: RuntimeStatus) => vo
           const measurement = measureSignal(data, a.dt)
           return [
             {
-              ...positive,
+              instanceId: positive.instanceId,
               channelId: `${positive.channelId}-${negative.channelId}`,
+              positiveRef: positive.positiveRef,
               negativeRef: negative.positiveRef,
+              coupling: positive.coupling,
               current: measurement !== null,
               measurement,
               window: {
@@ -275,7 +420,76 @@ export function connectInstrumentRuntime(onStatus: (status: RuntimeStatus) => vo
           ]
         }),
       )
-      return [...captured, ...difference]
+      const requestedDifference = requestedSeconds.flatMap((seconds) =>
+        requestedCaptured.flatMap((positive) =>
+          requestedCaptured.flatMap((negative) => {
+            if (
+              positive.channelId === negative.channelId ||
+              positive.requestedWindowSec !== seconds ||
+              negative.requestedWindowSec !== seconds ||
+              positive.coupling !== 'dc' ||
+              negative.coupling !== 'dc' ||
+              positive.negativeRef !== negative.negativeRef
+            )
+              return []
+            const a = channelSamples.get(positive.channelId)
+            const b = channelSamples.get(negative.channelId)
+            const identity: WaveformReading = {
+              instanceId: positive.instanceId,
+              channelId: `${positive.channelId}-${negative.channelId}`,
+              positiveRef: positive.positiveRef,
+              negativeRef: negative.positiveRef,
+              coupling: positive.coupling,
+              requestedWindowSec: seconds,
+              current: false,
+              measurement: null,
+            }
+            if (!a || !b || a.dt !== b.dt || Math.abs(a.lastTime - b.lastTime) > a.dt * 1e-6) return [identity]
+            const count = Math.ceil(seconds / a.dt)
+            const probeA = probeByChannel.get(positive.channelId)
+            const probeB = probeByChannel.get(negative.channelId)
+            const continuityA = probeA ? scopeContinuity.get(probeA) : undefined
+            const continuityB = probeB ? scopeContinuity.get(probeB) : undefined
+            const rawStart = a.lastTime - (count - 1) * a.dt
+            if (
+              count < 2 ||
+              count > waveformScratch.length ||
+              a.samples.length < count ||
+              b.samples.length < count ||
+              !continuityA ||
+              !continuityB ||
+              continuityA.dt !== a.dt ||
+              continuityB.dt !== b.dt ||
+              continuityA.points < count ||
+              continuityB.points < count ||
+              Math.abs(continuityA.lastTime - a.lastTime) > a.dt * 1e-6 ||
+              Math.abs(continuityB.lastTime - b.lastTime) > b.dt * 1e-6 ||
+              (requestedResumeAfter !== undefined && rawStart < requestedResumeAfter - a.dt * 1e-6)
+            )
+              return [identity]
+            const data = new Float32Array(count)
+            for (let i = 0; i < count; i++)
+              data[i] =
+                (a.samples[a.samples.length - count + i] as number) -
+                (b.samples[b.samples.length - count + i] as number)
+            const measured = rawMeasurement(data, a.dt)
+            if (!measured || requestedPaused || !positive.current || !negative.current) return [identity]
+            const requestedWindow: WaveformWindow = {
+              start: a.lastTime - (count - 1) * a.dt,
+              end: a.lastTime,
+              rawStep: a.dt,
+              completeCycles: measured.completeCycles ?? 0,
+              source: 'raw',
+              revision: current.revision,
+              frozen: false,
+            }
+            return [
+              { ...identity, current: true, measurement: measured, statistics: measured, window: requestedWindow },
+            ]
+          }),
+        ),
+      )
+      return [...captured, ...requestedCaptured, ...difference, ...requestedDifference]
     })
   }
 
@@ -369,6 +583,9 @@ export function connectInstrumentRuntime(onStatus: (status: RuntimeStatus) => vo
     loadBoundary = undefined
     waveformAfterTime = Number.NEGATIVE_INFINITY
     waveformBoundary.clear()
+    requestedPaused = false
+    requestedResumeAfter = undefined
+    resetScopeContinuity()
     resetScopeAcquisition()
     moduleAudio?.dispose()
     moduleAudio = undefined
@@ -608,6 +825,9 @@ export function connectInstrumentRuntime(onStatus: (status: RuntimeStatus) => vo
         return
       }
       const replayed = loadBoundary.applied
+      requestedPaused = false
+      requestedResumeAfter = undefined
+      resetScopeContinuity(current)
       loadBoundary.applied = true
       loadBoundary.resolve()
       publishedJob = undefined
@@ -630,6 +850,9 @@ export function connectInstrumentRuntime(onStatus: (status: RuntimeStatus) => vo
       if (event.requestId) parameterRequests.delete(event.requestId)
       if (event.requestId !== pendingAlter?.requestId) return
       pendingAlter = { requestId: event.requestId as string, afterTime: event.simTime }
+      requestedPaused = false
+      requestedResumeAfter = event.simTime
+      resetScopeContinuity(current)
       waveformAfterTime = event.simTime
       waveformBoundary.clear()
       for (const scope of current.plan.scopes) {
@@ -650,6 +873,28 @@ export function connectInstrumentRuntime(onStatus: (status: RuntimeStatus) => vo
         return
       failure(event.message)
       return
+    }
+    if (event.type === 'status') {
+      if (event.state === 'paused' || event.state === 'idle') {
+        requestedPaused = true
+        requestedResumeAfter = event.simTime
+        resetScopeContinuity()
+        for (const scope of current.plan.scopes) {
+          for (const channel of scope.channels) {
+            if (!channel.probe) continue
+            sim.observation?.(channel.probe).clear()
+          }
+        }
+      } else if (event.state === 'running') {
+        requestedPaused = false
+        requestedResumeAfter = event.simTime
+        resetScopeContinuity(current)
+        for (const scope of current.plan.scopes) {
+          for (const channel of scope.channels) {
+            if (channel.probe) sim.observation?.(channel.probe).clear()
+          }
+        }
+      }
     }
     if (!loadBoundary?.applied || (event.type !== 'op' && event.type !== 'readings')) return
     if (pendingAlter) {

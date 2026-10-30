@@ -200,6 +200,18 @@ function captureFeedback(
   return `${capture.measurePoint}：${meter?.config.instrument.name ?? capture.instanceId}（${capture.instanceId}${capture.channelId ? `.${capture.channelId}` : ''}）${capture.channelId ? '波形实测' : '表屏'} ${number(capture.displayValueSI)} ${unit}，按参考方向记录 ${number(capture.referenceValueSI)} ${unit}。${capture.reversed ? (ac ? '表线正负端接反，有效值的非负幅度不因反接改变。' : '表线正负端接反，记录按声明方向换算；未取绝对值。') : ''}`
 }
 
+function requestedWindowSeconds(project: Project, step?: Step): number[] {
+  if (!step) return []
+  const ids = requiredMeasurements(step)
+  return [
+    ...new Set(
+      ids
+        .map((id) => project.reference.measurePoints.find((point) => point.id === id)?.windowSec)
+        .filter((seconds): seconds is number => seconds !== undefined),
+    ),
+  ]
+}
+
 export function recordTaskReadings(project: Project): boolean {
   taskStore.setState({ bottomTab: 'data', leftTab: 'steps' })
   if (!active(project)) return false
@@ -211,7 +223,7 @@ export function recordTaskReadings(project: Project): boolean {
     return false
   }
   const row = Math.min(state.selectedRow, table.rows - 1)
-  const snapshot = currentMeasurementSnapshot()
+  const snapshot = currentMeasurementSnapshot(requestedWindowSeconds(project, step))
   const meters = selectedMeters(project, state.selectedSource)
   const required = requiredMeasurements(step)
   let task = state.task
@@ -276,7 +288,7 @@ export function completeCurrentTaskStep(project: Project): boolean {
     taskStore.setState({ notice: '本项目的配置步骤已完成。' })
     return false
   }
-  const snapshot = currentMeasurementSnapshot()
+  const snapshot = currentMeasurementSnapshot(requestedWindowSeconds(project, step))
   const wiring = step.checkWiring ? freshWiring(project, step) : undefined
   const update = completeTaskStep(project, state.task, step.id, {
     snapshot,
