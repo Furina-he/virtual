@@ -1,0 +1,36 @@
+# 项目协作规则
+
+电工电子技术虚拟仿真教学软件：Electron 离线桌面应用、ngspice 真实仿真、React + R3F 实训台。先保持现有架构与教学边界，不因会话或分支清理扩大需求。
+
+## 开始工作
+
+1. 先读 [项目状态](docs/项目状态.md) 和 [文档入口](docs/README.md)，再在 [执行计划](docs/执行计划.md) 找对应任务卡及依赖。
+2. 需求以 [PRD](电工电子技术虚拟仿真教学软件PRD.md) 为准，实现以 [技术设计](docs/技术设计.md) 和 [公共模块运行接口](docs/公共模块运行接口.md) 为准。冲突或方案行不通时先报告架构负责人，不在代码里绕过。
+3. 新任务先明确修改范围和验收命令；M0 出口未通过前，不自行扩展 M1/M2 内容或把开发机回归当正式交付。
+
+## 硬性边界
+
+- 依赖只用 PRD 14.2 白名单与锁定版本；新增库、模型/求解近似或阈值调整必须先审批。
+- shadcn/ui 和现有白名单库能表达的行为不手写；自研只限 PRD 14.3 的领域组件。
+- shadcn 组件用 `npx shadcn@4.22.1 add <name>`；CLI 带入的 `cn`、`next-themes` 从依赖移除，import 保持 `@/lib/utils`，不引入白名单外库。
+- `components/ui/` 之外不写十六进制颜色、不用 Tailwind 任意值；UI 遵循 PRD 第 15 节，不引入渐变、玻璃、emoji 或营销布局。
+- 项目差异只在 `content/` 配置声明，不在公共代码中按项目编号分支（ADR-004）。
+- 高频采样不进 React state；`src/domain/` 保持纯 TS，不引用 React/Electron。
+- 运行时不访问外网；字体、HDRI、drei 与模型资源全部本地。联网获取只能是显式开发期步骤。
+- 不用手填、理论值、跳步骤、另一个加速会话或修改物理/时间/PCM 门槛冒充真实验收。
+
+## 验证入口
+
+- 静态：`pnpm typecheck`、`pnpm lint`、`pnpm docs:lint`、`pnpm content:lint`、`pnpm assets:lint`。
+- 单元/真实金标准：`node tools/run-exclusive.ts test --maxWorkers=1`；原超时和数值阈值不变。
+- Electron 完整 E2E：`node tools/run-exclusive.ts e2e`；10 分钟浸泡使用 `SIM_SOAK_SEC=600`。
+- 构建/资产/音频/性能重任务也使用共享锁；入口细节见公共接口。不要跨 worktree 重叠运行，不擅自删锁或杀其他会话进程。
+- 日常命令仍在 `package.json`；`pnpm build:app` 只编译，`pnpm build` 才生成 NSIS。
+
+## 完成与清理
+
+- 全部任务卡验收满足才标完成。实现完成、局部通过、代码合并、目标机/教学验收分别描述；未重跑的成绩标明日期与提交。
+- 任务状态改执行计划，最新结果改项目状态，逐轮记录追加 `docs/archive/开发进度日志.md`，不新建重复会话交接文档。
+- 文档名不以数字开头；重命名同步修复引用并跑 `pnpm docs:lint`。历史建议不能覆盖现行契约。
+- 分支合并/删除按文档入口的生命周期执行；已知验收失败的整合分支不为“整洁”强推 `main`。
+- 保留用户未提交改动，禁止 `git add -A` 混入无关变更。worktree 的 ignored 录屏、失败日志和索引先独立归档、逐文件校验再清缓存；不强制删未合并分支、不自动推送。

@@ -16,6 +16,7 @@
     "preview": "electron-vite preview",
     "typecheck": "tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p tsconfig.web.json",
     "lint": "biome check .",
+    "docs:lint": "node tools/docs-lint.ts",
     "format": "biome format --write .",
     "test": "vitest run",
     "e2e": "electron-vite build && playwright test",
