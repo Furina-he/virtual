@@ -76,9 +76,10 @@ function snapshot(
   reference: Project['reference'],
   jack: string,
   measurement: SignalMeasurement,
-  second?: { jack: string; measurement: SignalMeasurement },
+  second?: { jack: string; measurement: SignalMeasurement; requestedWindowSec?: number },
+  requestedWindowSec?: number,
 ): MeasurementSnapshot {
-  const channels = [{ id: 'CH1', jack, measurement }, ...(second ? [{ id: 'CH2', ...second }] : [])]
+  const channels = [{ id: 'CH1', jack, measurement, requestedWindowSec }, ...(second ? [{ id: 'CH2', ...second }] : [])]
   const circuit: AssembleInput = {
     title: 'SD-22 protocol-only content evidence',
     modules: [
@@ -114,6 +115,8 @@ function snapshot(
       coupling: 'dc',
       current: true,
       measurement: channel.measurement,
+      ...(channel.requestedWindowSec === undefined ? {} : { requestedWindowSec: channel.requestedWindowSec }),
+      ...(channel.requestedWindowSec === undefined ? {} : { statistics: channel.measurement }),
       window: {
         start: 1,
         end: 1.2,
@@ -266,9 +269,10 @@ describe('SD-22 approved two-mode content and evidence contracts', () => {
   })
 
   it('requires real cycles for periodic metrics without blocking static CV platform means', () => {
+    const nonperiodic = new Set(['control-mean', 'control-platform-min', 'control-platform-max'])
     for (const bound of project.reference.measurePoints.filter((entry) => entry.kind === 'waveform')) {
       expect(bound.quantity).toBeTruthy()
-      expect(bound.minCycles).toBe(bound.id === 'control-mean' ? undefined : 2)
+      expect(bound.minCycles).toBe(nonperiodic.has(bound.id) ? undefined : 2)
     }
     const measurement = {
       ...carrier,
@@ -280,7 +284,10 @@ describe('SD-22 approved two-mode content and evidence contracts', () => {
       period: null,
       completeCycles: 0,
     }
-    const result = captureMeasurePoint(snapshot(project.reference, 'T2_CV', measurement), point('control-mean'))
+    const result = captureMeasurePoint(
+      snapshot(project.reference, 'T2_CV', measurement, undefined, 0.2),
+      point('control-mean'),
+    )
     expect(result).toMatchObject({ ok: true, measurement: { referenceValueSI: 3.325 } })
   })
 
@@ -299,13 +306,33 @@ describe('SD-22 approved two-mode content and evidence contracts', () => {
       min: 1013.202,
       max: 1033.67,
     })
-    expect(step('ambulance-tone-low').expects).toEqual([{ measurePoint: 'control-mean', min: 3.31, max: 3.34 }])
+    expect(step('ambulance-tone-low').expects).toEqual([
+      { measurePoint: 'control-mean', min: 3.31, max: 3.34 },
+      { measurePoint: 'control-platform-min', min: 3.31, max: 3.34 },
+      { measurePoint: 'control-platform-max', min: 3.31, max: 3.34 },
+    ])
     expect(step('ambulance-tone-high').expect).toEqual({
       measurePoint: 'carrier-frequency',
       min: 1394.168,
       max: 1422.334,
     })
-    expect(step('ambulance-tone-high').expects).toEqual([{ measurePoint: 'control-mean', min: 2.49, max: 2.51 }])
+    expect(step('ambulance-tone-high').expects).toEqual([
+      { measurePoint: 'control-mean', min: 2.49, max: 2.51 },
+      { measurePoint: 'control-platform-min', min: 2.49, max: 2.51 },
+      { measurePoint: 'control-platform-max', min: 2.49, max: 2.51 },
+    ])
+    for (const [id, quantity] of [
+      ['control-mean', 'mean'],
+      ['control-platform-min', 'min'],
+      ['control-platform-max', 'max'],
+    ]) {
+      expect(point(id as string)).toMatchObject({
+        quantity,
+        windowSec: 0.2,
+        between: ['timer1.T2_CV', 'timer1.GND1'],
+      })
+      expect(point(id as string).minCycles).toBeUndefined()
+    }
     expect(project.steps.filter((entry) => entry.expects?.length).map((entry) => entry.id)).toEqual([
       'ambulance-lf',
       'ambulance-tone-low',
@@ -393,7 +420,11 @@ describe('SD-22 approved two-mode content and evidence contracts', () => {
       const matchedCarrier = { ...carrier, frequency, period: 1 / frequency }
       const mixed = { ...carrier, min: 2.5006, max: 3.325, mean: 3.1, vpp: 3.325 - 2.5006 }
       const reference = scopedReference(project, entry)
-      const evidence = snapshot(reference, 'T2_OUT', matchedCarrier, { jack: 'T2_CV', measurement: mixed })
+      const evidence = snapshot(reference, 'T2_OUT', matchedCarrier, {
+        jack: 'T2_CV',
+        measurement: mixed,
+        requestedWindowSec: 0.2,
+      })
       expect(captureMeasurePoint(evidence, point('carrier-frequency')).ok).toBe(true)
       expect(captureMeasurePoint(evidence, point('control-mean')).ok).toBe(true)
       expect(completeTaskStep(project, stateAt(id), id, { snapshot: evidence, wiringCorrect: true }).ok).toBe(false)
@@ -407,12 +438,93 @@ describe('SD-22 approved two-mode content and evidence contracts', () => {
         period: null,
         completeCycles: 0,
       }
-      const current = snapshot(reference, 'T2_OUT', matchedCarrier, { jack: 'T2_CV', measurement: plateau })
+      const current = snapshot(reference, 'T2_OUT', matchedCarrier, {
+        jack: 'T2_CV',
+        measurement: plateau,
+        requestedWindowSec: 0.2,
+      })
       const completed = completeTaskStep(project, stateAt(id), id, { snapshot: current, wiringCorrect: true })
       expect(completed.ok).toBe(true)
       expect(completed.state.completedSteps).toContain(id)
       expect(current.waveforms?.[1]?.measurement).toMatchObject({ mean: voltage, completeCycles: 0 })
     }
+  })
+
+  it('retains a mean inside the platform range when one percent of the previous tone still contaminates its window', () => {
+    for (const [id, frequency, voltage, previous, column] of [
+      ['ambulance-tone-low', 1023.436, 3.325, 2.5006, 'cv-high'],
+      ['ambulance-tone-high', 1408.251, 2.5006, 3.325, 'cv-low'],
+    ] as const) {
+      const entry = step(id)
+      const measured = {
+        ...carrier,
+        min: Math.min(voltage, previous),
+        max: Math.max(voltage, previous),
+        mean: voltage * 0.99 + previous * 0.01,
+        vpp: Math.abs(voltage - previous),
+        frequency: null,
+        period: null,
+        completeCycles: 0,
+      }
+      const evidence = snapshot(
+        scopedReference(project, entry),
+        'T2_OUT',
+        {
+          ...carrier,
+          frequency,
+          period: 1 / frequency,
+        },
+        { jack: 'T2_CV', measurement: measured, requestedWindowSec: 0.2 },
+      )
+      const recorded = recordCurrentReading(project, stateAt(id), 'ambulance', 0, column, {
+        snapshot: evidence,
+        wiringCorrect: true,
+      })
+      expect(recorded.ok).toBe(true)
+      expect(recorded.measurement).toMatchObject({ requestedWindowSec: 0.2, channelId: 'CH2' })
+      expect(recorded.state.tables.ambulance?.[0]?.[column]).toBe(measured.mean)
+      const meanRange = entry.expects?.find((range) => range.measurePoint === 'control-mean')
+      expect(meanRange).toBeDefined()
+      expect(measured.mean).toBeGreaterThan(meanRange?.min as number)
+      expect(measured.mean).toBeLessThan(meanRange?.max as number)
+      expect(recorded.state.completedSteps).not.toContain(id)
+      expect(completeTaskStep(project, recorded.state, id, { snapshot: evidence, wiringCorrect: true }).ok).toBe(false)
+      expect(evidence.waveforms?.[1]?.measurement).toMatchObject({ min: measured.min, max: measured.max })
+    }
+  })
+
+  it('requires the declared 0.2 second requested window instead of an untagged or truncated raw plateau', () => {
+    const measurement = {
+      ...carrier,
+      mean: 3.325,
+      min: 3.325,
+      max: 3.325,
+      vpp: 0,
+      frequency: null,
+      period: null,
+      completeCycles: 0,
+    }
+    const defaultEvidence = snapshot(project.reference, 'T2_CV', measurement)
+    expect(captureMeasurePoint(defaultEvidence, point('control-mean')).ok).toBe(false)
+    const truncated = snapshot(project.reference, 'T2_CV', measurement, undefined, 0.2)
+    const reading = truncated.waveforms?.[0]
+    if (!reading?.window) throw new Error('Missing requested-window test source')
+    reading.window.end = reading.window.start + (65_536 - 1) * 2e-6
+    expect(captureMeasurePoint(truncated, point('control-mean')).ok).toBe(false)
+    const complete = snapshot(project.reference, 'T2_CV', measurement, undefined, 0.2)
+    const captured = ['control-mean', 'control-platform-min', 'control-platform-max'].map((id) =>
+      captureMeasurePoint(complete, point(id)),
+    )
+    expect(captured.every((result) => result.ok)).toBe(true)
+    const evidence = captured.flatMap((result) => (result.ok ? [result.measurement] : []))
+    expect(evidence).toHaveLength(3)
+    for (const sample of evidence)
+      expect(sample).toMatchObject({
+        requestedWindowSec: 0.2,
+        instanceId: 'scope1',
+        channelId: 'CH1',
+        window: complete.waveforms?.[0]?.window,
+      })
   })
 
   it('keeps the three gradual-tone gate ranges non-overlapping', () => {

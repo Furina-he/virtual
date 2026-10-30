@@ -164,6 +164,27 @@
         "id": "control-mean",
         "kind": "waveform",
         "quantity": "mean",
+        "windowSec": 0.2,
+        "between": [
+          "timer1.T2_CV",
+          "timer1.GND1"
+        ]
+      },
+      {
+        "id": "control-platform-min",
+        "kind": "waveform",
+        "quantity": "min",
+        "windowSec": 0.2,
+        "between": [
+          "timer1.T2_CV",
+          "timer1.GND1"
+        ]
+      },
+      {
+        "id": "control-platform-max",
+        "kind": "waveform",
+        "quantity": "max",
+        "windowSec": 0.2,
         "between": [
           "timer1.T2_CV",
           "timer1.GND1"
@@ -507,11 +528,13 @@
     },
     {
       "id": "ambulance-tone-low",
-      "text": "先断电将 CH1 接 T2_OUT、CH2 接 T2_CV，DC 耦合、0.2 ms/div。进入低音平台中间并让最近至少 0.2 s 完全处于平台，确认真实载频约 1.023 kHz 后记录频率、输出 Vpp 与 CV 高平台短窗均值；不能用整低频窗平均。 步骤同时检查当前真实 CV 短窗均值 3.31–3.34 V；载频的近期周期已有效不代表 CV 均值窗已完整进入平台。",
+      "text": "先断电将 CH1 接 T2_OUT、CH2 接 T2_CV，DC 耦合、0.2 ms/div。进入低音平台中间并让最近至少 0.2 s 完全处于平台，确认真实载频约 1.023 kHz 后记录频率、输出 Vpp 与 CV 高平台短窗均值；不能用整低频窗平均。 CV 均值、最小值和最大值使用同一实际通道的显式 0.2 s 请求窗口，三者均须在 3.31–3.34 V；平均值合格但仍含少量上一平台不能推进。保留真实混合读数，不用 0.131 s 原始短窗冒充 0.2 s 覆盖，不裁剪历史。",
       "measurePoints": [
         "carrier-frequency",
         "carrier-vpp",
-        "control-mean"
+        "control-mean",
+        "control-platform-min",
+        "control-platform-max"
       ],
       "referenceNets": [
         [
@@ -587,16 +610,28 @@
           "measurePoint": "control-mean",
           "min": 3.31,
           "max": 3.34
+        },
+        {
+          "measurePoint": "control-platform-min",
+          "min": 3.31,
+          "max": 3.34
+        },
+        {
+          "measurePoint": "control-platform-max",
+          "min": 3.31,
+          "max": 3.34
         }
       ]
     },
     {
       "id": "ambulance-tone-high",
-      "text": "保留当前表线与短时基，等待高音平台中间且最近至少 0.2 s 完全在平台；记录真实约 1.408 kHz 载频、输出 Vpp 与 CV 低平台短窗均值。低音/高音列按阶段隔离，不互相覆盖。 步骤同时检查当前真实 CV 短窗均值 2.49–2.51 V；载频的近期周期已有效不代表 CV 均值窗已完整进入平台。",
+      "text": "保留当前表线与短时基，等待高音平台中间且最近至少 0.2 s 完全在平台；记录真实约 1.408 kHz 载频、输出 Vpp 与 CV 低平台短窗均值。低音/高音列按阶段隔离，不互相覆盖。 CV 均值、最小值和最大值必须来自同一实际通道的显式 0.2 s 请求窗口，并均在 2.49–2.51 V；载频近期周期或平均值单独合格不能证明整窗已在平台。真实混合读数仍可记录，但不能完成该阶段，不缩短窗口或扩大缓存。",
       "measurePoints": [
         "carrier-frequency",
         "carrier-vpp",
-        "control-mean"
+        "control-mean",
+        "control-platform-min",
+        "control-platform-max"
       ],
       "referenceNets": [
         [
@@ -670,6 +705,16 @@
       "expects": [
         {
           "measurePoint": "control-mean",
+          "min": 2.49,
+          "max": 2.51
+        },
+        {
+          "measurePoint": "control-platform-min",
+          "min": 2.49,
+          "max": 2.51
+        },
+        {
+          "measurePoint": "control-platform-max",
           "min": 2.49,
           "max": 2.51
         }

@@ -2,6 +2,8 @@ import { copyFileSync, mkdtempSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 import { _electron as electron, expect, type Page, test } from '@playwright/test'
+import type { SignalMeasurement } from '../../src/domain/instruments/scope'
+import type { WaveformWindow } from '../../src/domain/task/measurements'
 import { requiredMeasurements } from '../../src/domain/task/progress'
 import type { Step } from '../../src/shared/schema/project'
 import {
@@ -15,6 +17,7 @@ import {
   sd22Project,
   sd22RecordingAudio,
   sd22RemoveLeads,
+  sd22RequestedWindows,
   sd22Scope,
   sd22ScopeLeads,
   sd22Setup,
@@ -53,15 +56,30 @@ function displayedChannel(pointId: string): number {
 async function ready(page: Page, step: Step): Promise<boolean> {
   const scope = await sd22Scope(page)
   const ranges = [...(step.expect ? [step.expect] : []), ...(step.expects ?? [])]
-  return requiredMeasurements(step).every((id) => {
-    const point = sd22Project.reference.measurePoints.find((item) => item.id === id)
+  const points = requiredMeasurements(step).map((id) =>
+    sd22Project.reference.measurePoints.find((item) => item.id === id),
+  )
+  const requests = points.flatMap((point) =>
+    point?.windowSec === undefined ? [] : [{ channel: displayedChannel(point.id) + 1, windowSec: point.windowSec }],
+  )
+  const requested = await sd22RequestedWindows(page, requests)
+  return points.every((point) => {
     if (point?.kind !== 'waveform') return false
-    const channel = scope?.channels[displayedChannel(id)]
+    const windowSec = point.windowSec
+    const observed = windowSec === undefined ? undefined : requested[`${displayedChannel(point.id) + 1}:${windowSec}`]
+    const channel =
+      observed?.measurement ?? (windowSec === undefined ? scope?.channels[displayedChannel(point.id)] : undefined)
     const quantity = point.quantity ?? 'vpp'
     const value = channel?.[quantity]
     if (typeof value !== 'number' || !Number.isFinite(value)) return false
-    if ((channel?.window?.completeCycles ?? 0) < (point.minCycles ?? 0)) return false
-    return ranges.every((range) => range.measurePoint !== id || (value >= range.min && value <= range.max))
+    const window = observed?.window ?? scope?.channels[displayedChannel(point.id)]?.window
+    if ((window?.completeCycles ?? 0) < (point.minCycles ?? 0)) return false
+    if (windowSec !== undefined) {
+      if (!window || !(window.rawStep > 0)) return false
+      const tolerance = Number.EPSILON * Math.max(1, Math.abs(window.start), Math.abs(window.end), windowSec) * 8
+      if (window.end - window.start + window.rawStep + tolerance < windowSec) return false
+    }
+    return ranges.every((range) => range.measurePoint !== point.id || (value >= range.min && value <= range.max))
   })
 }
 
@@ -81,15 +99,61 @@ async function capture(page: Page, id: string) {
   } while (Date.now() < deadline)
   await expect(sd22Steps(page).locator(`li[data-step-id="${id}"]`)).toHaveAttribute('data-step-state', 'completed')
   await showTable(page, table.id)
-  const values: Record<string, { value: number; source: string; channel: string }> = {}
+  const values: Record<
+    string,
+    {
+      value: number
+      source: string
+      channel: string
+      requestedWindowSec?: number
+      window?: WaveformWindow
+      statistics?: SignalMeasurement
+    }
+  > = {}
   for (const column of columns) {
     const input = cell(page, table.id, column.id)
     await expect(input).not.toHaveValue('')
     await expect(input).toHaveAttribute('data-captured-from', 'scope1')
+    const point = sd22Project.reference.measurePoints.find((entry) => entry.id === column.measurePoint)
+    let window: WaveformWindow | undefined
+    let statistics: SignalMeasurement | undefined
+    if (point?.windowSec !== undefined) {
+      await expect(input).toHaveAttribute('data-requested-window-sec', String(point.windowSec))
+      const rawWindow = await input.getAttribute('data-captured-window')
+      expect(rawWindow, 'Recorded mean must retain its actual requested sampling window').not.toBeNull()
+      window = JSON.parse(rawWindow as string) as WaveformWindow
+      expect(window.source).toBe('stream')
+      expect(window.frozen).toBe(false)
+      expect(window.rawStep).toBeLessThanOrEqual(2e-6)
+      expect(window.rawStep).toBeGreaterThan(0)
+      const tolerance = Number.EPSILON * Math.max(1, Math.abs(window.start), Math.abs(window.end), point.windowSec) * 8
+      expect(window.end - window.start + window.rawStep + tolerance).toBeGreaterThanOrEqual(point.windowSec)
+      const rawStatistics = await input.getAttribute('data-captured-statistics')
+      expect(rawStatistics, 'Statistics must belong to the recorded window, not a later observation').not.toBeNull()
+      statistics = JSON.parse(rawStatistics as string) as SignalMeasurement
+      expect(statistics[point.quantity ?? 'vpp']).toBeCloseTo(Number(await input.inputValue()), 10)
+      const ranges = [...(step.expect ? [step.expect] : []), ...(step.expects ?? [])]
+      const sameWindowPoints = sd22Project.reference.measurePoints.filter(
+        (entry) =>
+          entry.kind === 'waveform' &&
+          entry.windowSec === point.windowSec &&
+          entry.between?.[0] === point.between?.[0] &&
+          entry.between?.[1] === point.between?.[1],
+      )
+      for (const range of ranges) {
+        const bound = sameWindowPoints.find((entry) => entry.id === range.measurePoint)
+        if (!bound) continue
+        const value = statistics[bound.quantity ?? 'vpp']
+        expect(typeof value).toBe('number')
+        expect(value).toBeGreaterThanOrEqual(range.min)
+        expect(value).toBeLessThanOrEqual(range.max)
+      }
+    }
     values[column.id] = {
       value: Number(await input.inputValue()),
       source: (await input.getAttribute('data-captured-from')) ?? '',
       channel: (await input.getAttribute('data-captured-channel')) ?? '',
+      ...(point?.windowSec === undefined ? {} : { requestedWindowSec: point.windowSec, window, statistics }),
     }
   }
   return values

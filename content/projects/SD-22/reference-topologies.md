@@ -144,6 +144,27 @@ follower1 虽挂载但四孔均不接，OUT 方波直接经 R5 调制 IC2 CV。
       "id": "control-mean",
       "kind": "waveform",
       "quantity": "mean",
+      "windowSec": 0.2,
+      "between": [
+        "timer1.T2_CV",
+        "timer1.GND1"
+      ]
+    },
+    {
+      "id": "control-platform-min",
+      "kind": "waveform",
+      "quantity": "min",
+      "windowSec": 0.2,
+      "between": [
+        "timer1.T2_CV",
+        "timer1.GND1"
+      ]
+    },
+    {
+      "id": "control-platform-max",
+      "kind": "waveform",
+      "quantity": "max",
+      "windowSec": 0.2,
       "between": [
         "timer1.T2_CV",
         "timer1.GND1"
@@ -328,6 +349,27 @@ follower1 虽挂载但四孔均不接，OUT 方波直接经 R5 调制 IC2 CV。
       "id": "control-mean",
       "kind": "waveform",
       "quantity": "mean",
+      "windowSec": 0.2,
+      "between": [
+        "timer1.T2_CV",
+        "timer1.GND1"
+      ]
+    },
+    {
+      "id": "control-platform-min",
+      "kind": "waveform",
+      "quantity": "min",
+      "windowSec": 0.2,
+      "between": [
+        "timer1.T2_CV",
+        "timer1.GND1"
+      ]
+    },
+    {
+      "id": "control-platform-max",
+      "kind": "waveform",
+      "quantity": "max",
+      "windowSec": 0.2,
       "between": [
         "timer1.T2_CV",
         "timer1.GND1"
@@ -506,6 +548,27 @@ follower1 虽挂载但四孔均不接，OUT 方波直接经 R5 调制 IC2 CV。
       "id": "control-mean",
       "kind": "waveform",
       "quantity": "mean",
+      "windowSec": 0.2,
+      "between": [
+        "timer1.T2_CV",
+        "timer1.GND1"
+      ]
+    },
+    {
+      "id": "control-platform-min",
+      "kind": "waveform",
+      "quantity": "min",
+      "windowSec": 0.2,
+      "between": [
+        "timer1.T2_CV",
+        "timer1.GND1"
+      ]
+    },
+    {
+      "id": "control-platform-max",
+      "kind": "waveform",
+      "quantity": "max",
+      "windowSec": 0.2,
       "between": [
         "timer1.T2_CV",
         "timer1.GND1"

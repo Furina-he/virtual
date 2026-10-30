@@ -1,7 +1,7 @@
 import { readFileSync, writeFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { type ElectronApplication, expect, type Page } from '@playwright/test'
-import type { LongWindow } from '../../../src/domain/instruments/long-window'
+import type { LongWindow, LongWindowSnapshot } from '../../../src/domain/instruments/long-window'
 import { formatSeconds } from '../../../src/domain/instruments/scope'
 import type { WaveformWindow } from '../../../src/domain/task/measurements'
 import { analyzeTone } from '../../../src/shared/audio/tone'
@@ -142,6 +142,19 @@ export async function sd22Scope(page: Page): Promise<Sd22ScopeSummary | undefine
   const canvas = page.locator('canvas[data-instance-id="scope1"]')
   const raw = (await canvas.count()) ? await canvas.getAttribute('data-scope') : null
   return raw ? (JSON.parse(raw) as Sd22ScopeSummary) : undefined
+}
+
+/** Check real bounded stream history; the actual record still goes through the production task store. */
+export async function sd22RequestedWindows(page: Page, requests: { channel: number; windowSec: number }[]) {
+  return page.evaluate((windows): Record<string, LongWindowSnapshot> => {
+    const client = window.__simClient as unknown as Sd22Client
+    const observed: Record<string, LongWindowSnapshot> = {}
+    for (const { channel, windowSec } of windows) {
+      const key = `${channel}:${windowSec}`
+      if (!observed[key]) observed[key] = client.observation(`scope:scope1:CH${channel}`).snapshot(windowSec)
+    }
+    return observed
+  }, requests)
 }
 
 export async function sd22Setup(page: Page) {
@@ -295,6 +308,14 @@ export async function sd22Evidence(page: Page) {
   return page.evaluate(() => {
     const evidence = (window as unknown as WindowEvidence).__sd22Evidence
     const client = window.__simClient as unknown as Sd22Client
+    if (!evidence)
+      return {
+        outputs: [],
+        commands: [],
+        events: [],
+        longTasks: [],
+        stats: { ...client.stats },
+      }
     return {
       ...evidence,
       outputs: evidence.outputs.map(({ context, ...output }) => ({ ...output, contextState: context.state })),
