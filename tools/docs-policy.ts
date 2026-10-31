@@ -11,6 +11,8 @@ export type RegistryEntry = {
   role: string
   lifecycle: 'active' | 'archive' | 'retired'
   line: number
+  pathStart: number
+  pathEnd: number
 }
 export type TextSnapshot = {
   files: ReadonlySet<string>
@@ -53,24 +55,204 @@ export function isManagedDocument(path: string): boolean {
   return /\.md$/i.test(path) && (!path.includes('/') || /^docs\//i.test(path))
 }
 
+export class LocalPathError extends Error {}
+
+export function isLocalReference(target: string): boolean {
+  return (
+    !!target.split(/[?#]/, 1)[0] &&
+    !target.startsWith('//') &&
+    (!/^[a-z][a-z\d+.-]*:/i.test(target) || /^[a-z]:[\\/]/i.test(target))
+  )
+}
+
 export function localReferencePath(file: string, target: string, repositoryPath = false): string | undefined {
-  if (!target || target.startsWith('#') || target.startsWith('//') || /^[a-z][a-z\d+.-]*:/i.test(target)) {
-    return undefined
-  }
+  if (!isLocalReference(target)) return undefined
+  const entity = /&(?:#\d+|#x[a-f\d]+|[a-z][a-z\d]+);/i.exec(target)
+  const suffix = target.search(/[?#]/)
+  if (entity && (suffix < 0 || entity.index < suffix))
+    throw new LocalPathError(`HTML entities in local destinations are unsupported; use URL encoding: ${target}`)
   const path = target.split(/[?#]/, 1)[0] ?? ''
-  if (!path) return undefined
-  const decoded = decodeURIComponent(path)
-    .replace(/\\([\\()[\]<> ])/g, '$1')
-    .replaceAll('\\', '/')
+  const raw = decodeURIComponent(path)
+  if (/^[a-z]:|^[\\/]{2}/i.test(raw)) throw new LocalPathError(`Unsupported native/network path: ${target}`)
+  const decoded = raw.replace(/\\([\\()[\]<> ])/g, '$1').replaceAll('\\', '/')
   const parts = repositoryPath || decoded.startsWith('/') ? [] : file.split('/').slice(0, -1)
   for (const part of decoded.split('/')) {
     if (!part || part === '.') continue
     if (part === '..') {
       if (!parts.length) return undefined
       parts.pop()
-    } else parts.push(part)
+    } else {
+      if (
+        part.trim() !== part ||
+        part.endsWith('.') ||
+        /[:*?"<>|]/.test(part) ||
+        [...part].some((char) => char.charCodeAt(0) < 32) ||
+        /^(?:con|prn|aux|nul|com[1-9]|lpt[1-9])(?:\.|$)/i.test(part)
+      )
+        throw new LocalPathError(`Unsupported local path component: ${target}`)
+      parts.push(part)
+    }
   }
   return parts.join('/')
+}
+
+type CodeSpan = { start: number; end: number; contentStart: number; contentEnd: number }
+
+export function markdownEscaped(text: string, index: number): boolean {
+  let count = 0
+  while (index > 0 && text[--index] === '\\') count++
+  return count % 2 === 1
+}
+
+function columns(text: string): number {
+  let column = 0
+  for (const char of text) column += char === '\t' ? 4 - (column % 4) : 1
+  return column
+}
+
+function codeEnd(text: string, start: number, width: number, limit: number): number | undefined {
+  const marker = '`'.repeat(width)
+  for (
+    let index = text.indexOf(marker, start);
+    index >= 0 && index < limit;
+    index = text.indexOf(marker, index + width)
+  ) {
+    if (text[index - 1] !== '`' && text[index + width] !== '`') return index
+  }
+  return undefined
+}
+
+export function markdownView(text: string): { visible: string; codes: CodeSpan[]; uncertain: Set<number> } {
+  const ranges: { start: number; end: number }[] = []
+  const codes: CodeSpan[] = []
+  const uncertain = new Set<number>()
+  let fence: { char: string; length: number } | undefined
+  let container: { column: number } | undefined
+  let containerFence: { char: string; length: number } | undefined
+  let unknownContainer = false
+  let comment = false
+  let indented = false
+  let paragraph = false
+  let blank = true
+  let codeUntil = 0
+  let offset = 0
+  for (const [lineIndex, source] of text.split('\n').entries()) {
+    const end = offset + source.length
+    const marker = /^ {0,3}(`{3,}|~{3,})([^\r]*)\r?$/.exec(source)
+    if (fence) {
+      ranges.push({ start: offset, end })
+      if (marker && marker[1]?.[0] === fence.char && marker[1].length >= fence.length && !marker[2]?.trim())
+        fence = undefined
+      offset = end + 1
+      continue
+    }
+    if (!comment && codeUntil <= offset) {
+      const indent = columns(/^[ \t]*/.exec(source)?.[0] ?? '')
+      const list = /^ {0,3}([-+*]|\d+[.)])([ \t]+)/.exec(source)
+      const quote = /^ {0,3}>[ \t]?/.exec(source)
+      if (/^ {0,3}#{1,6}[ \t]/.test(source) || (blank && indent === 0 && source.trim() && !list && !quote)) {
+        container = undefined
+        containerFence = undefined
+        unknownContainer = false
+      }
+      if (list) {
+        const padding = columns(list[0]) - indent - (list[1]?.length ?? 0)
+        if (padding > 4) uncertain.add(lineIndex + 1)
+        container = { column: padding > 4 ? indent + (list[1]?.length ?? 0) + 1 : columns(list[0]) }
+      }
+      if (quote) container = { column: 0 }
+      if (!quote && !list && indent === 0 && source.trim()) {
+        container = undefined
+        containerFence = undefined
+        unknownContainer = false
+      }
+      const inside = list ? source.slice(list[0].length) : quote ? source.slice(quote[0].length) : source.trimStart()
+      const nested = /^(`{3,}|~{3,})([^\r]*)/.exec(inside)
+      const nestedMarker = nested?.[1]
+      const unknownNestedContainer = quote && /^(?:[-+*]|\d+[.)])[ \t]+|^>[ \t]?/.test(inside)
+      if (unknownNestedContainer) unknownContainer = true
+      if (unknownContainer && quote) uncertain.add(lineIndex + 1)
+      else if (unknownContainer && source.trim() && !quote) unknownContainer = false
+      const containerMarker =
+        !!container &&
+        !!(list || quote || indent >= container.column) &&
+        !!nestedMarker &&
+        (!!containerFence || nestedMarker[0] !== '`' || !nested?.[2]?.includes('`'))
+      if (containerMarker && nestedMarker) {
+        if (!containerFence) containerFence = { char: nestedMarker[0] ?? '`', length: nestedMarker.length }
+        else if (
+          nestedMarker[0] === containerFence.char &&
+          nestedMarker.length >= containerFence.length &&
+          !nested?.[2]?.trim()
+        )
+          containerFence = undefined
+        uncertain.add(lineIndex + 1)
+      } else if (
+        containerFence ||
+        (container && (quote ? columns(/^[ \t]*/.exec(inside)?.[0] ?? '') >= 4 : indent >= container.column + 4))
+      )
+        uncertain.add(lineIndex + 1)
+      if (marker && !quote && !containerMarker && (marker[1]?.[0] !== '`' || !marker[2]?.includes('`'))) {
+        fence = { char: marker[1]?.[0] ?? '`', length: marker[1]?.length ?? 3 }
+        ranges.push({ start: offset, end })
+        paragraph = false
+        offset = end + 1
+        continue
+      }
+      if (indented && source.trim() && indent < 4) indented = false
+      if (!container && indent >= 4 && !paragraph) indented = true
+      if (indented) {
+        ranges.push({ start: offset, end })
+        offset = end + 1
+        continue
+      }
+    }
+    let cursor = Math.max(0, Math.min(source.length, codeUntil - offset))
+    let rendered = cursor > 0
+    while (cursor < source.length) {
+      if (comment) {
+        const close = source.indexOf('-->', cursor)
+        const stop = close < 0 ? source.length : close + 3
+        ranges.push({ start: offset + cursor, end: offset + stop })
+        comment = close < 0
+        cursor = stop
+      } else if (source.startsWith('<!--', cursor) && !markdownEscaped(source, cursor)) comment = true
+      else if (source[cursor] === '`' && !markdownEscaped(source, cursor)) {
+        const width = /^`+/.exec(source.slice(cursor))?.[0].length ?? 1
+        const start = offset + cursor
+        // Inline spans stay within one paragraph; structural block starts interrupt it.
+        const boundary = /\n(?:[ \t\r]*\n| {0,3}(?:#{1,6}[ \t]|>|(?:[-+*]|\d+[.)])[ \t]+|`{3,}|~{3,}))/.exec(
+          text.slice(start + width),
+        )
+        const limit = uncertain.has(lineIndex + 1) ? end : boundary ? start + width + boundary.index : text.length
+        const close = codeEnd(text, start + width, width, limit)
+        if (close === undefined) {
+          rendered = true
+          cursor += width
+        } else {
+          codeUntil = close + width
+          codes.push({ start, end: codeUntil, contentStart: start + width, contentEnd: close })
+          ranges.push({ start, end: codeUntil })
+          rendered = true
+          cursor = Math.min(source.length, codeUntil - offset)
+        }
+      } else {
+        if (source[cursor]?.trim()) rendered = true
+        cursor++
+      }
+    }
+    paragraph = rendered && !/^ {0,3}#{1,6}[ \t]/.test(source)
+    blank = !rendered
+    offset = end + 1
+  }
+  let visible = ''
+  let end = 0
+  // Equal-length masking keeps raw JSON, authorized slices and diagnostic offsets intact.
+  for (const range of ranges) {
+    visible += text.slice(end, range.start) + text.slice(range.start, range.end).replace(/[^\r\n]/g, ' ')
+    end = range.end
+  }
+  return { visible: visible + text.slice(end), codes, uncertain }
 }
 
 export function readBlock(text: string, name: string, file: string, issues: PolicyIssue[]): Block | undefined {
@@ -271,9 +453,12 @@ export function parseRegistry(text: string, issues: PolicyIssue[]): Map<string, 
   const section = readBlock(text, 'docs-registry', REGISTRY_FILE, issues)
   if (!section) return entries
   let row = 0
-  for (const [index, source] of section.content.split(/\r?\n/).entries()) {
+  let offset = section.contentStart
+  for (const source of section.content.split('\n')) {
+    const start = offset
+    offset += source.length + 1
     if (!source.trim()) continue
-    const line = section.line + index + 1
+    const line = lineAt(text, start)
     const cells = source
       .trim()
       .split('|')
@@ -305,8 +490,19 @@ export function parseRegistry(text: string, issues: PolicyIssue[]): Map<string, 
     }
     if (entries.has(path))
       addIssue(issues, 'REGISTRY_DUPLICATE', REGISTRY_FILE, line, `docs-registry.path: duplicate registration ${path}`)
-    else
-      entries.set(path, { path, kind, role: role as string, lifecycle: lifecycle as RegistryEntry['lifecycle'], line })
+    else {
+      const cell = source.split('|')[1] ?? ''
+      const pathStart = start + source.indexOf('|') + 1 + cell.length - cell.trimStart().length
+      entries.set(path, {
+        path,
+        kind,
+        role: role as string,
+        lifecycle: lifecycle as RegistryEntry['lifecycle'],
+        line,
+        pathStart,
+        pathEnd: pathStart + cell.trim().length,
+      })
+    }
   }
   if (row < 2)
     addIssue(issues, 'REGISTRY_ROW', REGISTRY_FILE, section.line, 'docs-registry: missing table header/separator')
@@ -346,7 +542,7 @@ export function validateRegistryCoverage(
 
 export function parseTasks(text: string, issues: PolicyIssue[]): TaskDocument {
   const headings = new Map<string, TaskHeading>()
-  const allHeaders = [...text.matchAll(/^(#{1,6})[ \t]+(.+)\r?$/gm)]
+  const allHeaders = [...markdownView(text).visible.matchAll(/^(#{1,6})[ \t]+(.+)\r?$/gm)]
   for (const header of allHeaders) {
     const heading = /^(\S+)[ \t]+(?:.*[ \t]+)?([\u2610\u25d0\u2611\u2298])[ \t]*$/.exec(header[2]?.trim() ?? '')
     if (!heading?.[1] || !heading[2] || !ID.test(heading[1])) continue
@@ -586,6 +782,24 @@ export function validateIncremental(
       `${task}: no valid task-policy in base ${baseSha}; current policy cannot grant permission`,
     )
     return
+  }
+  const assigned = baseTasks.headings.get(task)
+  const execution = baseTasks.executions.get(task)
+  const review = baseTasks.reviews.get(task)
+  if (
+    assigned?.phase !== EMPTY ||
+    execution?.ClaimBase !== null ||
+    review?.Decision !== 'pending' ||
+    review.ReviewedCommit !== null ||
+    review.Date !== null
+  ) {
+    addIssue(
+      issues,
+      'BASE_TASK_NOT_UNCLAIMED',
+      PLAN_FILE,
+      assigned?.line ?? 1,
+      `${task} at base ${baseSha}: first authorization requires an unstarted task, null ClaimBase and an unstamped pending review; resume with the original ClaimBase`,
+    )
   }
   const sectionGroups = new Map<string, string[]>()
   for (const section of policy.sections) {

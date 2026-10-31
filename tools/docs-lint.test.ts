@@ -6,6 +6,7 @@ import {
   mkdtempSync,
   readFileSync,
   rmSync,
+  symlinkSync,
   unlinkSync,
   writeFileSync,
 } from 'node:fs'
@@ -332,7 +333,7 @@ function cli(root: string, args: string[], label: string, directory = true) {
   if (result.error) throw result.error
   const evidence = process.env.DOCS_LINT_FIXTURE_LOG
   if (evidence) {
-    const expected = resolve(import.meta.dirname, '../build/tasks/GOV-01')
+    const expected = resolve(import.meta.dirname, '../build/tasks/GOV-02')
     if (dirname(resolve(evidence)) !== expected || !/^fixture-cli-[\w-]+\.jsonl$/.test(basename(evidence))) {
       throw new Error('Refusing to write fixture evidence outside the approved task directory')
     }
@@ -1162,5 +1163,556 @@ describe('GOV-01 boundary regressions', () => {
     expect(result.status).not.toBe(0)
     expect(result.stderr).toContain('tools/blocked.ts:1: [SCOPE_DENIED]')
     expect(result.stderr).toContain(base)
+  })
+})
+
+type ModeExpectation = { static: string | null; staged: string | null; commit: string | null }
+
+function checkModes(
+  root: string,
+  base: string,
+  files: string[],
+  label: string,
+  expected: ModeExpectation = { static: null, staged: null, commit: null },
+): void {
+  function check(result: ReturnType<typeof cli>, mode: keyof ModeExpectation): void {
+    const code = expected[mode]
+    if (code) rejected(result, code)
+    else {
+      expect(result.status).toBe(0)
+      expect(report(result)).toMatchObject({ mode, issues: [] })
+    }
+  }
+  const staticResult = cli(root, ['--json'], `${label}: static`)
+  git(root, ['add', '--', PLAN, ...files])
+  const stagedResult = staged(root, base, `${label}: staged`)
+  git(root, ['commit', '--quiet', '-m', `fixture ${label}`])
+  const target = git(root, ['rev-parse', 'HEAD'])
+  const commitResult = cli(root, ['--task', 'GOV-01', '--base', base, '--commit', target, '--json'], `${label}: commit`)
+  check(staticResult, 'static')
+  check(stagedResult, 'staged')
+  check(commitResult, 'commit')
+}
+
+function allReject(code: string): ModeExpectation {
+  return { static: code, staged: code, commit: code }
+}
+
+describe('GOV-02 lifecycle regressions', () => {
+  it.each(['ongoing', 'complete', 'returned', 'blocked', 'unstarted claimed', 'unstarted reviewed', 'pending stamped'])(
+    'does not grant a new base from a %s card, without banning its static structure',
+    (kind) => {
+      const { root, base: original } = fixture()
+      delivery(root, original)
+      git(root, ['commit', '--quiet', '-m', 'fixture first delivery'])
+      const delivered = git(root, ['rev-parse', 'HEAD'])
+      const phase =
+        kind === 'complete'
+          ? COMPLETE
+          : kind === 'blocked'
+            ? '\u2298'
+            : kind.startsWith('unstarted') || kind === 'pending stamped'
+              ? EMPTY
+              : ONGOING
+      replace(root, PLAN, `Governance ${ONGOING}`, `Governance ${phase}`)
+      if (kind === 'unstarted reviewed' || kind === 'pending stamped')
+        setBlock(root, PLAN, 'task-execution:GOV-01', { ClaimBase: null, Result: null, Evidence: [], SyncImpact: null })
+      if (['complete', 'returned', 'blocked', 'unstarted reviewed', 'pending stamped'].includes(kind))
+        setBlock(root, PLAN, 'task-review:GOV-01', {
+          Decision:
+            kind === 'returned'
+              ? 'return'
+              : kind === 'blocked'
+                ? 'blocked'
+                : kind === 'pending stamped'
+                  ? 'pending'
+                  : 'pass',
+          ReviewedCommit: delivered,
+          Date: '2026-10-30',
+          Scope: 'tooling-only',
+        })
+      git(root, ['add', '--', PLAN])
+      git(root, ['commit', '--quiet', '--allow-empty', '-m', `fixture ${kind} baseline`])
+      const wrongBase = git(root, ['rev-parse', 'HEAD'])
+      if (phase === EMPTY) replace(root, PLAN, `Governance ${EMPTY}`, `Governance ${ONGOING}`)
+      setBlock(root, PLAN, 'task-execution:GOV-01', {
+        ClaimBase: wrongBase,
+        Result: 'Wrongly reclaimed from a later commit, retaining the existing review.',
+        Evidence: ['build/fixture.log'],
+        SyncImpact: 'Fixture only.',
+      })
+      write(root, 'tools/allowed.ts', 'export const value = 3\n')
+      checkModes(root, wrongBase, ['tools/allowed.ts'], `reclaimed ${kind}`, {
+        static: null,
+        staged: 'BASE_TASK_NOT_UNCLAIMED',
+        commit: 'BASE_TASK_NOT_UNCLAIMED',
+      })
+    },
+  )
+
+  it.each(['ReviewedCommit', 'Date'])('rejects a pending baseline stamped only with %s', (field) => {
+    const { root, base: original } = fixture()
+    setBlock(root, PLAN, 'task-review:GOV-01', {
+      Decision: 'pending',
+      ReviewedCommit: field === 'ReviewedCommit' ? original : null,
+      Date: field === 'Date' ? '2026-10-31' : null,
+      Scope: 'tooling-only',
+    })
+    git(root, ['add', '--', PLAN])
+    git(root, ['commit', '--quiet', '-m', `fixture pending ${field}`])
+    const wrongBase = git(root, ['rev-parse', 'HEAD'])
+    claim(root, wrongBase)
+    checkModes(root, wrongBase, ['tools/allowed.ts'], `pending only ${field}`, {
+      static: null,
+      staged: 'BASE_TASK_NOT_UNCLAIMED',
+      commit: 'BASE_TASK_NOT_UNCLAIMED',
+    })
+  })
+
+  it('keeps the first ClaimBase across consecutive legal deliveries and isolates the old user deletion', () => {
+    const { root, base } = fixture()
+    delivery(root, base)
+    git(root, ['commit', '--quiet', '-m', 'fixture first legal delivery'])
+    write(root, 'tools/allowed.ts', 'export const value = 3\n')
+    checkModes(root, base, ['tools/allowed.ts'], 'same ClaimBase second delivery')
+    expect(git(root, ['diff', '--name-only'])).toBe(RETIRED)
+    expect(git(root, ['diff', '--cached', '--name-only'])).toBe('')
+  })
+
+  it('audits a historical pending delivery after a later review and broken worktree', () => {
+    const { root, base } = fixture()
+    delivery(root, base)
+    git(root, ['commit', '--quiet', '-m', 'fixture historical pending delivery'])
+    const target = git(root, ['rev-parse', 'HEAD'])
+    setBlock(root, PLAN, 'task-review:GOV-01', {
+      Decision: 'return',
+      ReviewedCommit: target,
+      Date: '2026-10-30',
+      Scope: 'tooling-only',
+    })
+    git(root, ['add', '--', PLAN])
+    git(root, ['commit', '--quiet', '-m', 'fixture architecture return'])
+    write(root, PLAN, '# Broken current worktree\n')
+    write(root, 'docs/README.md', '[Broken](missing.md)\n')
+    const result = cli(
+      root,
+      ['--task', 'GOV-01', '--base', base, '--commit', target, '--json'],
+      'historical pending target',
+    )
+    expect(result.status).toBe(0)
+    expect(report(result)).toMatchObject({ mode: 'commit', base, target, issues: [] })
+  })
+})
+
+describe('GOV-02 registry and local boundary regressions', () => {
+  it.each(['usage code', 'usage link', 'usage image', 'other document', 'same registry row other cell'])(
+    'rejects retired references in %s in all three CLI modes',
+    (kind) => {
+      const { root, base } = fixture({
+        modify: ['tools/allowed.ts', 'README.md'],
+        sections: [
+          { path: 'docs/README.md', block: 'docs-usage' },
+          { path: 'docs/README.md', block: 'docs-registry' },
+        ],
+      })
+      claim(root, base)
+      const files = ['docs/README.md']
+      if (kind === 'same registry row other cell')
+        replace(root, 'docs/README.md', `| ${RETIRED} | legacy |`, `| ${RETIRED} | \`${RETIRED}\` |`)
+      else if (kind === 'other document') {
+        write(root, 'README.md', `Read \`${RETIRED}\` before work.\n`)
+        files.push('README.md')
+      } else {
+        const reference =
+          kind === 'usage code' ? `\`${RETIRED}\`` : `${kind === 'usage image' ? '!' : ''}[Old](04-legacy.md)`
+        replace(root, 'docs/README.md', '[Current](current.md)', `Read ${reference} before work.`)
+      }
+      checkModes(root, base, files, kind, allReject('RETIRED_TARGET'))
+    },
+  )
+
+  it('accepts only true plain/backtick registry path declarations and valid active references', () => {
+    const { root, base } = fixture({
+      sections: [
+        { path: 'docs/README.md', block: 'docs-registry' },
+        { path: 'docs/README.md', block: 'docs-usage' },
+      ],
+    })
+    claim(root, base)
+    replace(root, 'docs/README.md', `| ${RETIRED} | legacy |`, `| \`${RETIRED}\` | legacy |`)
+    replace(root, 'docs/README.md', '[Current](current.md)', '[Current](current.md) See `docs/current.md`.')
+    checkModes(root, base, ['docs/README.md'], 'exact declarations and active references')
+  })
+
+  it.each(['docs/new #1.md', 'docs/new %draft.md'])(
+    'accepts the native registry declaration and encoded navigation for %s',
+    (added) => {
+      const { root, base } = fixture({
+        add: [{ path: added, kind: 'analysis', role: 'scoped-executor', lifecycle: 'active' }],
+        sections: [
+          { path: 'docs/README.md', block: 'docs-registry' },
+          { path: 'docs/README.md', block: 'docs-usage' },
+        ],
+      })
+      claim(root, base)
+      write(root, added, '# Approved native filename\n')
+      replace(
+        root,
+        'docs/README.md',
+        '<!-- docs-registry:end -->',
+        `| \`${added}\` | analysis | scoped-executor | active |\n<!-- docs-registry:end -->`,
+      )
+      replace(root, 'docs/README.md', '[Current](current.md)', `[New](${encodeURIComponent(basename(added))})`)
+      checkModes(root, base, ['docs/README.md', added], `native registry ${added}`)
+    },
+  )
+
+  it.each([
+    '../../outside.md',
+    '/%2e%2e/outside.md',
+    '%2e%2e/%2e%2e/outside.md',
+    '..\\..\\outside.md',
+    '../../outside%20file.md',
+  ])('rejects the existing repository-external target %s consistently', (target) => {
+    const { root, base } = fixture({}, true)
+    write(dirname(root), 'outside.md', '# Outside the Git repository, inside the isolated container\n')
+    write(dirname(root), 'outside file.md', '# Outside\n')
+    claim(root, base)
+    replace(root, 'docs/README.md', '[Current](current.md)', `[Outside](${target})`)
+    checkModes(root, base, ['docs/README.md'], `outside ${target}`, allReject('LOCAL_TARGET_OUTSIDE'))
+  })
+
+  it.each(['current.md.', '<current.md >', 'current.md%20', 'current.md%2e', '%5c%5cserver%5cshare'])(
+    'rejects path aliases %s',
+    (target) => {
+      const { root, base } = fixture()
+      claim(root, base)
+      replace(root, 'docs/README.md', '[Current](current.md)', `[Alias](${target})`)
+      checkModes(root, base, ['docs/README.md'], `path alias ${target}`, allReject('LOCAL_PATH_UNSUPPORTED'))
+    },
+  )
+
+  it('diagnoses entity destinations rather than accepting an existing truncated literal path', () => {
+    const { root } = fixture()
+    write(root, 'docs/current&', 'This literal path is not the entity-decoded Markdown destination.\n')
+    git(root, ['add', '--', 'docs/current&'])
+    git(root, ['commit', '--quiet', '-m', 'fixture literal entity prefix'])
+    const base = git(root, ['rev-parse', 'HEAD'])
+    claim(root, base)
+    replace(root, 'docs/README.md', '[Current](current.md)', '[Encoded](current&#46;md)')
+    checkModes(root, base, ['docs/README.md'], 'unsupported HTML entity path', allReject('LOCAL_PATH_UNSUPPORTED'))
+  })
+
+  it('keeps explicit lintDocs source paths inside the repository before reading', () => {
+    const { root } = fixture({}, true)
+    write(dirname(root), 'outside.md', '# Private source\n[Private](private-content-missing.md)\n')
+    const result = lintDocs(root, ['../outside.md'])
+    expect(result).toEqual([{ file: '../outside.md', line: 1, message: 'Unsupported source path: ../outside.md' }])
+    expect(JSON.stringify(result)).not.toContain('private-content-missing.md')
+  })
+})
+
+describe('GOV-02 visible Markdown and local reference syntax', () => {
+  it.each([
+    { name: 'inline code open comment', text: '`<!--` [Current](current.md)', code: null },
+    { name: 'paragraph continuation', text: 'Introduction\n    [Old](04-legacy.md)', code: 'RETIRED_TARGET' },
+    { name: 'tab paragraph continuation', text: 'Introduction\n\t[Old](04-legacy.md)', code: 'RETIRED_TARGET' },
+    { name: 'simple list continuation', text: '- Item\n\n    [Old](04-legacy.md)', code: 'RETIRED_TARGET' },
+    { name: 'inline triple backticks', text: '```code``` [Old](04-legacy.md)', code: 'RETIRED_TARGET' },
+    { name: 'escaped comment opener', text: '\\<!-- [Old](04-legacy.md)', code: 'RETIRED_TARGET' },
+    { name: 'even-slash code opener', text: '\\\\`<!--` [Old](04-legacy.md)', code: 'RETIRED_TARGET' },
+  ])('keeps real Markdown visible after $name', ({ name, text, code }) => {
+    const { root, base } = fixture()
+    claim(root, base)
+    replace(root, 'docs/README.md', '[Current](current.md)', text)
+    checkModes(root, base, ['docs/README.md'], `visibility ${name}`, code ? allReject(code) : undefined)
+  })
+
+  it.each(['backtick fence', 'tilde fence', 'indented code', 'comment', 'fence containing an open comment'])(
+    'preserves real task metadata around a valid %s with fake headings',
+    (kind) => {
+      const { root } = fixture()
+      const fake = `### EXAMPLE-01 Example ${EMPTY}\n# Fake top-level heading`
+      const example =
+        kind === 'indented code'
+          ? fake
+              .split('\n')
+              .map((line) => `    ${line}`)
+              .join('\n')
+          : kind === 'comment'
+            ? `<!--\n${fake}\n-->`
+            : kind === 'backtick fence'
+              ? `\`\`\`\`md\n${fake}\n\`\`\`\``
+              : `~~~md\n${kind === 'fence containing an open comment' ? '<!--\n' : ''}${fake}\n~~~`
+      replace(
+        root,
+        PLAN,
+        '**Acceptance**: Keep the existing contract.',
+        `**Acceptance**: Keep the existing contract.\n\n${example}`,
+      )
+      git(root, ['add', '--', PLAN])
+      git(root, ['commit', '--quiet', '-m', `fixture assigned ${kind}`])
+      const base = git(root, ['rev-parse', 'HEAD'])
+      claim(root, base)
+      checkModes(root, base, ['tools/allowed.ts'], `visible metadata ${kind}`)
+    },
+  )
+
+  it.each(['fenced', 'indented', 'tab indented', 'HTML comment'])(
+    'does not check hidden %s example targets but keeps the following visible line',
+    (kind) => {
+      const { root, base } = fixture()
+      claim(root, base)
+      const hidden = '[Example](missing.md) `docs/04-legacy.md`'
+      const example =
+        kind === 'fenced'
+          ? `~~~md\n${hidden}\n~~~`
+          : kind === 'HTML comment'
+            ? `<!--\n${hidden}\n-->`
+            : `${kind === 'indented' ? '    ' : '\t'}${hidden}`
+      replace(root, 'docs/README.md', '[Current](current.md)', `${example}\n\n[Current](current.md)`)
+      checkModes(root, base, ['docs/README.md'], `hidden ${kind}`)
+    },
+  )
+
+  it.each(['full', 'collapsed', 'shortcut', 'image', 'unused definition'])(
+    'rejects a retired %s reference target in three modes',
+    (kind) => {
+      const { root, base } = fixture()
+      claim(root, base)
+      const use =
+        kind === 'full'
+          ? '[Old][OLD]'
+          : kind === 'collapsed'
+            ? '[old][]'
+            : kind === 'shortcut'
+              ? '[old]'
+              : kind === 'image'
+                ? '![old]'
+                : ''
+      replace(root, 'docs/README.md', '[Current](current.md)', `${use}\n\n[old]: 04-legacy.md "Old document"`)
+      checkModes(root, base, ['docs/README.md'], `retired reference ${kind}`, allReject('RETIRED_TARGET'))
+    },
+  )
+
+  it.each([
+    { name: 'undefined full reference', text: '[Old][missing]', code: 'LOCAL_REFERENCE_UNDEFINED' },
+    { name: 'undefined collapsed reference', text: '[missing][]', code: 'LOCAL_REFERENCE_UNDEFINED' },
+    {
+      name: 'duplicate definition',
+      text: '[Old][old]\n\n[old]: current.md\n[OLD]: 04-legacy.md',
+      code: 'LOCAL_REFERENCE_DUPLICATE',
+    },
+    { name: 'multiline inline destination', text: '[Old](\n04-legacy.md)', code: 'LOCAL_LINK_UNSUPPORTED' },
+    { name: 'multiline inline label', text: '[Old\nlabel](04-legacy.md)', code: 'LOCAL_LINK_UNSUPPORTED' },
+    {
+      name: 'multiline reference label',
+      text: '[Old\nlabel][old]\n\n[old]: current.md',
+      code: 'LOCAL_LINK_UNSUPPORTED',
+    },
+    { name: 'multiline definition label', text: '[old\nlabel]: 04-legacy.md', code: 'LOCAL_LINK_UNSUPPORTED' },
+    {
+      name: 'multiline reference destination',
+      text: '[Old][old]\n\n[old]:\n  04-legacy.md',
+      code: 'LOCAL_LINK_UNSUPPORTED',
+    },
+    { name: 'HTML local href', text: '<a href="04-legacy.md">Old</a>', code: 'LOCAL_LINK_UNSUPPORTED' },
+    { name: 'HTML local image', text: '<img src="04-legacy.md">', code: 'LOCAL_LINK_UNSUPPORTED' },
+    {
+      name: 'mixed HTML targets',
+      text: '<img src="https://example.test/panel.png" href="04-legacy.md">',
+      code: 'LOCAL_LINK_UNSUPPORTED',
+    },
+    { name: 'unclosed inline angle destination', text: '[Old](<04-legacy.md)', code: 'LOCAL_LINK_UNSUPPORTED' },
+    { name: 'list-contained fence', text: '- ```md\n  [Example](current.md)\n  ```', code: 'LOCAL_LINK_UNSUPPORTED' },
+    { name: 'quoted fence', text: '> ~~~md\n> [Example](current.md)\n> ~~~', code: 'LOCAL_LINK_UNSUPPORTED' },
+    { name: 'excess list padding', text: '-     [Example](current.md)', code: 'LOCAL_LINK_UNSUPPORTED' },
+    { name: 'quoted tab code', text: '>  \t[Example](current.md)', code: 'LOCAL_LINK_UNSUPPORTED' },
+    {
+      name: 'quoted list fence',
+      text: '> - ```md\n>   [Example](current.md)\n>   ```',
+      code: 'LOCAL_LINK_UNSUPPORTED',
+    },
+    {
+      name: 'nested quote fence',
+      text: '> > ```md\n> > [Example](current.md)\n> > ```',
+      code: 'LOCAL_LINK_UNSUPPORTED',
+    },
+  ])('diagnoses unsupported or ambiguous $name instead of silently passing', ({ name, text, code }) => {
+    const { root, base } = fixture()
+    claim(root, base)
+    replace(root, 'docs/README.md', '[Current](current.md)', text)
+    checkModes(root, base, ['docs/README.md'], name, allReject(code))
+  })
+
+  it('preserves UTF-8, spaces, URL encoding, titles, normalized reference labels and external links', () => {
+    const { root } = fixture({ modify: ['tools/allowed.ts', 'docs/current.md'] })
+    const name = '\u6587\u6863 A (draft) #1.md'
+    write(root, `assets/${name}`, '# In-repository non-managed reference target\n')
+    git(root, ['add', '--', `assets/${name}`])
+    git(root, ['commit', '--quiet', '-m', 'fixture local UTF-8 target'])
+    const base = git(root, ['rev-parse', 'HEAD'])
+    claim(root, base)
+    replace(
+      root,
+      'docs/README.md',
+      '[Current](current.md)',
+      [
+        '[Local][Mixed Case] [mixed case][] [mixed case] ![Panel][mixed case]',
+        '[Root](/docs/current.md) [Encoded root](%2Fdocs%2Fcurrent.md)',
+        '[Web][web] [Host](//example.test/guide.md) [Here](#section) [Query](?view=all)',
+        '',
+        `[ mixed   CASE ]: <../assets/${name.replace('#', '%23')}> "Local title"`,
+        '[web]: https://example.test/missing.md',
+      ].join('\n'),
+    )
+    checkModes(root, base, ['docs/README.md'], 'reference syntax compatibility')
+  })
+
+  it('keeps original text locations after CRLF fenced/indented/comment examples and inline comments', () => {
+    const { root, base } = fixture()
+    claim(root, base)
+    write(
+      root,
+      'docs/README.md',
+      readFileSync(join(root, 'docs/README.md'), 'utf8').replace(
+        '[Current](current.md)',
+        '~~~md\r\n[Hidden](missing.md)\r\n~~~\r\n\r\n    [Hidden](missing.md)\r\n\r\n<!-- [Hidden](missing.md) -->\r\n[Visible](04-legacy.md)',
+      ),
+    )
+    const text = readFileSync(join(root, 'docs/README.md'), 'utf8')
+    const line = text.slice(0, text.indexOf('[Visible]')).split('\n').length
+    for (const mode of ['static', 'staged', 'commit']) {
+      let args = ['--json']
+      if (mode !== 'static') {
+        git(root, ['add', '--', PLAN, 'docs/README.md'])
+        if (mode === 'commit') git(root, ['commit', '--quiet', '-m', 'fixture original line locations'])
+        args = [
+          '--task',
+          'GOV-01',
+          '--base',
+          base,
+          ...(mode === 'staged' ? ['--staged'] : ['--commit', git(root, ['rev-parse', 'HEAD'])]),
+        ]
+      } else args = []
+      const result = cli(root, args, `${mode} visible original line`)
+      expect(result.status).not.toBe(0)
+      expect(result.stderr).toContain(`docs/README.md:${line}: [RETIRED_TARGET]`)
+      expect(result.stderr).not.toContain('missing.md')
+    }
+  })
+})
+
+describe('GOV-02 real versus example navigation', () => {
+  const added = 'docs/new-guide.md'
+  it.each([
+    'indented',
+    'tab indented',
+    'fenced',
+    'comment',
+    'definition only',
+    'image reference',
+    'visible full reference',
+    'inline code open comment',
+    'paragraph continuation',
+    'simple list continuation',
+    'paragraph definition',
+    'nested inline label',
+  ])('distinguishes %s navigation using actual static, staged and commit CLI', (kind) => {
+    const { root, base } = fixture({
+      add: [{ path: added, kind: 'analysis', role: 'scoped-executor', lifecycle: 'active' }],
+      sections: [
+        { path: 'docs/README.md', block: 'docs-registry' },
+        { path: 'docs/README.md', block: 'docs-usage' },
+      ],
+    })
+    claim(root, base)
+    write(root, added, '# Approved document\n')
+    replace(
+      root,
+      'docs/README.md',
+      '<!-- docs-registry:end -->',
+      `| \`${added}\` | analysis | scoped-executor | active |\n<!-- docs-registry:end -->`,
+    )
+    const link = '[New](new-guide.md)'
+    const navigation =
+      kind === 'inline code open comment'
+        ? `\`<!--\` ${link}`
+        : kind === 'paragraph continuation'
+          ? `Introduction\n    ${link}`
+          : kind === 'simple list continuation'
+            ? `- Item\n\n    ${link}`
+            : kind === 'paragraph definition'
+              ? `Introduction\n[new]: new-guide.md\n\n[New][new]`
+              : kind === 'nested inline label'
+                ? '[Outer [Inner](https://example.test)](new-guide.md)'
+                : kind === 'indented'
+                  ? `    ${link}`
+                  : kind === 'tab indented'
+                    ? `\t${link}`
+                    : kind === 'fenced'
+                      ? `~~~md\n${link}\n~~~`
+                      : kind === 'comment'
+                        ? `<!-- ${link} -->`
+                        : `${kind === 'visible full reference' ? '[New][new]\n\n' : kind === 'image reference' ? '![New][new]\n\n' : ''}[new]: new-guide.md`
+    replace(root, 'docs/README.md', '[Current](current.md)', `\n${navigation}\n`)
+    const unsupported = ['paragraph definition', 'nested inline label'].includes(kind)
+    const code = [
+      'visible full reference',
+      'inline code open comment',
+      'paragraph continuation',
+      'simple list continuation',
+    ].includes(kind)
+      ? null
+      : 'ADD_NAVIGATION_MISSING'
+    checkModes(
+      root,
+      base,
+      ['docs/README.md', added],
+      `navigation ${kind}`,
+      unsupported ? allReject('LOCAL_LINK_UNSUPPORTED') : { static: null, staged: code, commit: code },
+    )
+  })
+})
+
+describe('GOV-02 unchanged path aliases', () => {
+  it.each(['symlink', 'gitlink'])('rejects references through an unchanged Git %s', (kind) => {
+    const { root, base: original } = fixture()
+    const path = 'assets/alias'
+    const oid = kind === 'gitlink' ? original : git(root, ['rev-parse', 'HEAD:tools/allowed.ts'])
+    git(root, ['update-index', '--add', '--cacheinfo', `${kind === 'gitlink' ? '160000' : '120000'},${oid},${path}`])
+    git(root, ['commit', '--quiet', '-m', `fixture assigned ${kind}`])
+    const base = git(root, ['rev-parse', 'HEAD'])
+    if (kind === 'gitlink') mkdirSync(join(root, path), { recursive: true })
+    else write(root, path, 'A regular Windows checkout must not turn Git symlink metadata into a valid target.\n')
+    claim(root, base)
+    replace(root, 'docs/README.md', '[Current](current.md)', '[Alias](../assets/alias)')
+    checkModes(root, base, ['docs/README.md'], `unchanged ${kind}`, allReject('LOCAL_PATH_UNSUPPORTED'))
+  })
+
+  it('does not follow a junction target outside the repository', () => {
+    const { root, base } = fixture({}, true)
+    const outside = join(dirname(root), 'outside')
+    write(outside, 'target.md', '# Outside the repository, inside the isolated fixture container\n')
+    const alias = join(root, 'assets/alias')
+    mkdirSync(dirname(alias), { recursive: true })
+    symlinkSync(outside, alias, 'junction')
+    claim(root, base)
+    replace(root, 'docs/README.md', '[Current](current.md)', '[Alias](../assets/alias/target.md)')
+    const result = cli(root, ['--json'], 'static junction local target')
+    rejected(result, 'LOCAL_PATH_UNSUPPORTED', 'docs/README.md')
+  })
+
+  it('refuses to read a source document through a junction before checking its content', () => {
+    const { root } = fixture({}, true)
+    const outside = join(dirname(root), 'outside')
+    write(outside, 'source.md', '# External\n[Do not read](outside-content-missing.md)\n')
+    const alias = join(root, 'docs/alias')
+    symlinkSync(outside, alias, 'junction')
+    const oid = git(root, ['rev-parse', 'HEAD:tools/allowed.ts'])
+    git(root, ['update-index', '--add', '--cacheinfo', `100644,${oid},docs/alias/source.md`])
+    const result = cli(root, ['--json'], 'static junction source isolation')
+    rejected(result, 'LOCAL_PATH_UNSUPPORTED', 'docs/alias/source.md')
+    expect(result.stdout).not.toContain('outside-content-missing.md')
   })
 })

@@ -1,11 +1,15 @@
 import { execFileSync, spawnSync } from 'node:child_process'
 import { existsSync, lstatSync, readdirSync, readFileSync } from 'node:fs'
-import { basename, dirname, relative, resolve } from 'node:path'
+import { basename, relative, resolve } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import {
+  markdownEscaped as escaped,
   type FileChange,
+  isLocalReference,
   isManagedDocument,
+  LocalPathError,
   localReferencePath,
+  markdownView,
   PLAN_FILE,
   type PolicyIssue,
   parseRegistry,
@@ -23,6 +27,7 @@ export type DocLintIssue = { file: string; line: number; message: string }
 
 const GENERATED = /(?:^|\/)(?:node_modules|build|dist|out|test-results|playwright-report|\.git)\//
 const GIT_ENV = { ...process.env, GIT_OPTIONAL_LOCKS: '0', GIT_NO_LAZY_FETCH: '1', GIT_TERMINAL_PROMPT: '0' }
+type TargetSnapshot = { paths?: Set<string>; aliases: Set<string> }
 
 export function listMarkdownFiles(root: string): string[] {
   const output = execFileSync(
@@ -40,104 +45,283 @@ export function listMarkdownFiles(root: string): string[] {
     .sort()
 }
 
-function escaped(text: string, index: number): boolean {
-  let count = 0
-  while (index > 0 && text[--index] === '\\') count++
-  return count % 2 === 1
+function destination(line: string, offset: number, inline: boolean): { target: string; end: number } | undefined {
+  let start = offset
+  while (/[ \t]/.test(line[start] ?? '')) start++
+  let end = start
+  let suffix = start
+  if (line[start] === '<') {
+    start++
+    end = start
+    while (end < line.length && (line[end] !== '>' || escaped(line, end))) end++
+    if (end === line.length) return undefined
+    suffix = end + 1
+  } else {
+    let depth = 0
+    while (end < line.length) {
+      const char = line[end]
+      if (char === '\\') {
+        end += 2
+        continue
+      }
+      if (char === '(') depth++
+      else if (char === ')') {
+        if (depth === 0) break
+        depth--
+      } else if (/\s/.test(char ?? '') && depth === 0) break
+      end++
+    }
+    if (depth !== 0) return undefined
+    suffix = end
+  }
+  const closing = inline
+    ? /^[ \t]*(?:(?:"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|\((?:\\.|[^)\\])*\))[ \t]*)?\)/
+    : /^[ \t]*(?:(?:"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|\((?:\\.|[^)\\])*\))[ \t]*)?$/
+  const tail = closing.exec(line.slice(suffix))
+  if (!tail || (!inline && start === end)) return undefined
+  return { target: line.slice(start, end), end: suffix + tail[0].length }
 }
 
-function linkTargets(line: string): { target: string; image: boolean }[] {
-  const targets: { target: string; image: boolean }[] = []
-  for (const match of line.matchAll(/\[[^\]\r\n]*\]\(/g)) {
-    if (escaped(line, match.index)) continue
-    let start = match.index + match[0].length
-    while (/\s/.test(line[start] ?? '')) start++
-    let end = start
-    let suffix = end
-    if (line[start] === '<') {
-      start++
-      end = start
-      while (end < line.length && (line[end] !== '>' || escaped(line, end))) end++
-      if (end === line.length) continue
-      suffix = end + 1
-    } else {
-      let depth = 0
-      while (end < line.length) {
-        const char = line[end]
-        if (char === '\\') {
-          end += 2
-          continue
-        }
-        if (char === '(') depth++
-        else if (char === ')') {
-          if (depth === 0) break
-          depth--
-        } else if (/\s/.test(char ?? '') && depth === 0) break
-        end++
-      }
-      if (depth !== 0) continue
-      suffix = end
-    }
-    if (/^\s*(?:(?:"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|\((?:\\.|[^)\\])*\))\s*)?\)/.test(line.slice(suffix))) {
-      targets.push({
-        target: line.slice(start, end),
-        image: line[match.index - 1] === '!' && !escaped(line, match.index - 1),
+function labelEnd(line: string, start: number): number | undefined {
+  let depth = 0
+  for (let index = start; index < line.length; index++) {
+    if (escaped(line, index)) continue
+    if (line[index] === '[') depth++
+    if (line[index] === ']' && --depth === 0) return index
+  }
+  return undefined
+}
+
+type MarkdownReference = {
+  line: number
+  start: number
+  end: number
+  target: string
+  repositoryPath: boolean
+  navigation: boolean
+}
+
+function markdownReferences(text: string): { references: MarkdownReference[]; issues: Omit<PolicyIssue, 'file'>[] } {
+  const references: MarkdownReference[] = []
+  const issues: Omit<PolicyIssue, 'file'>[] = []
+  const view = markdownView(text)
+  const lines = view.visible.split('\n')
+  const originalLines = text.split('\n')
+  const definitions = new Map<string, string>()
+  const definitionLines = new Set<number>()
+  const normalize = (label: string) =>
+    label
+      .replace(/\\([\\[\]])/g, '$1')
+      .trim()
+      .replace(/\s+/g, ' ')
+      .toLowerCase()
+  const add = (reference: MarkdownReference) => {
+    if (view.uncertain.has(reference.line) && isLocalReference(reference.target)) {
+      issues.push({
+        code: 'LOCAL_LINK_UNSUPPORTED',
+        line: reference.line,
+        message:
+          'Local links in nested/ambiguous code containers are not supported; use a standalone example or visible navigation',
       })
+      reference.navigation = false
+    }
+    references.push(reference)
+  }
+  for (const code of view.codes) {
+    const content = text.slice(code.contentStart, code.contentEnd)
+    // Repository docs paths are contracts; absolute local evidence remains historical.
+    for (const match of content.matchAll(/(?:^|\s)(docs[\\/][^`<>"\r\n]*?\.md(?:[?#][^\s]*)?)(?=\s|$)/g)) {
+      const target = match[1] ?? ''
+      if (!target.includes('*'))
+        add({
+          line: text.slice(0, code.contentStart + match.index + match[0].indexOf(target)).split('\n').length,
+          start: code.start,
+          end: code.end,
+          target,
+          repositoryPath: true,
+          navigation: false,
+        })
     }
   }
-  return targets
+  let offset = 0
+  for (const [index, source] of lines.entries()) {
+    const line = source.replace(/\r$/, '')
+    const original = (originalLines[index] ?? '').replace(/\r$/, '')
+    const blockStart =
+      index === 0 || !lines[index - 1]?.trim() || !!/^[ \t]*\[((?:\\.|[^\]\\])+)\]:/.exec(lines[index - 1] ?? '')
+    const definition = /^[ \t]*\[((?:\\.|[^\]\\])+)\]:/.exec(line)
+    if (definition && !escaped(line, line.indexOf('['))) {
+      definitionLines.add(index)
+      if (!blockStart) {
+        issues.push({
+          code: 'LOCAL_LINK_UNSUPPORTED',
+          line: index + 1,
+          message: 'Reference definitions inside a paragraph are not supported; place definitions at a block boundary',
+        })
+        offset += source.length + 1
+        continue
+      }
+      const parsed = destination(original, definition[0].length, false)
+      if (!parsed)
+        issues.push({
+          code: 'LOCAL_LINK_UNSUPPORTED',
+          line: index + 1,
+          message: 'Reference definitions require a single-line destination and optional title',
+        })
+      else {
+        const label = normalize(original.slice(line.indexOf('[') + 1, definition[0].lastIndexOf(']')))
+        if (definitions.has(label))
+          issues.push({
+            code: 'LOCAL_REFERENCE_DUPLICATE',
+            line: index + 1,
+            message: `Duplicate reference label: ${label}`,
+          })
+        else definitions.set(label, parsed.target)
+        add({
+          line: index + 1,
+          start: offset,
+          end: offset + line.length,
+          target: parsed.target,
+          repositoryPath: false,
+          navigation: false,
+        })
+      }
+    }
+    offset += source.length + 1
+  }
+  offset = 0
+  for (const [index, source] of lines.entries()) {
+    const line = source.replace(/\r$/, '')
+    const original = (originalLines[index] ?? '').replace(/\r$/, '')
+    if (!definitionLines.has(index)) {
+      for (let cursor = 0; cursor < line.length; cursor++) {
+        if (line[cursor] !== '[' || escaped(line, cursor)) continue
+        const close = labelEnd(line, cursor)
+        if (close === undefined) {
+          const continuation = lines.slice(index + 1, index + 3).join('\n')
+          if (/\]\s*(?:\(|\[)/.test(continuation) || /^\s*[^\]]+\]:/.test(continuation))
+            issues.push({
+              code: 'LOCAL_LINK_UNSUPPORTED',
+              line: index + 1,
+              message: 'Multiline link/reference labels are not supported',
+            })
+          continue
+        }
+        const image = line[cursor - 1] === '!' && !escaped(line, cursor - 1)
+        let end = close + 1
+        let target: string | undefined
+        if (line[end] === '(') {
+          if (original.slice(cursor + 1, close).includes('[')) {
+            issues.push({
+              code: 'LOCAL_LINK_UNSUPPORTED',
+              line: index + 1,
+              message: 'Nested link labels are not supported; use a single visible link label',
+            })
+            cursor = close
+            continue
+          }
+          const parsed = destination(original, end + 1, true)
+          if (!parsed)
+            issues.push({
+              code: 'LOCAL_LINK_UNSUPPORTED',
+              line: index + 1,
+              message: 'Inline links require a single-line balanced destination and optional title',
+            })
+          else {
+            target = parsed.target
+            end = parsed.end
+          }
+        } else {
+          let label = original.slice(cursor + 1, close)
+          const explicit = line[end] === '['
+          if (explicit) {
+            const referenceEnd = labelEnd(line, end)
+            if (referenceEnd === undefined) {
+              issues.push({ code: 'LOCAL_LINK_UNSUPPORTED', line: index + 1, message: 'Unclosed reference label' })
+              continue
+            }
+            label = original.slice(end + 1, referenceEnd) || label
+            end = referenceEnd + 1
+          }
+          target = definitions.get(normalize(label))
+          if (explicit && target === undefined)
+            issues.push({
+              code: 'LOCAL_REFERENCE_UNDEFINED',
+              line: index + 1,
+              message: `Undefined reference label: ${normalize(label)}`,
+            })
+        }
+        if (target !== undefined)
+          add({
+            line: index + 1,
+            start: offset + cursor,
+            end: offset + end,
+            target,
+            repositoryPath: false,
+            navigation: !image,
+          })
+        cursor = end - 1
+      }
+    }
+    offset += source.length + 1
+  }
+  for (const html of view.visible.matchAll(/<[a-z][^>]*>/gi)) {
+    for (const attribute of html[0].matchAll(/\b(?:href|src)\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))/gi)) {
+      const target = attribute[1] ?? attribute[2] ?? attribute[3] ?? ''
+      if (isLocalReference(target))
+        issues.push({
+          code: 'LOCAL_LINK_UNSUPPORTED',
+          line: text.slice(0, html.index + attribute.index).split('\n').length,
+          message: 'Local HTML href/src targets are not supported; use a Markdown link/image',
+        })
+    }
+  }
+  return { references, issues }
+}
+
+function filesystemTarget(root: string, path: string, aliases = new Set<string>()): 'present' | 'missing' | 'alias' {
+  if ([...aliases].some((alias) => path === alias || path.startsWith(`${alias}/`))) return 'alias'
+  let directory = root
+  const parts = path.split('/').filter(Boolean)
+  for (const [index, part] of parts.entries()) {
+    // Inspect each prefix before any child access; never resolve or follow a junction/symlink.
+    if (!readdirSync(directory).includes(part)) return 'missing'
+    const full = resolve(directory, part)
+    let entry: ReturnType<typeof lstatSync>
+    try {
+      entry = lstatSync(full)
+    } catch (error) {
+      if (['ENOENT', 'ENOTDIR'].includes((error as NodeJS.ErrnoException).code ?? '')) return 'missing'
+      throw error
+    }
+    if (entry.isSymbolicLink() || (!entry.isFile() && !entry.isDirectory())) return 'alias'
+    if (index < parts.length - 1 && !entry.isDirectory()) return 'missing'
+    directory = full
+  }
+  return 'present'
 }
 
 function checkTarget(root: string, file: string, line: number, target: string, repositoryPath = false): DocLintIssue[] {
-  if (!target || target.startsWith('#') || target.startsWith('//') || /^[a-z][a-z\d+.-]*:/i.test(target)) return []
-  const path = target.split(/[?#]/, 1)[0] ?? ''
-  if (!path) return []
-  let decoded: string
+  let path: string | undefined
   try {
-    decoded = decodeURIComponent(path)
-      .replace(/\\([\\()[\]<> ])/g, '$1')
-      .replaceAll('\\', '/')
-  } catch {
-    return [{ file, line, message: `Invalid URL encoding: ${target}` }]
+    path = localReferencePath(file, target, repositoryPath)
+  } catch (error) {
+    return [
+      { file, line, message: error instanceof LocalPathError ? error.message : `Invalid URL encoding: ${target}` },
+    ]
   }
-  const base = repositoryPath || decoded.startsWith('/') ? root : dirname(resolve(root, file))
-  const full = resolve(base, decoded.startsWith('/') ? `.${decoded}` : decoded)
-  return existsSync(full) ? [] : [{ file, line, message: `Missing local target: ${target}` }]
-}
-
-type MarkdownReference = { line: number; target: string; repositoryPath: boolean; navigation: boolean }
-
-function markdownReferences(text: string): MarkdownReference[] {
-  const references: MarkdownReference[] = []
-  let fence: { char: string; length: number } | undefined
-  for (const [index, source] of text.split(/\r?\n/).entries()) {
-    const marker = /^ {0,3}(`{3,}|~{3,})(.*)$/.exec(source)
-    if (fence) {
-      if (marker && marker[1]?.[0] === fence.char && marker[1].length >= fence.length && !marker[2]?.trim()) {
-        fence = undefined
-      }
-      continue
-    }
-    if (marker) {
-      fence = { char: marker[1]?.[0] ?? '`', length: marker[1]?.length ?? 3 }
-      continue
-    }
-    let line = source
-    for (const code of source.matchAll(/(?<!`)(`+)(.*?)(?<!`)\1(?!`)/g)) {
-      // Only repository docs paths are contracts; absolute local evidence is historical.
-      for (const reference of (code[2] ?? '').matchAll(
-        /(?:^|\s)(docs[\\/][^`<>"\r\n]*?\.md(?:[?#][^\s]*)?)(?=\s|$)/g,
-      )) {
-        const target = reference[1] ?? ''
-        if (!target.includes('*')) references.push({ line: index + 1, target, repositoryPath: true, navigation: false })
-      }
-      line = `${line.slice(0, code.index)}${' '.repeat(code[0].length)}${line.slice(code.index + code[0].length)}`
-    }
-    for (const { target, image } of linkTargets(line)) {
-      references.push({ line: index + 1, target, repositoryPath: false, navigation: !image })
-    }
-  }
-  return references
+  if (path === undefined)
+    return isLocalReference(target) ? [{ file, line, message: `Local target escapes the repository: ${target}` }] : []
+  const state = filesystemTarget(root, path)
+  return state === 'present'
+    ? []
+    : [
+        {
+          file,
+          line,
+          message: state === 'alias' ? `Unsupported local path alias: ${target}` : `Missing local target: ${target}`,
+        },
+      ]
 }
 
 export function lintMarkdown(root: string, file: string, text: string): DocLintIssue[] {
@@ -145,7 +329,9 @@ export function lintMarkdown(root: string, file: string, text: string): DocLintI
   if (/^[0-9]/.test(basename(file.replaceAll('\\', '/')))) {
     issues.push({ file, line: 1, message: 'Markdown filenames must not start with a digit' })
   }
-  for (const reference of markdownReferences(text)) {
+  const scan = markdownReferences(text)
+  issues.push(...scan.issues.map(({ line, message }) => ({ file, line, message })))
+  for (const reference of scan.references) {
     issues.push(...checkTarget(root, file, reference.line, reference.target, reference.repositoryPath))
   }
   return issues
@@ -153,8 +339,20 @@ export function lintMarkdown(root: string, file: string, text: string): DocLintI
 
 export function lintDocs(root: string, files = listMarkdownFiles(root)): DocLintIssue[] {
   return files.flatMap((file) => {
-    if (!/\.md$/i.test(file) || GENERATED.test(file.replaceAll('\\', '/')) || !existsSync(resolve(root, file)))
-      return []
+    if (!/\.md$/i.test(file) || GENERATED.test(file.replaceAll('\\', '/'))) return []
+    let state: 'present' | 'missing' | 'alias'
+    try {
+      if (
+        localReferencePath('', file.replaceAll('\\', '/').split('/').map(encodeURIComponent).join('/'), true) !==
+        file.replaceAll('\\', '/')
+      )
+        throw new LocalPathError(`Unsupported source path: ${file}`)
+      state = filesystemTarget(root, file.replaceAll('\\', '/'))
+    } catch (error) {
+      return [{ file, line: 1, message: error instanceof Error ? error.message : String(error) }]
+    }
+    if (state === 'alias') return [{ file, line: 1, message: `Unsupported local path alias: ${file}` }]
+    if (state !== 'present') return []
     return lintMarkdown(root, file, readFileSync(resolve(root, file), 'utf8'))
   })
 }
@@ -331,8 +529,7 @@ function loadTexts(
 
 function navigation(text: string): Set<string> {
   const targets = new Set<string>()
-  const visible = text.replace(/<!--[\s\S]*?(?:-->|$)/g, (comment) => comment.replace(/[^\r\n]/g, ' '))
-  for (const reference of markdownReferences(visible)) {
+  for (const reference of markdownReferences(text).references) {
     if (!reference.navigation) continue
     try {
       const path = localReferencePath(REGISTRY_FILE, reference.target)
@@ -344,17 +541,23 @@ function navigation(text: string): Set<string> {
   return targets
 }
 
-function validTreePaths(files: ReadonlySet<string>): Set<string> {
-  const paths = new Set(files)
+function validTreePaths(entries: Map<string, GitEntry>): TargetSnapshot {
+  const paths = new Set<string>()
+  const aliases = new Set<string>()
   paths.add('')
-  for (const file of files) {
+  for (const [file, entry] of entries) {
+    if (!['100644', '100755'].includes(entry.mode)) {
+      aliases.add(file)
+      continue
+    }
+    paths.add(file)
     const parts = file.split('/')
     while (parts.length > 1) {
       parts.pop()
       paths.add(parts.join('/'))
     }
   }
-  return paths
+  return { paths, aliases }
 }
 
 function codedMarkdown(
@@ -362,23 +565,48 @@ function codedMarkdown(
   file: string,
   text: string,
   retired: Set<string>,
-  treePaths?: Set<string>,
+  targets?: TargetSnapshot,
   declarations?: Map<string, RegistryEntry>,
 ): PolicyIssue[] {
   const issues: PolicyIssue[] = []
   if (/^[0-9]/.test(basename(file)))
     issues.push({ code: 'MARKDOWN_NAME', file, line: 1, message: 'Markdown filenames must not start with a digit' })
-  for (const reference of markdownReferences(text)) {
+  const scan = markdownReferences(text)
+  issues.push(...scan.issues.map((issue) => ({ ...issue, file })))
+  for (const reference of scan.references) {
     const { line, target, repositoryPath } = reference
+    // Check the exact registry path cell before URL parsing; a literal # or % in a
+    // declared filename is a native path, not a fragment or malformed escape.
+    const declaration =
+      file === REGISTRY_FILE && repositoryPath
+        ? [...(declarations?.values() ?? [])].find(
+            (entry) => reference.start === entry.pathStart && reference.end === entry.pathEnd,
+          )
+        : undefined
+    if (declaration) continue
     let path: string | undefined
     try {
       path = localReferencePath(file, target, repositoryPath)
-    } catch {
-      issues.push({ code: 'LOCAL_URL_ENCODING', file, line, message: `Invalid URL encoding: ${target}` })
+    } catch (error) {
+      issues.push({
+        code: error instanceof LocalPathError ? 'LOCAL_PATH_UNSUPPORTED' : 'LOCAL_URL_ENCODING',
+        file,
+        line,
+        message: error instanceof LocalPathError ? error.message : `Invalid URL encoding: ${target}`,
+      })
       continue
     }
     // Registry path cells are declarations, not valid-link assertions for retired documents.
-    if (file === REGISTRY_FILE && repositoryPath && path !== undefined && declarations?.has(path)) continue
+    if (path === undefined) {
+      if (isLocalReference(target))
+        issues.push({
+          code: 'LOCAL_TARGET_OUTSIDE',
+          file,
+          line,
+          message: `Local target escapes the audited repository: ${target}`,
+        })
+      continue
+    }
     if (path !== undefined && retired.has(path)) {
       issues.push({
         code: 'RETIRED_TARGET',
@@ -388,21 +616,15 @@ function codedMarkdown(
       })
       continue
     }
-    if (treePaths) {
-      if (
-        path === undefined &&
-        target.split(/[?#]/, 1)[0] &&
-        !target.startsWith('//') &&
-        !/^[a-z][a-z\d+.-]*:/i.test(target)
-      ) {
-        issues.push({
-          code: 'LOCAL_TARGET_OUTSIDE',
-          file,
-          line,
-          message: `Local target escapes the audited repository tree: ${target}`,
-        })
-      }
-      if (path !== undefined && !treePaths.has(path))
+    if ([...(targets?.aliases ?? [])].some((alias) => path === alias || path.startsWith(`${alias}/`)))
+      issues.push({
+        code: 'LOCAL_PATH_UNSUPPORTED',
+        file,
+        line,
+        message: `Local target crosses a Git symlink/gitlink: ${target}`,
+      })
+    else if (targets?.paths) {
+      if (!targets.paths.has(path))
         issues.push({
           code: 'LOCAL_TARGET_MISSING',
           file,
@@ -410,8 +632,17 @@ function codedMarkdown(
           message: `Missing local target in audited tree: ${target}`,
         })
     } else {
-      for (const issue of checkTarget(root, file, line, target, repositoryPath))
-        issues.push({ ...issue, code: 'LOCAL_TARGET_MISSING' })
+      const state = filesystemTarget(root, path, targets?.aliases)
+      if (state !== 'present')
+        issues.push({
+          code: state === 'alias' ? 'LOCAL_PATH_UNSUPPORTED' : 'LOCAL_TARGET_MISSING',
+          file,
+          line,
+          message:
+            state === 'alias'
+              ? `Local target crosses a filesystem alias: ${target}`
+              : `Missing local target: ${target}`,
+        })
     }
   }
   return issues
@@ -422,8 +653,9 @@ function projectMarkdown(root: string): string[] {
   function walk(directory: string): void {
     for (const entry of readdirSync(resolve(root, directory), { withFileTypes: true })) {
       const path = directory ? `${directory}/${entry.name}` : entry.name
-      if (entry.isDirectory() && (directory || entry.name === 'docs')) walk(path)
-      else if (isManagedDocument(path) && (entry.isFile() || entry.isSymbolicLink())) files.push(path)
+      if (entry.isDirectory() && !entry.isSymbolicLink() && (directory || entry.name === 'docs')) walk(path)
+      else if (isManagedDocument(path) && entry.isFile()) files.push(path)
+      else if (isManagedDocument(path) && entry.isSymbolicLink()) files.push(path)
     }
   }
   walk('')
@@ -431,6 +663,7 @@ function projectMarkdown(root: string): string[] {
 }
 
 function auditStatic(root: string, directory: string, result: DocLintReport): void {
+  const targets = validTreePaths(readEntries(root, 'index'))
   const managed = projectMarkdown(root)
   const scope = relative(root, directory).replaceAll('\\', '/')
   const inScope = (file: string) => !scope || file === scope || file.startsWith(`${scope}/`)
@@ -447,16 +680,38 @@ function auditStatic(root: string, directory: string, result: DocLintReport): vo
   const controlFiles = [REGISTRY_FILE, PLAN_FILE, SNAPSHOT_FILE].filter((file) => existsSync(resolve(root, file)))
   for (const file of new Set([...files, ...controlFiles])) {
     try {
+      const nativePath = file.split('/').map(encodeURIComponent).join('/')
+      if (localReferencePath('', nativePath, true) !== file)
+        throw new LocalPathError(`Unsupported source path: ${file}`)
+      const sourceState = filesystemTarget(root, file, targets.aliases)
+      if (sourceState !== 'present') {
+        if (sourceState === 'alias')
+          result.issues.push({
+            code: 'LOCAL_PATH_UNSUPPORTED',
+            file,
+            line: 1,
+            message: 'Source document crosses a filesystem/Git alias; content was not read',
+          })
+        continue
+      }
       texts.set(file, readFileSync(resolve(root, file), 'utf8'))
     } catch (error) {
+      if (error instanceof LocalPathError) {
+        result.issues.push({ code: 'LOCAL_PATH_UNSUPPORTED', file, line: 1, message: error.message })
+        continue
+      }
       throw new AuditFailure('FILE_READ', file, String(error))
     }
   }
   const entries = parseRegistry(texts.get(REGISTRY_FILE) ?? '', result.issues)
-  const present = new Set(managed)
+  const present = new Set(managed.filter((file) => filesystemTarget(root, file, targets.aliases) === 'present'))
   for (const entry of entries.values()) {
     const full = resolve(root, entry.path)
-    if (existsSync(full) && (entry.lifecycle === 'retired' || lstatSync(full).isFile())) present.add(entry.path)
+    if (
+      filesystemTarget(root, entry.path, targets.aliases) === 'present' &&
+      (entry.lifecycle === 'retired' || lstatSync(full).isFile())
+    )
+      present.add(entry.path)
   }
   validateRegistryCoverage(entries, present, result.issues)
   const tasks = parseTasks(texts.get(PLAN_FILE) ?? '', result.issues)
@@ -465,7 +720,9 @@ function auditStatic(root: string, directory: string, result: DocLintReport): vo
     [...entries.values()].filter((entry) => entry.lifecycle === 'retired').map((entry) => entry.path),
   )
   for (const file of files)
-    result.issues.push(...codedMarkdown(root, file, texts.get(file) ?? '', retired, undefined, entries))
+    result.issues.push(
+      ...codedMarkdown(root, file, texts.get(file) ?? '', retired, { aliases: targets.aliases }, entries),
+    )
 }
 
 function auditIncremental(root: string, options: Options, result: DocLintReport): void {
@@ -550,7 +807,7 @@ function auditIncremental(root: string, options: Options, result: DocLintReport)
       .filter((entry) => entry.lifecycle === 'retired')
       .map((entry) => entry.path),
   )
-  const targets = validTreePaths(after.files)
+  const targets = validTreePaths(afterEntries)
   for (const change of changes) {
     if (
       change.kind !== 'D' &&

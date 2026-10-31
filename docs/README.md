@@ -75,6 +75,7 @@ node tools/docs-lint.ts --task "<任务ID>" --base "<领取时完整SHA>" --comm
 - `--staged`：审查指派基线到实际暂存树的差异，不混入未暂存的修改/删除；空暂存返回 `STAGED_EMPTY`，`git add -N` 也不把文件变成交付内容。基线须是当前 HEAD 的祖先。
 - `--commit <SHA>`：只读取目标提交，目标必须是基线的后继提交，不以当前工作区替换目标。两种增量模式都必须给 `--task` 和 `--base`，不能同时使用；无模式时不能携带这两个参数。
 - 授权只读基线中的本任务 `task-policy`。使用已记录的完整领取 SHA，不用会变化的 `HEAD` 代替；执行回执的 `ClaimBase` 必须等于解析后的基线。新增、删除及重命名两端分别需要明确 `add`/`retire` 授权，新增并不隐式放开登记和导航编辑。
+- 首次增量授权要求基线卡为 ☐、`ClaimBase=null`，评审为 `Decision=pending` 且 `ReviewedCommit/Date=null`；已领取、已交付、已评审或阻塞卡不能成为新的领取基线。进行中卡的静态检查仍可正常通过，同一未正式交付工作可沿原 ClaimBase 连续提交；历史目标审计只读当时的目标树，不用当前工作区或后续评审替换它。
 - 首次领取使用未领取任务的原指派基线；恢复同一任务仍用原 ClaimBase，当前 HEAD 只作为过程记录。途中交付、已领取或已验收卡不是新的开工授权。以下操作说明是正确使用契约，具体强制检查的验收范围以任务卡为准，不因旧候选实现返回绿色就允许悄悄重定基线。
 - 增量审计不替代静态检查：它不把未变化的退役旧 blob 当作恢复，也不证明所有未变化文档可用。具名块仅允许内文变化；本卡授权/验收/架构评审、其他卡及区块外原文仍受保护。归档历史只能保留完整 CRLF/LF 规范化前缀后追加，改写例外只来自基线的 `history_rewrite`。
 - 故障注入只在最小隔离 Git fixture 中做。真实工作树只运行合法检查和本人交付审计；遇到用户已有删除，报告问题或保留未暂存状态，不擅自恢复或混入提交。
@@ -113,6 +114,13 @@ node tools/docs-lint.ts --task "<任务ID>" --base "<领取时完整SHA>" --comm
 
 **常见错误处理**：先根据 `file/line/message` 查看实际差异，再在授权内修正并重新检查；不能自改当前白名单、删掉历史失败或放宽任务验收来消除错误。
 
+**Markdown 与本地目标范围**：以下是本卡工具的使用边界，不是完整 Markdown 引擎或已启用门禁的验收声明。
+
+- 支持单行标签/目标的 inline 链接、图片、可选标题，以及 full `[文字][标签]`、collapsed `[标签][]`、shortcut `[标签]` 和对应图片引用。引用定义使用单行目标和可选标题，放在文档/块起点、空行后或连续定义中；标签按大小写与空白规范化。未使用的定义也检查目标，但定义本身、图片和代码示例不构成新增文档导航；无定义的普通 `[文字]` 保持普通文本，明确 full/collapsed 未定义或重复定义报错。
+- fenced 示例按 marker 类型及最小关闭长度遮蔽；backtick fence 的 info 不能含 backtick。顶层确定的四列缩进代码、tab 四列对齐、HTML 注释和行内代码不贡献导航；段落及基础单层列表续行不能仅因四空格被隐藏。行内代码里的具名 `docs/*.md` 路径仍作契约引用检查，只有登记表真正 path 声明单元格可豁免退役路径。JSON 元数据和授权区块继续按原文读取，CRLF/LF 与原文位置不因示例遮蔽而改变。
+- 本地目标支持库内相对/根相对路径、UTF-8、URL 编码、angle 目标中的空格、平衡括号及现有反斜杠转义。查询/片段先按原约定剥离，URL 编码再解码；纯锚点、查询、外部协议与原始 `//host` 不验证目标或锚点语义。路径须与库内真实名称一致；库外路径、原生/编码网络路径、尾点/尾空格、控制字符、Windows 保留名及文件系统/Git 别名不放行。静态读取源文档和目标前逐前缀检查，不跟随 symlink/junction/gitlink，也不读取库外文件。
+- 多行标签/目标/引用定义、非块起点的引用定义、本地 HTML `href/src`，以及无法明确解析的嵌套列表/引用代码容器，返回 `LOCAL_LINK_UNSUPPORTED`，不能用作导航。目标中的 HTML entity 暂不解码，返回 `LOCAL_PATH_UNSUPPORTED`，改用 URL 编码。更复杂的容器/HTML 与完整 Markdown 渲染语义不在本卡覆盖内；不要据一个绿灯宣称通用语法、人工身份、审批或产品验收通过。
+
 | 错误码/类别 | 处理方式 |
 |-------------|----------|
 | `REGISTRY_UNREGISTERED`、`REGISTRY_DUPLICATE`、`REGISTRY_MISSING_DOCUMENT` | 核对登记与实际文件；缺新增/登记授权先回报架构，不自动补表或恢复用户文件。 |
@@ -120,6 +128,8 @@ node tools/docs-lint.ts --task "<任务ID>" --base "<领取时完整SHA>" --comm
 | `BLOCK_*`、`JSON_*`、`POLICY_*`、`RECEIPT_*`、`REVIEW_*`、`TASK_ENTRY_*` | 检查唯一完整标记、JSON 字段/类型、任务 ID、ClaimBase 和阶段收据；基线策略有问题须架构重新指派。 |
 | `SCOPE_DENIED`、`TASK_SCOPE`、`SECTION_SCOPE`、`HISTORY_REWRITE`、`ADD_*`、`RETIRE_*` | 检查文件、区块、历史或新增闭环是否越权；保留用户改动，缺权限先回报，不自动回滚或清理。 |
 | `CLI_*`、`BASE_INVALID`、`BASE_NOT_ANCESTOR`、`COMMIT_INVALID`、`COMMIT_NOT_DESCENDANT` | 检查参数组合、领取基线和实际目标，不能猜 SHA 或改回执冒充另一指派。 |
+| `BASE_TASK_NOT_UNCLAIMED` | 核对原未领取指派与固定 ClaimBase；恢复不能用途中或评审提交重领，已正式回报/退回/闭卡须由架构另发补正卡。 |
+| `LOCAL_TARGET_OUTSIDE`、`LOCAL_PATH_UNSUPPORTED`、`LOCAL_LINK_UNSUPPORTED`、`LOCAL_REFERENCE_*` | 使用真实库内路径与支持的 Markdown 形式，核对定义位置、标签及唯一性；不通过建别名、恢复退役文件或自改权限绕过。 |
 | `STAGED_EMPTY`、`INDEX_UNMERGED`、`GIT_*`、`FILE_*`、`LOCAL_*`、`MARKDOWN_NAME` | 核对真实暂存、冲突、对象/文件可读性和命名/本地目标；缺对象只报错，不获取远程对象，身份/权限问题交架构核对。 |
 
 输出可以由调用者保存到任务批准的证据目录，红/绿分别存档，不覆盖原输出。一次机械检查通过不认证编辑者、审批真实性、锚点语义、SyncImpact 的语义同步、证据真实性或产品验收；任务仍按 [执行计划](执行计划.md) 的架构回执验收。
