@@ -45,7 +45,11 @@ export function listMarkdownFiles(root: string): string[] {
     .sort()
 }
 
-function destination(line: string, offset: number, inline: boolean): { target: string; end: number } | undefined {
+function destination(
+  line: string,
+  offset: number,
+  inline: boolean,
+): { target: string; end: number; title: boolean } | undefined {
   let start = offset
   while (/[ \t]/.test(line[start] ?? '')) start++
   let end = start
@@ -79,7 +83,7 @@ function destination(line: string, offset: number, inline: boolean): { target: s
     : /^[ \t]*(?:(?:"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|\((?:\\.|[^)\\])*\))[ \t]*)?$/
   const tail = closing.exec(line.slice(suffix))
   if (!tail || (!inline && start === end)) return undefined
-  return { target: line.slice(start, end), end: suffix + tail[0].length }
+  return { target: line.slice(start, end), end: suffix + tail[0].length, title: /^[ \t]*["'(]/.test(tail[0]) }
 }
 
 function labelEnd(line: string, start: number): number | undefined {
@@ -107,8 +111,24 @@ function markdownReferences(text: string): { references: MarkdownReference[]; is
   const view = markdownView(text)
   const lines = view.visible.split('\n')
   const originalLines = text.split('\n')
+  const blockEnds: number[] = []
+  for (let index = view.lines.length - 1; index >= 0; index--) {
+    const current = view.lines[index]
+    blockEnds[index] =
+      current?.block === view.lines[index + 1]?.block
+        ? (blockEnds[index + 1] ?? text.length)
+        : (current?.end ?? text.length)
+  }
   const definitions = new Map<string, string>()
   const definitionLines = new Set<number>()
+  const containerContent = (source: string): string => {
+    let content = source
+    while (true) {
+      const prefix = /^ {0,3}(?:>[ \t]?|(?:[-+*]|\d+[.)])[ \t]+)/.exec(content)
+      if (!prefix) return content
+      content = content.slice(prefix[0].length)
+    }
+  }
   const normalize = (label: string) =>
     label
       .replace(/\\([\\[\]])/g, '$1')
@@ -147,22 +167,36 @@ function markdownReferences(text: string): { references: MarkdownReference[]; is
   for (const [index, source] of lines.entries()) {
     const line = source.replace(/\r$/, '')
     const original = (originalLines[index] ?? '').replace(/\r$/, '')
-    const blockStart =
-      index === 0 || !lines[index - 1]?.trim() || !!/^[ \t]*\[((?:\\.|[^\]\\])+)\]:/.exec(lines[index - 1] ?? '')
-    const definition = /^[ \t]*\[((?:\\.|[^\]\\])+)\]:/.exec(line)
-    if (definition && !escaped(line, line.indexOf('['))) {
+    const state = view.lines[index]
+    let content = line.slice(state?.contentStart ?? 0)
+    // Container definitions are explicitly unsupported, including continuation/nested prefixes.
+    if (state?.container) content = containerContent(content)
+    const definition = /^[ \t]*\[((?:\\.|[^\]\\])+)\]:/.exec(content)
+    if (!state?.hidden && definition && !escaped(content, content.indexOf('['))) {
       definitionLines.add(index)
-      if (!blockStart) {
+      if (state?.container || !state?.definition) {
         issues.push({
           code: 'LOCAL_LINK_UNSUPPORTED',
           line: index + 1,
-          message: 'Reference definitions inside a paragraph are not supported; place definitions at a block boundary',
+          message: state?.container
+            ? 'Container reference definitions are not supported; use a top-level single-line definition'
+            : 'Reference definitions inside a paragraph are not supported; place definitions at a block boundary',
         })
         offset += source.length + 1
         continue
       }
       const parsed = destination(original, definition[0].length, false)
-      if (!parsed)
+      const next = view.lines[index + 1]
+      const titleCandidate = /^[ \t]*["'(]/.test(originalLines[index + 1] ?? '')
+      const titleContinuation =
+        parsed &&
+        !parsed.title &&
+        next &&
+        titleCandidate &&
+        /^[ \t]*(?:"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|\((?:\\.|[^()\\])*\))[ \t]*(?:\r?\n|$)/.test(
+          text.slice(next.start, next.flowEnd),
+        )
+      if (!parsed || titleContinuation)
         issues.push({
           code: 'LOCAL_LINK_UNSUPPORTED',
           line: index + 1,
@@ -190,21 +224,41 @@ function markdownReferences(text: string): { references: MarkdownReference[]; is
     offset += source.length + 1
   }
   offset = 0
+  let consumedUntil = 0
   for (const [index, source] of lines.entries()) {
     const line = source.replace(/\r$/, '')
     const original = (originalLines[index] ?? '').replace(/\r$/, '')
     if (!definitionLines.has(index)) {
       for (let cursor = 0; cursor < line.length; cursor++) {
-        if (line[cursor] !== '[' || escaped(line, cursor)) continue
+        if (offset + cursor < consumedUntil || line[cursor] !== '[' || escaped(line, cursor)) continue
         const close = labelEnd(line, cursor)
         if (close === undefined) {
-          const continuation = lines.slice(index + 1, index + 3).join('\n')
-          if (/\]\s*(?:\(|\[)/.test(continuation) || /^\s*[^\]]+\]:/.test(continuation))
+          const start = offset + cursor
+          const block = view.visible.slice(start, blockEnds[index] ?? start)
+          const multilineEnd = labelEnd(block, 0)
+          if (multilineEnd === undefined) continue
+          const suffix = block[multilineEnd + 1]
+          const label = normalize(
+            text
+              .slice(start + 1, start + multilineEnd)
+              .split('\n')
+              .map((part, relative) => {
+                const state = view.lines[index + relative]
+                if (!relative || !state?.container) return part
+                const content = part.slice(state.contentStart)
+                return view.uncertain.has(index + relative + 1) ? containerContent(content) : content
+              })
+              .join('\n'),
+          )
+          if (suffix === '(' || suffix === '[' || suffix === ':' || definitions.has(label)) {
             issues.push({
               code: 'LOCAL_LINK_UNSUPPORTED',
               line: index + 1,
               message: 'Multiline link/reference labels are not supported',
             })
+            const referenceEnd = suffix === '[' ? labelEnd(block, multilineEnd + 1) : undefined
+            consumedUntil = start + (referenceEnd ?? multilineEnd) + 1
+          }
           continue
         }
         const image = line[cursor - 1] === '!' && !escaped(line, cursor - 1)

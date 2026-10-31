@@ -333,7 +333,7 @@ function cli(root: string, args: string[], label: string, directory = true) {
   if (result.error) throw result.error
   const evidence = process.env.DOCS_LINT_FIXTURE_LOG
   if (evidence) {
-    const expected = resolve(import.meta.dirname, '../build/tasks/GOV-02')
+    const expected = resolve(import.meta.dirname, '../build/tasks/GOV-03')
     if (dirname(resolve(evidence)) !== expected || !/^fixture-cli-[\w-]+\.jsonl$/.test(basename(evidence))) {
       throw new Error('Refusing to write fixture evidence outside the approved task directory')
     }
@@ -1714,5 +1714,495 @@ describe('GOV-02 unchanged path aliases', () => {
     const result = cli(root, ['--json'], 'static junction source isolation')
     rejected(result, 'LOCAL_PATH_UNSUPPORTED', 'docs/alias/source.md')
     expect(result.stdout).not.toContain('outside-content-missing.md')
+  })
+})
+
+type Gov03Case = {
+  id: string
+  group: string
+  text: string
+  expected: ModeExpectation
+  navigation: 'eligible' | 'example' | 'none'
+  addition?: boolean
+  issueLine?: number
+}
+
+// GOV-03 matrix:start
+const gov03Cases: Gov03Case[] = (() => {
+  const cases: Gov03Case[] = []
+  const comments = [
+    { id: 'body-close', prefix: 'Introduction <!--\nbody -->\n', line: 3 },
+    { id: 'standalone-close', prefix: 'Introduction <!--\nbody\n-->\n', line: 4 },
+    { id: 'close-line-link', prefix: 'Introduction <!--\nbody --> ', line: 2 },
+    { id: 'same-line-close', prefix: 'Introduction <!-- -->\n', line: 2 },
+  ]
+  for (const [shapeIndex, shape] of comments.entries()) {
+    for (const [indentIndex, indent] of ['    ', '\t'].entries()) {
+      const eol = (shapeIndex + indentIndex) % 2 ? '\r\n' : '\n'
+      for (const [target, code] of [
+        ['current.md', null],
+        ['04-legacy.md', 'RETIRED_TARGET'],
+      ] as const) {
+        cases.push({
+          id: `comment-${shape.id}-${indentIndex}-${target}`,
+          group: 'paragraph-comment-continuity',
+          text: `${shape.prefix}${indent}[Target](${target})`.replaceAll('\n', eol),
+          expected: code ? allReject(code) : { static: null, staged: null, commit: null },
+          navigation: 'eligible',
+          issueLine: code ? shape.line : undefined,
+        })
+      }
+      cases.push({
+        id: `comment-${shape.id}-${indentIndex}-new-navigation`,
+        group: 'paragraph-comment-continuity',
+        text: `${shape.prefix}${indent}[New](new-guide.md)`.replaceAll('\n', eol),
+        expected: { static: null, staged: null, commit: null },
+        navigation: 'eligible',
+        addition: true,
+      })
+    }
+  }
+  for (const [index, indent] of ['    ', '\t'].entries()) {
+    for (const [target, code] of [
+      ['missing.md', 'LOCAL_TARGET_MISSING'],
+      ['../../outside.md', 'LOCAL_TARGET_OUTSIDE'],
+    ]) {
+      cases.push({
+        id: `comment-boundary-${index}-${code}`,
+        group: 'paragraph-comment-targets',
+        text: `Introduction <!--\nbody\n-->\n${indent}[Target](${target})`,
+        expected: allReject(code as string),
+        navigation: 'eligible',
+        issueLine: 4,
+      })
+    }
+    for (const [target, code] of [
+      ['current.md', null],
+      ['04-legacy.md', 'RETIRED_TARGET'],
+    ] as const) {
+      cases.push({
+        id: `comment-internal-blank-${index}-${target}`,
+        group: 'literal-unclosed-inline-comment',
+        text: `Introduction <!--\n\n-->\n${indent}[Target](${target})`,
+        expected: code ? allReject(code) : { static: null, staged: null, commit: null },
+        navigation: 'eligible',
+        issueLine: code ? 4 : undefined,
+      })
+    }
+  }
+  for (const [boundaryIndex, prefix] of [
+    '---\n',
+    '* * *\n',
+    '_ _ _\n',
+    '- - -\n',
+    'Title\n---\n',
+    'Title\n===\n',
+    'Introduction <!--\nbody -->\n\n',
+  ].entries()) {
+    for (const [indentIndex, indent] of ['    ', '\t'].entries()) {
+      for (const example of [true, false]) {
+        cases.push({
+          id: `block-boundary-${boundaryIndex}-${indentIndex}-${example ? 'code' : 'visible'}`,
+          group: 'thematic-setext-blank-boundaries',
+          text: `${prefix}${example ? indent : ''}[New](new-guide.md)`.replaceAll(
+            '\n',
+            (boundaryIndex + indentIndex) % 2 ? '\r\n' : '\n',
+          ),
+          expected: {
+            static: null,
+            staged: example ? 'ADD_NAVIGATION_MISSING' : null,
+            commit: example ? 'ADD_NAVIGATION_MISSING' : null,
+          },
+          navigation: example ? 'example' : 'eligible',
+          addition: true,
+        })
+      }
+    }
+  }
+  for (const [index, prefix] of ['<!-- block\nbody -->\n', 'Introduction\n<!-- block -->\n'].entries()) {
+    for (const example of [true, false]) {
+      cases.push({
+        id: `html-block-${index}-${example ? 'code' : 'visible'}`,
+        group: 'html-block-versus-inline-comment',
+        text: `${prefix}${example ? '\t' : ''}[New](new-guide.md)`,
+        expected: {
+          static: null,
+          staged: example ? 'ADD_NAVIGATION_MISSING' : null,
+          commit: example ? 'ADD_NAVIGATION_MISSING' : null,
+        },
+        navigation: example ? 'example' : 'eligible',
+        addition: true,
+      })
+    }
+  }
+  for (const [index, indent] of ['    ', '\t'].entries()) {
+    cases.push({
+      id: `standalone-equals-paragraph-${index}`,
+      group: 'setext-requires-a-paragraph',
+      text: `===\n${indent}[New](new-guide.md)`,
+      expected: { static: null, staged: null, commit: null },
+      navigation: 'eligible',
+      addition: true,
+    })
+  }
+  for (const length of [2, 4, 7]) {
+    const label = Array.from({ length }, (_, index) => `word-${index}`).join('\n')
+    const normalized = label.replaceAll('\n', ' ')
+    const forms = [
+      { id: 'inline', text: `[${label}](04-legacy.md)` },
+      { id: 'image', text: `![${label}](current.md)` },
+      { id: 'definition', text: `[${label}]: 04-legacy.md\n\n[${normalized}]` },
+      { id: 'full-display', text: `[${label}][old]\n\n[old]: current.md` },
+      { id: 'full-reference', text: `[Old][${label}]\n\n[${normalized}]: current.md` },
+      { id: 'shortcut', text: `[${label}]\n\n[${normalized}]: current.md` },
+      { id: 'collapsed', text: `[${label}][]\n\n[${normalized}]: current.md` },
+    ]
+    for (const [formIndex, form] of forms.entries()) {
+      cases.push({
+        id: `multiline-${length}-${form.id}`,
+        group: 'multiline-to-actual-block-boundary',
+        text: form.text.replaceAll('\n', (length + formIndex) % 2 ? '\r\n' : '\n'),
+        expected: allReject('LOCAL_LINK_UNSUPPORTED'),
+        navigation: 'none',
+        issueLine: 1,
+      })
+    }
+    cases.push({
+      id: `plain-multiline-brackets-${length}`,
+      group: 'non-link-ordinary-text',
+      text: `[${label}]\n\n[Unbound] ![Unbound] \\[Escaped](missing.md)`.replaceAll('\n', '\r\n'),
+      expected: { static: null, staged: null, commit: null },
+      navigation: 'none',
+    })
+  }
+  for (const [containerIndex, prefix] of ['> ', '- ', '1. '].entries()) {
+    for (const use of ['[Old][old]', '[old][]', '[old]', '![Old][old]']) {
+      cases.push({
+        id: `container-definition-${containerIndex}-${use}`,
+        group: 'container-definitions-explicitly-unsupported',
+        text: `${prefix}[old]: 04-legacy.md\n\n${use}`,
+        expected: allReject('LOCAL_LINK_UNSUPPORTED'),
+        navigation: 'none',
+        issueLine: 1,
+      })
+    }
+    cases.push({
+      id: `container-active-definition-${containerIndex}`,
+      group: 'container-definitions-explicitly-unsupported',
+      text: `${prefix}[current]: current.md\n\n[current]`.replaceAll('\n', '\r\n'),
+      expected: allReject('LOCAL_LINK_UNSUPPORTED'),
+      navigation: 'none',
+      issueLine: 1,
+    })
+    cases.push({
+      id: `container-unbound-text-${containerIndex}`,
+      group: 'non-link-ordinary-text',
+      text: `${prefix}[Unbound] ![Unbound]`,
+      expected: { static: null, staged: null, commit: null },
+      navigation: 'none',
+    })
+  }
+  for (const eol of ['\n', '\r\n']) {
+    for (const separated of [true, false]) {
+      cases.push({
+        id: `comment-definition-${eol.length}-${separated ? 'block' : 'paragraph'}`,
+        group: 'definition-eligibility-is-structural',
+        text: `Introduction <!--\nbody -->\n${separated ? '\n' : ''}[new]: new-guide.md\n\n[New]`.replaceAll('\n', eol),
+        expected: separated ? { static: null, staged: null, commit: null } : allReject('LOCAL_LINK_UNSUPPORTED'),
+        navigation: separated ? 'eligible' : 'none',
+        addition: true,
+        issueLine: separated ? undefined : 3,
+      })
+    }
+    cases.push({
+      id: `inline-code-block-limit-${eol.length}`,
+      group: 'one-structural-boundary-for-code-and-links',
+      text: 'Paragraph `\n---\n[Visible](04-legacy.md)\n`'.replaceAll('\n', eol),
+      expected: allReject('RETIRED_TARGET'),
+      navigation: 'eligible',
+      issueLine: 3,
+    })
+  }
+  for (const [index, boundary] of ['\n', '# Heading\n'].entries()) {
+    cases.push({
+      id: `actual-block-stop-${index}`,
+      group: 'non-link-ordinary-text',
+      text: `[Unbound\n${boundary}closing](current.md)`,
+      expected: { static: null, staged: null, commit: null },
+      navigation: 'none',
+    })
+  }
+  for (const sample of [
+    { id: 'container-continuation-definition', text: '- Item\n\n  [old]: 04-legacy.md\n\n[old]', line: 3 },
+    { id: 'container-paragraph-quote', text: '> Introduction\n> [old]: current.md\n\n[old]', line: 2 },
+    { id: 'container-paragraph-list', text: '- Introduction\n  [old]: current.md\n\n[old]', line: 2 },
+    { id: 'container-nested-quote-definition', text: '> > [old]: current.md\n\n[old]', line: 1 },
+    {
+      id: 'container-long-quote-definition',
+      text: '> [word-0\n> word-1\n> word-2\n> word-3]: current.md\n\n[word-0 word-1 word-2 word-3]',
+      line: 1,
+    },
+    { id: 'definition-multiline-title', text: '[current]: current.md\n "Multi\n line title"\n\n[current]', line: 1 },
+  ]) {
+    cases.push({
+      id: sample.id,
+      group: 'unsupported-definition-boundaries',
+      text: sample.text,
+      expected: allReject('LOCAL_LINK_UNSUPPORTED'),
+      navigation: 'none',
+      issueLine: sample.line,
+    })
+  }
+  for (const sample of [
+    { id: 'quote-inline-code', text: '> `Example\n> [New](new-guide.md)\n> `', example: true },
+    { id: 'quote-inline-comment', text: '> Introduction <!--\n> [New](new-guide.md) -->', example: true },
+    { id: 'quote-code-blank', text: '> `Example\n>\n> [New](new-guide.md)\n> `', example: false },
+    { id: 'quote-comment-blank', text: '> Introduction <!--\n>\n> -->\n> [New](new-guide.md)', example: false },
+    { id: 'quote-code-heading', text: '> `Example\n> # Heading\n> [New](new-guide.md)\n> `', example: false },
+    { id: 'list-inline-code', text: '- `Example\n  [New](new-guide.md)\n  `', example: true },
+    { id: 'list-inline-comment', text: '- Introduction <!--\n  [New](new-guide.md) -->', example: true },
+  ]) {
+    cases.push({
+      id: `self-review-${sample.id}`,
+      group: 'container-inline-spans-use-logical-blocks',
+      text: sample.text,
+      expected: {
+        static: null,
+        staged: sample.example ? 'ADD_NAVIGATION_MISSING' : null,
+        commit: sample.example ? 'ADD_NAVIGATION_MISSING' : null,
+      },
+      navigation: sample.example ? 'example' : 'eligible',
+      addition: true,
+    })
+  }
+  for (const marker of ['`', '``']) {
+    cases.push({
+      id: `self-review-leading-code-definition-${marker.length}`,
+      group: 'definition-start-cannot-be-created-by-masking',
+      text: `${marker}Example${marker} [new]: new-guide.md\n\n[New]`,
+      expected: allReject('LOCAL_LINK_UNSUPPORTED'),
+      navigation: 'none',
+      addition: true,
+      issueLine: 1,
+    })
+  }
+  cases.push({
+    id: 'self-review-quote-multiline-shortcut',
+    group: 'container-label-normalization',
+    text: '> [word-0\n> word-1]\n\n[word-0 word-1]: current.md',
+    expected: allReject('LOCAL_LINK_UNSUPPORTED'),
+    navigation: 'none',
+    issueLine: 1,
+  })
+  for (const sample of [
+    {
+      id: 'existing-title-ordinary-quote',
+      text: '[new]: new-guide.md "Existing title"\n"Ordinary paragraph [New](new-guide.md)"\n\n[new]',
+    },
+    {
+      id: 'unclosed-title-ordinary-quote',
+      text: "[new]: new-guide.md\n'Ordinary paragraph [New](new-guide.md) but no closing title\n\n[new]",
+    },
+    {
+      id: 'closed-quote-trailing-paragraph',
+      text: "[new]: new-guide.md\n'Closed quote' trailing paragraph [New](new-guide.md)\n\n[new]",
+    },
+    {
+      id: 'nested-parenthesis-ordinary-text',
+      text: '[new]: new-guide.md\n(outer (inner) [New](new-guide.md))\n\n[new]',
+    },
+  ]) {
+    cases.push({
+      id: `self-review-${sample.id}`,
+      group: 'title-continuation-versus-ordinary-text',
+      text: sample.text,
+      expected: { static: null, staged: null, commit: null },
+      navigation: 'eligible',
+      addition: true,
+    })
+  }
+  for (const [index, title] of [
+    "'Closed title'",
+    '(escaped \\(inner\\))',
+    '    "Multi\n    line title"',
+    '\t"Multi\n\tline title"',
+    '        "Multi\n        line title"',
+  ].entries()) {
+    cases.push({
+      id: `self-review-real-title-continuation-${index}`,
+      group: 'title-continuation-versus-ordinary-text',
+      text: `[current]: current.md\n${title}\n\n[current]`,
+      expected: allReject('LOCAL_LINK_UNSUPPORTED'),
+      navigation: 'none',
+      issueLine: 1,
+    })
+  }
+  for (const sample of [
+    { id: 'lazy-quote-code', text: '> `Example\nlazy continuation\n> [New](new-guide.md)\n> `', example: true },
+    {
+      id: 'lazy-quote-comment',
+      text: '> Introduction <!--\nlazy continuation\n> [New](new-guide.md) -->',
+      example: true,
+    },
+    { id: 'lazy-quote-visible', text: '> Introduction\nlazy continuation\n> [New](new-guide.md)', example: false },
+    {
+      id: 'quote-actual-outdent',
+      text: '> Introduction\n\nOutside paragraph\n\n[new]: new-guide.md\n\n[new]',
+      example: false,
+    },
+    { id: 'quote-actual-heading', text: '> `Example\n# Heading\n> [New](new-guide.md)\n> `', example: false },
+    { id: 'quote-actual-thematic', text: '> `Example\n---\n> [New](new-guide.md)\n> `', example: false },
+    {
+      id: 'quote-actual-html-block',
+      text: '> Introduction <!--\n<!-- block -->\n> [New](new-guide.md)',
+      example: false,
+    },
+  ]) {
+    cases.push({
+      id: `final-review-${sample.id}`,
+      group: 'logical-quote-continuity-versus-block-interruption',
+      text: sample.text,
+      expected: {
+        static: null,
+        staged: sample.example ? 'ADD_NAVIGATION_MISSING' : null,
+        commit: sample.example ? 'ADD_NAVIGATION_MISSING' : null,
+      },
+      navigation: sample.example ? 'example' : 'eligible',
+      addition: true,
+    })
+  }
+  cases.push({
+    id: 'final-review-lazy-quote-shortcut',
+    group: 'logical-quote-continuity-versus-block-interruption',
+    text: '> [word-0\nmiddle\n> word-1]\n\n[word-0 middle word-1]: current.md',
+    expected: allReject('LOCAL_LINK_UNSUPPORTED'),
+    navigation: 'none',
+    issueLine: 1,
+  })
+  for (const sample of [
+    { id: 'paragraph-one-interrupts', text: 'Paragraph `Example\n1. [New](new-guide.md)\n`', example: false },
+    { id: 'paragraph-two-code', text: 'Paragraph `Example\n2. [New](new-guide.md)\n`', example: true },
+    { id: 'paragraph-two-comment', text: 'Paragraph <!--\n2. [New](new-guide.md) -->', example: true },
+    { id: 'quote-paragraph-two-code', text: '> `Example\n> 2. [New](new-guide.md)\n> `', example: true },
+    { id: 'block-start-two-code', text: '2. `Example\n   [New](new-guide.md)\n   `', example: true },
+    { id: 'same-list-next-two', text: '1. `Example\n2. [New](new-guide.md)\n`', example: false },
+    { id: 'blank-start-two-code', text: 'Introduction\n\n2. `Example\n   [New](new-guide.md)\n   `', example: true },
+    { id: 'long-number-paragraph-code', text: 'Paragraph `Example\n1234567890. [New](new-guide.md)\n`', example: true },
+    { id: 'long-number-list-code', text: '1. `Example\n1234567890. [New](new-guide.md)\n`', example: true },
+  ]) {
+    cases.push({
+      id: `ordered-review-${sample.id}`,
+      group: 'ordered-list-candidate-versus-paragraph-interruption',
+      text: sample.text,
+      expected: {
+        static: null,
+        staged: sample.example ? 'ADD_NAVIGATION_MISSING' : null,
+        commit: sample.example ? 'ADD_NAVIGATION_MISSING' : null,
+      },
+      navigation: sample.example ? 'example' : 'eligible',
+      addition: true,
+    })
+  }
+  for (const sample of [
+    { id: 'star-paragraph-code', text: 'Paragraph `Example\n* \n[New](new-guide.md)\n`', example: true },
+    { id: 'plus-paragraph-code', text: 'Paragraph `Example\n+ \n[New](new-guide.md)\n`', example: true },
+    { id: 'one-paragraph-code', text: 'Paragraph `Example\n1. \n[New](new-guide.md)\n`', example: true },
+    { id: 'same-list-empty-item', text: '1. `Example\n2. \n[New](new-guide.md)\n`', example: false },
+  ]) {
+    cases.push({
+      id: `empty-review-${sample.id}`,
+      group: 'empty-list-item-versus-paragraph-interruption',
+      text: sample.text,
+      expected: {
+        static: null,
+        staged: sample.example ? 'ADD_NAVIGATION_MISSING' : null,
+        commit: sample.example ? 'ADD_NAVIGATION_MISSING' : null,
+      },
+      navigation: sample.example ? 'example' : 'eligible',
+      addition: true,
+    })
+  }
+  return cases
+})()
+// GOV-03 matrix:end
+
+describe('GOV-03 parsing contract matrix', () => {
+  it.each(gov03Cases)('$id ($group)', (sample) => {
+    const added = 'docs/new-guide.md'
+    const { root, base } = fixture(
+      sample.addition
+        ? {
+            add: [{ path: added, kind: 'analysis', role: 'scoped-executor', lifecycle: 'active' }],
+            sections: [
+              { path: 'docs/README.md', block: 'docs-registry' },
+              { path: 'docs/README.md', block: 'docs-usage' },
+            ],
+          }
+        : {},
+    )
+    claim(root, base)
+    if (sample.addition) {
+      write(root, added, '# Approved document\n')
+      replace(
+        root,
+        'docs/README.md',
+        '<!-- docs-registry:end -->',
+        `| \`${added}\` | analysis | scoped-executor | active |\n<!-- docs-registry:end -->`,
+      )
+    }
+    const before = readFileSync(join(root, 'docs/README.md'), 'utf8')
+    const startLine = before.slice(0, before.indexOf('[Current](current.md)')).split('\n').length
+    replace(root, 'docs/README.md', '[Current](current.md)', sample.text)
+    const staticResult = cli(root, ['--json'], `GOV-03/${sample.id}/static`)
+    git(root, ['add', '--', PLAN, 'docs/README.md', ...(sample.addition ? [added] : [])])
+    const stagedResult = staged(root, base, `GOV-03/${sample.id}/staged`)
+    git(root, ['commit', '--quiet', '-m', `fixture GOV-03 ${sample.id}`])
+    const target = git(root, ['rev-parse', 'HEAD'])
+    const commitResult = cli(
+      root,
+      ['--task', 'GOV-01', '--base', base, '--commit', target, '--json'],
+      `GOV-03/${sample.id}/commit`,
+    )
+    for (const [mode, result] of [
+      ['static', staticResult],
+      ['staged', stagedResult],
+      ['commit', commitResult],
+    ] as const) {
+      const code = sample.expected[mode]
+      if (code) {
+        const file = code === 'ADD_NAVIGATION_MISSING' ? added : 'docs/README.md'
+        const value = rejected(result, code, file)
+        expect(value.mode).toBe(mode)
+        expect(value.issues).toEqual(
+          expect.arrayContaining([
+            expect.objectContaining({
+              code,
+              file,
+              line: code === 'ADD_NAVIGATION_MISSING' ? 1 : startLine + (sample.issueLine ?? 1) - 1,
+            }),
+          ]),
+        )
+      } else {
+        expect(result.status).toBe(0)
+        expect(report(result)).toMatchObject({ mode, issues: [] })
+      }
+    }
+    expect(git(root, ['diff', '--name-status'])).toBe(`D\t${RETIRED}`)
+  })
+
+  it.each(['---', 'Title\n---', 'Title\n==='])('keeps code headings after %s out of task ownership', (prefix) => {
+    const { root } = fixture()
+    const example = `${prefix}\n\t### EXAMPLE-03 Fake ${EMPTY}\n    # Fake top-level header`
+    replace(
+      root,
+      PLAN,
+      '**Acceptance**: Keep the existing contract.',
+      `**Acceptance**: Keep the existing contract.\n\n${example}`,
+    )
+    git(root, ['add', '--', PLAN])
+    git(root, ['commit', '--quiet', '-m', 'fixture GOV-03 heading boundary assignment'])
+    const base = git(root, ['rev-parse', 'HEAD'])
+    claim(root, base)
+    checkModes(root, base, ['tools/allowed.ts'], `GOV-03/task-headings/${prefix}`)
   })
 })

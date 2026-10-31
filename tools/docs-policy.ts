@@ -122,35 +122,161 @@ function codeEnd(text: string, start: number, width: number, limit: number): num
   return undefined
 }
 
-export function markdownView(text: string): { visible: string; codes: CodeSpan[]; uncertain: Set<number> } {
+type MarkdownLine = {
+  start: number
+  end: number
+  block: number
+  blockStart: boolean
+  contentStart: number
+  container: boolean
+  hidden: boolean
+  definition: boolean
+  flowEnd: number
+}
+type MarkdownContainer = { column: number; kind: 'list' | 'quote'; marker?: string }
+
+function markdownLineSyntax(source: string, paragraph: boolean, context?: MarkdownContainer) {
+  const line = source.replace(/\r$/, '')
+  const indent = columns(/^[ \t]*/.exec(line)?.[0] ?? '')
+  const thematic = /^ {0,3}(?:(?:\*[ \t]*){3,}|(?:-[ \t]*){3,}|(?:_[ \t]*){3,})$/.test(line)
+  const candidate = thematic ? null : /^ {0,3}([-+*]|\d{1,9}[.)])([ \t]+)/.exec(line)
+  const marker = candidate?.[1] ?? ''
+  const sameList = context?.kind === 'list' && context.marker === marker.at(-1) && indent < context.column
+  const content = candidate ? line.slice(candidate[0].length).trim() : ''
+  // New lists need nonempty content to interrupt; ordered lists need ordinal 1, not later item numbers.
+  const list =
+    candidate && (!paragraph || sameList || (content && (!/^\d/.test(marker) || Number.parseInt(marker, 10) === 1)))
+      ? candidate
+      : null
+  return {
+    blank: !line.trim(),
+    indent,
+    heading: /^ {0,3}#{1,6}(?:[ \t]|$)/.test(line),
+    thematic,
+    setext: paragraph && /^ {0,3}(?:=+|-+)[ \t]*$/.test(line),
+    list,
+    quote: /^ {0,3}>[ \t]?/.exec(line),
+    fence: /^ {0,3}(`{3,}|~{3,})([^\r]*)$/.exec(line),
+    comment: /^ {0,3}<!--/.test(line),
+  }
+}
+
+function markdownParagraphBoundary(syntax: ReturnType<typeof markdownLineSyntax>): boolean {
+  return (
+    syntax.blank ||
+    syntax.heading ||
+    syntax.thematic ||
+    syntax.setext ||
+    !!syntax.list ||
+    !!syntax.quote ||
+    syntax.comment ||
+    !!(syntax.fence && (syntax.fence[1]?.[0] !== '`' || !syntax.fence[2]?.includes('`')))
+  )
+}
+
+function indentationEnd(source: string, width: number): number {
+  let index = 0
+  let column = 0
+  while (column < width && /[ \t]/.test(source[index] ?? '')) {
+    column += source[index] === '\t' ? 4 - (column % 4) : 1
+    index++
+  }
+  return index
+}
+
+export function markdownView(text: string): {
+  visible: string
+  codes: CodeSpan[]
+  uncertain: Set<number>
+  lines: MarkdownLine[]
+} {
   const ranges: { start: number; end: number }[] = []
   const codes: CodeSpan[] = []
   const uncertain = new Set<number>()
+  const lines: MarkdownLine[] = []
+  const sources = text.split('\n')
+  let position = 0
+  const starts = sources.map((source) => {
+    const start = position
+    position += source.length + 1
+    return start
+  })
+  const paragraphEnd = (index: number, context?: MarkdownContainer): number => {
+    let active = context
+    for (let next = index + 1; next < sources.length; next++) {
+      const source = sources[next] ?? ''
+      const raw = markdownLineSyntax(source, true, active)
+      let syntax = raw
+      if (active?.kind === 'quote' && raw.quote) syntax = markdownLineSyntax(source.slice(raw.quote[0].length), true)
+      else if (active?.kind === 'list' && !raw.list && !raw.quote && raw.indent >= active.column)
+        syntax = markdownLineSyntax(source.slice(indentationEnd(source, active.column)), true)
+      else if (active && !raw.quote && !raw.list) {
+        if (active.kind === 'quote' && raw.indent >= 4) return starts[next] ?? text.length
+        if (active.kind !== 'quote' && (raw.indent === 0 || raw.indent < active.column)) active = undefined
+      }
+      if (markdownParagraphBoundary(syntax)) return starts[next] ?? text.length
+    }
+    return text.length
+  }
   let fence: { char: string; length: number } | undefined
-  let container: { column: number } | undefined
+  let container: MarkdownContainer | undefined
   let containerFence: { char: string; length: number } | undefined
   let unknownContainer = false
-  let comment = false
+  let blockComment = false
+  let commentUntil = 0
   let indented = false
   let paragraph = false
-  let blank = true
+  let block = 0
   let codeUntil = 0
-  let offset = 0
-  for (const [lineIndex, source] of text.split('\n').entries()) {
+  for (const [lineIndex, source] of sources.entries()) {
+    const offset = starts[lineIndex] ?? 0
     const end = offset + source.length
-    const marker = /^ {0,3}(`{3,}|~{3,})([^\r]*)\r?$/.exec(source)
+    const syntax = markdownLineSyntax(source, paragraph, container)
+    const marker = syntax.fence
+    let flowContext = container
+    let flowEnd: number | undefined
+    const state: MarkdownLine = {
+      start: offset,
+      end,
+      block,
+      blockStart: !paragraph,
+      contentStart: syntax.quote?.[0].length ?? (container ? indentationEnd(source, container.column) : 0),
+      container: !!container,
+      hidden: false,
+      definition: false,
+      // Only spans/titles need lookahead; hidden JSON/code lines must not eagerly rescan their block.
+      get flowEnd(): number {
+        if (flowEnd === undefined) flowEnd = paragraphEnd(lineIndex, flowContext)
+        return flowEnd
+      },
+    }
+    let logical: ReturnType<typeof markdownLineSyntax> = state.container
+      ? markdownLineSyntax(source.slice(state.contentStart), paragraph)
+      : syntax
+    lines.push(state)
     if (fence) {
       ranges.push({ start: offset, end })
       if (marker && marker[1]?.[0] === fence.char && marker[1].length >= fence.length && !marker[2]?.trim())
         fence = undefined
-      offset = end + 1
+      state.hidden = true
+      state.block = ++block
       continue
     }
-    if (!comment && codeUntil <= offset) {
-      const indent = columns(/^[ \t]*/.exec(source)?.[0] ?? '')
-      const list = /^ {0,3}([-+*]|\d+[.)])([ \t]+)/.exec(source)
-      const quote = /^ {0,3}>[ \t]?/.exec(source)
-      if (/^ {0,3}#{1,6}[ \t]/.test(source) || (blank && indent === 0 && source.trim() && !list && !quote)) {
+    if (blockComment) {
+      ranges.push({ start: offset, end })
+      blockComment = !source.includes('-->')
+      state.hidden = true
+      state.block = ++block
+      continue
+    }
+    let boundary = false
+    if (commentUntil <= offset && codeUntil <= offset) {
+      const { indent, list, quote } = syntax
+      const lazyQuote: boolean = container?.kind === 'quote' && paragraph && !markdownParagraphBoundary(syntax)
+      if (
+        syntax.heading ||
+        (!lazyQuote && !quote && !list && !syntax.blank && (indent === 0 || (container && indent < container.column)))
+      ) {
         container = undefined
         containerFence = undefined
         unknownContainer = false
@@ -158,21 +284,29 @@ export function markdownView(text: string): { visible: string; codes: CodeSpan[]
       if (list) {
         const padding = columns(list[0]) - indent - (list[1]?.length ?? 0)
         if (padding > 4) uncertain.add(lineIndex + 1)
-        container = { column: padding > 4 ? indent + (list[1]?.length ?? 0) + 1 : columns(list[0]) }
+        container = {
+          column: padding > 4 ? indent + (list[1]?.length ?? 0) + 1 : columns(list[0]),
+          kind: 'list',
+          marker: list[1]?.at(-1),
+        }
+        paragraph = false
       }
-      if (quote) container = { column: 0 }
-      if (!quote && !list && indent === 0 && source.trim()) {
-        container = undefined
-        containerFence = undefined
-        unknownContainer = false
+      if (quote) {
+        if (container?.kind !== 'quote') paragraph = false
+        container = { column: 0, kind: 'quote' }
       }
-      const inside = list ? source.slice(list[0].length) : quote ? source.slice(quote[0].length) : source.trimStart()
-      const nested = /^(`{3,}|~{3,})([^\r]*)/.exec(inside)
+      state.container = !!container
+      state.contentStart =
+        list?.[0].length ?? quote?.[0].length ?? (container ? indentationEnd(source, container.column) : 0)
+      flowContext = container
+      const inside = source.slice(state.contentStart)
+      logical = container ? markdownLineSyntax(inside, paragraph) : syntax
+      const trimmed = inside.trimStart()
+      const nested = /^(`{3,}|~{3,})([^\r]*)/.exec(trimmed)
       const nestedMarker = nested?.[1]
-      const unknownNestedContainer = quote && /^(?:[-+*]|\d+[.)])[ \t]+|^>[ \t]?/.test(inside)
+      const unknownNestedContainer = container && (logical.list || logical.quote)
       if (unknownNestedContainer) unknownContainer = true
-      if (unknownContainer && quote) uncertain.add(lineIndex + 1)
-      else if (unknownContainer && source.trim() && !quote) unknownContainer = false
+      if (unknownContainer && container && source.trim()) uncertain.add(lineIndex + 1)
       const containerMarker =
         !!container &&
         !!(list || quote || indent >= container.column) &&
@@ -192,58 +326,75 @@ export function markdownView(text: string): { visible: string; codes: CodeSpan[]
         (container && (quote ? columns(/^[ \t]*/.exec(inside)?.[0] ?? '') >= 4 : indent >= container.column + 4))
       )
         uncertain.add(lineIndex + 1)
+      if (container && /^<!--/.test(trimmed)) {
+        unknownContainer = true
+        uncertain.add(lineIndex + 1)
+      }
+      if (!container && syntax.comment) {
+        ranges.push({ start: offset, end })
+        blockComment = !source.includes('-->')
+        paragraph = false
+        state.hidden = true
+        state.block = ++block
+        continue
+      }
       if (marker && !quote && !containerMarker && (marker[1]?.[0] !== '`' || !marker[2]?.includes('`'))) {
         fence = { char: marker[1]?.[0] ?? '`', length: marker[1]?.length ?? 3 }
         ranges.push({ start: offset, end })
         paragraph = false
-        offset = end + 1
+        state.hidden = true
+        state.block = ++block
         continue
       }
       if (indented && source.trim() && indent < 4) indented = false
       if (!container && indent >= 4 && !paragraph) indented = true
       if (indented) {
         ranges.push({ start: offset, end })
-        offset = end + 1
+        state.hidden = true
+        state.block = ++block
+        paragraph = false
         continue
       }
+      boundary =
+        logical.heading ||
+        logical.thematic ||
+        logical.setext ||
+        !!(container && (logical.list || logical.quote || logical.comment))
+      if (logical.blank || boundary) {
+        paragraph = false
+        state.block = ++block
+      } else if (!paragraph) state.block = ++block
+      state.blockStart = !paragraph
     }
-    let cursor = Math.max(0, Math.min(source.length, codeUntil - offset))
-    let rendered = cursor > 0
+    const paragraphBefore: boolean = paragraph
+    let cursor = Math.max(0, Math.min(source.length, Math.max(codeUntil, commentUntil) - offset))
     while (cursor < source.length) {
-      if (comment) {
-        const close = source.indexOf('-->', cursor)
-        const stop = close < 0 ? source.length : close + 3
-        ranges.push({ start: offset + cursor, end: offset + stop })
-        comment = close < 0
-        cursor = stop
-      } else if (source.startsWith('<!--', cursor) && !markdownEscaped(source, cursor)) comment = true
-      else if (source[cursor] === '`' && !markdownEscaped(source, cursor)) {
+      if (source.startsWith('<!--', cursor) && !markdownEscaped(source, cursor)) {
+        const start = offset + cursor
+        const close = text.indexOf('-->', start + 4)
+        const limit = boundary || uncertain.has(lineIndex + 1) ? end : state.flowEnd
+        if (close >= 0 && close + 3 <= limit) {
+          commentUntil = close + 3
+          ranges.push({ start, end: commentUntil })
+          cursor = Math.min(source.length, commentUntil - offset)
+        } else cursor += 4
+      } else if (source[cursor] === '`' && !markdownEscaped(source, cursor)) {
         const width = /^`+/.exec(source.slice(cursor))?.[0].length ?? 1
         const start = offset + cursor
-        // Inline spans stay within one paragraph; structural block starts interrupt it.
-        const boundary = /\n(?:[ \t\r]*\n| {0,3}(?:#{1,6}[ \t]|>|(?:[-+*]|\d+[.)])[ \t]+|`{3,}|~{3,}))/.exec(
-          text.slice(start + width),
-        )
-        const limit = uncertain.has(lineIndex + 1) ? end : boundary ? start + width + boundary.index : text.length
+        const limit = boundary || uncertain.has(lineIndex + 1) ? end : state.flowEnd
         const close = codeEnd(text, start + width, width, limit)
-        if (close === undefined) {
-          rendered = true
-          cursor += width
-        } else {
+        if (close === undefined) cursor += width
+        else {
           codeUntil = close + width
           codes.push({ start, end: codeUntil, contentStart: start + width, contentEnd: close })
           ranges.push({ start, end: codeUntil })
-          rendered = true
           cursor = Math.min(source.length, codeUntil - offset)
         }
-      } else {
-        if (source[cursor]?.trim()) rendered = true
-        cursor++
-      }
+      } else cursor++
     }
-    paragraph = rendered && !/^ {0,3}#{1,6}[ \t]/.test(source)
-    blank = !rendered
-    offset = end + 1
+    // Raw block transitions, not masked ink, determine paragraph/definition eligibility.
+    state.definition = !state.container && !paragraphBefore && /^[ \t]*\[(?:\\.|[^\]\\])+\]:/.test(source)
+    paragraph = !boundary && !logical.blank && !state.definition
   }
   let visible = ''
   let end = 0
@@ -252,7 +403,7 @@ export function markdownView(text: string): { visible: string; codes: CodeSpan[]
     visible += text.slice(end, range.start) + text.slice(range.start, range.end).replace(/[^\r\n]/g, ' ')
     end = range.end
   }
-  return { visible: visible + text.slice(end), codes, uncertain }
+  return { visible: visible + text.slice(end), codes, uncertain, lines }
 }
 
 export function readBlock(text: string, name: string, file: string, issues: PolicyIssue[]): Block | undefined {
