@@ -25,6 +25,7 @@ import {
 } from '@/components/ui/select'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
+import { useBenchView } from '@/three/bench-view'
 import { circuitStore, jackName, useCircuit, useHistorySize, useWiringJacks } from './wiring-state'
 
 const wireColors: { value: WireColor; label: string }[] = [
@@ -54,7 +55,17 @@ export function WiringShortcuts() {
     },
     options,
   )
-  useHotkeys('escape', () => circuitStore.getState().cancelConnection(), options)
+  // Esc backs out one level: the pending wire first, then the device close-up.
+  useHotkeys(
+    'escape',
+    () => {
+      const state = circuitStore.getState()
+      if (state.pendingJack) state.cancelConnection()
+      else useBenchView.getState().leaveFocus()
+    },
+    options,
+  )
+  useHotkeys('home', () => useBenchView.getState().setPreset('work'), options)
   return null
 }
 

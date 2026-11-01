@@ -17,8 +17,11 @@ export function scaledTextureSize(width: number, height: number, limit: number):
   return [Math.max(1, Math.round(width * scale)), Math.max(1, Math.round(height * scale))]
 }
 
-/** Each quality instance owns its materials/textures, never the useGLTF cache's resources. */
-export function cloneQualityModel(source: Object3D, quality: Quality) {
+/**
+ * Each quality instance owns its materials/textures, never the useGLTF cache's resources.
+ * Anisotropic filtering keeps panel lettering sharp at the oblique work-view angle.
+ */
+export function cloneQualityModel(source: Object3D, quality: Quality, anisotropy = 1) {
   const model = source.clone(true)
   const materials = new Map<Material, Material>()
   const textures = new Map<Texture, Texture>()
@@ -43,6 +46,7 @@ export function cloneQualityModel(source: Object3D, quality: Quality) {
         texture.image = canvas
       }
     }
+    texture.anisotropy = anisotropy
     texture.needsUpdate = true
     textures.set(sourceTexture, texture)
     return texture

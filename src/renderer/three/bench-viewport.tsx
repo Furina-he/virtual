@@ -13,8 +13,9 @@ import {
   useRef,
   useState,
 } from 'react'
-import { Euler, type Mesh, Vector3 } from 'three'
+import { Box3, Euler, Mesh, NeutralToneMapping, type Object3D, Vector3 } from 'three'
 import { Button } from '@/components/ui/button'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import {
   BENCH_DROP_ID,
   INSTRUMENT_DRAG_TYPE,
@@ -35,9 +36,11 @@ import {
   type CameraPreset,
   cameraView,
   catalog,
+  focusView,
   localEnvironment,
   previewFov,
 } from './asset-catalog'
+import { focusedInstance, useBenchView } from './bench-view'
 import { jackStackCount, patchCordGeometry } from './cord-geometry'
 import { InstrumentScreens } from './instrument-screens'
 import { createSlotTargets, pickInstrumentSlot, type SlotTarget } from './instrument-slot-picking'
@@ -46,7 +49,8 @@ import { cloneQualityModel } from './model-quality'
 import { ModuleControls3D } from './module-controls'
 import { DraftCord, PatchCords3D } from './patch-cords'
 import { qualityOptions, qualityPreset, useQuality } from './quality-store'
-import { useWiringInteraction } from './wiring-interaction'
+import { pickableDevices } from './screen-picking'
+import { type CordPath, useWiringInteraction } from './wiring-interaction'
 
 type LoadState = 'loading' | 'ready' | 'error'
 type PreviewSummary = { assets: number; anchors: number; jacks: number }
@@ -83,13 +87,21 @@ class AssetBoundary extends Component<
   }
 }
 
+/** 技术设计 §10.3：右键受限旋转，水平方向 ±45°，不转到台子背面和台面以下。 */
+const AZIMUTH_LIMIT = Math.PI / 4
+const benchBoundary = new Box3(new Vector3(-1, 0.75, -0.5), new Vector3(1, 1.75, 0.5))
+const focusBox = new Box3()
+
+type ButtonAction = CameraControls['mouseButtons']['left'] & CameraControls['mouseButtons']['wheel']
+type ControlsWithActions = CameraControls & {
+  constructor: { ACTION: Record<'NONE' | 'ROTATE' | 'TRUCK' | 'DOLLY', ButtonAction> }
+}
+
 function PreviewCamera({
-  preset,
-  onManualControl,
+  models,
   region,
 }: {
-  preset: CameraPreset | null
-  onManualControl: () => void
+  models: RefObject<Map<string, Object3D>>
   region: RefObject<HTMLElement | null>
 }) {
   const controls = useRef<CameraControls>(null)
@@ -97,30 +109,52 @@ function PreviewCamera({
   const transitionId = useRef(0)
   const aspect = useThree((state) => state.size.width / state.size.height)
   const reducedMotion = useReducedMotion()
-  const pending = useCircuit((state) => state.pendingJack)
   const dragging = useDraggingInstrument()
+  const preset = useBenchView((state) => state.preset)
+  const request = useBenchView((state) => state.request)
   useEffect(() => {
-    if (!controls.current || !preset) return
-    const { position, target } = cameraView(preset, aspect)
+    const current = controls.current as ControlsWithActions | null
+    if (!current) return
+    const { ACTION } = current.constructor
+    // Left operates and pans on empty space, right rotates, middle pans, wheel zooms toward the cursor.
+    current.mouseButtons.left = ACTION.TRUCK
+    current.mouseButtons.middle = ACTION.TRUCK
+    current.mouseButtons.right = ACTION.ROTATE
+    current.mouseButtons.wheel = ACTION.DOLLY
+    current.setBoundary(benchBoundary)
+  }, [])
+  useEffect(() => {
+    // `request` re-runs this for a repeated selection of the same preset after manual navigation.
+    if (!controls.current || !preset || !Number.isFinite(request)) return
+    const instance = focusedInstance(preset)
+    const model = instance ? models.current.get(instance) : undefined
+    if (instance && !model) {
+      useBenchView.getState().setPreset('work')
+      return
+    }
+    const view = model ? focusView(focusBox.setFromObject(model), aspect) : cameraView(preset as CameraPreset, aspect)
     const transition = !first.current && !reducedMotion
     const id = ++transitionId.current
     first.current = false
     if (region.current) region.current.dataset.cameraMoving = String(transition)
-    void controls.current.setLookAt(...position, ...target, transition).then(() => {
+    void controls.current.setLookAt(...view.position, ...view.target, transition).then(() => {
       if (region.current && transitionId.current === id) region.current.dataset.cameraMoving = 'false'
     })
-  }, [preset, reducedMotion, region, aspect])
+  }, [preset, request, reducedMotion, region, aspect, models])
   return (
     <CameraControls
       ref={controls}
       makeDefault
-      enabled={!pending && !dragging}
-      minDistance={0.45}
+      enabled={!dragging}
+      dollyToCursor
+      minDistance={0.2}
       maxDistance={6}
       minPolarAngle={0.08}
       maxPolarAngle={Math.PI / 2}
+      minAzimuthAngle={-AZIMUTH_LIMIT}
+      maxAzimuthAngle={AZIMUTH_LIMIT}
       smoothTime={0.18}
-      onControlStart={onManualControl}
+      onControlStart={() => useBenchView.getState().setPreset(null)}
     />
   )
 }
@@ -137,18 +171,19 @@ function SceneMetrics({
   region,
   onContextLost,
   jacks,
-  actualJacks,
+  cords,
   slots,
   controls,
 }: {
   region: RefObject<HTMLElement | null>
   onContextLost: () => void
   jacks: WorldJack[]
-  actualJacks: WiringJack[]
+  cords: (CordPath & { midpoint: Vector3 })[]
   slots: SlotTarget[]
   controls: WorldJack[]
 }) {
   const gl = useThree((state) => state.gl)
+  const cameraControls = useThree((state) => state.controls) as CameraControls | null
   const projection = useMemo(() => new Vector3(), [])
   const viewDirection = useMemo(() => new Vector3(), [])
   const wires = useCircuit((state) => state.wires)
@@ -157,12 +192,11 @@ function SceneMetrics({
   const frameCount = useRef(0)
   const wireTargets = useMemo(
     () =>
-      wires.map((wire) => {
-        const { midpoint, geometry } = patchCordGeometry(wire, actualJacks, wires, wiringScene.workSurface)
-        geometry.dispose()
-        return { wire, midpoint }
+      cords.flatMap(({ id, midpoint }) => {
+        const wire = wires.find((entry) => entry.id === id)
+        return wire ? [{ wire, midpoint }] : []
       }),
-    [wires, actualJacks],
+    [cords, wires],
   )
   useEffect(() => {
     const lost = (event: Event) => {
@@ -184,24 +218,33 @@ function SceneMetrics({
       .toArray()
       .map((value) => value.toFixed(3))
       .join(',')
+    if (cameraControls) region.current.dataset.cameraAzimuth = cameraControls.azimuthAngle.toFixed(4)
+    const projected = jacks.map((jack) => {
+      projection.copy(jack.position).project(camera)
+      return {
+        id: jack.id,
+        assetId: jack.assetId,
+        device: jack.id.slice(0, jack.id.indexOf('.')),
+        label: jack.label,
+        ref: jack.id,
+        stackCount: jackStackCount(wires, jack.id),
+        x: (projection.x + 1) / 2,
+        y: (1 - projection.y) / 2,
+        visible:
+          Math.abs(projection.x) < 1 &&
+          Math.abs(projection.y) < 1 &&
+          Math.abs(projection.z) < 1 &&
+          viewDirection.subVectors(camera.position, jack.position).dot(jack.normal) > 0,
+      }
+    })
+    // Same rule as the picker: a device is wired directly once its jacks are far enough apart on screen.
+    const pickable = pickableDevices(
+      projected
+        .filter((jack) => jack.visible)
+        .map((jack) => ({ device: jack.device, x: jack.x * size.width, y: jack.y * size.height })),
+    )
     region.current.dataset.jackTargets = JSON.stringify(
-      jacks.map((jack) => {
-        projection.copy(jack.position).project(camera)
-        return {
-          id: jack.id,
-          assetId: jack.assetId,
-          label: jack.label,
-          ref: jack.id,
-          stackCount: jackStackCount(wires, jack.id),
-          x: (projection.x + 1) / 2,
-          y: (1 - projection.y) / 2,
-          visible:
-            Math.abs(projection.x) < 1 &&
-            Math.abs(projection.y) < 1 &&
-            Math.abs(projection.z) < 1 &&
-            viewDirection.subVectors(camera.position, jack.position).dot(jack.normal) > 0,
-        }
-      }),
+      projected.map(({ device, ...jack }) => ({ ...jack, pickable: jack.visible && pickable.has(device) })),
     )
     region.current.dataset.moduleControlTargets = JSON.stringify(
       controls.map((control) => {
@@ -335,13 +378,16 @@ function PreviewModels({
   region,
   onContextLost,
   enabled,
+  registry,
 }: {
   onReady: (summary: PreviewSummary) => void
   region: RefObject<HTMLElement | null>
   onContextLost: () => void
   enabled: boolean
+  registry: RefObject<Map<string, Object3D>>
 }) {
   const quality = useQuality((state) => state.quality)
+  const anisotropy = useThree((state) => state.gl.capabilities.getMaxAnisotropy())
   const placements = useActivePlacements()
   const electricalJacks = useWiringJacks()
   const assets = useMemo(() => assetsForPlacements(placements), [placements])
@@ -353,18 +399,31 @@ function PreviewModels({
       assets.map((item, index) => {
         const source = loaded[index]?.scene
         if (!source) throw new Error(`Missing loaded model: ${item.asset.id}`)
-        const resource = cloneQualityModel(source, quality)
+        const resource = cloneQualityModel(source, quality, anisotropy)
+        // Lets screen picking map a ray hit back to its device (click/double-click focus).
+        resource.model.userData.benchInstance = item.instanceId
+        resource.model.userData.benchKind = item.asset.kind
         return { ...item, ...resource, anchors: collectAnchors(resource.model) }
       }),
-    [assets, loaded, quality],
+    [assets, loaded, quality, anisotropy],
   )
+  const solids = useRef<Object3D[]>([])
   useEffect(() => {
     if (region.current)
       region.current.dataset.maxTextureSize = String(Math.max(...models.map((item) => item.largestTexture)))
+    registry.current.clear()
+    const meshes: Object3D[] = []
+    for (const item of models) {
+      registry.current.set(item.instanceId, item.model)
+      item.model.traverse((node) => {
+        if (node instanceof Mesh) meshes.push(node)
+      })
+    }
+    solids.current = meshes
     return () => {
       for (const resource of models) resource.dispose()
     }
-  }, [models, region])
+  }, [models, region, registry])
   const highlight = useMemo(readHighlightColor, [])
   const slots = useMemo(
     () =>
@@ -440,7 +499,16 @@ function PreviewModels({
   )
   const pending = useCircuit((state) => state.pendingJack)
   const wires = useCircuit((state) => state.wires)
-  const interaction = useWiringInteraction(actualJacks, region, enabled)
+  const cords = useMemo(
+    () =>
+      wires.map((wire) => {
+        const { geometry, midpoint, path } = patchCordGeometry(wire, actualJacks, wires, wiringScene.workSurface)
+        geometry.dispose()
+        return { id: wire.id, midpoint, path: path.map((point) => new Vector3(...point)) }
+      }),
+    [wires, actualJacks],
+  )
+  const interaction = useWiringInteraction(actualJacks, cords, solids, region, enabled)
   const draftMesh = useRef<Mesh>(null)
   const summary = useMemo(
     () => ({
@@ -462,7 +530,7 @@ function PreviewModels({
         region={region}
         onContextLost={onContextLost}
         jacks={worldJacks}
-        actualJacks={actualJacks}
+        cords={cords}
         slots={slots}
         controls={worldControls}
       />
@@ -501,13 +569,19 @@ function PreviewModels({
                 color={highlight}
                 stackCount={jackStackCount(wires, `${instanceId}.${anchor.id}`)}
                 pending={pending === `${instanceId}.${anchor.id}`}
-                onStart={interaction.start}
               />
             ))}
         </group>
       ))}
     </>
   )
+}
+
+const surface = wiringScene.workSurface
+const worktop = surface && {
+  height: surface.max[1],
+  center: [(surface.min[0] + surface.max[0]) / 2, (surface.min[2] + surface.max[2]) / 2] as const,
+  size: [surface.max[0] - surface.min[0], surface.max[2] - surface.min[2]] as const,
 }
 
 const presets: { id: CameraPreset; label: string }[] = [
@@ -522,7 +596,9 @@ export function BenchViewport3D({ onReadyChange }: { onReadyChange?: (ready: boo
   const [attempt, setAttempt] = useState(0)
   const [loadState, setLoadState] = useState<LoadState>('loading')
   const [summary, setSummary] = useState<PreviewSummary>({ assets: 0, anchors: 0, jacks: 0 })
-  const [preset, setPreset] = useState<CameraPreset | null>('work')
+  const preset = useBenchView((state) => state.preset)
+  const setPreset = useBenchView((state) => state.setPreset)
+  const models = useRef(new Map<string, Object3D>())
   const [contextLost, setContextLost] = useState(false)
   const quality = useQuality((state) => state.quality)
   const setQuality = useQuality((state) => state.setQuality)
@@ -539,6 +615,15 @@ export function BenchViewport3D({ onReadyChange }: { onReadyChange?: (ready: boo
   })
   const pending = useCircuit((state) => state.pendingJack)
   const wireColor = useCircuit((state) => state.wireColor)
+  const devices = placements.flatMap((placement) => {
+    const asset = catalog.assets.find((entry) => entry.id === placement.assetId)
+    return asset && asset.kind !== 'bench' ? [{ instanceId: placement.instanceId, name: asset.name }] : []
+  })
+  const focused = focusedInstance(preset)
+  useEffect(() => {
+    // A new session on the workbench always starts from the work view, not a stale close-up.
+    useBenchView.getState().setPreset('work')
+  }, [])
   const shadowKey = `${quality}:${placementSignature(placements)}:${wires.map((wire) => `${wire.id}:${wire.slack}`).join(',')}`
   useEffect(() => {
     if (!placements.length) return
@@ -559,7 +644,6 @@ export function BenchViewport3D({ onReadyChange }: { onReadyChange?: (ready: boo
     setSummary(next)
     setLoadState('ready')
   }, [])
-  const onManualControl = useCallback(() => setPreset(null), [])
   const retry = () => {
     startupTime.current = performance.now()
     if (region.current) {
@@ -616,6 +700,22 @@ export function BenchViewport3D({ onReadyChange }: { onReadyChange?: (ready: boo
             </Button>
           ))}
         </fieldset>
+        <Select
+          value={focused ?? ''}
+          onValueChange={(instanceId) => useBenchView.getState().focus(instanceId)}
+          disabled={loadState !== 'ready'}
+        >
+          <SelectTrigger size="sm" aria-label="聚焦设备" className="w-44">
+            <SelectValue placeholder="聚焦设备" />
+          </SelectTrigger>
+          <SelectContent>
+            {devices.map((device) => (
+              <SelectItem key={device.instanceId} value={device.instanceId} data-instance-id={device.instanceId}>
+                {device.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
         <fieldset aria-label="画质" className="flex items-center gap-1">
           {qualityOptions.map((item) => (
             <Button
@@ -652,10 +752,10 @@ export function BenchViewport3D({ onReadyChange }: { onReadyChange?: (ready: boo
               frameloop="demand"
               dpr={settings.dpr}
               camera={{ position: catalog.preview.camera.position, fov: previewFov, near: 0.02, far: 20 }}
-              gl={{ antialias: true, alpha: true }}
+              gl={{ antialias: true, alpha: true, toneMapping: NeutralToneMapping }}
               fallback={<p>当前设备无法显示 3D 画布。</p>}
             >
-              <PreviewCamera preset={preset} onManualControl={onManualControl} region={region} />
+              <PreviewCamera models={models} region={region} />
               <ambientLight intensity={0.3} />
               <directionalLight position={[3, 5, 4]} intensity={1.4} />
               <Suspense fallback={null}>
@@ -665,18 +765,35 @@ export function BenchViewport3D({ onReadyChange }: { onReadyChange?: (ready: boo
                   region={region}
                   onContextLost={onContextLost}
                   enabled={loadState === 'ready'}
+                  registry={models}
                 />
                 {settings.shadows > 0 && (
-                  <ContactShadows
-                    key={shadowKey}
-                    position={[0, 0.002, 0]}
-                    opacity={0.28}
-                    scale={5}
-                    blur={2.5}
-                    far={2}
-                    resolution={settings.shadows}
-                    frames={1}
-                  />
+                  <>
+                    <ContactShadows
+                      key={`floor:${shadowKey}`}
+                      position={[0, 0.002, 0]}
+                      opacity={0.28}
+                      scale={5}
+                      blur={2.5}
+                      far={2}
+                      resolution={settings.shadows}
+                      frames={1}
+                    />
+                    {/* Desktop instruments stand on the worktop, not the floor (技术设计 §10.3). */}
+                    {worktop && (
+                      <ContactShadows
+                        key={`worktop:${shadowKey}`}
+                        position={[worktop.center[0], worktop.height + 0.001, worktop.center[1]]}
+                        opacity={0.35}
+                        width={worktop.size[0]}
+                        height={worktop.size[1]}
+                        blur={1.6}
+                        far={0.4}
+                        resolution={settings.shadows}
+                        frames={1}
+                      />
+                    )}
+                  </>
                 )}
               </Suspense>
             </Canvas>
@@ -692,7 +809,11 @@ export function BenchViewport3D({ onReadyChange }: { onReadyChange?: (ready: boo
         )}
       </div>
       <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 border-t bg-background px-3 py-1 text-xs text-muted-foreground">
-        <span>{pending ? '拖到另一插孔完成接线 · Esc 取消' : '插孔拖动接线 · 空白处旋转 · 右键平移 · 滚轮缩放'}</span>
+        <span>
+          {pending
+            ? '点另一插孔完成接线，可先缩放或双击换设备 · Esc 取消'
+            : '点插孔接线 · 单击/双击设备特写 · 右键拖动旋转 · 左键拖动平移 · 滚轮缩放 · Home 全景'}
+        </span>
         <span aria-live="polite" className="font-mono">
           {loadState === 'ready' ? `${summary.assets} 模型 / ${summary.anchors} 锚点` : '本地资源'}
         </span>

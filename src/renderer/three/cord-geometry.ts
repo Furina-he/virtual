@@ -144,7 +144,15 @@ export function patchCordGeometry(wire: Wire, jacks: readonly JackPosition[], wi
     }
     geometry.setAttribute('color', new Float32BufferAttribute(values, 3))
   }
-  return { geometry, midpoint: new Vector3(...(points[16] ?? points[0] ?? a.position)) }
+  // World-space centreline from plug to plug, used for screen-space wire picking.
+  const path: Point3[] = [
+    start.point.toArray(),
+    start.exit.toArray(),
+    ...points,
+    finish.exit.toArray(),
+    finish.point.toArray(),
+  ]
+  return { geometry, midpoint: new Vector3(...(points[16] ?? points[0] ?? a.position)), path }
 }
 
 export function draftCordGeometry(start: Point3, end: Point3, surface?: WorkSurface) {

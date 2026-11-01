@@ -2,7 +2,7 @@ import { useFrame, useThree } from '@react-three/fiber'
 import type { Wire, WireColor } from '@shared/schema/circuit'
 import { type RefObject, useEffect, useMemo } from 'react'
 import { BackSide, Color, type Mesh, type Vector3 } from 'three'
-import { circuitStore, useCircuit, type WiringJack, wiringScene } from '@/features/practice/wiring-state'
+import { useCircuit, type WiringJack, wiringScene } from '@/features/practice/wiring-state'
 import { draftCordGeometry, joinedGeometry, patchCordGeometry, plugPosition } from './cord-geometry'
 
 const colors: Record<WireColor, string> = {
@@ -18,10 +18,6 @@ const colors: Record<WireColor, string> = {
 
 export function wireColorValue(color: WireColor) {
   return new Color(colors[color])
-}
-
-function selectWire(id: string) {
-  circuitStore.getState().selectWire(id)
 }
 
 function Cord({
@@ -65,15 +61,8 @@ function Cord({
           <meshBasicMaterial color={highlight} side={BackSide} toneMapped={false} />
         </mesh>
       )}
-      {/* biome-ignore lint/a11y/noStaticElementInteractions: R3F mesh; keyboard selection is available in the wiring list. */}
-      <mesh
-        geometry={geometry}
-        onClick={(event) => {
-          event.stopPropagation()
-          selectWire(wire.id)
-        }}
-        userData={{ wireId: wire.id }}
-      >
+      {/* Selection is screen-space picking in useWiringInteraction; the wiring list covers keyboard use. */}
+      <mesh geometry={geometry} userData={{ wireId: wire.id }}>
         <meshStandardMaterial
           color={wire.color === 'yellowGreen' ? 'white' : wireColorValue(wire.color)}
           vertexColors={wire.color === 'yellowGreen'}
@@ -97,29 +86,14 @@ function CordBatch({
   jacks: WiringJack[]
   color: WireColor
 }) {
-  const batch = useMemo(() => {
-    let triangles = 0
-    const intervals: { lastTriangle: number; id: string }[] = []
-    const parts = wires.map((wire) => {
-      const { geometry } = patchCordGeometry(wire, jacks, allWires, wiringScene.workSurface)
-      triangles += (geometry.index?.count ?? geometry.attributes.position?.count ?? 0) / 3
-      intervals.push({ lastTriangle: triangles, id: wire.id })
-      return geometry
-    })
-    return { geometry: joinedGeometry(parts), intervals }
-  }, [wires, allWires, jacks])
-  useEffect(() => () => batch.geometry.dispose(), [batch])
+  const geometry = useMemo(
+    () =>
+      joinedGeometry(wires.map((wire) => patchCordGeometry(wire, jacks, allWires, wiringScene.workSurface).geometry)),
+    [wires, allWires, jacks],
+  )
+  useEffect(() => () => geometry.dispose(), [geometry])
   return (
-    // biome-ignore lint/a11y/noStaticElementInteractions: R3F mesh, not a DOM element; the wiring list provides keyboard selection.
-    <mesh
-      geometry={batch.geometry}
-      userData={{ ignoreWiringHit: true }}
-      onClick={(event) => {
-        event.stopPropagation()
-        const wire = batch.intervals.find((item) => (event.faceIndex ?? -1) < item.lastTriangle)
-        if (wire) selectWire(wire.id)
-      }}
-    >
+    <mesh geometry={geometry} userData={{ ignoreWiringHit: true }}>
       <meshStandardMaterial
         color={color === 'yellowGreen' ? 'white' : wireColorValue(color)}
         vertexColors={color === 'yellowGreen'}

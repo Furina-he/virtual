@@ -2,6 +2,7 @@ import { mkdtempSync, readFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { type ElectronApplication, _electron as electron, expect, type Page, test } from '@playwright/test'
+import { clickWire, dragWire, focusDevice, jackPoint, projectedJacks } from './helpers/bench'
 import { selectJackFromList } from './helpers/instruments'
 
 let app: ElectronApplication
@@ -48,28 +49,6 @@ async function expandBench() {
     .toBe(true)
 }
 
-async function jackPoint(ref: string) {
-  const targets: { id: string; x: number; y: number; visible: boolean }[] = JSON.parse(
-    (await viewport().getAttribute('data-jack-targets')) ?? '[]',
-  )
-  const target = targets.find((item) => item.id === ref)
-  const box = await viewport().locator('canvas').boundingBox()
-  expect(target?.visible, `${ref} projects in the scene`).toBe(true)
-  if (!target || !box) throw new Error(`Cannot project jack ${ref}`)
-  return { x: box.x + target.x * box.width, y: box.y + target.y * box.height }
-}
-
-async function dragWire(a: string, b: string) {
-  const from = await jackPoint(a)
-  const to = await jackPoint(b)
-  await page.mouse.move(from.x, from.y)
-  await page.mouse.down()
-  await expect(viewport()).toHaveAttribute('data-pending-jack', a)
-  await page.mouse.move(to.x, to.y, { steps: 12 })
-  await page.mouse.up()
-  await expect(viewport()).toHaveAttribute('data-pending-jack', '')
-}
-
 async function selectOption(label: string, option: string | RegExp) {
   const trigger = editor().getByRole('combobox', { name: label, exact: true })
   await page.mouse.move(0, 0)
@@ -91,19 +70,18 @@ async function addFromList(a: string | RegExp, b: string | RegExp) {
 
 test('拖线跨设备、三根叠插、Esc 取消、撤销重做与单线删除', async () => {
   await expandBench()
-  await dragWire('ins-dc-power.CH1P', 'dc1.KH_U1P')
+  // Each end is picked in its own device close-up; the pending wire rides along while the camera refocuses.
+  await clickWire(page, 'ins-dc-power.CH1P', 'dc1.KH_U1P')
   await expect(viewport()).toHaveAttribute('data-wire-count', '1')
-  await dragWire('ins-dc-power.CH1P', 'ins-dc-voltmeter.POS')
+  await clickWire(page, 'ins-dc-power.CH1P', 'ins-dc-voltmeter.POS')
   await expect(viewport()).toHaveAttribute('data-wire-count', '2')
-  await dragWire('ins-dc-power.CH1P', 'ins-dc-ammeter.POS')
+  await clickWire(page, 'ins-dc-power.CH1P', 'ins-dc-ammeter.POS')
   await expect(viewport()).toHaveAttribute('data-wire-count', '3')
-  const targets = JSON.parse((await viewport().getAttribute('data-jack-targets')) ?? '[]') as {
-    id: string
-    stackCount: number
-  }[]
+  const targets = await projectedJacks(page)
   expect(targets.find((target) => target.id === 'ins-dc-power.CH1P')?.stackCount).toBe(3)
 
-  const start = await jackPoint('dc1.KH_U2P')
+  await focusDevice(page, 'dc1')
+  const start = await jackPoint(page, 'dc1.KH_U2P')
   await page.mouse.move(start.x, start.y)
   await page.mouse.down()
   await page.mouse.move(start.x + 45, start.y + 60, { steps: 5 })
@@ -226,13 +204,14 @@ test('连续 20 步接线均可撤销重做，输入框中的 Ctrl+Z 不修改�
 
 test('松手在画布外、重复接线和窗口失焦不留下错误导线或拖拽状态', async () => {
   await expandBench()
-  await dragWire('ins-dc-power.CH1P', 'dc1.KH_U1P')
+  await focusDevice(page, 'dc1')
+  await dragWire(page, 'dc1.KH_U1P', 'dc1.KH_U2P')
   await expect(viewport()).toHaveAttribute('data-wire-count', '1')
-  await dragWire('ins-dc-power.CH1P', 'dc1.KH_U1P')
+  await dragWire(page, 'dc1.KH_U1P', 'dc1.KH_U2P')
   await expect(viewport()).toHaveAttribute('data-wire-count', '1')
   await expect(editor().getByRole('status')).toContainText('已有导线')
   await expect(viewport()).toHaveAttribute('data-pending-jack', '')
-  const from = await jackPoint('dc1.KH_U2P')
+  const from = await jackPoint(page, 'dc1.KH_U2N')
   await page.mouse.move(from.x, from.y)
   await page.mouse.down()
   await page.mouse.move(20, 20, { steps: 12 })
@@ -285,5 +264,60 @@ test('长插孔列表连续切换首尾项目后提交所选值并关闭列表',
   await expect(trigger).toHaveAttribute('aria-expanded', 'false')
   await expect(trigger).toHaveAttribute('data-selected-jack', previousRef)
   await expect(trigger).toBeFocused()
+  await expect(viewport()).toHaveAttribute('data-wire-count', '0')
+})
+
+test('T0.16 相机与拾取：单击设备特写、24 px 吸附、待接线可缩放、左键不旋转、Esc/Home 退出', async () => {
+  await expandBench()
+  // Module jacks are too dense in the work view, so a click on the panel focuses instead of wiring.
+  const overview = (await projectedJacks(page)).find((jack) => jack.id === 'dc1.KH_U1P')
+  expect(overview?.pickable).toBe(false)
+  const canvas = await viewport().locator('canvas').boundingBox()
+  if (!canvas || !overview) throw new Error('Canvas or dc1 jack missing')
+  await page.mouse.click(canvas.x + overview.x * canvas.width, canvas.y + overview.y * canvas.height)
+  await expect(viewport()).toHaveAttribute('data-camera-preset', 'focus:dc1')
+  await expect(viewport()).toHaveAttribute('data-pending-jack', '')
+  await expect(viewport()).toHaveAttribute('data-camera-moving', 'false')
+
+  // Screen-space snapping: a press 10 px off the jack still starts the wire.
+  const jack = await jackPoint(page, 'dc1.KH_U1P')
+  await page.mouse.move(jack.x + 10, jack.y)
+  await expect(viewport()).toHaveAttribute('data-hover-jack', 'dc1.KH_U1P')
+  await page.mouse.click(jack.x + 10, jack.y)
+  await expect(viewport()).toHaveAttribute('data-pending-jack', 'dc1.KH_U1P')
+
+  // The pending wire keeps zoom and pan available.
+  const before = await viewport().getAttribute('data-camera-position')
+  await page.mouse.move(canvas.x + canvas.width * 0.5, canvas.y + canvas.height * 0.5)
+  await page.mouse.wheel(0, 300)
+  await expect.poll(() => viewport().getAttribute('data-camera-position')).not.toBe(before)
+  await expect(viewport()).toHaveAttribute('data-pending-jack', 'dc1.KH_U1P')
+
+  // Left drag on empty space pans; only the right button rotates.
+  const azimuthOf = async () => Number(await viewport().getAttribute('data-camera-azimuth'))
+  const azimuth = await azimuthOf()
+  const empty = { x: canvas.x + canvas.width * 0.92, y: canvas.y + canvas.height * 0.5 }
+  await page.mouse.move(empty.x, empty.y)
+  await page.mouse.down()
+  await page.mouse.move(empty.x - 80, empty.y + 20, { steps: 8 })
+  await page.mouse.up()
+  await expect(viewport()).toHaveAttribute('data-camera-preset', 'custom')
+  expect(Math.abs((await azimuthOf()) - azimuth)).toBeLessThan(0.005)
+  await expect(viewport()).toHaveAttribute('data-pending-jack', 'dc1.KH_U1P')
+  await page.mouse.move(empty.x, empty.y)
+  await page.mouse.down({ button: 'right' })
+  await page.mouse.move(empty.x - 80, empty.y, { steps: 8 })
+  await page.mouse.up({ button: 'right' })
+  await expect.poll(async () => Math.abs((await azimuthOf()) - azimuth)).toBeGreaterThan(0.05)
+  expect(Math.abs(await azimuthOf())).toBeLessThanOrEqual(Math.PI / 4 + 1e-3)
+
+  // Esc backs out one level at a time: the pending wire, then the custom/close-up view.
+  await page.keyboard.press('Escape')
+  await expect(viewport()).toHaveAttribute('data-pending-jack', '')
+  await page.keyboard.press('Escape')
+  await expect(viewport()).toHaveAttribute('data-camera-preset', 'work')
+  await focusDevice(page, 'ins-dc-power')
+  await page.keyboard.press('Home')
+  await expect(viewport()).toHaveAttribute('data-camera-preset', 'work')
   await expect(viewport()).toHaveAttribute('data-wire-count', '0')
 })

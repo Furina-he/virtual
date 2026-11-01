@@ -1,12 +1,10 @@
 import { Html } from '@react-three/drei'
-import { type ThreeEvent, useThree } from '@react-three/fiber'
-import { useState } from 'react'
-import { Color, MeshBasicMaterial, SphereGeometry, SRGBColorSpace } from 'three'
+import { useThree } from '@react-three/fiber'
+import { useEffect } from 'react'
+import { Color, SRGBColorSpace } from 'three'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import type { AssetAnchor } from './anchors'
-
-const hitGeometry = new SphereGeometry(0.01, 10, 8)
-const hitMaterial = new MeshBasicMaterial({ visible: false })
+import { useBenchView } from './bench-view'
 
 // Canvas resolves the existing CSS token to sRGB; Three does not parse OKLCH.
 export function readHighlightColor() {
@@ -20,6 +18,7 @@ export function readHighlightColor() {
   return new Color().setRGB(r / 255, g / 255, b / 255, SRGBColorSpace)
 }
 
+/** Visual ring and label only; picking is screen-space in `useWiringInteraction` (技术设计 §10.3). */
 export function JackNode3D({
   anchor,
   globalId,
@@ -27,7 +26,6 @@ export function JackNode3D({
   color,
   stackCount,
   pending,
-  onStart,
 }: {
   anchor: AssetAnchor
   globalId: string
@@ -35,26 +33,14 @@ export function JackNode3D({
   color: Color
   stackCount: number
   pending: boolean
-  onStart: (ref: string, event: ThreeEvent<PointerEvent>) => void
 }) {
-  const [hovered, setHovered] = useState(false)
+  const hovered = useBenchView((state) => state.hoveredJack === globalId)
   const invalidate = useThree((state) => state.invalidate)
-  const hover = (event: ThreeEvent<PointerEvent>) => {
-    event.stopPropagation()
-    setHovered(true)
-    invalidate()
-  }
+  useEffect(() => {
+    if (hovered || pending) invalidate()
+  }, [hovered, pending, invalidate])
   return (
     <group position={anchor.position} quaternion={anchor.quaternion}>
-      <mesh
-        geometry={hitGeometry}
-        material={hitMaterial}
-        dispose={null}
-        userData={{ jackRef: globalId }}
-        onPointerDown={(event) => onStart(globalId, event)}
-        onPointerOver={hover}
-        onPointerOut={() => setHovered(false)}
-      />
       {(hovered || pending) && (
         <>
           <mesh position={[0, 0, 0.002]} userData={{ ignoreWiringHit: true }} raycast={() => null}>

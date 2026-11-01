@@ -132,7 +132,8 @@ test('current-machine 1080p active-render measurements, not baseline-hardware ce
       const bounds = await canvas.boundingBox()
       if (!bounds) throw new Error('Missing benchmark canvas')
       await page.mouse.move(bounds.x + bounds.width * 0.08, bounds.y + bounds.height * 0.12)
-      await page.mouse.down()
+      // 技术设计 §10.3: the right button orbits; left is reserved for wiring and panning.
+      await page.mouse.down({ button: 'right' })
       const display = await canvas.evaluate((element) => {
         const canvas = element as HTMLCanvasElement
         const gl = canvas.getContext('webgl2')
@@ -169,7 +170,7 @@ test('current-machine 1080p active-render measurements, not baseline-hardware ce
         )
         await page.waitForTimeout(16)
       }
-      await page.mouse.up()
+      await page.mouse.up({ button: 'right' })
       const measured = await page.evaluate(() => {
         const probe = window.__scenePerformance
         probe.active = false

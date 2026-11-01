@@ -2,6 +2,7 @@ import { existsSync, mkdtempSync, readFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { type ElectronApplication, _electron as electron, expect, type Page, test } from '@playwright/test'
+import { focusDevice, projectedJacks } from './helpers/bench'
 
 interface CatalogAsset {
   id: string
@@ -146,14 +147,17 @@ test('本地 GLB 与 HDRI 加载、锚点识别、三种视角可用，且无外
     `${Math.round(canvasBounds.width)},${Math.round(canvasBounds.height)}`,
   )
   await expectNoPageOverflow()
-  const targets: { id: string; assetId: string; label: string; x: number; y: number; visible: boolean }[] = JSON.parse(
-    (await viewport.getAttribute('data-jack-targets')) ?? '[]',
-  )
   const module = placedAssets.find((asset) => asset.kind === 'module')
+  const moduleJack = (await projectedJacks(win)).find((target) => target.assetId === module?.id)
+  if (!moduleJack) throw new Error('No module jack to focus')
+  // 技术设计 §10.3: dense module jacks are picked and labelled in the device close-up.
+  await focusDevice(win, moduleJack.id.slice(0, moduleJack.id.indexOf('.')))
+  await expect.poll(async () => (await projectedJacks(win)).some((target) => target.pickable)).toBe(true)
+  const targets = await projectedJacks(win)
   const jack = targets.find(
     (target) =>
       target.assetId === module?.id &&
-      target.visible &&
+      target.pickable &&
       target.x > 0.1 &&
       target.x < 0.9 &&
       target.y > 0.1 &&

@@ -1,12 +1,14 @@
 import { type ThreeEvent, useThree } from '@react-three/fiber'
-import { useCallback, useEffect, useRef } from 'react'
+import { useCallback, useEffect, useMemo, useRef } from 'react'
 import type { Object3D } from 'three'
 import { knobAngle } from '@/components/instruments/rotary-knob-values'
 import { selectModuleControl, setModuleControl } from '@/features/practice/module-controls'
 import { moduleCatalog } from '@/features/practice/practice-content'
-import { useCircuit } from '@/features/practice/wiring-state'
+import { circuitStore, useCircuit } from '@/features/practice/wiring-state'
 import type { ModuleControl } from '../../shared/schema/module'
 import type { AssetAnchor } from './anchors'
+import { useBenchView } from './bench-view'
+import { readHighlightColor } from './jack-node'
 
 function controlValue(control: ModuleControl, previous: number, steps: number): number {
   if (control.steps) {
@@ -31,8 +33,36 @@ function ControlTarget({
 }) {
   const camera = useThree((state) => state.controls) as { enabled: boolean } | null
   const canvas = useThree((state) => state.gl.domElement)
-  const value = useCircuit((state) => state.controlValues[`${instanceId}.${control.id}`] ?? control.default)
+  const key = `${instanceId}.${control.id}`
+  const value = useCircuit((state) => state.controlValues[key] ?? control.default)
+  const hovered = useBenchView((state) => state.hoveredControl === key)
+  const invalidate = useThree((state) => state.invalidate)
+  const highlight = useMemo(readHighlightColor, [])
+  const radius = control.kind === 'switch' ? 0.008 : 0.012
+  useEffect(() => {
+    if (hovered) invalidate()
+    return () => invalidate()
+  }, [hovered, invalidate])
   const drag = useRef<{ y: number; value: number; pointerId: number } | null>(null)
+  const wheel = useRef(0)
+  useEffect(() => {
+    if (!hovered || !enabled) return
+    // Capture on the canvas runs before CameraControls (on the parent), so the scene does not zoom.
+    const step = (event: WheelEvent) => {
+      event.preventDefault()
+      event.stopPropagation()
+      // A mouse notch is one step; trackpad deltas accumulate.
+      wheel.current += Math.abs(event.deltaY) >= 50 ? Math.sign(event.deltaY) * 100 : event.deltaY
+      const steps = Math.trunc(wheel.current / 100)
+      if (!steps) return
+      wheel.current -= steps * 100
+      const current = circuitStore.getState().controlValues[key] ?? control.default
+      selectModuleControl(instanceId, control.id)
+      setModuleControl(instanceId, control.id, controlValue(control, current, -steps))
+    }
+    canvas.addEventListener('wheel', step, { capture: true, passive: false })
+    return () => canvas.removeEventListener('wheel', step, { capture: true })
+  }, [hovered, enabled, canvas, key, instanceId, control])
   const stop = useCallback(() => {
     const pointer = drag.current?.pointerId
     drag.current = null
@@ -79,7 +109,14 @@ function ControlTarget({
     <group position={anchor.position} quaternion={anchor.quaternion}>
       <mesh
         position={[0, 0, 0.011]}
-        onPointerOver={(event) => event.stopPropagation()}
+        onPointerOver={(event) => {
+          event.stopPropagation()
+          useBenchView.getState().setHover({ hoveredControl: key, hoveredJack: null, hoveredWire: null })
+          canvas.style.cursor = 'pointer'
+        }}
+        onPointerOut={() => {
+          if (useBenchView.getState().hoveredControl === key) useBenchView.getState().setHover({ hoveredControl: null })
+        }}
         onPointerDown={begin}
         onPointerMove={(event) => {
           event.stopPropagation()
@@ -89,9 +126,15 @@ function ControlTarget({
           stop()
         }}
       >
-        <sphereGeometry args={[control.kind === 'switch' ? 0.008 : 0.012, 12, 8]} />
+        <sphereGeometry args={[radius, 12, 8]} />
         <meshBasicMaterial transparent opacity={0} depthWrite={false} />
       </mesh>
+      {hovered && (
+        <mesh position={[0, 0, 0.002]} raycast={() => null}>
+          <ringGeometry args={[radius * 0.85, radius, 32]} />
+          <meshBasicMaterial color={highlight} toneMapped={false} />
+        </mesh>
+      )}
     </group>
   )
 }

@@ -39,6 +39,22 @@ export function assetsForPlacements(placements: readonly BenchScene['placements'
   })
 }
 
+/** Frontal close-up of one device: faces +Z (all panels face +Z, ADR-008) and fills the view with a small margin. */
+export function focusView(box: { min: Vector3Like; max: Vector3Like }, aspect: number, margin = 0.08) {
+  const size = [box.max.x - box.min.x, box.max.y - box.min.y, box.max.z - box.min.z]
+  const [width = 0, height = 0, depth = 0] = size
+  const target: Position = [(box.min.x + box.max.x) / 2, (box.min.y + box.max.y) / 2, (box.min.z + box.max.z) / 2]
+  const distance =
+    (Math.max(height, width / aspect) * (1 + margin * 2)) / (2 * Math.tan((previewFov * Math.PI) / 360)) + depth / 2
+  return { position: [target[0], target[1], target[2] + distance] as Position, target }
+}
+
+interface Vector3Like {
+  x: number
+  y: number
+  z: number
+}
+
 export function cameraView(preset: CameraPreset, aspect: number) {
   const { position, target } = catalog.preview.camera
   const distance = Math.hypot(...position.map((value, axis) => value - (target[axis] ?? 0)))
