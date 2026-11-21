@@ -359,7 +359,16 @@ export async function sd22StartRecording(app: ElectronApplication, page: Page) {
       for (const track of stream.getTracks()) track.stop()
       const blob = new Blob(chunks, { type: recorder.mimeType })
       Object.assign(window, { __sd22RecordedBlob: blob })
-      return Array.from(new Uint8Array(await blob.arrayBuffer()))
+      return new Promise<string>((done, reject) => {
+        const reader = new FileReader()
+        reader.onerror = () => reject(new Error('Failed to encode recorded webm blob'))
+        reader.onload = () => {
+          const result = String(reader.result ?? '')
+          const comma = result.indexOf(',')
+          done(comma >= 0 ? result.slice(comma + 1) : '')
+        }
+        reader.readAsDataURL(blob)
+      })
     }
     recorder.start(1000)
     Object.assign(window, { __sd22StopRecording: stop })
@@ -367,12 +376,12 @@ export async function sd22StartRecording(app: ElectronApplication, page: Page) {
 }
 
 export async function sd22StopRecording(page: Page, path: string) {
-  const bytes = await page.evaluate(async () => {
-    const stop = (window as unknown as { __sd22StopRecording?: () => Promise<number[]> }).__sd22StopRecording
+  const base64 = await page.evaluate(async () => {
+    const stop = (window as unknown as { __sd22StopRecording?: () => Promise<string> }).__sd22StopRecording
     return stop ? stop() : null
   })
-  if (bytes) writeFileSync(resolve(path), Buffer.from(bytes))
-  return Boolean(bytes)
+  if (base64) writeFileSync(resolve(path), Buffer.from(base64, 'base64'))
+  return Boolean(base64)
 }
 
 /** Decode the actual recorded Opus track with Chromium; no playback or extra synthesis. */

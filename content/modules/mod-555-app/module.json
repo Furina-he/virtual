@@ -46,5 +46,5 @@
   "indicators": [
     { "id": "LS1", "kind": "speaker", "between": ["SPK_P", "SPK_N"], "audio": { "fullScale": 5 } }
   ],
-  "simulation": { "analysis": "tran", "maxStep": 0.000002, "pacing": "realtime" }
+  "simulation": { "analysis": "tran", "maxStep": 0.00002, "pacing": "realtime" }
 }

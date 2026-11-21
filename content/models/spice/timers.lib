@@ -17,6 +17,10 @@
 *   供电依赖：比较器与 RESET 均以 GND 引脚为参考；V(VCC,GND) < 4.5 V（规格下限）
 *   时芯片不工作（锁存器被禁止、输出为 0）；输出幅度随 V(VCC,GND) 变化，
 *   VCC 未接时输出不可能为高电平。
+*   数值步长与性能实现（2026-11-21 选项 A 批准）：
+*     零 ASRC（B 源），全部线性差压使用原生 E 源，并在比较器输入并联无负载被动 SW 探针，
+*     借助 SPICE3 原生 SWtrunc 在 THR=CTRL 与 TRIG=lo 过零前自动缩步，避免 XSPICE adc_bridge
+*     粗步过冲；合并强制复位通路并精简 XSPICE 实例，不改变三只 5 kΩ 分压及外部电气特性。
 *
 * 引脚顺序 = DIP-8：1 GND 2 TRIG 3 OUT 4 RESET 5 CTRL 6 THR 7 DIS 8 VCC
 .subckt NE555 1 2 3 4 5 6 7 8
@@ -25,37 +29,40 @@ Rdiv1 8 5 5k
 Rdiv2 5 lo 5k
 Rdiv3 lo 1 5k
 Rq 8 1 1.7k
-Bthr cthr 0 V=V(6,5)
-Btrg ctrg 0 V=V(lo,2)
-Brst crst 0 V=V(4,1)
-Bvcc vs 0 V=V(8,1)
-Acmp [cthr ctrg] [dthr dtrg] NE555_CMP
-Arst [crst] [drst] NE555_RST
-Apwr [vs] [pwr] NE555_PWR
-* 置位优先：R = THR·/TRIG；RESET 引脚为低或未供电时强制复位
+* 增益 5 线性差压 + 无负载被动 SWtrunc 探针：靠近过零时自动缩步，保 20 us 上限下载频误差 <=1%
+Ethr cthr 0 6 5 5
+Etrg ctrg 0 lo 2 5
+Strunc_thr t_d 0 cthr 0 NE555_TRUNC
+Strunc_trg t_d 0 ctrg 0 NE555_TRUNC
+Rtd t_d 0 1Meg
+* 合并强制复位：RESET<0.7 V、VCC<4.5 V 或 t<1 ns（保障 .op 收敛）时 vforce=+1 V，否则 -1 V
+Vone v1 0 DC 1
+Vneg vn 0 DC -1
+Vstart vstart 0 PULSE(1 0 1n 1n 1n 1e9 2e9)
+Srst_pin v1 vforce 1 4 NE555_RST_PIN
+Spwr_off v1 vforce 1 8 NE555_PWR_OFF
+Sstart v1 vforce vstart 0 NE555_START
+Rforce vforce vn 10k
+* 单一 adc_bridge + 置位优先 SR 锁存器（R = THR·/TRIG）
+Acmp [cthr ctrg vforce vn] [dthr dtrg dforce dzero] NE555_CMP
 Antr dtrg ntrg NE555_INV
+Aenf dforce den NE555_INV
 Ar [dthr ntrg] rr NE555_AND
-Anrs drst nrst NE555_INV
-Anp pwr npwr NE555_INV
-Afr [nrst npwr] force NE555_OR
-* 工作点求解时（time = 0）锁存器保持初值 Q = 0：555 多谐振荡电路没有直流稳定点，
-* 不这样处理 .op 会在置位/复位之间反复震荡而不收敛；t > 1 ns 后正常工作。
-Bstart vstart 0 V=time > 1e-9 ? 1 : 0
-Astart [vstart] [dstart] NE555_RST
-Aen [pwr dstart] en NE555_AND
-Al dtrg rr en zero force q nq NE555_SR
-Alo [pwr npwr] zero NE555_AND
-Adac [q nq] [lq lnq] NE555_DAC
-Bo o 0 V=V(1)+V(lq)*max(V(8,1)-1.7,0)
-Ro o 3 10
-Sdis 7 1 lnq 0 NE555_SW
+Al dtrg rr den dzero dforce q nq NE555_SR
+Adac [q] [lq] NE555_DAC
+* 零 ASRC 输出与放电级：供电>=4.5 V 且 Q=1 时 VOH=V(1)+V(8,1)-1.7，Q=0（含 VCC<4.5 V 强制复位 lq=0）时 VOL=V(1)，固定线性 Ro=10 Ω
+Amul [%v(lq) %vd(8 1)] %vd(o_abs 1) NE555_MULT
+Ro o_abs 3 10
+Sdis 7 1 v1 lq NE555_SW
+.model NE555_TRUNC SW(VT=0 VH=1m RON=1Meg ROFF=1G)
+.model NE555_RST_PIN SW(VT=-0.7 VH=0.05 RON=10 ROFF=1G)
+.model NE555_PWR_OFF SW(VT=-4.25 VH=0.25 RON=10 ROFF=1G)
+.model NE555_START SW(VT=0.5 VH=0.1 RON=10 ROFF=1G)
 .model NE555_CMP adc_bridge(in_low=0 in_high=0 rise_delay=1e-10 fall_delay=1e-10)
-.model NE555_RST adc_bridge(in_low=0.6 in_high=0.8 rise_delay=1e-10 fall_delay=1e-10)
-.model NE555_PWR adc_bridge(in_low=4.0 in_high=4.5 rise_delay=1e-10 fall_delay=1e-10)
 .model NE555_INV d_inverter(rise_delay=1e-10 fall_delay=1e-10)
 .model NE555_AND d_and(rise_delay=1e-10 fall_delay=1e-10)
-.model NE555_OR d_or(rise_delay=1e-10 fall_delay=1e-10)
 .model NE555_SR d_srlatch(sr_delay=50e-9 enable_delay=1e-10 set_delay=1e-10 reset_delay=1e-10 rise_delay=1e-10 fall_delay=1e-10)
 .model NE555_DAC dac_bridge(out_low=0 out_high=1 out_undef=0 t_rise=50e-9 t_fall=50e-9)
+.model NE555_MULT mult(in_offset=[0 -1.7] in_gain=[1 1] out_gain=1 out_offset=0)
 .model NE555_SW SW(VT=0.5 VH=0.1 RON=10 ROFF=1G)
 .ends NE555

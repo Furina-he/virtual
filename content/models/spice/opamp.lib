@@ -42,29 +42,39 @@ Rout o1 6 75
 *   All active gain/drive stops below 1.8 V; the passive output then references V-.
 *   Supply includes quiescent and delivered source current. Parameters do not
 *   modify the original NE555 divider chain or UA741. Project-owned, redistributable.
+*   Zero-ASRC implementation (2026-11-21 approved Option A): uses bundled compiled-C
+*   analog.cm limit with native SPICE diode rail clamps and G/E/SW elements, preserving
+*   all electrical specs (AV, GBW, SR, 20 mV rail headroom, 20 ohm / +-1 mA drive, <1.8 V off).
 .subckt TLV9001_EST OUT VM IP IM VP
 Rinp IP VM 1T
 Rinm IM VM 1T
-Bbp IP VM I=V(VP,VM)>=1.8 ? 5p : 0
-Bbm IM VM I=V(VP,VM)>=1.8 ? 5p : 0
 Cinp IP VM 5p
 Cinm IM VM 5p
 Cdiff IP IM 1.5p
-* gm/Rdom gives finite DC gain; gm/Cdom gives 1 MHz unity-gain bandwidth.
-* Current-clamped gm/Cdom bounds slew rate to 2 V/us.
-Bgm VM nd I=V(VP,VM)>=1.8 ? 31.8309886184u*tanh(100u*V(IP,IM)/31.8309886184u) : 0
+Riq VP VM 83.333k
+* gm/Rdom gives finite DC gain (AV=100000); gm/Cdom gives 1 MHz GBW; +-31.83uA bounds SR to 2 V/us.
+Agm %vd(IP IM) %id(VM nd) TLV_GM_LIM
 Rdom nd VM 1G
 Cdom nd VM 15.9154943092p
-* Bound the dominant-pole state during overload instead of integrating to tens of kilovolts.
-Bclamp nd VM I=max(0,(V(nd,VM)-max(V(VP,VM)-20m,20m))*1m)+min(0,(V(nd,VM)-20m)*1m)
-Bdrive OUT VM I=V(VP,VM)>=1.8 ? 1m*tanh((V(OUT,VM)-min(max(V(nd,VM),20m),max(V(VP,VM)-20m,20m)))/20m) : 0
+* Native diode rail clamps keep nd within [VM+20m, VP-20m] at 5 V and auto-collapse to 0 when unpowered.
+Evhi VP vhi VP VM 0.0050
+Evlo vlo VM VP VM 0.0050
+Dclp_hi nd vhi TLV_CLP
+Dclp_lo vlo nd TLV_CLP
+* 20 ohm (50 mS) linear drive stage clamped smoothly to +-1 mA, enabled only for V(VP,VM) >= 1.8 V.
+Adrv %vd(out_int nd) %id(out_int VM) TLV_DRV_LIM
+Rout_int out_int VM 1G
+Spwr_drv out_int OUT VP VM TLV_DRV_EN_SW
 * Passive recovery prevents an unpowered floating output becoming an ideal source.
 Roff OUT VM 1G
-Boff OUT VM I=V(VP,VM)<1.8 ? V(OUT,VM)/100k : 0
+Soff OUT VM VM VP TLV_OFF_SW
 * Keep a source-stepping current load within the physical rails before the amplifier enables.
 Dlow VM OUT TLV9001_RAIL_EST
 Dhigh OUT VP TLV9001_RAIL_EST
+.model TLV_CLP D(IS=1p N=0.01 RS=10)
 .model TLV9001_RAIL_EST D(IS=1p RS=20 N=1)
-Biq VP VM I=V(VP,VM)>=1.8 ? 60u : 0
-Bsource VP VM I=V(VP,VM)>=1.8 ? max(0,-I(Bdrive)) : 0
+.model TLV_DRV_EN_SW SW(VT=1.799 VH=1m RON=1m ROFF=1T)
+.model TLV_OFF_SW SW(VT=-1.799 VH=1m RON=100k ROFF=1G)
+.model TLV_GM_LIM limit(gain=100u out_lower_limit=-31.8309886184u out_upper_limit=31.8309886184u limit_range=5u)
+.model TLV_DRV_LIM limit(gain=0.05 out_lower_limit=-1m out_upper_limit=1m limit_range=0.25m)
 .ends TLV9001_EST

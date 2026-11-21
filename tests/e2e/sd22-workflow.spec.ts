@@ -124,7 +124,7 @@ async function capture(page: Page, id: string) {
       window = JSON.parse(rawWindow as string) as WaveformWindow
       expect(window.source).toBe('stream')
       expect(window.frozen).toBe(false)
-      expect(window.rawStep).toBeLessThanOrEqual(2e-6)
+      expect(window.rawStep).toBeLessThanOrEqual(20e-6)
       expect(window.rawStep).toBeGreaterThan(0)
       const tolerance = Number.EPSILON * Math.max(1, Math.abs(window.start), Math.abs(window.end), point.windowSec) * 8
       expect(window.end - window.start + window.rawStep + tolerance).toBeGreaterThanOrEqual(point.windowSec)

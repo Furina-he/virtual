@@ -311,7 +311,7 @@ describe('Formal SD-22 module and ambulance circuit (real ngspice)', () => {
     expect(formalSd22Module.commonNets ?? []).toEqual([])
     expect(formalSd22Module.internalJumpers ?? []).toEqual([])
     expect(formalSd22Module.simulation).toMatchObject({ analysis: 'tran', pacing: 'realtime' })
-    expect(formalSd22Module.simulation?.maxStep).toBeLessThanOrEqual(2e-6)
+    expect(formalSd22Module.simulation?.maxStep).toBeLessThanOrEqual(20e-6)
     expect(formalSd22Module.indicators).toContainEqual({
       id: 'LS1',
       kind: 'speaker',
@@ -365,12 +365,14 @@ describe('Formal SD-22 module and ambulance circuit (real ngspice)', () => {
     expect(Math.abs(measured - carrierTheory(mean(unmodulated, 'VCC1'), control)) / measured).toBeLessThanOrEqual(0.01)
   })
 
-  it('keeps both loaded carrier plateaus within 1% at the 2 us maximum-step integration boundary', () => {
-    for (const input of [formalSd22Input(), resetFormalSd22(formalSd22Input(), 'T1')]) {
-      const trace = capture(input, 2e-6, 0.04, 0.01)
-      const measured = frequency(trace, 'T2_OUT', 1.65, 0.01, 0.04)
-      const expected = carrierTheory(mean(trace, 'VCC1'), mean(trace, 'T2_CV'))
-      expect(Math.abs(measured - expected) / expected).toBeLessThanOrEqual(0.01)
+  it('keeps both loaded carrier plateaus within 1% at both 2 us and the 20 us adaptive maximum-step ceiling', () => {
+    for (const step of [2e-6, formalSd22Module.simulation?.maxStep ?? 20e-6]) {
+      for (const input of [formalSd22Input(), resetFormalSd22(formalSd22Input(), 'T1')]) {
+        const trace = capture(input, step, 0.04, 0.01)
+        const measured = frequency(trace, 'T2_OUT', 1.65, 0.01, 0.04)
+        const expected = carrierTheory(mean(trace, 'VCC1'), mean(trace, 'T2_CV'))
+        expect(Math.abs(measured - expected) / expected).toBeLessThanOrEqual(0.01)
+      }
     }
   })
 
@@ -600,7 +602,7 @@ describe('Approved buffered SD-22 fire circuit (both real NE555 units and actual
     const input = formalFullInput('fire-buffered')
     const plan = buildMeasurementPlan(input, true, 'fire-golden')
     expect(plan.command.analysis.kind).toBe('tran')
-    if (plan.command.analysis.kind === 'tran') expect(plan.command.analysis.step).toBeLessThanOrEqual(2e-6)
+    if (plan.command.analysis.kind === 'tran') expect(plan.command.analysis.step).toBeLessThanOrEqual(20e-6)
     expect(plan.pacing).toEqual({ type: 'setPacing', mode: 'realtime' })
     expect(plan.command.probes).toContainEqual({
       id: 'indicator:timer1:LS1',
@@ -652,7 +654,7 @@ describe('Offline actual scope-loaded SD-22 low-frequency measurement (not realt
       expect(plan.command.analysis.kind).toBe('tran')
       if (plan.command.analysis.kind !== 'tran')
         throw new Error('Actual scope measurement did not select transient analysis')
-      expect(plan.command.analysis.step).toBeLessThanOrEqual(2e-6)
+      expect(plan.command.analysis.step).toBeLessThanOrEqual(20e-6)
       expect(plan.command.probes).toContainEqual({
         id: 'scope:scope1:CH2',
         kind: 'v',
@@ -671,6 +673,9 @@ describe('Offline actual scope-loaded SD-22 low-frequency measurement (not realt
         parallelInputCapacitanceF: 20e-12,
       })
       expect(Math.abs(actual - expected.frequency) / expected.frequency).toBeLessThanOrEqual(0.01)
+      const cycles = carrierCycles(natural, 1.4, 4.5, mode === 'ambulance')
+      expect(cycles.length).toBeGreaterThan(2000)
+      expect(Math.max(...cycles.map((cycle) => cycle.relativeError))).toBeLessThanOrEqual(0.01)
       const [min, max] = range(natural, 'T1_TH', 1.4, 4.5)
       expect(Math.abs(min - 5 / 3) / (5 / 3)).toBeLessThanOrEqual(0.01)
       expect(Math.abs(max - 10 / 3) / (10 / 3)).toBeLessThanOrEqual(0.01)

@@ -149,7 +149,7 @@ for (const mode of ['ambulance', 'fire-buffered'] as const) {
       expect(errors).toEqual([])
       expect(evidence.stats.lostBlocks).toBe(0)
       expect(evidence.stats.lastSeq + 1).toBe(evidence.stats.blocks)
-      expect(stream.rawStep).toBeLessThanOrEqual(2e-6)
+      expect(stream.rawStep).toBeLessThanOrEqual(20e-6)
       expect(stream.capacity).toBe(262_144)
       expect(stream.rawBytes).toBe(1 << 20)
       expect(stream.envelopePoints).toBeLessThanOrEqual(2048)

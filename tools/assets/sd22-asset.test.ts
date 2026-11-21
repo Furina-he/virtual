@@ -30,13 +30,14 @@ function checksum(value: string | Buffer): string {
   return createHash('sha256').update(value).digest('hex')
 }
 
-// Original 555 bytes are pinned to 5b20b60; approved follower bytes to afa5a97.
+// Original 555 board/artwork bytes are pinned to 5b20b60; approved follower cir/glb/panel bytes to afa5a97.
+// mod-voltage-follower/module.json hash updated for the 2026-11-21 approved Option A maxStep change (2e-6 -> 20e-6).
 const shippedHashes = [
   ['mod-555-app/module.cir', '9708ee1fa6dcb308d183ed7d0c51ec4b7ed0d6190251d12aa8473be35fd0c081'],
   ['mod-555-app/module.glb', '030d276d48ce83e2f12d6aab2054870c468201e46dc5cb415ef320e7d46ef3d5'],
   ['mod-555-app/panel.svg', 'a1146906608a184e158575968366827a13a778e664b67acad1cbae523a4ab567'],
   ['mod-555-app/panel.webp', '3519fb6d6423f14e14a39c8234d84058f8aa472713650b6ddca8f218cada2168'],
-  ['mod-voltage-follower/module.json', '4643b0703833e89f698ad42f5c4fe11a6c755275ae48232007e86f59a3ad9dcb'],
+  ['mod-voltage-follower/module.json', '101e55f1ed5f300435e1bd0626468ad872cd6b75738590ae244b4a9db1547dfb'],
   ['mod-voltage-follower/module.cir', 'f7f3605488bdcb17ca86a7faa6ee0a0894f4abb72dc272e67fd956dfc1b8f8fd'],
   ['mod-voltage-follower/module.glb', '01081a207b4310ea1d5775012f29e19a77e1ddd6f97c52a244e19a5d3009b327'],
   ['mod-voltage-follower/panel.svg', '3bd5df52064373874f6768baf5ee88e3f2c0a332530d8646d6f3b7cd6e71811b'],
@@ -103,7 +104,7 @@ describe('555 application board asset', () => {
     expect(moduleContent.indicators).toEqual([
       { id: 'LS1', kind: 'speaker', between: ['SPK_P', 'SPK_N'], audio: { fullScale: 5 } },
     ])
-    expect(moduleContent.simulation).toEqual({ analysis: 'tran', maxStep: 2e-6, pacing: 'realtime' })
+    expect(moduleContent.simulation).toEqual({ analysis: 'tran', maxStep: 20e-6, pacing: 'realtime' })
     for (const id of ['C1', 'C5']) {
       const prefix = id === 'C1' ? 'T1_CT' : 'C5'
       expect(moduleContent.jacks.find((jack) => jack.id === `${prefix}_P`)?.polarityHint).toBe('+')
@@ -201,7 +202,7 @@ describe('approved independent follower adapter asset', () => {
     expect(followerContent.indicators).toEqual([])
     expect(followerContent.commonNets).toBeUndefined()
     expect(followerContent.internalJumpers).toBeUndefined()
-    expect(followerContent.simulation).toEqual({ analysis: 'tran', maxStep: 2e-6, pacing: 'realtime' })
+    expect(followerContent.simulation).toEqual({ analysis: 'tran', maxStep: 20e-6, pacing: 'realtime' })
   })
 
   it('keeps real internal negative feedback, named local model inclusion and supply decoupling', () => {

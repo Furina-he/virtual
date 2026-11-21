@@ -12,5 +12,5 @@
   ],
   "controls": [],
   "indicators": [],
-  "simulation": { "analysis": "tran", "maxStep": 0.000002, "pacing": "realtime" }
+  "simulation": { "analysis": "tran", "maxStep": 0.00002, "pacing": "realtime" }
 }
