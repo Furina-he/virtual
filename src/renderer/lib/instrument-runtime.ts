@@ -14,6 +14,7 @@ import {
 import { LONG_WINDOW_SECONDS, type LongWindowSnapshot } from '../../domain/instruments/long-window'
 import { RmsWindow } from '../../domain/instruments/rms-window'
 import type { SignalMeasurement } from '../../domain/instruments/scope'
+import { formatRealtimeRatio, type SimulationPace, SimulationPaceMonitor } from '../../domain/measurement/pace'
 import {
   buildMeasurementPlan,
   METER_RMS_WINDOW,
@@ -86,7 +87,12 @@ export function benchCircuitInput(state: CircuitState = circuitStore.getState())
   }
 }
 
-type RuntimeStatus = { state: 'off' | 'pending' | 'ready' | 'protected' | 'error'; message: string }
+export type RuntimeStatus = {
+  state: 'off' | 'pending' | 'ready' | 'protected' | 'error'
+  message: string
+  pace?: SimulationPace
+}
+const PACE_PUBLISH_INTERVAL_MS = 500
 type RuntimeJob = {
   revision: number
   input: AssembleInput
@@ -175,6 +181,12 @@ export function connectInstrumentRuntime(onStatus: (status: RuntimeStatus) => vo
   let gain: GainNode | undefined
   let sounding = false
   let lastStatus = ''
+  let lastStatusState: RuntimeStatus['state'] = 'off'
+  let lastStatusMessage = '未运行'
+  let lastSlow = false
+  let lastRatioText = ''
+  let lastPacePublishedAt = Number.NEGATIVE_INFINITY
+  const paceMonitor = new SimulationPaceMonitor()
   const rmsWindows = new Map<string, RmsWindow>()
   const waveformScratch = new Float32Array(65_536)
   let offMeterSamples: (() => void)[] = []
@@ -493,11 +505,30 @@ export function connectInstrumentRuntime(onStatus: (status: RuntimeStatus) => vo
     })
   }
 
-  function status(state: RuntimeStatus['state'], message: string) {
+  function status(state: RuntimeStatus['state'], message: string, pace?: SimulationPace) {
+    const slow = pace?.slow === true
+    const ratioText =
+      slow && pace?.realtimeRatio !== null && pace?.realtimeRatio !== undefined
+        ? formatRealtimeRatio(pace.realtimeRatio)
+        : ''
     const key = `${state}:${message}`
-    if (key === lastStatus) return
+    const structuralChange = key !== lastStatus || slow !== lastSlow
+    if (!structuralChange) {
+      if (!slow || ratioText === lastRatioText) return
+      const now = performance.now()
+      if (now - lastPacePublishedAt < PACE_PUBLISH_INTERVAL_MS) return
+      lastPacePublishedAt = now
+    } else if (slow) {
+      lastPacePublishedAt = performance.now()
+    } else {
+      lastPacePublishedAt = Number.NEGATIVE_INFINITY
+    }
     lastStatus = key
-    onStatus({ state, message })
+    lastStatusState = state
+    lastStatusMessage = message
+    lastSlow = slow
+    lastRatioText = ratioText
+    onStatus(pace ? { state, message, pace } : { state, message })
   }
 
   function beep(on: boolean) {
@@ -591,6 +622,7 @@ export function connectInstrumentRuntime(onStatus: (status: RuntimeStatus) => vo
     moduleAudio = undefined
     clearTimeout(timer)
     clearTimeout(timeout)
+    paceMonitor.reset()
     clearRms()
     beep(false)
   }
@@ -689,6 +721,7 @@ export function connectInstrumentRuntime(onStatus: (status: RuntimeStatus) => vo
           publishedJob = undefined
           pendingAlter = { requestId }
           parameterRequests.add(requestId)
+          paceMonitor.reset()
           status('pending', '正在更新模块参数')
           clearTimeout(timeout)
           timeout = setTimeout(() => failure('模块参数未及时更新。请断电后重试。'), 8000)
@@ -755,7 +788,7 @@ export function connectInstrumentRuntime(onStatus: (status: RuntimeStatus) => vo
     }
   }
 
-  function publish(current: RuntimeJob, values: Record<string, number>, transient: boolean) {
+  function publish(current: RuntimeJob, values: Record<string, number>, transient: boolean, simTime?: number) {
     let audible = false
     let warning = false
     let waiting = false
@@ -810,9 +843,14 @@ export function connectInstrumentRuntime(onStatus: (status: RuntimeStatus) => vo
     showScopes(current.input, current.plan, current.powered, true)
     publishedJob = current
     beep(audible)
+    const pace =
+      transient && !requestedPaused && simTime !== undefined
+        ? paceMonitor.record(simTime, performance.now())
+        : undefined
     status(
       warning ? 'protected' : waiting ? 'pending' : 'ready',
       warning ? '带电回路：表内测试源已关闭' : waiting ? '采集有效值窗口' : transient ? '实时测量' : '直流工作点已更新',
+      pace,
     )
   }
 
@@ -827,6 +865,8 @@ export function connectInstrumentRuntime(onStatus: (status: RuntimeStatus) => vo
       const replayed = loadBoundary.applied
       requestedPaused = false
       requestedResumeAfter = undefined
+      paceMonitor.reset()
+      if (lastSlow) status(lastStatusState, lastStatusMessage)
       resetScopeContinuity(current)
       loadBoundary.applied = true
       loadBoundary.resolve()
@@ -852,6 +892,7 @@ export function connectInstrumentRuntime(onStatus: (status: RuntimeStatus) => vo
       pendingAlter = { requestId: event.requestId as string, afterTime: event.simTime }
       requestedPaused = false
       requestedResumeAfter = event.simTime
+      paceMonitor.reset()
       resetScopeContinuity(current)
       waveformAfterTime = event.simTime
       waveformBoundary.clear()
@@ -878,6 +919,8 @@ export function connectInstrumentRuntime(onStatus: (status: RuntimeStatus) => vo
       if (event.state === 'paused' || event.state === 'idle') {
         requestedPaused = true
         requestedResumeAfter = event.simTime
+        paceMonitor.reset()
+        if (lastSlow) status(lastStatusState, lastStatusMessage)
         resetScopeContinuity()
         for (const scope of current.plan.scopes) {
           for (const channel of scope.channels) {
@@ -888,6 +931,7 @@ export function connectInstrumentRuntime(onStatus: (status: RuntimeStatus) => vo
       } else if (event.state === 'running') {
         requestedPaused = false
         requestedResumeAfter = event.simTime
+        paceMonitor.reset()
         resetScopeContinuity(current)
         for (const scope of current.plan.scopes) {
           for (const channel of scope.channels) {
@@ -921,7 +965,12 @@ export function connectInstrumentRuntime(onStatus: (status: RuntimeStatus) => vo
       start({ ...current, plan, preflight: false })
       return
     }
-    publish(current, event.values, event.type === 'readings' && current.plan.command.analysis.kind === 'tran')
+    publish(
+      current,
+      event.values,
+      event.type === 'readings' && current.plan.command.analysis.kind === 'tran',
+      event.type === 'readings' ? event.simTime : undefined,
+    )
   })
   const offRestart = sim.onRestarted(() => {
     if (ownsSession) update(true)

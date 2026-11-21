@@ -9,7 +9,7 @@ import type { CircuitState } from '../../shared/schema/circuit'
 import { Instrument } from '../../shared/schema/instrument'
 import { Module } from '../../shared/schema/module'
 import { getInstrumentReading, instrumentReadings } from './instrument-readings'
-import { connectInstrumentRuntime, currentMeasurementSnapshot } from './instrument-runtime'
+import { connectInstrumentRuntime, currentMeasurementSnapshot, type RuntimeStatus } from './instrument-runtime'
 import { RingBuffer } from './ring-buffer'
 
 type LowFreqEvent = Exclude<SimEvent, { type: 'chunk' }>
@@ -996,5 +996,141 @@ describe('requested waveform windows', () => {
     expect(requested(snapshot, 0.02, 'CH1')?.current).toBe(true)
     expect(requested(snapshot, 0.02, 'CH2')?.current).toBe(true)
     expect(requested(snapshot, 0.02, 'CH1-CH2')).toMatchObject({ current: false, measurement: null })
+  })
+})
+
+describe('slow-simulation pace status', () => {
+  async function startTracking() {
+    const statuses: RuntimeStatus[] = []
+    disconnect = connectInstrumentRuntime((status) => statuses.push(status))
+    await vi.advanceTimersByTimeAsync(40)
+    const command = latestLoad()
+    acknowledgeLoad(command)
+    await vi.advanceTimersByTimeAsync(0)
+    return { command, statuses }
+  }
+
+  it('stays quiet on healthy 1.0x transient runs without spamming status callbacks', async () => {
+    fixture.instruments = fixture.instruments.filter((entry) => entry.instanceId !== 'meter1')
+    fixture.state.wires = fixture.state.wires.filter(
+      (wire) => !wire.a.startsWith('meter1.') && !wire.b.startsWith('meter1.'),
+    )
+    const { command, statuses } = await startTracking()
+    const values = Object.fromEntries(command.probes.map((probe) => [probe.id, 0]))
+    for (let tick = 0; tick <= 30; tick++) {
+      emit({ type: 'readings', simTime: 0.05 + tick * 0.1, values })
+      await vi.advanceTimersByTimeAsync(100)
+    }
+    const ready = statuses.filter((entry) => entry.state === 'ready')
+    expect(ready).toHaveLength(1)
+    expect(ready[0]?.pace?.slow).toBe(false)
+  })
+
+  it('raises a throttled slow-simulation warning from actual simTime/wall ratio and clears on recovery', async () => {
+    fixture.instruments = fixture.instruments.filter((entry) => entry.instanceId !== 'meter1')
+    fixture.state.wires = fixture.state.wires.filter(
+      (wire) => !wire.a.startsWith('meter1.') && !wire.b.startsWith('meter1.'),
+    )
+    const { command, statuses } = await startTracking()
+    const values = Object.fromEntries(command.probes.map((probe) => [probe.id, 0]))
+    let simTime = 0.05
+    emit({ type: 'readings', simTime, values })
+
+    // 1.4 s of slow progress is still below the 1.5 s observation minimum
+    for (let tick = 1; tick <= 14; tick++) {
+      await vi.advanceTimersByTimeAsync(100)
+      simTime += 0.017
+      emit({ type: 'readings', simTime, values })
+    }
+    expect(statuses.some((entry) => entry.pace?.slow)).toBe(false)
+
+    // Reaching 1.5 s triggers slow alert immediately
+    await vi.advanceTimersByTimeAsync(100)
+    simTime += 0.017
+    emit({ type: 'readings', simTime, values })
+    const firstSlow = statuses.at(-1)
+    expect(firstSlow?.pace?.slow).toBe(true)
+    expect(firstSlow?.pace?.realtimeRatio).toBeCloseTo(0.17, 2)
+
+    // Varying slow ratio over 1 s should not spam every 100 ms tick (throttled to <= 2 Hz)
+    const countBefore = statuses.length
+    for (let tick = 1; tick <= 10; tick++) {
+      await vi.advanceTimersByTimeAsync(100)
+      simTime += 0.01 + tick * 0.002
+      emit({ type: 'readings', simTime, values })
+    }
+    expect(statuses.length - countBefore).toBeLessThanOrEqual(2)
+
+    // Recovering to 1.0x clears the slow alert once the sliding window crosses exit threshold
+    for (let tick = 1; tick <= 25; tick++) {
+      await vi.advanceTimersByTimeAsync(100)
+      simTime += 0.1
+      emit({ type: 'readings', simTime, values })
+    }
+    expect(statuses.at(-1)?.pace?.slow).toBe(false)
+    expect(statuses.at(-1)?.pace?.realtimeRatio).toBeGreaterThanOrEqual(0.92)
+  })
+
+  it('clears the slow warning on pause, parameter alter, and power-off, and never triggers on OP', async () => {
+    useModule(true)
+    fixture.instruments = fixture.instruments.filter((entry) => entry.instanceId !== 'meter1')
+    fixture.state.wires = fixture.state.wires.filter(
+      (wire) => !wire.a.startsWith('meter1.') && !wire.b.startsWith('meter1.'),
+    )
+    const { command, statuses } = await startTracking()
+    const values = Object.fromEntries(command.probes.map((probe) => [probe.id, 0]))
+
+    const driveSlow = async (fromSim: number) => {
+      let simTime = fromSim
+      emit({ type: 'readings', simTime, values })
+      for (let tick = 1; tick <= 16; tick++) {
+        await vi.advanceTimersByTimeAsync(100)
+        simTime += 0.015
+        emit({ type: 'readings', simTime, values })
+      }
+      return simTime
+    }
+
+    let simTime = await driveSlow(0.05)
+    expect(statuses.at(-1)?.pace?.slow).toBe(true)
+
+    // Pause clears slow warning immediately
+    emit({ type: 'status', state: 'paused', simTime })
+    expect(statuses.at(-1)?.pace?.slow ?? false).toBe(false)
+
+    // Resume + slow again, then live alter clears slow warning
+    emit({ type: 'status', state: 'running', simTime })
+    simTime = await driveSlow(simTime)
+    expect(statuses.at(-1)?.pace?.slow).toBe(true)
+    changeControl(2000)
+    expect(statuses.at(-1)?.pace?.slow ?? false).toBe(false)
+    const update = latestAlter()
+    emit({ type: 'altered', requestId: update.requestId, changes: update.changes, simTime })
+    simTime = await driveSlow(simTime + 0.05)
+    expect(statuses.at(-1)?.pace?.slow).toBe(true)
+
+    // Power-off clears slow warning
+    fixture.state = { ...fixture.state, powered: false }
+    for (const listener of fixture.changes) listener(fixture.state)
+    expect(statuses.at(-1)).toEqual({ state: 'off', message: '未运行' })
+
+    // DC OP analysis never emits pace or slow
+    disconnect?.()
+    disconnect = undefined
+    fixture.modules.length = 0
+    useModule(false)
+    fixture.instruments = [{ instanceId: 'meter1', instrument: meter, settings: { range: 'dcv20' } }]
+    fixture.state = {
+      powered: true,
+      placedInstruments: [],
+      controlValues: {},
+      wires: [
+        { id: 'w1', a: 'box1.P', b: 'meter1.VOHM', color: 'red' },
+        { id: 'w2', a: 'box1.N', b: 'meter1.COM', color: 'black' },
+      ],
+    }
+    const op = await startTracking()
+    emit({ type: 'op', values: Object.fromEntries(op.command.probes.map((probe) => [probe.id, 5])) })
+    expect(op.statuses.at(-1)).toEqual({ state: 'ready', message: '直流工作点已更新' })
   })
 })

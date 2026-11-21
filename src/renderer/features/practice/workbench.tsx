@@ -1,4 +1,5 @@
 import {
+  AlertTriangle,
   ArrowLeft,
   ClipboardCheck,
   FileDown,
@@ -38,9 +39,11 @@ import { benchCircuitInput, connectInstrumentRuntime } from '@/lib/instrument-ru
 import { resetScopeAcquisition } from '@/lib/scope-acquisition'
 import { useSimRestartNotice } from '@/lib/use-sim-restart-notice'
 import { cn } from '@/lib/utils'
+import { resetSimulationStatus, setSimulationStatus, useSimulationStatus } from '@/stores/simulation-status'
 import { resetTask, taskStore, useTask } from '@/stores/task'
 import { BenchViewport3D } from '@/three/bench-viewport'
 import { qualityPreset, useQuality } from '@/three/quality-store'
+import { formatRealtimeRatio } from '../../../domain/measurement/pace'
 import { buildMeasurementPlan } from '../../../domain/measurement/plan'
 import { currentTaskStep, scopedReference } from '../../../domain/task'
 import { checkWiring, detectDanger } from '../../../domain/wiring-check'
@@ -197,17 +200,46 @@ function TopBar({
   )
 }
 
-function StatusBar({ simulation }: { simulation: string }) {
+function StatusBar() {
   const powered = useCircuit((s) => s.powered)
   const count = useCircuit((s) => s.wires.length)
   const quality = useQuality((state) => state.quality)
+  const simulation = useSimulationStatus((state) => state)
+  const slow = simulation.pace?.slow === true
+  const ratio = simulation.pace?.realtimeRatio ?? null
+  const ratioText = ratio === null ? '' : formatRealtimeRatio(ratio)
   return (
     <footer className="flex h-7 shrink-0 items-center gap-4 border-t px-3 text-xs text-muted-foreground">
       <span className={cn('flex items-center gap-1', powered && 'text-success')}>
         <Power className="size-3" />
         {powered ? '已上电' : '未上电'}
       </span>
-      <span data-simulation-status={simulation}>仿真：{simulation}</span>
+      <span
+        className={cn(
+          simulation.state === 'error' && 'text-destructive',
+          simulation.state === 'protected' && 'text-warning',
+        )}
+        data-simulation-status={simulation.message}
+        data-simulation-slow={slow ? 'true' : 'false'}
+        data-realtime-ratio={ratio === null ? undefined : ratio.toFixed(3)}
+      >
+        仿真：{simulation.message}
+      </span>
+      {slow && (
+        <Tooltip>
+          <TooltipTrigger
+            type="button"
+            className="flex items-center gap-1 rounded-xs font-mono whitespace-nowrap text-warning focus-visible:outline-1"
+            data-simulation-slow-notice="true"
+          >
+            <AlertTriangle className="size-3 shrink-0" aria-hidden="true" />
+            <span role="status">慢于实时（{ratioText}）</span>
+          </TooltipTrigger>
+          <TooltipContent>
+            {`当前电路计算慢于实时（约 ${ratioText}），仿真时间推进慢于真实时间。读数和波形仍为真实仿真结果，达到稳态需更长等待时间。`}
+          </TooltipContent>
+        </Tooltip>
+      )}
       <span>导线：{count}</span>
       <span className="ml-auto">画质：{qualityPreset(quality).label}</span>
     </footer>
@@ -251,7 +283,6 @@ export function Workbench() {
   const { projectId } = useParams()
   const project = findProject(projectId)
   const [sceneReady, setSceneReady] = useState(false)
-  const [simulation, setSimulation] = useState('未运行')
   const [resetOpen, setResetOpen] = useState(false)
   const [activationError, setActivationError] = useState<string | null>(null)
   const [activationAttempt, setActivationAttempt] = useState(0)
@@ -290,7 +321,15 @@ export function Workbench() {
     }
   }, [project, activationAttempt])
   useEffect(() => {
-    if (!activationError) return connectInstrumentRuntime(({ message }) => setSimulation(message))
+    if (activationError) {
+      resetSimulationStatus()
+      return
+    }
+    const disconnect = connectInstrumentRuntime(setSimulationStatus)
+    return () => {
+      disconnect()
+      resetSimulationStatus()
+    }
   }, [activationError])
 
   if (activationError) {
@@ -465,7 +504,7 @@ export function Workbench() {
             </ResizablePanelGroup>
           </ResizablePanel>
         </ResizablePanelGroup>
-        <StatusBar simulation={simulation} />
+        <StatusBar />
         <Dialog open={resetOpen} onOpenChange={setResetOpen}>
           <DialogContent>
             <DialogHeader>
