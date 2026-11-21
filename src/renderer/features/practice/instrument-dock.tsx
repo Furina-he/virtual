@@ -1,10 +1,12 @@
 import { ExternalLink, Undo2 } from 'lucide-react'
-import { Fragment } from 'react'
+import { Fragment, useEffect, useRef } from 'react'
 import { Button } from '@/components/ui/button'
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
+import { cn } from '@/lib/utils'
 import { useInstrumentPanels, usePoppedPanels } from '@/stores/instrument-panels'
+import { focusedInstance, useBenchView } from '@/three/bench-view'
 import { InstrumentPanel } from './instrument-panel'
 import { usePersistedLayout } from './use-persisted-layout'
 
@@ -13,6 +15,12 @@ export function InstrumentDock() {
   const panels = useInstrumentPanels((state) => state.panels)
   const popped = usePoppedPanels((s) => s.popped)
   const layout = usePersistedLayout('wb-instruments')
+  // Focusing an instrument in 3D points at its 2D panel too (技术设计 §10.3).
+  const focused = useBenchView((state) => focusedInstance(state.preset))
+  const sections = useRef(new Map<string, HTMLElement>())
+  useEffect(() => {
+    if (focused) sections.current.get(focused)?.scrollIntoView({ block: 'nearest', inline: 'nearest' })
+  }, [focused])
   if (!panels.length)
     return <p className="p-3 text-muted-foreground">正在加载固定仪表。台式仪表需从仪表柜选取，并由学员连接测量线。</p>
   return (
@@ -30,7 +38,15 @@ export function InstrumentDock() {
               <Fragment key={panel.id}>
                 {i > 0 && <ResizableHandle />}
                 <ResizablePanel id={panel.id} minSize={224}>
-                  <section className="flex h-full flex-col" aria-label={panel.title}>
+                  <section
+                    ref={(element) => {
+                      if (element) sections.current.set(panel.id, element)
+                      else sections.current.delete(panel.id)
+                    }}
+                    className={cn('flex h-full flex-col', focused === panel.id && 'ring-2 ring-primary ring-inset')}
+                    aria-label={panel.title}
+                    data-focused={focused === panel.id}
+                  >
                     <header className="flex h-8 items-center justify-between border-b px-3">
                       <h3 className="truncate text-sm font-medium" title={`${panel.title} (${panel.id})`}>
                         {panel.title}

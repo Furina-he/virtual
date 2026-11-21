@@ -26,18 +26,8 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { useBenchView } from '@/three/bench-view'
+import { defaultWireSlack, wireColors, wireSlacks } from './wire-options'
 import { circuitStore, jackName, useCircuit, useHistorySize, useWiringJacks } from './wiring-state'
-
-const wireColors: { value: WireColor; label: string }[] = [
-  { value: 'red', label: '红色' },
-  { value: 'black', label: '黑色' },
-  { value: 'yellow', label: '黄色' },
-  { value: 'green', label: '绿色' },
-  { value: 'blue', label: '蓝色' },
-  { value: 'lightBlue', label: '淡蓝色（N）' },
-  { value: 'yellowGreen', label: '黄绿双色（PE）' },
-  { value: 'white', label: '白色' },
-]
 
 function shortcutAvailable() {
   return !document.querySelector('[role="dialog"], [role="listbox"]')
@@ -200,7 +190,7 @@ function WireProperties({ wire }: { wire: Wire }) {
       <div className="space-y-1">
         <span className="text-xs">走线垂度</span>
         <Select
-          value={String(wire.slack ?? 0.12)}
+          value={String(wire.slack ?? defaultWireSlack)}
           disabled={powered}
           onValueChange={(value) => updateWire(wire.id, { slack: Number(value) })}
         >
@@ -208,7 +198,7 @@ function WireProperties({ wire }: { wire: Wire }) {
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            {[0.02, 0.06, 0.12, 0.2, 0.3, 0.4].map((value) => (
+            {wireSlacks.map((value) => (
               <SelectItem key={value} value={String(value)}>
                 {Math.round(value * 100)} cm
               </SelectItem>

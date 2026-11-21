@@ -3,6 +3,7 @@ import {
   ClipboardCheck,
   FileDown,
   ListChecks,
+  Maximize2,
   PanelBottom,
   PanelLeft,
   PanelRight,
@@ -10,7 +11,7 @@ import {
   RotateCcw,
   Save,
 } from 'lucide-react'
-import { type ReactNode, useEffect, useLayoutEffect, useState } from 'react'
+import { type ReactNode, useEffect, useLayoutEffect, useMemo, useState } from 'react'
 import Markdown from 'react-markdown'
 import { usePanelRef } from 'react-resizable-panels'
 import { useNavigate, useParams } from 'react-router'
@@ -51,6 +52,7 @@ import { ModuleProperties, resetModuleSelection } from './module-controls'
 import { findProject, projectGuide, projectSchematic } from './practice-content'
 import { recordTaskReadings, TaskDataPanel, TaskStepsPanel } from './task-panel'
 import { usePersistedLayout } from './use-persisted-layout'
+import { WireContextMenu } from './wire-menu'
 import { WiringShortcuts } from './wiring-panel'
 import { activateProject, circuitStore, resetProject, useCircuit } from './wiring-state'
 import 'katex/dist/katex.min.css'
@@ -62,6 +64,16 @@ function toggle(ref: PanelHandle) {
   if (!p) return
   if (p.isCollapsed()) p.expand()
   else p.collapse()
+}
+
+/** 专注台面：三栏都收起时恢复，否则一起收起，让视口占满工作区（T0.16 P1）。 */
+function toggleFocusBench(refs: PanelHandle[]) {
+  const panels = refs.flatMap((ref) => (ref.current ? [ref.current] : []))
+  const focused = panels.every((panel) => panel.isCollapsed())
+  for (const panel of panels) {
+    if (focused) panel.expand()
+    else panel.collapse()
+  }
 }
 
 function IconAction({ label, onClick, children }: { label: string; onClick: () => void; children: ReactNode }) {
@@ -168,6 +180,9 @@ function TopBar({
           重置
         </Button>
         <Separator orientation="vertical" className="mx-1 h-6" />
+        <IconAction label="专注台面" onClick={() => toggleFocusBench([refs.left, refs.bottom, refs.right])}>
+          <Maximize2 />
+        </IconAction>
         <IconAction label="显示/收起左栏" onClick={() => toggle(refs.left)}>
           <PanelLeft />
         </IconAction>
@@ -243,6 +258,11 @@ export function Workbench() {
   const leftTab = useTask((state) => state.leftTab)
   const bottomTab = useTask((state) => state.bottomTab)
   const resetVersion = useTask((state) => state.resetVersion)
+  const task = useTask((state) => (state.projectId === project?.id ? state.task : undefined))
+  const guideNets = useMemo(() => {
+    if (!project || !task) return undefined
+    return scopedReference(project, currentTaskStep(project, task)).nets
+  }, [project, task])
   const leftRef = usePanelRef()
   const rightRef = usePanelRef()
   const bottomRef = usePanelRef()
@@ -297,6 +317,7 @@ export function Workbench() {
     <InstrumentPlacementProvider allowedInstruments={project?.allowedInstruments}>
       <div className="workbench-shell flex flex-col">
         <WiringShortcuts />
+        <WireContextMenu />
         <TopBar
           refs={{ left: leftRef, right: rightRef, bottom: bottomRef }}
           sceneReady={sceneReady}
@@ -308,7 +329,7 @@ export function Workbench() {
             id="left"
             className="overflow-hidden"
             panelRef={leftRef}
-            defaultSize="22"
+            defaultSize="18"
             minSize={220}
             collapsible
             collapsedSize={0}
@@ -375,14 +396,14 @@ export function Workbench() {
           <ResizablePanel id="center" minSize="30" className="min-h-0">
             <ResizablePanelGroup orientation="vertical" className="min-h-0 overflow-hidden" {...center}>
               <ResizablePanel id="viewport" minSize={200}>
-                <BenchViewport3D onReadyChange={setSceneReady} />
+                <BenchViewport3D onReadyChange={setSceneReady} guideNets={guideNets} />
               </ResizablePanel>
               <ResizableHandle />
               <ResizablePanel
                 id="bottom"
                 className="relative overflow-hidden"
                 panelRef={bottomRef}
-                defaultSize="32"
+                defaultSize="28"
                 minSize={160}
                 collapsible
                 collapsedSize={0}

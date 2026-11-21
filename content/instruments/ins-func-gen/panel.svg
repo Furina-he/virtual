@@ -114,5 +114,5 @@
 <text x="76" y="88.5" font-size="3.3" text-anchor="middle" font-weight="500" fill="hsl(210, 15%, 23%)">CHANNEL</text>
 <text x="34" y="88.5" font-size="3.3" text-anchor="middle" font-weight="500" fill="hsl(210, 15%, 23%)">WAVE</text>
 <text x="120" y="88.5" font-size="3.3" text-anchor="middle" font-weight="500" fill="hsl(210, 15%, 23%)">OUTPUT</text>
-<text x="195" y="17" font-size="2.8" text-anchor="middle" font-weight="500" fill="hsl(210, 15%, 23%)">双路输出 / 50 ohm</text>
+<text x="195" y="17" font-size="2.8" text-anchor="middle" font-weight="500" fill="hsl(210, 15%, 23%)">双路输出 / 50 Ω</text>
 </g></svg>

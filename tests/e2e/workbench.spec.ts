@@ -82,6 +82,27 @@ test('收起与展开侧栏', async () => {
   await expect.poll(width).toBeGreaterThan(200)
 })
 
+test('专注台面一键收起三栏并恢复，首次提示关闭后重载不再出现', async () => {
+  const size = (id: string) => async () => {
+    const box = await win.locator(`[data-slot="resizable-panel"]#${id}`).boundingBox()
+    return id === 'bottom' ? (box?.height ?? 0) : (box?.width ?? 0)
+  }
+  await win.getByRole('button', { name: '专注台面', exact: true }).click()
+  for (const id of ['left', 'bottom', 'right']) await expect.poll(size(id)).toBe(0)
+  await win.getByRole('button', { name: '专注台面', exact: true }).click()
+  for (const id of ['left', 'bottom', 'right']) await expect.poll(size(id)).toBeGreaterThan(100)
+
+  const viewport = win.getByRole('region', { name: '3D 实训台', exact: true })
+  await expect(viewport).toHaveAttribute('data-assets-state', 'ready', { timeout: 30_000 })
+  const hint = viewport.getByRole('complementary', { name: '操作提示' })
+  await expect(hint).toBeVisible()
+  await hint.getByRole('button', { name: '知道了' }).click()
+  await expect(hint).toBeHidden()
+  await win.reload()
+  await expect(viewport).toHaveAttribute('data-assets-state', 'ready', { timeout: 30_000 })
+  await expect(hint).toBeHidden()
+})
+
 test('仪表面板弹出为独立窗口，状态与底栏同步，关闭后回到底栏', async () => {
   const dock = win.getByRole('region', { name: '直流数字毫安表' })
   await dock.getByRole('combobox', { name: '量程' }).click()

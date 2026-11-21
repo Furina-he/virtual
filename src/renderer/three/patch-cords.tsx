@@ -1,3 +1,5 @@
+import { missingReferenceLinks } from '@domain/wiring-check'
+import { Line } from '@react-three/drei'
 import { useFrame, useThree } from '@react-three/fiber'
 import type { Wire, WireColor } from '@shared/schema/circuit'
 import { type RefObject, useEffect, useMemo } from 'react'
@@ -186,6 +188,58 @@ export function PatchCords3D({ jacks, highlight }: { jacks: WiringJack[]; highli
         .map((wire) => (
           <Cord key={wire.id} wire={wire} wires={wires} jacks={jacks} selected highlight={highlight} />
         ))}
+    </>
+  )
+}
+
+/** Dashed cords for reference links the student has not wired yet (PRD WIR-08). */
+export function GuideCords({
+  jacks,
+  nets,
+  color,
+  region,
+}: {
+  jacks: WiringJack[]
+  nets: readonly (readonly string[])[]
+  color: Color
+  region: RefObject<HTMLElement | null>
+}) {
+  const wires = useCircuit((state) => state.wires)
+  const paths = useMemo(() => {
+    const placed = new Set(jacks.map((jack) => jack.ref))
+    return missingReferenceLinks(nets, wires)
+      .filter(([a, b]) => placed.has(a) && placed.has(b))
+      .map(([a, b]) => {
+        const guide: Wire = { id: `guide:${a}:${b}`, a, b, color: 'white' }
+        const { geometry, path } = patchCordGeometry(guide, jacks, [guide], wiringScene.workSurface)
+        geometry.dispose()
+        return { id: guide.id, path }
+      })
+  }, [jacks, nets, wires])
+  const invalidate = useThree((state) => state.invalidate)
+  useEffect(() => {
+    const element = region.current
+    if (element) element.dataset.guideLinks = paths.map((item) => item.id.slice('guide:'.length)).join(' ')
+    invalidate()
+    return () => {
+      if (element) delete element.dataset.guideLinks
+    }
+  }, [paths, region, invalidate])
+  return (
+    <>
+      {paths.map((item) => (
+        <Line
+          key={item.id}
+          points={item.path}
+          color={color}
+          lineWidth={2}
+          dashed
+          dashSize={0.012}
+          gapSize={0.008}
+          toneMapped={false}
+          raycast={() => null}
+        />
+      ))}
     </>
   )
 }

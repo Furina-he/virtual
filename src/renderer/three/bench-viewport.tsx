@@ -40,6 +40,7 @@ import {
   localEnvironment,
   previewFov,
 } from './asset-catalog'
+import { BenchOnboarding } from './bench-onboarding'
 import { focusedInstance, useBenchView } from './bench-view'
 import { jackStackCount, patchCordGeometry } from './cord-geometry'
 import { InstrumentScreens } from './instrument-screens'
@@ -47,7 +48,7 @@ import { createSlotTargets, pickInstrumentSlot, type SlotTarget } from './instru
 import { JackNode3D, readHighlightColor } from './jack-node'
 import { cloneQualityModel } from './model-quality'
 import { ModuleControls3D } from './module-controls'
-import { DraftCord, PatchCords3D } from './patch-cords'
+import { DraftCord, GuideCords, PatchCords3D } from './patch-cords'
 import { qualityOptions, qualityPreset, useQuality } from './quality-store'
 import { pickableDevices } from './screen-picking'
 import { type CordPath, useWiringInteraction } from './wiring-interaction'
@@ -379,13 +380,16 @@ function PreviewModels({
   onContextLost,
   enabled,
   registry,
+  guideNets,
 }: {
   onReady: (summary: PreviewSummary) => void
   region: RefObject<HTMLElement | null>
   onContextLost: () => void
   enabled: boolean
   registry: RefObject<Map<string, Object3D>>
+  guideNets: readonly (readonly string[])[]
 }) {
+  const showGuide = useBenchView((state) => state.showGuide)
   const quality = useQuality((state) => state.quality)
   const anisotropy = useThree((state) => state.gl.capabilities.getMaxAnisotropy())
   const placements = useActivePlacements()
@@ -537,6 +541,7 @@ function PreviewModels({
       <InstrumentSlotTargets targets={slots} />
       <PatchCords3D jacks={actualJacks} highlight={highlight} />
       <DraftCord jacks={actualJacks} draft={interaction.draft} meshRef={draftMesh} />
+      {showGuide && <GuideCords jacks={actualJacks} nets={guideNets} color={highlight} region={region} />}
       {models.map(({ asset, instanceId, position, rotation, model, anchors }) => (
         <group key={instanceId} position={position} rotation={rotation}>
           {/* biome-ignore lint/a11y/noStaticElementInteractions: Opaque Three.js geometry blocks raycasts to hidden objects; not a DOM control. */}
@@ -590,7 +595,17 @@ const presets: { id: CameraPreset; label: string }[] = [
   { id: 'top', label: '俯视' },
 ]
 
-export function BenchViewport3D({ onReadyChange }: { onReadyChange?: (ready: boolean) => void }) {
+const noGuide: readonly (readonly string[])[] = []
+
+export function BenchViewport3D({
+  onReadyChange,
+  guideNets = noGuide,
+}: {
+  onReadyChange?: (ready: boolean) => void
+  /** Reference nets of the current step, drawn dashed when the guide toggle is on. */
+  guideNets?: readonly (readonly string[])[]
+}) {
+  const showGuide = useBenchView((state) => state.showGuide)
   const region = useRef<HTMLElement>(null)
   const startupTime = useRef(performance.now())
   const [attempt, setAttempt] = useState(0)
@@ -716,6 +731,15 @@ export function BenchViewport3D({ onReadyChange }: { onReadyChange?: (ready: boo
             ))}
           </SelectContent>
         </Select>
+        <Button
+          size="sm"
+          variant={showGuide ? 'secondary' : 'ghost'}
+          aria-pressed={showGuide}
+          disabled={loadState !== 'ready' || !guideNets.length}
+          onClick={() => useBenchView.getState().toggleGuide()}
+        >
+          参考接线
+        </Button>
         <fieldset aria-label="画质" className="flex items-center gap-1">
           {qualityOptions.map((item) => (
             <Button
@@ -744,6 +768,7 @@ export function BenchViewport3D({ onReadyChange }: { onReadyChange?: (ready: boo
         data-drop-target={drop.isDropTarget}
         className="relative min-h-0 flex-1"
       >
+        <BenchOnboarding ready={loadState === 'ready'} />
         <AssetBoundary key={attempt} onError={onError} onRetry={retry}>
           {contextLost ? (
             <FailureMessage onRetry={retry} />
@@ -766,6 +791,7 @@ export function BenchViewport3D({ onReadyChange }: { onReadyChange?: (ready: boo
                   onContextLost={onContextLost}
                   enabled={loadState === 'ready'}
                   registry={models}
+                  guideNets={guideNets}
                 />
                 {settings.shadows > 0 && (
                   <>

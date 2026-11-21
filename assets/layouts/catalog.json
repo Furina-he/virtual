@@ -888,14 +888,14 @@
             "x": 72,
             "y": 60,
             "length": 26,
-            "label": "R1 510 ohm"
+            "label": "R1 510 Ω"
           },
           {
             "kind": "resistor",
             "x": 217.5,
             "y": 60,
             "length": 25,
-            "label": "R2 1k ohm"
+            "label": "R2 1 kΩ"
           },
           {
             "kind": "resistor",
@@ -903,7 +903,7 @@
             "y": 146,
             "length": 30,
             "angle": 90,
-            "label": "R3 510 ohm",
+            "label": "R3 510 Ω",
             "labelX": 170,
             "labelY": 148
           },
@@ -912,14 +912,14 @@
             "x": 88,
             "y": 190,
             "length": 30,
-            "label": "R4 510 ohm"
+            "label": "R4 510 Ω"
           },
           {
             "kind": "resistor",
             "x": 176,
             "y": 172,
             "length": 28,
-            "label": "R5 330 ohm"
+            "label": "R5 330 Ω"
           },
           {
             "kind": "diode",
@@ -933,21 +933,21 @@
             "x": 55,
             "y": 300,
             "length": 26,
-            "label": "R6 330 ohm"
+            "label": "R6 330 Ω"
           },
           {
             "kind": "resistor",
             "x": 125,
             "y": 300,
             "length": 28,
-            "label": "R8 10 ohm"
+            "label": "R8 10 Ω"
           },
           {
             "kind": "resistor",
             "x": 205,
             "y": 300,
             "length": 24,
-            "label": "R9 510 ohm"
+            "label": "R9 510 Ω"
           },
           {
             "kind": "resistor",
@@ -955,7 +955,7 @@
             "y": 355,
             "length": 34,
             "angle": 90,
-            "label": "R7 510 ohm",
+            "label": "R7 510 Ω",
             "labelX": 121,
             "labelY": 357
           }
@@ -1282,7 +1282,7 @@
             "size": 3.2
           },
           {
-            "text": "ohm",
+            "text": "Ω",
             "x": 21,
             "y": 120,
             "size": 3.2
@@ -1763,7 +1763,7 @@
         "titleSize": 4.8,
         "texts": [
           {
-            "text": "双路输出 / 50 ohm",
+            "text": "双路输出 / 50 Ω",
             "x": 195,
             "y": 17,
             "size": 2.8
@@ -2126,7 +2126,7 @@
       "controls": [
         {
           "id": "RW",
-          "label": "RW 100k ohm",
+          "label": "RW 100 kΩ",
           "kind": "knob",
           "x": 105,
           "y": 32,
@@ -2581,7 +2581,7 @@
             "x": 27,
             "y": 95,
             "length": 14,
-            "label": "R1 5.1k ohm",
+            "label": "R1 5.1 kΩ",
             "labelX": 32,
             "labelY": 108
           },
@@ -2591,7 +2591,7 @@
             "y": 50,
             "length": 14,
             "angle": 90,
-            "label": "RB1 20k ohm",
+            "label": "RB1 20 kΩ",
             "labelX": 131,
             "labelY": 52
           },
@@ -2601,7 +2601,7 @@
             "y": 112,
             "length": 14,
             "angle": 90,
-            "label": "RB2 20k ohm",
+            "label": "RB2 20 kΩ",
             "labelX": 83,
             "labelY": 116
           },
@@ -2611,7 +2611,7 @@
             "y": 30,
             "length": 14,
             "angle": 90,
-            "label": "RC 2.4k ohm",
+            "label": "RC 2.4 kΩ",
             "labelX": 183,
             "labelY": 31
           },
@@ -2621,7 +2621,7 @@
             "y": 140,
             "length": 14,
             "angle": 90,
-            "label": "RE 1k ohm",
+            "label": "RE 1 kΩ",
             "labelX": 137,
             "labelY": 143
           },
@@ -2631,7 +2631,7 @@
             "y": 130,
             "length": 14,
             "angle": 90,
-            "label": "RL 2.4k ohm",
+            "label": "RL 2.4 kΩ",
             "labelX": 243,
             "labelY": 138
           }

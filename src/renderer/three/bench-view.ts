@@ -11,12 +11,23 @@ interface BenchViewState {
   hoveredJack: string | null
   hoveredWire: string | null
   hoveredControl: string | null
+  /** Close-up only: jacks near the pointer that show a small screen label (技术设计 §10.3). */
+  nearbyJacks: readonly string[]
+  /** Right-click on a wire, in client px. */
+  wireMenu: { id: string; x: number; y: number } | null
+  /** Dashed reference cords for the current step (PRD WIR-08). */
+  showGuide: boolean
   setPreset: (preset: ViewPreset | null) => void
   focus: (instanceId: string) => void
   /** Esc: leave a device close-up for the work view. Returns false when nothing changed. */
   leaveFocus: () => boolean
   setHover: (patch: Partial<Pick<BenchViewState, 'hoveredJack' | 'hoveredWire' | 'hoveredControl'>>) => void
+  setNearbyJacks: (ids: readonly string[]) => void
+  setWireMenu: (menu: BenchViewState['wireMenu']) => void
+  toggleGuide: () => void
 }
+
+const none: readonly string[] = []
 
 /** Transient view state; it never enters the circuit undo history. */
 export const useBenchView = create<BenchViewState>()((set, get) => ({
@@ -25,17 +36,32 @@ export const useBenchView = create<BenchViewState>()((set, get) => ({
   hoveredJack: null,
   hoveredWire: null,
   hoveredControl: null,
-  setPreset: (preset) => set({ preset, request: preset ? get().request + 1 : get().request }),
-  focus: (instanceId) => set({ preset: `focus:${instanceId}`, request: get().request + 1 }),
+  nearbyJacks: none,
+  wireMenu: null,
+  showGuide: false,
+  setPreset: (preset) =>
+    set({
+      preset,
+      request: preset ? get().request + 1 : get().request,
+      nearbyJacks: preset ? none : get().nearbyJacks,
+    }),
+  focus: (instanceId) => set({ preset: `focus:${instanceId}`, request: get().request + 1, nearbyJacks: none }),
   leaveFocus: () => {
     if (get().preset === 'work') return false
-    set({ preset: 'work', request: get().request + 1 })
+    set({ preset: 'work', request: get().request + 1, nearbyJacks: none })
     return true
   },
   setHover: (patch) => {
     const state = get()
     if (Object.entries(patch).every(([key, value]) => state[key as keyof typeof patch] === value)) return
     set(patch)
+  },
+  setWireMenu: (wireMenu) => set({ wireMenu }),
+  toggleGuide: () => set({ showGuide: !get().showGuide }),
+  setNearbyJacks: (ids) => {
+    const current = get().nearbyJacks
+    if (ids.length === current.length && ids.every((id, index) => current[index] === id)) return
+    set({ nearbyJacks: ids.length ? ids : none })
   },
 }))
 

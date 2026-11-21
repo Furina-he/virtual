@@ -189,8 +189,8 @@
     {
       "id": "mod-dc-circuit",
       "model": "content/modules/mod-dc-circuit/module.glb",
-      "bytes": 672168,
-      "sha256": "3fe0dcd03661e3debede1abbefafa52b532c39dc21b9df14ef5062017c69defe",
+      "bytes": 671404,
+      "sha256": "2f3a3faf4267e4cf4f8d65595e5295aa6879658f9e00cdcadad1932d0ef20437",
       "triangles": 4790,
       "drawCalls": 6,
       "bounds": {
@@ -757,8 +757,8 @@
     {
       "id": "ins-multimeter",
       "model": "content/instruments/ins-multimeter/instrument.glb",
-      "bytes": 275112,
-      "sha256": "09fa949087da541ac017f3dca1dd707b35e9f9a121f14568203dcbc43a327c63",
+      "bytes": 275140,
+      "sha256": "137d5f174dee2ac9bada96af8ba9f9f4dde288ebeb8ebea6197273181a662d44",
       "triangles": 1964,
       "drawCalls": 6,
       "bounds": {
@@ -1299,8 +1299,8 @@
     {
       "id": "ins-func-gen",
       "model": "content/instruments/ins-func-gen/instrument.glb",
-      "bytes": 441344,
-      "sha256": "d8468f50cfe16c097c2e929467641a0888b55d7ef956ded69136c36d7766be91",
+      "bytes": 441216,
+      "sha256": "34fe74b7f8779d363e49095c5fee71fda0d9d9c17ac0371d1c1b1d32b4ff3d6f",
       "triangles": 3156,
       "drawCalls": 9,
       "bounds": {
@@ -1700,8 +1700,8 @@
     {
       "id": "mod-analog-amp",
       "model": "content/modules/mod-analog-amp/module.glb",
-      "bytes": 383816,
-      "sha256": "55bbb4af78b2f8c66b79a8b1a99f775ced5a80560a90cf2706bb6bf6589a2bd9",
+      "bytes": 382432,
+      "sha256": "7e22731dea4f60958927abb28371494496d3d241e5792275d909296dc95f6b7d",
       "triangles": 2570,
       "drawCalls": 5,
       "bounds": {

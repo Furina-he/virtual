@@ -321,3 +321,44 @@ test('T0.16 相机与拾取：单击设备特写、24 px 吸附、待接线可�
   await expect(viewport()).toHaveAttribute('data-camera-preset', 'work')
   await expect(viewport()).toHaveAttribute('data-wire-count', '0')
 })
+
+test('T0.16 P1：参考接线虚线、导线右键菜单、仪表特写高亮 2D 面板、特写附近插孔标签', async () => {
+  // DG-01 reference: CH1+ → TH_US+, CH1− → TH_US−; dashed only until the student wires them.
+  const guide = viewport().getByRole('button', { name: '参考接线', exact: true })
+  await guide.click()
+  await expect(guide).toHaveAttribute('aria-pressed', 'true')
+  await expect(viewport()).toHaveAttribute(
+    'data-guide-links',
+    'ins-dc-power.CH1P:dc1.TH_USP ins-dc-power.CH1N:dc1.TH_USN',
+  )
+  await page.screenshot({ path: test.info().outputPath('guide-cords.png') })
+  await addFromList(/直流稳压电源.*CH1P/, /电路基础.*TH_USP/)
+  await expect(viewport()).toHaveAttribute('data-guide-links', 'ins-dc-power.CH1N:dc1.TH_USN')
+
+  // Right click on the cord (no drag) opens its menu; recolouring goes through the normal wire update.
+  const [wire] = JSON.parse((await viewport().getAttribute('data-wire-targets')) ?? '[]') as { x: number; y: number }[]
+  const canvas = await viewport().locator('canvas').boundingBox()
+  if (!wire || !canvas) throw new Error('Wire target missing')
+  await page.mouse.click(canvas.x + wire.x * canvas.width, canvas.y + wire.y * canvas.height, { button: 'right' })
+  const menu = page.getByRole('menu', { name: '导线 1 菜单' })
+  await expect(menu).toBeVisible()
+  await menu.getByRole('menuitem', { name: '颜色' }).hover()
+  await page.getByRole('menuitemradio', { name: '黑色', exact: true }).click()
+  await expect(menu).toBeHidden()
+  await expect(editor().locator('li[data-wire-color="black"]')).toHaveCount(1)
+
+  // Focusing an instrument outlines its 2D panel in the dock.
+  await focusDevice(page, 'ins-dc-voltmeter')
+  await expect(page.getByRole('region', { name: '直流数字电压表', exact: true })).toHaveAttribute(
+    'data-focused',
+    'true',
+  )
+
+  // Close-up labels: the nearest jacks of a roomy device carry their silkscreen name.
+  await focusDevice(page, 'ins-dc-power')
+  const jack = await jackPoint(page, 'ins-dc-power.CH2P')
+  await page.mouse.move(jack.x + 30, jack.y + 30)
+  await expect(page.locator('[data-jack-label]').first()).toBeVisible()
+  expect(await page.locator('[data-jack-label]').count()).toBeLessThanOrEqual(4)
+  await page.screenshot({ path: test.info().outputPath('jack-labels.png') })
+})

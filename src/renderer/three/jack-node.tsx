@@ -35,12 +35,23 @@ export function JackNode3D({
   pending: boolean
 }) {
   const hovered = useBenchView((state) => state.hoveredJack === globalId)
+  const nearby = useBenchView((state) => state.nearbyJacks.includes(globalId))
   const invalidate = useThree((state) => state.invalidate)
   useEffect(() => {
-    if (hovered || pending) invalidate()
-  }, [hovered, pending, invalidate])
+    if (hovered || pending || nearby) invalidate()
+  }, [hovered, pending, nearby, invalidate])
   return (
     <group position={anchor.position} quaternion={anchor.quaternion}>
+      {nearby && !hovered && (
+        <Html center position={[0, 0.016, 0.012]} style={{ pointerEvents: 'none' }}>
+          <span
+            data-jack-label={globalId}
+            className="pointer-events-none rounded-sm border bg-background/90 px-1 text-xs whitespace-nowrap text-foreground shadow-xs"
+          >
+            {anchor.label}
+          </span>
+        </Html>
+      )}
       {(hovered || pending) && (
         <>
           <mesh position={[0, 0, 0.002]} userData={{ ignoreWiringHit: true }} raycast={() => null}>

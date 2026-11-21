@@ -36,6 +36,10 @@ type ScreenJack = ScreenPoint & { id: string; device: string; world: Vector3 }
 const CLICK_SLOP_PX = 4
 /** Occlusion is ray-tested only for the nearest few screen candidates. */
 const OCCLUSION_CANDIDATES = 4
+/** Screen labels: only the nearest few jacks, and only where the device leaves room for text. */
+const LABEL_RADIUS_PX = 64
+const LABEL_SPACING_PX = 28
+const MAX_LABELS = 4
 /** A wire started by the first click of a double click is undone when the double click focuses the device. */
 const DOUBLE_CLICK_MS = 600
 
@@ -163,6 +167,18 @@ export function useWiringInteraction(
       const jack = at && !view.hoveredControl ? pickJack(at, visible) : null
       const wire = at && !jack && !view.hoveredControl ? pickWire(at) : null
       view.setHover({ hoveredJack: jack, hoveredWire: wire })
+      const roomy = pickableDevices(visible, LABEL_SPACING_PX)
+      view.setNearbyJacks(
+        at && !view.hoveredControl
+          ? targetsWithin(
+              at,
+              visible.filter((item) => roomy.has(item.device) && item.id !== jack),
+              LABEL_RADIUS_PX,
+            )
+              .slice(0, MAX_LABELS)
+              .map((item) => item.id)
+          : [],
+      )
       if (region.current) region.current.dataset.hoverJack = jack ?? ''
       if (view.hoveredControl || jack || wire) setCursor('pointer')
       else if (at && !active) {
@@ -240,8 +256,18 @@ export function useWiringInteraction(
         invalidate()
         return
       }
-      if (!press || press.onJack || event.button !== 0 || !enabledRef.current) return
+      if (!press || press.onJack || !enabledRef.current) return
       if (Math.hypot(event.clientX - press.x, event.clientY - press.y) > CLICK_SLOP_PX) return
+      // A right click that did not orbit opens the wire menu; a right drag stays a camera move.
+      if (event.button === 2) {
+        const at = point(event)
+        const wire = at && !circuitStore.getState().pendingJack ? pickWire(at) : null
+        if (!wire) return
+        circuitStore.getState().selectWire(wire)
+        useBenchView.getState().setWireMenu({ id: wire, x: event.clientX, y: event.clientY })
+        return
+      }
+      if (event.button !== 0) return
       const at = point(event)
       if (!at || useBenchView.getState().hoveredControl) return
       const wire = pickWire(at)
@@ -269,6 +295,7 @@ export function useWiringInteraction(
     const leave = () => {
       if (drag.current) return
       useBenchView.getState().setHover({ hoveredJack: null, hoveredWire: null })
+      useBenchView.getState().setNearbyJacks([])
       setCursor('')
     }
     const lost = () => {
