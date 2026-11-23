@@ -90,6 +90,10 @@ export function resetProject(): void {
   circuitStore.getState().resetScene(sceneContext(activeBasePlacements))
 }
 
+export function getActiveProject(): Project | undefined {
+  return activeProject
+}
+
 export function getActivePlacements() {
   return cachedPlacements(circuitStore.getState().placedInstruments)
 }

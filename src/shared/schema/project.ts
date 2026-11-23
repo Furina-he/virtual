@@ -92,14 +92,22 @@ export const Chart = z.object({
 })
 
 // 技术设计 §8
-export const FaultDef = z.object({
-  id: z.string().min(1),
-  target: z.string().regex(/^[a-z][a-z0-9-]*\.\S+$/, '格式应为 <实例ID>.<元件名>'),
-  kind: z.enum(['open', 'short', 'drift', 'dead']),
-  params: z.record(z.string(), z.union([z.number(), z.string()])).optional(),
-  symptom: z.string().min(1),
-  hint: z.string().min(1),
-})
+export const FaultDef = z
+  .object({
+    id: z.string().min(1),
+    target: z.string().regex(/^[a-z][a-z0-9-]*\.\S+$/, '格式应为 <实例ID>.<元件名>'),
+    kind: z.enum(['open', 'short', 'drift', 'dead']),
+    params: z.record(z.string(), z.union([z.number(), z.string()])).optional(),
+    symptom: z.string().min(1),
+    hint: z.string().min(1),
+    verify: z.array(Expectation).optional(),
+  })
+  .superRefine((f, ctx) => {
+    if (f.kind === 'drift' && (f.params?.value === undefined || String(f.params.value).trim() === ''))
+      ctx.addIssue({ code: 'custom', message: '参数漂移故障需要 params.value', path: ['params', 'value'] })
+    if (f.kind === 'dead' && (f.params?.model === undefined || String(f.params.model).trim() === ''))
+      ctx.addIssue({ code: 'custom', message: '元件损坏故障需要 params.model', path: ['params', 'model'] })
+  })
 
 export const Step = z.object({
   id: z.string().min(1),
@@ -270,6 +278,24 @@ export const Project = z
       if (!cols.has(c.x)) ctx.addIssue({ code: 'custom', message: `列 ${c.x} 不存在`, path: ['charts', i, 'x'] })
       c.y.forEach((col, k) => {
         if (!cols.has(col)) ctx.addIssue({ code: 'custom', message: `列 ${col} 不存在`, path: ['charts', i, 'y', k] })
+      })
+    })
+    const moduleInstances = new Set(p.modules.map((m) => m.instanceId))
+    p.faults?.forEach((fault, i) => {
+      const [inst = ''] = fault.target.split('.')
+      if (!moduleInstances.has(inst))
+        ctx.addIssue({
+          code: 'custom',
+          message: `故障目标实例 ${inst} 不在 modules 中`,
+          path: ['faults', i, 'target'],
+        })
+      fault.verify?.forEach((expectation, j) => {
+        if (!points.has(expectation.measurePoint))
+          ctx.addIssue({
+            code: 'custom',
+            message: `测量点 ${expectation.measurePoint} 不存在`,
+            path: ['faults', i, 'verify', j, 'measurePoint'],
+          })
       })
     })
   })

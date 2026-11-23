@@ -1,0 +1,154 @@
+{
+  "id": "MD-07",
+  "group": "基本放大电路",
+  "title": "三极管放大电路故障排除",
+  "type": "basic",
+  "modules": [{ "instanceId": "amp1", "moduleId": "mod-analog-amp", "slot": "SLOT_BOX_L1" }],
+  "allowedInstruments": ["ins-multimeter", "ins-func-gen", "ins-oscilloscope"],
+  "reference": {
+    "nets": [
+      ["ins-dc-power.CH1P", "amp1.AMP_VCC"],
+      ["ins-dc-power.CH1N", "amp1.AMP_GND1", "amp1.AMP_GND2"]
+    ],
+    "measurePoints": [
+      { "id": "vcc", "kind": "voltage", "mode": "dcv", "between": ["amp1.AMP_VCC", "amp1.AMP_GND1"] },
+      { "id": "ub", "kind": "voltage", "mode": "dcv", "between": ["amp1.AMP_UB", "amp1.AMP_GND1"] },
+      { "id": "uc", "kind": "voltage", "mode": "dcv", "between": ["amp1.AMP_UC", "amp1.AMP_GND1"] },
+      { "id": "ue", "kind": "voltage", "mode": "dcv", "between": ["amp1.AMP_UE", "amp1.AMP_GND1"] },
+      { "id": "uc_vpp", "kind": "waveform", "quantity": "vpp", "between": ["amp1.AMP_UC", "amp1.AMP_GND2"] },
+      { "id": "uo_vpp", "kind": "waveform", "quantity": "vpp", "between": ["amp1.AMP_UO", "amp1.AMP_GND2"] }
+    ]
+  },
+  "steps": [
+    {
+      "id": "wire",
+      "text": "保持断电，将直流稳压电源 CH1 设为 12 V，正端接 AMP_VCC、负端接 AMP_GND1；RW 保持 22 kΩ、CE 接入。如需动态排故可外接 Uo↔RL 短线并接入信号发生器与示波器。",
+      "measurePoints": [],
+      "checkWiring": true,
+      "dataTable": "fault_points"
+    },
+    {
+      "id": "draw-fault",
+      "text": "打开右侧“排故”面板，按预设或随机方式抽取故障题目，阅读故障现象，然后上电观察。",
+      "measurePoints": [],
+      "dataTable": "fault_points"
+    },
+    {
+      "id": "measure-locate",
+      "text": "使用直流电压表、万用表或示波器测量 B、C、E 静态电位或输出波形，在排故面板点击“记录排故测量”，对比正常静态工作点（UB≈3.29 V、UC≈5.87 V、UE≈2.60 V）定位故障元件与故障类型。",
+      "measurePoints": ["uc"],
+      "dataTable": "fault_points"
+    },
+    {
+      "id": "repair-verify",
+      "text": "在排故面板提交疑似故障位号与故障类型，经系统判定通过后先断电点击“更换元件/修复”，再重新上电测量 UC 等关键点并点击“上电验证并结项”。",
+      "measurePoints": ["uc"],
+      "expect": { "measurePoint": "uc", "min": 5.2, "max": 6.6 },
+      "dataTable": "fault_points"
+    }
+  ],
+  "dataTables": [
+    {
+      "id": "fault_points",
+      "title": "放大电路排故节点电压记录",
+      "rows": 1,
+      "columns": [
+        { "id": "vcc", "title": "VCC", "unit": "V", "measurePoint": "vcc" },
+        { "id": "ub", "title": "UB", "unit": "V", "measurePoint": "ub" },
+        { "id": "uc", "title": "UC", "unit": "V", "measurePoint": "uc" },
+        { "id": "ue", "title": "UE", "unit": "V", "measurePoint": "ue" },
+        { "id": "uce", "title": "UCE计算", "unit": "V", "computed": "uc-ue" }
+      ],
+      "sanity": [
+        { "column": "vcc", "min": 11.5, "max": 12.5, "message": "排故标准供电为 12 V，请先确认电源输出正常。" },
+        { "column": "ub", "min": -0.5, "max": 12.5, "message": "UB 超出电源轨范围，请检查参考地与量程。" },
+        { "column": "uc", "min": -0.5, "max": 12.5, "message": "UC 超出电源轨范围，请检查参考地与量程。" },
+        { "column": "ue", "min": -0.5, "max": 12.5, "message": "UE 超出电源轨范围，请检查参考地与量程。" }
+      ]
+    }
+  ],
+  "charts": [],
+  "faults": [
+    {
+      "id": "f-rb1-open",
+      "target": "amp1.RB1",
+      "kind": "open",
+      "symptom": "静态工作点异常：集电极电压 UC 接近电源电压 12 V，基极 UB 与发射极 UE 接近 0 V，三极管截止无放大输出。",
+      "hint": "测量 UB 与 UE 是否均接近 0 V；若 VCC 正常（12 V）而基极失去上偏置电流，检查上偏置支路 RB1 是否开路。",
+      "verify": [
+        { "measurePoint": "ub", "min": 2.9, "max": 3.7 },
+        { "measurePoint": "uc", "min": 5.2, "max": 6.6 },
+        { "measurePoint": "ue", "min": 2.2, "max": 3.0 }
+      ]
+    },
+    {
+      "id": "f-rb2-open",
+      "target": "amp1.RB2",
+      "kind": "open",
+      "symptom": "静态工作点失调进入深度饱和：基极电压 UB 升至约 4.2 V，发射极 UE 升至约 3.5 V，集电极 UC 降至约 3.56 V（UCE 约 0.05 V）。",
+      "hint": "测量 UB 与 UE 是否明显高于正常值（UB≈3.29 V、UE≈2.60 V）且 UC≈UE；检查下偏置分压电阻 RB2 是否开路。",
+      "verify": [
+        { "measurePoint": "ub", "min": 2.9, "max": 3.7 },
+        { "measurePoint": "uc", "min": 5.2, "max": 6.6 },
+        { "measurePoint": "ue", "min": 2.2, "max": 3.0 }
+      ]
+    },
+    {
+      "id": "f-rc-short",
+      "target": "amp1.RC",
+      "kind": "short",
+      "symptom": "基极 UB（约 3.29 V）与发射极 UE（约 2.60 V）静态电位正常，但集电极 UC 恒等于电源电压 12 V，输出端无交流放大信号。",
+      "hint": "对比 UB、UE 与 UC：既然 UB、UE 正常说明偏置和发射极支路正常，而 UC 被直接钳位在 VCC，检查集电极负载电阻 RC 是否短路。",
+      "verify": [
+        { "measurePoint": "ub", "min": 2.9, "max": 3.7 },
+        { "measurePoint": "uc", "min": 5.2, "max": 6.6 },
+        { "measurePoint": "ue", "min": 2.2, "max": 3.0 }
+      ]
+    },
+    {
+      "id": "f-re-drift",
+      "target": "amp1.RE",
+      "kind": "drift",
+      "params": { "value": "10k" },
+      "symptom": "静态电流大幅减小：基极 UB 升至约 3.75 V、发射极 UE 约 3.08 V（UBE 仍约 0.67 V），但集电极电压 UC 高达约 11.27 V。",
+      "hint": "UBE 正常约 0.67 V 且 UE≈3.08 V，但由 RC 压降算得 IC 仅约 0.3 mA（远小于正常 2.55 mA），检查发射极电阻 RE 是否阻值漂移增大。",
+      "verify": [
+        { "measurePoint": "ub", "min": 2.9, "max": 3.7 },
+        { "measurePoint": "uc", "min": 5.2, "max": 6.6 },
+        { "measurePoint": "ue", "min": 2.2, "max": 3.0 }
+      ]
+    },
+    {
+      "id": "f-vt1-dead",
+      "target": "amp1.QVT1",
+      "kind": "dead",
+      "params": { "model": "bjt_ce_short" },
+      "symptom": "三极管放大能力完全丧失：集电极 UC 与发射极 UE 电位几乎相等（均约 3.53 V），且基极 UB（约 3.87 V）呈纯电阻分压值。",
+      "hint": "测量 UC 与 UE 的差值 UCE 是否接近 0 V，同时 UB 高于 UE 且等于 RB2/(RW+RB1+RB2)·VCC；检查三极管 QVT1 是否发生集-射极（C-E）击穿损坏。",
+      "verify": [
+        { "measurePoint": "ub", "min": 2.9, "max": 3.7 },
+        { "measurePoint": "uc", "min": 5.2, "max": 6.6 },
+        { "measurePoint": "ue", "min": 2.2, "max": 3.0 }
+      ]
+    },
+    {
+      "id": "f-c2-open",
+      "target": "amp1.C2",
+      "kind": "open",
+      "symptom": "静态工作点 UB（约 3.29 V）、UC（约 5.87 V）、UE（约 2.60 V）全部正常，集电极 C 处交流放大波形正常，但负载端 Uo 无输出信号。",
+      "hint": "静态工作点与集电极 C 动态波形均正常，仅 Uo 端无交流信号输出，检查集电极到输出端之间的输出耦合电容 C2 是否开路失效。",
+      "verify": [
+        { "measurePoint": "ub", "min": 2.9, "max": 3.7 },
+        { "measurePoint": "uc", "min": 5.2, "max": 6.6 },
+        { "measurePoint": "ue", "min": 2.2, "max": 3.0 },
+        { "measurePoint": "uo_vpp", "min": 0.5, "max": 5.0 }
+      ]
+    }
+  ],
+  "questions": [
+    "当测量发现 UC≈12 V（VCC）时，为什么必须再测 UB 和 UE 才能区分是 RB1 开路、RC 短路还是 RE 开路？",
+    "RB2 开路导致的深度饱和（UC≈3.56 V、UE≈3.51 V）与三极管 QVT1 集-射极击穿（UC≈UE≈3.53 V）在集电极与发射极电压上很接近，通过测量哪个节点可以立刻区分两者？",
+    "当静态工作点（UB、UC、UE）完全正常而输出端 Uo 无交流信号时，应如何按信号流向（Us → Ui → B → C → Uo）分段排查耦合电容 C1 与 C2？",
+    "为什么更换故障元件后必须重新上电测量验证，而不能仅凭主观判断直接结项？"
+  ]
+}

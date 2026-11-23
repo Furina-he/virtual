@@ -499,7 +499,7 @@ export function Workbench() {
               </ResizablePanel>
               <ResizableHandle />
               <ResizablePanel id="properties" defaultSize="62" minSize={240}>
-                <ModuleProperties key={`${project?.id ?? 'unconfigured'}:${resetVersion}`} />
+                <ModuleProperties key={`${project?.id ?? 'unconfigured'}:${resetVersion}`} project={project} />
               </ResizablePanel>
             </ResizablePanelGroup>
           </ResizablePanel>

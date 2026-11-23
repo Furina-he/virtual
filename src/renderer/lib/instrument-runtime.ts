@@ -33,7 +33,7 @@ import type { SimEvent } from '../../shared/ipc/sim'
 import type { CircuitState } from '../../shared/schema/circuit'
 import { benchInstruments, setBenchInstrumentSettings } from '../features/practice/instrument-settings'
 import { moduleCatalog, moduleNetlist } from '../features/practice/practice-content'
-import { circuitStore, getActivePlacements } from '../features/practice/wiring-state'
+import { circuitStore, getActivePlacements, getActiveProject } from '../features/practice/wiring-state'
 import { connectInstrumentPanels } from '../stores/instrument-panels'
 import {
   clearInstrumentReadings,
@@ -78,6 +78,9 @@ export function generatorReading(
 }
 
 export function benchCircuitInput(state: CircuitState = circuitStore.getState()): AssembleInput {
+  const fault = state.activeFault
+    ? getActiveProject()?.faults?.find((entry) => entry.id === state.activeFault)
+    : undefined
   return {
     title: 'Learner instrument circuit',
     modules: getActivePlacements().flatMap(({ instanceId, assetId }) => {
@@ -87,6 +90,7 @@ export function benchCircuitInput(state: CircuitState = circuitStore.getState())
     instruments: benchInstruments(state),
     wires: state.wires,
     controlValues: state.controlValues,
+    ...(fault ? { fault } : {}),
     analysis: [],
   }
 }
@@ -1132,7 +1136,8 @@ export function connectInstrumentRuntime(onStatus: (status: RuntimeStatus) => vo
       state.powered !== previousState.powered ||
       state.wires !== previousState.wires ||
       state.placedInstruments !== previousState.placedInstruments ||
-      state.controlValues !== previousState.controlValues
+      state.controlValues !== previousState.controlValues ||
+      state.activeFault !== previousState.activeFault
     previousState = state
     if (changed) update()
   })

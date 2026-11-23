@@ -1,0 +1,85 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 600" role="img" aria-labelledby="title description">
+  <title id="title">MD-07 三极管放大电路故障排除原理图</title>
+  <desc id="description">共射极单管放大电路排故原理图：含偏置电阻RB1/RB2/RW、三极管VT1(QVT1)、集电极电阻RC、发射极电阻RE、旁路电容CE及输入/输出耦合电容C1/C2。</desc>
+  <metadata>Original code-native teaching schematic for MD-07 troubleshooting based on mod-analog-amp board.</metadata>
+  <style>
+    text { font-family: "Noto Sans SC Variable", sans-serif; fill: black; font-size: 14px; }
+    .wire { fill: none; stroke: black; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    .component,.jack { fill: white; stroke: black; stroke-width: 2; }
+    .node { fill: black; }
+    .small { font-size: 12px; fill: dimgray; }
+    .center { text-anchor: middle; }
+    .end { text-anchor: end; }
+    .external { fill: none; stroke: steelblue; stroke-width: 2; stroke-dasharray: 7 5; }
+  </style>
+  <rect width="900" height="600" fill="white"/>
+  <text x="450" y="34" class="center" style="font-size: 24px; font-weight: 600">三极管放大电路故障排除（排故测试点与元件位号）</text>
+  <text x="450" y="61" class="center small">MD-07 · 12 V · RW默认22 kΩ · 正常静态点 UB≈3.29 V / UC≈5.87 V / UE≈2.60 V</text>
+  <g class="wire">
+    <path d="M80 310 H119 M161 310 H200 H260 M270 310 H430"/>
+    <path d="M340 110 H730 M340 110 V145 M340 197 V224 M340 266 V310"/>
+    <path d="M340 310 V378 M340 420 V520"/>
+    <path d="M470 110 V150 M470 192 V220 V274 L430 296"/>
+    <path d="M430 324 L470 346 V380 V420 M470 464 V520"/>
+    <path d="M470 220 H600 M610 220 H730"/>
+    <path d="M470 380 H560 V390 M560 416 V442 M560 450 V520"/>
+    <path d="M730 340 V390 M730 434 V520 M80 520 H730"/>
+  </g>
+  <g class="component">
+    <rect x="119" y="301" width="42" height="18"/>
+    <rect x="324" y="145" width="32" height="52"/>
+    <rect x="324" y="224" width="32" height="42"/>
+    <rect x="324" y="378" width="32" height="42"/>
+    <rect x="454" y="150" width="32" height="42"/>
+    <rect x="454" y="420" width="32" height="44"/>
+    <rect x="714" y="390" width="32" height="44"/>
+    <circle cx="450" cy="310" r="42"/>
+  </g>
+  <g class="wire">
+    <path d="M260 298 V322 M270 298 V322 M600 208 V232 M610 208 V232"/>
+    <path d="M430 289 V331 M430 296 L470 274 M430 324 L470 346"/>
+    <path d="M457 337 L469 345 L463 333"/>
+    <path d="M322 191 L358 148 M358 148 L357 160 M358 148 L346 151"/>
+    <path d="M548 442 H572 M548 450 H572 M560 390 L573 411"/>
+  </g>
+  <g class="node">
+    <circle cx="340" cy="110" r="3"/><circle cx="340" cy="310" r="3"/>
+    <circle cx="470" cy="110" r="3"/><circle cx="470" cy="220" r="3"/>
+    <circle cx="470" cy="380" r="3"/><circle cx="340" cy="520" r="3"/>
+    <circle cx="470" cy="520" r="3"/><circle cx="560" cy="520" r="3"/>
+  </g>
+  <g class="jack">
+    <circle cx="80" cy="310" r="6"/><circle cx="200" cy="310" r="6"/>
+    <circle cx="340" cy="310" r="6"/><circle cx="470" cy="220" r="6"/>
+    <circle cx="470" cy="380" r="6"/><circle cx="730" cy="220" r="6"/>
+    <circle cx="730" cy="340" r="6"/><circle cx="730" cy="110" r="6"/>
+    <circle cx="80" cy="520" r="6"/><circle cx="730" cy="520" r="6"/>
+  </g>
+  <text x="80" y="282" class="center">Us</text><text x="80" y="341" class="center small">AMP_US</text>
+  <text x="140" y="282" class="center">R1 5.1 kΩ</text>
+  <text x="200" y="282" class="center">Ui</text><text x="200" y="341" class="center small">AMP_UI</text>
+  <text x="265" y="350" class="center">C1 10 μF</text><text x="279" y="297">+</text>
+  <text x="340" y="292" class="center">B / AMP_UB</text>
+  <text x="310" y="173" class="end">RW 0～100 kΩ</text>
+  <text x="310" y="248" class="end">RB1 20 kΩ</text>
+  <text x="310" y="401" class="end">RB2 20 kΩ</text>
+  <text x="496" y="174">RC 2.4 kΩ</text>
+  <text x="485" y="207">C / AMP_UC</text>
+  <text x="605" y="254" class="center">C2 10 μF</text><text x="587" y="211">+</text>
+  <text x="730" y="196" class="center">Uo / AMP_UO</text>
+  <text x="525" y="288">QVT1 (VT1)</text><text x="525" y="309" class="small">NPN_3DG6_EST · β≈60</text>
+  <text x="482" y="366">E / AMP_UE</text>
+  <text x="447" y="446" class="end">RE 1 kΩ</text>
+  <text x="584" y="397">KCE</text><text x="584" y="417" class="small">CE接入/断开</text>
+  <text x="584" y="452">CE 47 μF</text><text x="574" y="437">+</text>
+  <text x="730" y="323" class="center">RL / AMP_RL</text>
+  <text x="756" y="415">RL 2.4 kΩ</text>
+  <text x="722" y="91" class="end">+12 V / AMP_VCC</text>
+  <text x="80" y="548" class="center small">AMP_GND2</text>
+  <text x="730" y="548" class="center small">AMP_GND1</text>
+  <text x="450" y="544" class="center small">两GND孔内部共地</text>
+  <path class="external" d="M736 220 H826 V340 H736"/>
+  <text x="815" y="278" class="center small">外接短线</text>
+  <text x="815" y="297" class="center small">接通才带载</text>
+  <text x="450" y="579" class="center small">排故流程：观察现象 → 测量定位(UB/UC/UE/Uo) → 提交故障位号与类型 → 系统判定 → 断电更换修复 → 上电验证。</text>
+</svg>

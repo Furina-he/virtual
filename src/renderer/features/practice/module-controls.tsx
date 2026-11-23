@@ -1,8 +1,10 @@
 import { moduleControlValid } from '@domain/circuit/module-controls'
+import type { Project } from '@shared/schema/project'
 import { create } from 'zustand'
 import { RotaryKnob } from '@/components/instruments/rotary-knob'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { FaultPanel } from './fault-panel'
 import { moduleCatalog } from './practice-content'
 import { WiringPanel } from './wiring-panel'
 import { circuitStore, getActivePlacements, useActivePlacements, useCircuit } from './wiring-state'
@@ -32,7 +34,7 @@ export function setModuleControl(instanceId: string, controlId: string, value: n
   return circuitStore.getState().setControlValue(`${instanceId}.${control.id}`, value)
 }
 
-export function ModuleProperties() {
+export function ModuleProperties({ project }: { project?: Project }) {
   const tab = moduleSelection((state) => state.tab)
   const selected = moduleSelection((state) => state.instanceId)
   const placements = useActivePlacements()
@@ -51,6 +53,7 @@ export function ModuleProperties() {
       <TabsList variant="line" className="w-full justify-start border-b px-2">
         <TabsTrigger value="wiring">接线</TabsTrigger>
         <TabsTrigger value="controls">模块控件</TabsTrigger>
+        <TabsTrigger value="fault">排故</TabsTrigger>
       </TabsList>
       <TabsContent value="wiring" className="min-h-0 flex-1 overflow-hidden">
         <WiringPanel />
@@ -100,6 +103,9 @@ export function ModuleProperties() {
           })}
           {!active && <p className="text-xs text-muted-foreground">当前项目没有已交付的可调模块。</p>}
         </section>
+      </TabsContent>
+      <TabsContent value="fault" className="min-h-0 flex-1 overflow-auto">
+        <FaultPanel project={project} />
       </TabsContent>
     </Tabs>
   )

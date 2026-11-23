@@ -4,14 +4,24 @@ import { buildMeasurementPlan } from '../../domain/measurement/plan'
 import {
   type CapturedMeasurement,
   completeTaskStep,
+  createFaultFlowState,
   createTaskState,
   currentTaskStep,
+  type FaultFlowState,
+  type FaultKind,
+  type FaultSelectionMode,
   type MeasurementSnapshot,
   measurementUnit,
+  observeFaultSymptom,
   recordCurrentReading,
+  recordFaultMeasurement,
+  repairFault,
   requiredMeasurements,
   scopedReference,
+  startFaultSession,
+  submitFaultDiagnosis,
   type TaskState,
+  verifyFaultRepair,
   writeTableCell,
 } from '../../domain/task'
 import { checkWiring, detectDanger } from '../../domain/wiring-check'
@@ -45,6 +55,7 @@ export type TaskUiState = {
   warnings: string[]
   captures: Record<string, CapturedMeasurement>
   screenshots: ReportScreenshot[]
+  faultFlow: FaultFlowState
   resetVersion: number
 }
 
@@ -59,6 +70,7 @@ export const taskStore = createStore<TaskUiState>()(() => ({
   warnings: [],
   captures: {},
   screenshots: [],
+  faultFlow: createFaultFlowState(),
   resetVersion: 0,
 }))
 
@@ -96,6 +108,7 @@ export function resetTask(project?: Project): void {
     warnings: [],
     captures: {},
     screenshots: [],
+    faultFlow: createFaultFlowState(),
     resetVersion: taskStore.getState().resetVersion + 1,
   })
 }
@@ -352,6 +365,91 @@ export function completeCurrentTaskStep(project: Project): boolean {
     leftTab: 'steps',
     notice: `${update.message}${wiring && !wiring.correct ? wiring.messages.join(' ') : ''}`,
     warnings: [...new Set([...sanityWarnings(project, update.state), ...(wiring?.messages ?? [])])],
+  })
+  return update.ok
+}
+
+export function startTaskFaultSession(
+  project: Project,
+  options: { mode?: FaultSelectionMode; faultId?: string; random?: () => number } = {},
+): boolean {
+  if (!active(project)) return false
+  const state = taskStore.getState()
+  const powered = circuitStore.getState().powered
+  const update = startFaultSession(project, state.faultFlow, { ...options, powered })
+  taskStore.setState({
+    faultFlow: update.state,
+    notice: update.message,
+  })
+  if (update.ok) {
+    circuitStore.setState({ activeFault: update.state.injectedFaultId, notice: update.message })
+  }
+  return update.ok
+}
+
+export function observeTaskFaultSymptom(project: Project): boolean {
+  if (!active(project)) return false
+  const state = taskStore.getState()
+  const update = observeFaultSymptom(project, state.faultFlow, { powered: circuitStore.getState().powered })
+  taskStore.setState({
+    faultFlow: update.state,
+    notice: update.message,
+  })
+  return update.ok
+}
+
+export function recordTaskFaultMeasurement(project: Project): boolean {
+  if (!active(project)) return false
+  const state = taskStore.getState()
+  const snapshot = currentMeasurementSnapshot()
+  const update = recordFaultMeasurement(project, state.faultFlow, {
+    snapshot,
+    selectedSource: state.selectedSource,
+  })
+  taskStore.setState({
+    faultFlow: update.state,
+    notice: update.message,
+  })
+  return update.ok
+}
+
+export function submitTaskFaultDiagnosis(project: Project, target: string, kind: FaultKind): boolean {
+  if (!active(project)) return false
+  const state = taskStore.getState()
+  const update = submitFaultDiagnosis(project, state.faultFlow, { target, kind })
+  taskStore.setState({
+    faultFlow: update.state,
+    notice: update.message,
+  })
+  return update.ok
+}
+
+export function repairTaskFault(project: Project): boolean {
+  if (!active(project)) return false
+  const state = taskStore.getState()
+  const update = repairFault(project, state.faultFlow, { powered: circuitStore.getState().powered })
+  taskStore.setState({
+    faultFlow: update.state,
+    notice: update.message,
+  })
+  if (update.ok) {
+    circuitStore.setState({ activeFault: update.state.injectedFaultId, notice: update.message })
+  }
+  return update.ok
+}
+
+export function verifyTaskFaultRepair(project: Project): boolean {
+  if (!active(project)) return false
+  const state = taskStore.getState()
+  const snapshot = currentMeasurementSnapshot()
+  const update = verifyFaultRepair(project, state.faultFlow, {
+    powered: circuitStore.getState().powered,
+    snapshot,
+    selectedSource: state.selectedSource,
+  })
+  taskStore.setState({
+    faultFlow: update.state,
+    notice: update.message,
   })
   return update.ok
 }

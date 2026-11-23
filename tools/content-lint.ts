@@ -1,9 +1,10 @@
 // pnpm content:lint：扫描 content/ 全部 JSON，按文件名选 schema 校验，再做跨文件引用检查。
 // 输出格式：<文件路径> <字段路径> <问题>
 import { readdirSync, readFileSync, statSync } from 'node:fs'
-import { join, relative, sep } from 'node:path'
+import { dirname, join, relative, sep } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import type { z } from 'zod'
+import { injectFault } from '../src/domain/circuit/fault.ts'
 import { BenchScene, Instrument, Module, Project } from '../src/shared/schema/index.ts'
 
 export type LintIssue = { file: string; path: string; message: string }
@@ -34,6 +35,7 @@ function formatPath(path: PropertyKey[]): string {
 export function lintContent(root: string): LintIssue[] {
   const issues: LintIssue[] = []
   const modules = new Map<string, Module>()
+  const moduleNetlists = new Map<string, string>()
   const instruments = new Map<string, Instrument>()
   const projects: { file: string; data: Project }[] = []
 
@@ -62,8 +64,15 @@ export function lintContent(root: string): LintIssue[] {
     const data = result.data as { id: string }
     const dirName = full.split(sep).at(-2)
     if (dirName !== data.id) issues.push({ file, path: 'id', message: `id ${data.id} 与所在目录名 ${dirName} 不一致` })
-    if (name === 'module.json') modules.set(data.id, data as Module)
-    else if (name === 'instrument.json') instruments.set(data.id, data as Instrument)
+    if (name === 'module.json') {
+      const mod = data as Module
+      modules.set(data.id, mod)
+      try {
+        moduleNetlists.set(data.id, readFileSync(join(dirname(full), mod.netlist), 'utf8'))
+      } catch {
+        // 最小 JSON 夹具可能省略 .cir；真实模块网表完整性由 assets:lint 覆盖
+      }
+    } else if (name === 'instrument.json') instruments.set(data.id, data as Instrument)
     else if (name === 'project.json') projects.push({ file, data: data as Project })
   }
 
@@ -109,6 +118,22 @@ export function lintContent(root: string): LintIssue[] {
       mp.branch?.forEach((ref, j) => {
         checkRef(ref, `reference.measurePoints[${i}].branch[${j}]`)
       })
+    })
+    p.faults?.forEach((fault, i) => {
+      const [inst = '', ...rest] = fault.target.split('.')
+      const modRef = p.modules.find((m) => m.instanceId === inst)
+      if (!modRef) return
+      const subckt = moduleNetlists.get(modRef.moduleId)
+      if (!subckt) return
+      try {
+        injectFault(subckt, rest.join('.'), fault)
+      } catch (error) {
+        issues.push({
+          file,
+          path: `faults[${i}]`,
+          message: error instanceof Error ? error.message : `故障 ${fault.id} 无法注入`,
+        })
+      }
     })
   }
   return issues
