@@ -98,6 +98,7 @@ export const Instrument = z
       'aca',
       'multimeter',
       'dcSupply',
+      'acSupply',
       'funcGen',
       'scope',
       'wattmeter',

@@ -11,7 +11,10 @@ import {
   isMeasurementInstrument,
   isSelfPoweredMode,
   type RangeSettings,
+  type ResolvedCurrentSource,
+  type ResolvedDcChannel,
   type ResolvedInstrument,
+  resolveDcSupply,
   resolveInstrument,
   resolveScope,
   scopeSampleStep,
@@ -32,9 +35,14 @@ export type MeterPlan = {
 }
 export type SupplyPlan = {
   instanceId: string
-  screenId: string
+  screenId: 'CH1' | 'CH2' | 'V5' | 'IS'
+  kind: 'cvcc' | 'currentSource'
   range: RangeSettings
   voltageProbe: string
+  currentProbe: string
+  wired: boolean
+  channel?: ResolvedDcChannel
+  currentSource?: ResolvedCurrentSource
 }
 export type ScopePlan = {
   instanceId: string
@@ -97,7 +105,7 @@ export function buildMeasurementPlan(
     }),
   }
   const instruments = input.instruments.map((entry) => {
-    if (entry.instrument.kind === 'dcSupply' && !powered)
+    if ((entry.instrument.kind === 'dcSupply' || entry.instrument.kind === 'acSupply') && !powered)
       return {
         ...entry,
         instrument: { ...entry.instrument, spiceTemplate: '* External supply output is disconnected.' },
@@ -156,20 +164,78 @@ export function buildMeasurementPlan(
   }
   const supplies: SupplyPlan[] = []
   for (const { instanceId, instrument, settings } of instruments) {
-    if (instrument.kind !== 'dcSupply' || !assembled.instrumentSuffix[instanceId]) continue
-    for (const [index, [positive, negative]] of (instrument.outputs ?? []).entries()) {
-      const voltageProbe = `${token}:${instanceId}:ch${index + 1}`
-      probes.push({
-        id: voltageProbe,
-        kind: 'v',
-        node: assembled.nodeOf[`${instanceId}.${positive}`],
-        nodeRef: assembled.nodeOf[`${instanceId}.${negative}`],
-      })
+    const suffix = assembled.instrumentSuffix[instanceId]
+    if (instrument.kind !== 'dcSupply' || !suffix) continue
+    const range = getRangeSettings(instrument, settings)
+    const dc = resolveDcSupply(instrument, settings)
+    const channels: [ResolvedDcChannel, string][] = [
+      [dc.ch1, 'ch1'],
+      [dc.ch2, 'ch2'],
+      ...(dc.v5 ? ([[dc.v5, 'v5']] as [ResolvedDcChannel, string][]) : []),
+    ]
+    for (const [channel, tag] of channels) {
+      const channelWired =
+        wired.has(`${instanceId}.${channel.positiveJack}`) && wired.has(`${instanceId}.${channel.negativeJack}`)
+      const anyWired =
+        wired.has(`${instanceId}.${channel.positiveJack}`) || wired.has(`${instanceId}.${channel.negativeJack}`)
+      const voltageProbe = `${token}:${instanceId}:${tag}`
+      const currentProbe = `${token}:${instanceId}:${tag}:i`
+      if (anyWired) {
+        probes.push({
+          id: voltageProbe,
+          kind: 'v',
+          node: assembled.nodeOf[`${instanceId}.${channel.positiveJack}`],
+          nodeRef: assembled.nodeOf[`${instanceId}.${channel.negativeJack}`],
+        })
+      }
+      if (!options.preflight && powered && channelWired) {
+        probes.push({
+          id: currentProbe,
+          kind: 'i',
+          source: `vs${tag}_${suffix.toLowerCase()}`,
+        })
+      }
       supplies.push({
         instanceId,
-        screenId: `CH${index + 1}`,
-        range: getRangeSettings(instrument, settings),
+        screenId: channel.id,
+        kind: 'cvcc',
+        range,
         voltageProbe,
+        currentProbe,
+        wired: channelWired,
+        channel,
+      })
+    }
+    if (dc.currentSource) {
+      const cs = dc.currentSource
+      const csWired = wired.has(`${instanceId}.${cs.positiveJack}`) && wired.has(`${instanceId}.${cs.negativeJack}`)
+      const anyCsWired = wired.has(`${instanceId}.${cs.positiveJack}`) || wired.has(`${instanceId}.${cs.negativeJack}`)
+      const voltageProbe = `${token}:${instanceId}:is`
+      const currentProbe = `${token}:${instanceId}:is:i`
+      if (anyCsWired) {
+        probes.push({
+          id: voltageProbe,
+          kind: 'v',
+          node: assembled.nodeOf[`${instanceId}.${cs.positiveJack}`],
+          nodeRef: assembled.nodeOf[`${instanceId}.${cs.negativeJack}`],
+        })
+      }
+      if (!options.preflight && powered && csWired) {
+        probes.push({
+          id: currentProbe,
+          kind: 'i',
+          source: `vsis_${suffix.toLowerCase()}`,
+        })
+      }
+      supplies.push({
+        instanceId,
+        screenId: 'IS',
+        kind: 'currentSource',
+        range,
+        voltageProbe,
+        currentProbe,
+        wired: csWired,
+        currentSource: cs,
       })
     }
   }
@@ -280,7 +346,13 @@ function simulationKey(plan: MeasurementPlan, ignoreParameters = false): string 
       },
       connectedJacks,
     ]),
-    plan.supplies.map(({ instanceId, screenId, range }) => [instanceId, screenId, range]),
+    plan.supplies.map(({ instanceId, screenId, range, channel, currentSource }) => [
+      instanceId,
+      screenId,
+      range,
+      channel,
+      currentSource,
+    ]),
     plan.speakers,
     plan.parameters.length ? plan.command.parameterTargets : undefined,
     plan.parameters.map(({ controlRef, param, value, targets }) => [

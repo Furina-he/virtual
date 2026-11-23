@@ -1,5 +1,6 @@
 export * from './config.ts'
 export * from './equivalent.ts'
+export * from './power.ts'
 export * from './power-window.ts'
 export * from './reading.ts'
 export * from './scope.ts'

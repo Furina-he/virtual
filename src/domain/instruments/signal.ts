@@ -137,6 +137,11 @@ export function signalSettingValid(instrument: Instrument, key: string, v: unkno
 
 /** 正在输出的最短周期（秒），决定仿真步长 */
 export function shortestActivePeriod(instrument: Instrument, settings: Record<string, unknown>): number | undefined {
+  if (settings.passive === true) return undefined
+  if (instrument.kind === 'acSupply') {
+    const uPhase = typeof settings.u_phase === 'number' ? settings.u_phase : 220
+    return uPhase > 0 ? 1 / 50 : undefined
+  }
   const periods = resolveSources(instrument, settings)
     .filter((resolved) => resolved.enabled)
     .map((resolved) => 1 / resolved.frequency)

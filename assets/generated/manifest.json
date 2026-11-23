@@ -4,8 +4,8 @@
     {
       "id": "bench",
       "model": "content/bench/bench.glb",
-      "bytes": 295032,
-      "sha256": "b78ddbd6368c00d628f062ef6e19c2aaba6451355ea6390051521ff0504999d3",
+      "bytes": 295212,
+      "sha256": "c610883600997b8ce8141fd26ead30360af378e2de4a99ca94735add05304b95",
       "triangles": 2134,
       "drawCalls": 3,
       "bounds": {
@@ -91,6 +91,19 @@
           "position": [
             -0.62,
             0.97,
+            -0.266
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "SLOT_INS_ACPOWER",
+          "position": [
+            -0.62,
+            1.32,
             -0.266
           ],
           "normal": [
@@ -916,10 +929,10 @@
     {
       "id": "ins-dc-power",
       "model": "content/instruments/ins-dc-power/instrument.glb",
-      "bytes": 462276,
-      "sha256": "6712ee427917b660499ee4b249145e320223dae0ae50c9f51c9c0a863f957044",
-      "triangles": 3370,
-      "drawCalls": 14,
+      "bytes": 601084,
+      "sha256": "9573c9c2377e724f708f268840f1814888e548a45b865f974c5dbc908b26bdfe",
+      "triangles": 4398,
+      "drawCalls": 15,
       "bounds": {
         "min": [
           -0.20999999344348907,
@@ -986,6 +999,58 @@
           ]
         },
         {
+          "name": "JACK_V5P",
+          "position": [
+            -0.155,
+            0.025,
+            0.054000000000000006
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_V5N",
+          "position": [
+            -0.088,
+            0.025,
+            0.054000000000000006
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_ISP",
+          "position": [
+            -0.035,
+            0.025,
+            0.054000000000000006
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_ISN",
+          "position": [
+            0.015,
+            0.025,
+            0.054000000000000006
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
           "name": "KNOB_CH1_V",
           "position": [
             -0.145,
@@ -1038,10 +1103,23 @@
           ]
         },
         {
+          "name": "KNOB_IS_I",
+          "position": [
+            0,
+            0.166,
+            0.051500000000000004
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
           "name": "SW_OUTPUT",
           "position": [
             0,
-            0.048,
+            0.095,
             0.051500000000000004
           ],
           "normal": [
@@ -2981,11 +3059,131 @@
           "height": 1024
         }
       ]
+    },
+    {
+      "id": "ins-ac-power",
+      "model": "content/instruments/ins-ac-power/instrument.glb",
+      "bytes": 226768,
+      "sha256": "175bcf9d1a3df01896db2c578136f14619975abacf01cd864865f9945efc6e82",
+      "triangles": 1578,
+      "drawCalls": 6,
+      "bounds": {
+        "min": [
+          -0.20999999344348907,
+          1.7881393032936899e-9,
+          -0.05000000074505806
+        ],
+        "max": [
+          0.20999999344348907,
+          0.1599999964237213,
+          0.0642750001847744
+        ]
+      },
+      "anchors": [
+        {
+          "name": "JACK_U",
+          "position": [
+            -0.135,
+            0.028,
+            0.054000000000000006
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_V",
+          "position": [
+            -0.06,
+            0.028,
+            0.054000000000000006
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_W",
+          "position": [
+            0.06,
+            0.028,
+            0.054000000000000006
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_N",
+          "position": [
+            0.135,
+            0.028,
+            0.054000000000000006
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "KNOB_VARIAC",
+          "position": [
+            0,
+            0.078,
+            0.051500000000000004
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "SCREEN_PHASE",
+          "position": [
+            -0.118,
+            0.094,
+            0.0534
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "SCREEN_LINE",
+          "position": [
+            0.118,
+            0.094,
+            0.0534
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "textures": [
+        {
+          "mimeType": "image/webp",
+          "width": 1536,
+          "height": 640
+        }
+      ]
     }
   ],
   "preview": {
-    "triangles": 25794,
-    "drawCalls": 81
+    "triangles": 28400,
+    "drawCalls": 88
   },
   "issues": []
 }

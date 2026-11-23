@@ -509,8 +509,8 @@ export class SimSession {
         this.fail(e)
       }
     }
-    // Windows 上 setTimeout 粒度约 15 ms，不需等待时用 setImmediate，否则每片白等一个时钟周期
-    if (ahead > 0) this.resumeTimer = setTimeout(go, ahead * 1000)
+    // Windows 上 setTimeout 粒度约 15 ms，领先不足一个时钟周期时用 setImmediate，否则每片白等一个时钟周期
+    if (ahead >= 0.015) this.resumeTimer = setTimeout(go, ahead * 1000)
     else this.resumeNow = setImmediate(go)
   }
 

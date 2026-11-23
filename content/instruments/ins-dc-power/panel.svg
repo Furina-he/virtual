@@ -101,6 +101,10 @@
 <text x="122" y="267.5" font-size="3.5" text-anchor="middle" font-weight="650" fill="hsl(210, 15%, 23%)">CH1 −</text>
 <text x="265" y="267.5" font-size="3.5" text-anchor="middle" font-weight="650" fill="hsl(210, 15%, 23%)">CH2 +</text>
 <text x="332" y="267.5" font-size="3.5" text-anchor="middle" font-weight="650" fill="hsl(210, 15%, 23%)">CH2 −</text>
+<text x="55" y="307.5" font-size="3.5" text-anchor="middle" font-weight="650" fill="hsl(210, 15%, 23%)">+5V</text>
+<text x="122" y="307.5" font-size="3.5" text-anchor="middle" font-weight="650" fill="hsl(210, 15%, 23%)">5V −</text>
+<text x="175" y="307.5" font-size="3.5" text-anchor="middle" font-weight="650" fill="hsl(210, 15%, 23%)">Is +</text>
+<text x="225" y="307.5" font-size="3.5" text-anchor="middle" font-weight="650" fill="hsl(210, 15%, 23%)">Is −</text>
 <path d="M 51.5649711574556 187.4350288425444 L 49.867914882607884 189.1320851173921" stroke="hsl(210, 9%, 57%)" stroke-width="0.55"/>
 <path d="M 46.92992619039208 179.871322893124 L 45.693552719208384 180.27304498581142" stroke="hsl(210, 9%, 57%)" stroke-width="0.55"/>
 <path d="M 46.23392152869238 171.02774516423563 L 44.9499266859187 170.82438035968332" stroke="hsl(210, 9%, 57%)" stroke-width="0.55"/>
@@ -149,7 +153,19 @@
 <path d="M 364.26584774442733 178.63525491562422 L 365.50222121561103 179.03697700831165" stroke="hsl(210, 9%, 57%)" stroke-width="0.55"/>
 <path d="M 360.60660171779824 184.6066017177982 L 362.3036579926459 186.30365799264592" stroke="hsl(210, 9%, 57%)" stroke-width="0.55"/>
 <text x="350" y="193" font-size="3.3" text-anchor="middle" font-weight="500" fill="hsl(210, 15%, 23%)">CURRENT</text>
-<text x="210" y="305" font-size="3.3" text-anchor="middle" font-weight="500" fill="hsl(210, 15%, 23%)">OUTPUT</text>
+<path d="M 200.10050506338834 183.89949493661166 L 198.40344878854063 185.59655121145937" stroke="hsl(210, 9%, 57%)" stroke-width="0.55"/>
+<path d="M 196.68520877186785 178.32623792124926 L 195.44883530068415 178.7279600139367" stroke="hsl(210, 9%, 57%)" stroke-width="0.55"/>
+<path d="M 196.17236323166807 171.80991748943677 L 194.88836838889438 171.60655268488446" stroke="hsl(210, 9%, 57%)" stroke-width="0.55"/>
+<path d="M 198.67376207875074 165.77100646790538 L 197.6220399860633 165.00688563992517" stroke="hsl(210, 9%, 57%)" stroke-width="0.55"/>
+<path d="M 203.64413300364635 161.52590866136285 L 203.05394535398494 160.36760017991799" stroke="hsl(210, 9%, 57%)" stroke-width="0.55"/>
+<path d="M 210 160 L 210 157.6" stroke="hsl(210, 9%, 57%)" stroke-width="0.55"/>
+<path d="M 216.35586699635365 161.52590866136285 L 216.94605464601506 160.36760017991796" stroke="hsl(210, 9%, 57%)" stroke-width="0.55"/>
+<path d="M 221.32623792124926 165.77100646790538 L 222.3779600139367 165.00688563992514" stroke="hsl(210, 9%, 57%)" stroke-width="0.55"/>
+<path d="M 223.82763676833193 171.80991748943677 L 225.1116316111056 171.60655268488446" stroke="hsl(210, 9%, 57%)" stroke-width="0.55"/>
+<path d="M 223.31479122813215 178.32623792124926 L 224.55116469931585 178.7279600139367" stroke="hsl(210, 9%, 57%)" stroke-width="0.55"/>
+<path d="M 219.8994949366117 183.89949493661166 L 221.5965512114594 185.59655121145937" stroke="hsl(210, 9%, 57%)" stroke-width="0.55"/>
+<text x="210" y="192" font-size="3.3" text-anchor="middle" font-weight="500" fill="hsl(210, 15%, 23%)">Is (mA)</text>
+<text x="210" y="258" font-size="3.3" text-anchor="middle" font-weight="500" fill="hsl(210, 15%, 23%)">OUTPUT</text>
 <text x="77" y="127" font-size="2.7" text-anchor="start" font-weight="500" fill="hsl(210, 15%, 23%)">CV</text>
 <text x="133" y="127" font-size="2.7" text-anchor="start" font-weight="500" fill="hsl(210, 15%, 23%)">CC</text>
 <text x="287" y="127" font-size="2.7" text-anchor="start" font-weight="500" fill="hsl(210, 15%, 23%)">CV</text>

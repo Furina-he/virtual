@@ -1,4 +1,5 @@
 import type { Instrument, InstrumentAccuracy, InstrumentMode, InstrumentRange } from '../../shared/schema/instrument.ts'
+import { powerDefaults } from './power.ts'
 import { scopeDefaults } from './scope.ts'
 import { signalDefaults } from './signal.ts'
 
@@ -87,8 +88,8 @@ export function getInstrumentDefaults(instrument: Instrument): Record<string, st
   const firstChannel = instrument.inputChannels?.[0]
   if (firstChannel) defaults.channel = firstChannel.id
   if (instrument.wattmeter) defaults.displayMode = 'P'
+  Object.assign(defaults, powerDefaults(instrument), signalDefaults(instrument), scopeDefaults(instrument))
   for (const control of instrument.settingsControls ?? []) defaults[control.id] = control.default
-  Object.assign(defaults, signalDefaults(instrument), scopeDefaults(instrument))
   return defaults
 }
 

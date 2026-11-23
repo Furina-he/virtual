@@ -55,6 +55,12 @@
       "slot": "SLOT_INS_DCPOWER"
     },
     {
+      "assetId": "ins-ac-power",
+      "instanceId": "ins-ac-power",
+      "position": [-0.62, 1.32, -0.266],
+      "slot": "SLOT_INS_ACPOWER"
+    },
+    {
       "assetId": "ins-func-gen",
       "instanceId": "generator1",
       "position": [-0.5, 0.8, 0.13],

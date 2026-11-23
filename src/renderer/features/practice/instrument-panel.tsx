@@ -1,5 +1,7 @@
 import {
+  DC_CURRENT_SOURCE_RANGES,
   isMeasurementInstrument,
+  resolveDcSupply,
   resolveInstrument,
   WATTMETER_DISPLAY_MODES,
   type WattmeterDisplayMode,
@@ -81,6 +83,18 @@ export function InstrumentPanel({ panel, className }: { panel: PanelDef; classNa
         <GalvanometerDisplay instanceId={panel.id} />
       ) : measurement ? (
         <SevenSegDisplay instanceId={panel.id} />
+      ) : instrument.kind === 'dcSupply' ? (
+        <div className="grid grid-cols-1 gap-2 @sm:grid-cols-2">
+          <SevenSegDisplay instanceId={panel.id} screenId="CH1" label="CH1 输出读数" />
+          <SevenSegDisplay instanceId={panel.id} screenId="CH2" label="CH2 输出读数" />
+          <SevenSegDisplay instanceId={panel.id} screenId="V5" label="+5V 固定输出读数" />
+          <SevenSegDisplay instanceId={panel.id} screenId="IS" label="恒流源 Is 输出读数" />
+        </div>
+      ) : instrument.kind === 'acSupply' ? (
+        <div className="grid grid-cols-1 gap-2 @sm:grid-cols-2">
+          <SevenSegDisplay instanceId={panel.id} screenId="PHASE" label="PHASE 输出读数" />
+          <SevenSegDisplay instanceId={panel.id} screenId="LINE" label="LINE 输出读数" />
+        </div>
       ) : (
         (asset?.screens ?? [{ id: 'MAIN' }]).map((screen) => (
           <SevenSegDisplay
@@ -212,8 +226,49 @@ export function InstrumentPanel({ panel, className }: { panel: PanelDef; classNa
           onChange={(patch) => setSettings(panel.id, patch)}
         />
       )}
-      {instrument.kind === 'dcSupply' && (
-        <p className="text-xs text-muted-foreground">当前为恒压输出；恒流限流待后续实现。</p>
+      {instrument.kind === 'dcSupply' &&
+        (() => {
+          const dc = resolveDcSupply(instrument, panel.settings)
+          return (
+            <div className="flex flex-col gap-2">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <span className="text-xs text-muted-foreground">双路模式</span>
+                <Button
+                  size="xs"
+                  variant={dc.tracking ? 'default' : 'outline'}
+                  aria-pressed={dc.tracking}
+                  onClick={() => setSettings(panel.id, { tracking: dc.tracking ? 0 : 1 })}
+                >
+                  {dc.tracking ? '串联跟踪 ±V' : '独立双路'}
+                </Button>
+              </div>
+              {dc.currentSource && (
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <span className="text-xs text-muted-foreground">恒流源档位</span>
+                  <fieldset className="flex gap-1 border-0 p-0" aria-label="恒流源档位选择">
+                    {DC_CURRENT_SOURCE_RANGES.map((rangeMa, index) => (
+                      <Button
+                        key={rangeMa}
+                        size="xs"
+                        variant={dc.currentSource?.rangeMa === rangeMa ? 'default' : 'outline'}
+                        onClick={() => setSettings(panel.id, { is_range: index })}
+                      >
+                        {rangeMa} mA
+                      </Button>
+                    ))}
+                  </fieldset>
+                </div>
+              )}
+              <p className="text-xs text-muted-foreground">
+                支持 CV/CC 自动限流、CH1−与CH2+外接串联正负电源、固定 +5 V/1 A 及 0~500 mA 恒流源。
+              </p>
+            </div>
+          )
+        })()}
+      {instrument.kind === 'acSupply' && (
+        <p className="text-xs text-muted-foreground">
+          三相四线 U / V / W / N（50 Hz 互差 120°），线电压 = √3 × 相电压，单相取任一相与 N。
+        </p>
       )}
     </div>
   )

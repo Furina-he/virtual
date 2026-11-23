@@ -107,6 +107,20 @@
           ]
         },
         {
+          "id": "SLOT_INS_ACPOWER",
+          "position": [
+            -0.62,
+            1.32,
+            -0.266
+          ],
+          "kind": "fixed",
+          "dimensionsMm": [
+            420,
+            160,
+            100
+          ]
+        },
+        {
           "id": "SLOT_BOX_L1",
           "position": [
             -0.12,
@@ -1384,6 +1398,38 @@
           "y": 275,
           "color": "black",
           "kind": "banana4"
+        },
+        {
+          "id": "V5P",
+          "label": "+5V",
+          "x": 55,
+          "y": 315,
+          "color": "red",
+          "kind": "banana4"
+        },
+        {
+          "id": "V5N",
+          "label": "5V −",
+          "x": 122,
+          "y": 315,
+          "color": "black",
+          "kind": "banana4"
+        },
+        {
+          "id": "ISP",
+          "label": "Is +",
+          "x": 175,
+          "y": 315,
+          "color": "red",
+          "kind": "banana4"
+        },
+        {
+          "id": "ISN",
+          "label": "Is −",
+          "x": 225,
+          "y": 315,
+          "color": "black",
+          "kind": "banana4"
         }
       ],
       "controls": [
@@ -1402,7 +1448,8 @@
           "kind": "knob",
           "x": 140,
           "y": 174,
-          "radiusMm": 13
+          "radiusMm": 13,
+          "param": "ch1_i"
         },
         {
           "id": "CH2_V",
@@ -1419,14 +1466,24 @@
           "kind": "knob",
           "x": 350,
           "y": 174,
-          "radiusMm": 13
+          "radiusMm": 13,
+          "param": "ch2_i"
+        },
+        {
+          "id": "IS_I",
+          "label": "Is (mA)",
+          "kind": "knob",
+          "x": 210,
+          "y": 174,
+          "radiusMm": 12,
+          "param": "is_ma"
         },
         {
           "id": "OUTPUT",
           "label": "OUTPUT",
           "kind": "switch",
           "x": 210,
-          "y": 292,
+          "y": 245,
           "shape": "push",
           "radiusMm": 7
         }
@@ -4650,6 +4707,112 @@
             "x": 60,
             "y": 113,
             "size": 3.1
+          }
+        ]
+      }
+    },
+    {
+      "estimatedDimensions": true,
+      "jacks": [
+        {
+          "id": "U",
+          "label": "U",
+          "x": 75,
+          "y": 132,
+          "color": "yellow",
+          "kind": "banana4",
+          "labelY": 118
+        },
+        {
+          "id": "V",
+          "label": "V",
+          "x": 150,
+          "y": 132,
+          "color": "green",
+          "kind": "banana4",
+          "labelY": 118
+        },
+        {
+          "id": "W",
+          "label": "W",
+          "x": 270,
+          "y": 132,
+          "color": "red",
+          "kind": "banana4",
+          "labelY": 118
+        },
+        {
+          "id": "N",
+          "label": "N",
+          "x": 345,
+          "y": 132,
+          "color": "black",
+          "kind": "banana4",
+          "labelY": 118
+        }
+      ],
+      "controls": [
+        {
+          "id": "VARIAC",
+          "label": "调压器 0-450V",
+          "kind": "knob",
+          "x": 210,
+          "y": 82,
+          "radiusMm": 18,
+          "param": "u_phase",
+          "labelY": 112
+        }
+      ],
+      "screens": [
+        {
+          "id": "PHASE",
+          "x": 92,
+          "y": 66,
+          "width": 116,
+          "height": 34,
+          "style": "blank"
+        },
+        {
+          "id": "LINE",
+          "x": 328,
+          "y": 66,
+          "width": 116,
+          "height": 34,
+          "style": "blank"
+        }
+      ],
+      "id": "ins-ac-power",
+      "name": "三相调压交流电源",
+      "kind": "instrument",
+      "bodyStyle": "supply",
+      "dimensionsMm": [
+        420,
+        160,
+        100
+      ],
+      "model": "content/instruments/ins-ac-power/instrument.glb",
+      "mounting": "fixed",
+      "textureSize": [
+        1536,
+        640
+      ],
+      "dimensionNote": "Estimated 420 x 160 x 100 mm three-phase variac AC console insert above DC power supply.",
+      "panel": {
+        "title": "三相四线调压交流电源",
+        "titleSize": 6.2,
+        "subtitle": "50 Hz  |  相电压 0 - 260 V  |  线电压 0 - 450 V (√3)",
+        "texts": [
+          {
+            "text": "相电压 U相 (V)",
+            "x": 92,
+            "y": 42,
+            "size": 3.8
+          },
+          {
+            "text": "线电压 U线 (V)",
+            "x": 328,
+            "y": 42,
+            "size": 3.8
           }
         ]
       }

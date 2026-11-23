@@ -169,14 +169,16 @@ describe('measurement plan', () => {
 
   it('derives actual supply screen voltages and preserves per-channel node references', () => {
     const plan = buildMeasurementPlan(input(), true, 'supply')
-    expect(plan.supplies.map((supply) => supply.screenId)).toEqual(['CH1', 'CH2'])
-    for (const [index, supply] of plan.supplies.entries()) {
-      const output = ps.outputs?.[index]
-      expect(plan.command.probes.find((probe) => probe.id === supply.voltageProbe)).toMatchObject({
-        kind: 'v',
-        node: plan.assembled.nodeOf[`source.${output?.[0]}`],
-        nodeRef: plan.assembled.nodeOf[`source.${output?.[1]}`],
-      })
+    expect(plan.supplies.map((supply) => supply.screenId)).toEqual(['CH1', 'CH2', 'V5', 'IS'])
+    expect(plan.supplies.map((supply) => supply.wired)).toEqual([true, false, false, false])
+    const ch1 = plan.supplies[0]
+    expect(plan.command.probes.find((probe) => probe.id === ch1?.voltageProbe)).toMatchObject({
+      kind: 'v',
+      node: plan.assembled.nodeOf['source.CH1P'],
+      nodeRef: plan.assembled.nodeOf['source.CH1N'],
+    })
+    for (const unwiredSupply of plan.supplies.slice(1)) {
+      expect(plan.command.probes.find((probe) => probe.id === unwiredSupply.voltageProbe)).toBeUndefined()
     }
   })
 })

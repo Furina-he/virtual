@@ -1,6 +1,7 @@
 import type { InstrumentInput } from '../../../domain/circuit/assemble'
 import {
   getInstrumentDefaults,
+  powerSettingValid,
   scopeSettingValid,
   signalSettingValid,
   WATTMETER_DISPLAY_MODES,
@@ -43,6 +44,7 @@ export function setBenchInstrumentSettings(instanceId: string, patch: Record<str
   for (const [key, value] of Object.entries(patch)) {
     const control = instrument.settingsControls?.find((item) => item.id === key)
     const valid =
+      powerSettingValid(instrument, key, value) ??
       signalSettingValid(instrument, key, value) ??
       scopeSettingValid(instrument, key, value) ??
       (key === 'range'

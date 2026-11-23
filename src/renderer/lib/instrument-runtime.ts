@@ -2,12 +2,15 @@ import type { AssembleInput, InstrumentInput } from '../../domain/circuit/assemb
 import {
   adjustableSources,
   checkInstrumentJacks,
+  classifyCurrentSource,
+  classifyDcChannel,
   formatFrequency,
   formatVoltage,
   isSelfPoweredMode,
   measureSignal,
   PowerWindow,
   readInstrument,
+  resolveAcSupply,
   resolveScope,
   resolveSource,
   WAVEFORM_LABEL,
@@ -553,8 +556,9 @@ export function connectInstrumentRuntime(onStatus: (status: RuntimeStatus) => vo
     clearInstrumentReadings()
     for (const entry of input.instruments) {
       if (entry.instrument.kind === 'dcSupply') {
-        for (const [index] of (entry.instrument.outputs ?? []).entries())
-          setInstrumentReading(entry.instanceId, reading, `CH${index + 1}`)
+        for (const screenId of ['CH1', 'CH2', 'V5', 'IS']) setInstrumentReading(entry.instanceId, reading, screenId)
+      } else if (entry.instrument.kind === 'acSupply') {
+        for (const screenId of ['PHASE', 'LINE']) setInstrumentReading(entry.instanceId, reading, screenId)
       } else setInstrumentReading(entry.instanceId, reading)
       for (const channel of entry.instrument.scope?.channels ?? [])
         setInstrumentReading(entry.instanceId, reading, channel.id)
@@ -565,6 +569,35 @@ export function connectInstrumentRuntime(onStatus: (status: RuntimeStatus) => vo
     for (const entry of input.instruments) {
       const reading = generatorReading(entry, powered)
       if (reading) setInstrumentReading(entry.instanceId, reading)
+      if (entry.instrument.kind === 'acSupply') {
+        const ac = resolveAcSupply(entry.instrument, entry.settings)
+        const phaseVal = Math.round(ac.phaseVoltageRms * 10) / 10
+        const lineVal = Math.round(ac.lineVoltageRms * 10) / 10
+        setInstrumentReading(
+          entry.instanceId,
+          {
+            text: phaseVal.toFixed(1),
+            unit: 'V',
+            status: powered ? 'ok' : 'off',
+            label: powered ? '输出开' : '已断电',
+            mode: '50Hz 相电压',
+            value: phaseVal,
+          },
+          'PHASE',
+        )
+        setInstrumentReading(
+          entry.instanceId,
+          {
+            text: lineVal.toFixed(1),
+            unit: 'V',
+            status: powered ? 'ok' : 'off',
+            label: powered ? '√3 线电压' : '已断电',
+            mode: '50Hz 线电压',
+            value: lineVal,
+          },
+          'LINE',
+        )
+      }
     }
   }
 
@@ -889,10 +922,48 @@ export function connectInstrumentRuntime(onStatus: (status: RuntimeStatus) => vo
     }
     for (const supply of current.plan.supplies) {
       if (!current.powered) continue
-      const value = values[supply.voltageProbe]
+      const rawValue = values[supply.voltageProbe]
+      const value =
+        rawValue !== undefined && Number.isFinite(rawValue)
+          ? rawValue
+          : !supply.wired
+            ? (supply.channel?.voltageSet ?? 0)
+            : undefined
       if (value === undefined || !Number.isFinite(value)) continue
+      const currentVal = values[supply.currentProbe] ?? 0
+      if (supply.kind === 'currentSource' && supply.currentSource) {
+        const csStatus = classifyCurrentSource(
+          supply.currentSource,
+          value,
+          Number.isFinite(currentVal) ? currentVal : 0,
+          supply.wired,
+        )
+        const decimals = supply.currentSource.rangeMa === 2 ? 3 : supply.currentSource.rangeMa === 20 ? 2 : 1
+        const step = 10 ** -decimals
+        const roundedMa = Math.round(csStatus.currentMa / step) * step
+        setInstrumentReading(
+          supply.instanceId,
+          {
+            text: roundedMa.toFixed(decimals),
+            unit: 'mA',
+            status: 'ok',
+            value: roundedMa * 1e-3,
+            rawValue: csStatus.currentMa * 1e-3,
+            mode: `${supply.currentSource.rangeMa}mA档 · ${csStatus.voltage.toFixed(1)}V`,
+            label: csStatus.state === 'OPEN' ? '开路限压' : csStatus.state === 'OFF' ? '待接线' : 'CC 恒流',
+            ...(csStatus.state === 'OPEN'
+              ? { message: '恒流源输出端开路或负载阻值过大，已触发 30 V 合规限压保护。' }
+              : {}),
+          },
+          supply.screenId,
+        )
+        continue
+      }
       const { resolution, displayScale, unit } = supply.range
       const rounded = Math.round(value / resolution) * resolution
+      const chStatus = supply.channel
+        ? classifyDcChannel(supply.channel, value, Number.isFinite(currentVal) ? currentVal : 0)
+        : { mode: 'CV' as const, voltage: value, current: 0 }
       setInstrumentReading(
         supply.instanceId,
         {
@@ -901,7 +972,8 @@ export function connectInstrumentRuntime(onStatus: (status: RuntimeStatus) => vo
           status: 'ok',
           value: rounded,
           rawValue: value,
-          mode: 'DC',
+          mode: `${chStatus.mode} · ${(chStatus.current * 1000).toFixed(0)}mA`,
+          label: chStatus.mode === 'CC' ? 'CC 限流' : 'CV 稳压',
         },
         supply.screenId,
       )

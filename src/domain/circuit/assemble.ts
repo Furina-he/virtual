@@ -4,6 +4,7 @@ import {
   InstrumentConfigurationError,
   instrumentTemplate,
   isMeasurementInstrument,
+  powerSourceTemplate,
   resolveInstrument,
   signalSourceTemplate,
 } from '../instruments/index.ts'
@@ -56,13 +57,20 @@ function parseSubckt(text: string): { name: string; ports: string[]; params: str
   return { name, ports, params }
 }
 
-function expandTemplate(ins: InstrumentInput, suffix: string, nodeOf: (jack: string) => string): string {
+function expandTemplate(
+  ins: InstrumentInput,
+  suffix: string,
+  nodeOf: (jack: string) => string,
+  connectedJacks: ReadonlySet<string>,
+): string {
   const { instrument, settings } = ins
   let template = instrument.spiceTemplate
   let range: ReturnType<typeof getRangeSettings> | undefined
   try {
     if (instrument.ranges.length) range = getRangeSettings(instrument, settings)
     if (isMeasurementInstrument(instrument)) template = instrumentTemplate(resolveInstrument(instrument, settings))
+    const power = powerSourceTemplate(instrument, settings, connectedJacks)
+    if (power) template = power
     // 信号源波形随设置变化，由领域模型生成（INS-08/10）；静态部分（如示波器输入阻抗）仍来自内容模板
     const sources = signalSourceTemplate(instrument, settings)
     if (sources) template = `${template}\n${sources}`
@@ -159,7 +167,12 @@ export function assembleNetlist(input: AssembleInput): AssembleOutput {
     const isGround = groundRoot !== undefined && uf.find(net[0] as string) === groundRoot
     for (const ref of net) nodeOf[ref] = isGround ? '0' : `n${i + 1}`
   })
-  const node = (ref: string) => nodeOf[ref] as string
+  const activeNodes = new Set<string>()
+  const node = (ref: string) => {
+    const n = nodeOf[ref] as string
+    activeNodes.add(n)
+    return n
+  }
 
   const out: string[] = [`* ${input.title}`]
   const params: string[] = []
@@ -201,14 +214,17 @@ export function assembleNetlist(input: AssembleInput): AssembleOutput {
   const instrumentLines: string[] = []
   for (const i of input.instruments) {
     // 没接线的仪表不进网表
-    if (!i.instrument.jacks.some((j) => wired.has(`${i.instanceId}.${j.id}`))) continue
+    const connectedJacks = new Set(
+      i.instrument.jacks.filter((j) => wired.has(`${i.instanceId}.${j.id}`)).map((j) => j.id),
+    )
+    if (connectedJacks.size === 0) continue
     const suffix = spiceSafe(i.instanceId)
     instrumentSuffix[i.instanceId] = suffix
-    instrumentLines.push(`* 仪表 ${i.instanceId}`, expandTemplate(i, suffix, node))
+    instrumentLines.push(`* 仪表 ${i.instanceId}`, expandTemplate(i, suffix, node, connectedJacks))
   }
 
-  // 每个非地节点 1 TΩ 对地泄放（第 4 步）。ngspice 遇浮空节点不报错而给出无意义结果，此步必做
-  const leaks = [...new Set(Object.values(nodeOf))].filter((n) => n !== '0').map((n) => `Rleak_${n} ${n} 0 ${LEAK_R}`)
+  // 每个进入网表的非地节点 1 TΩ 对地泄放（第 4 步）。ngspice 遇浮空节点不报错而给出无意义结果，此步必做
+  const leaks = [...activeNodes].filter((n) => n !== '0').map((n) => `Rleak_${n} ${n} 0 ${LEAK_R}`)
 
   out.push(...subckts.values(), ...params, ...instances, ...instrumentLines, ...leaks, ...input.analysis, '.end')
   try {

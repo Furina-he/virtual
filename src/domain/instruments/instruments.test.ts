@@ -34,7 +34,16 @@ describe('instrument content and configuration', () => {
     expect(getInstrumentDefaults(vm).range).toBe('r20')
     expect(getInstrumentDefaults(am).range).toBe('r200m')
     expect(getInstrumentDefaults(mm).range).toBe('dcv20')
-    expect(getInstrumentDefaults(ps)).toEqual({ range: 'out30', ch1_v: 6, ch2_v: 12 })
+    expect(getInstrumentDefaults(ps)).toEqual({
+      range: 'out30',
+      ch1_v: 6,
+      ch1_i: 1,
+      ch2_v: 12,
+      ch2_i: 1,
+      is_ma: 20,
+      is_range: 1,
+      tracking: 0,
+    })
     const renamed = { ...vm, id: 'ins-another', ranges: [...vm.ranges].reverse() }
     expect(resolveInstrument(renamed).range.id).toBe('r20')
     expect(resolveInstrument(renamed).internalR).toBe(1e7)

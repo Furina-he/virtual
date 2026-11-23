@@ -37,12 +37,12 @@ function sceneTransform(placement: (typeof wiringScene.placements)[number]): Mat
 }
 
 describe('content-owned wiring context', () => {
-  it('loads the configured placements and 52 unique, schema-valid global jack references', () => {
+  it('loads the configured placements and 60 unique, schema-valid global jack references', () => {
     expect(wiringScene).toEqual(sceneData)
-    expect(wiringScene.placements).toHaveLength(11)
-    expect(new Set(wiringScene.placements.map((placement) => placement.instanceId)).size).toBe(11)
-    expect(wiringJacks).toHaveLength(52)
-    expect(new Set(wiringJacks.map((jack) => jack.ref)).size).toBe(52)
+    expect(wiringScene.placements).toHaveLength(12)
+    expect(new Set(wiringScene.placements.map((placement) => placement.instanceId)).size).toBe(12)
+    expect(wiringJacks).toHaveLength(60)
+    expect(new Set(wiringJacks.map((jack) => jack.ref)).size).toBe(60)
     for (const jack of wiringJacks) {
       expect(JackRef.safeParse(jack.ref).success, jack.ref).toBe(true)
       expect(jack.ref).toBe(`${jack.instanceId}.${jack.id}`)
@@ -54,7 +54,7 @@ describe('content-owned wiring context', () => {
 
   it('keeps fixed instrument instance IDs and mounting slots compatible with authoritative content', () => {
     const fixed = catalogData.assets.filter((asset) => asset.kind === 'instrument' && asset.mounting === 'fixed')
-    expect(fixed).toHaveLength(6)
+    expect(fixed).toHaveLength(7)
     const bench = catalogData.assets.find((asset) => asset.kind === 'bench')
     if (!bench) throw new Error('Missing bench asset fixture')
     const benchAnchors = inspectGlb(parseGlb(readFileSync(new URL(bench.model, root)))).anchors
@@ -115,7 +115,7 @@ describe('content-owned wiring context', () => {
         checked++
       }
     }
-    expect(checked).toBe(52)
+    expect(checked).toBe(60)
   })
 
   it('preserves three desktop previews but starts teaching with an empty desktop', () => {
@@ -142,9 +142,9 @@ describe('content-owned wiring context', () => {
         powered: false,
       }).success,
     ).toBe(true)
-    expect(fixedPlacements).toHaveLength(8)
+    expect(fixedPlacements).toHaveLength(9)
     expect(placementsForInstruments(initialInstruments)).toEqual(fixedPlacements)
-    expect(jacksForPlacements(fixedPlacements)).toHaveLength(40)
+    expect(jacksForPlacements(fixedPlacements)).toHaveLength(48)
     expect(jacksForPlacements(fixedPlacements).some((jack) => jack.instanceId === 'meter1')).toBe(false)
   })
 

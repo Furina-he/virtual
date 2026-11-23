@@ -1,0 +1,65 @@
+{
+  "id": "ins-ac-power",
+  "name": "三相调压交流电源",
+  "kind": "acSupply",
+  "mounting": "fixed",
+  "fixedSlot": "SLOT_INS_ACPOWER",
+  "model": "instrument.glb",
+  "jacks": [
+    {
+      "id": "U",
+      "label": "U",
+      "kind": "banana4",
+      "polarityHint": "+"
+    },
+    {
+      "id": "V",
+      "label": "V",
+      "kind": "banana4",
+      "polarityHint": "+"
+    },
+    {
+      "id": "W",
+      "label": "W",
+      "kind": "banana4",
+      "polarityHint": "+"
+    },
+    {
+      "id": "N",
+      "label": "N",
+      "kind": "banana4",
+      "polarityHint": "-"
+    }
+  ],
+  "ranges": [
+    {
+      "id": "ac450",
+      "full": 450,
+      "unit": "V",
+      "internalR": 0.05,
+      "resolution": 0.1
+    }
+  ],
+  "defaultRange": "ac450",
+  "outputs": [
+    ["U", "N"],
+    ["V", "N"],
+    ["W", "N"],
+    ["U", "V"],
+    ["V", "W"],
+    ["W", "U"]
+  ],
+  "settingsControls": [
+    {
+      "id": "u_phase",
+      "label": "相电压调压",
+      "unit": "V",
+      "min": 0,
+      "max": 260,
+      "step": 1,
+      "default": 220,
+      "anchor": "KNOB_VARIAC"
+    }
+  ],
+  "spiceTemplate": "Vu_{X} u_src_{X} {J:N} SIN(0 311.1269837 50 0 0 0)\nRu_{X} u_src_{X} {J:U} {R}\nVv_{X} v_src_{X} {J:N} SIN(0 311.1269837 50 0 0 -120)\nRv_{X} v_src_{X} {J:V} {R}\nVw_{X} w_src_{X} {J:N} SIN(0 311.1269837 50 0 0 120)\nRw_{X} w_src_{X} {J:W} {R}"
+}
