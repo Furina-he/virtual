@@ -40,12 +40,13 @@ import { resetScopeAcquisition } from '@/lib/scope-acquisition'
 import { useSimRestartNotice } from '@/lib/use-sim-restart-notice'
 import { cn } from '@/lib/utils'
 import { resetSimulationStatus, setSimulationStatus, useSimulationStatus } from '@/stores/simulation-status'
-import { resetTask, taskStore, useTask } from '@/stores/task'
+import { resetTask, setTaskGuideMode, taskStore, useTask } from '@/stores/task'
+import { useBenchView } from '@/three/bench-view'
 import { BenchViewport3D } from '@/three/bench-viewport'
 import { qualityPreset, useQuality } from '@/three/quality-store'
 import { formatRealtimeRatio } from '../../../domain/measurement/pace'
 import { buildMeasurementPlan } from '../../../domain/measurement/plan'
-import { currentTaskStep, scopedReference } from '../../../domain/task'
+import { currentTaskStep, GUIDE_MODE_LABELS, scopedReference } from '../../../domain/task'
 import { checkWiring, detectDanger } from '../../../domain/wiring-check'
 import type { Project } from '../../../shared/schema/project'
 import { InstrumentCabinet } from './instrument-cabinet'
@@ -108,9 +109,15 @@ function TopBar({
   const { projectId } = useParams()
   const powered = useCircuit((s) => s.powered)
   const togglePower = useCircuit((s) => s.togglePower)
+  const guideMode = useTask((state) => state.guideMode)
   const task = useTask((state) => (state.projectId === project?.id ? state.task : undefined))
   const step = project?.steps.filter((entry) => task?.completedSteps.includes(entry.id)).length ?? 0
   const steps = project?.steps.length ?? 0
+  const toggleGuideMode = () => {
+    const next = guideMode === 'guided' ? 'free' : 'guided'
+    if (next === 'free') useBenchView.getState().setShowGuide(false)
+    setTaskGuideMode(next)
+  }
   const check = () => {
     if (!project) return
     try {
@@ -148,6 +155,15 @@ function TopBar({
         </span>
       </div>
       <div className="ml-auto flex items-center gap-1">
+        <Button
+          variant="outline"
+          data-top-guide-mode={guideMode}
+          aria-label="切换引导或自主模式"
+          onClick={toggleGuideMode}
+          disabled={!sceneReady}
+        >
+          {GUIDE_MODE_LABELS[guideMode]}
+        </Button>
         <Button variant="outline" onClick={check} disabled={!project || !sceneReady}>
           <ClipboardCheck />
           检查接线
@@ -288,6 +304,7 @@ export function Workbench() {
   const [activationAttempt, setActivationAttempt] = useState(0)
   const leftTab = useTask((state) => state.leftTab)
   const bottomTab = useTask((state) => state.bottomTab)
+  const guideMode = useTask((state) => state.guideMode)
   const resetVersion = useTask((state) => state.resetVersion)
   const task = useTask((state) => (state.projectId === project?.id ? state.task : undefined))
   const guideNets = useMemo(() => {
@@ -435,7 +452,15 @@ export function Workbench() {
           <ResizablePanel id="center" minSize="30" className="min-h-0">
             <ResizablePanelGroup orientation="vertical" className="min-h-0 overflow-hidden" {...center}>
               <ResizablePanel id="viewport" minSize={200}>
-                <BenchViewport3D onReadyChange={setSceneReady} guideNets={guideNets} />
+                <BenchViewport3D
+                  onReadyChange={setSceneReady}
+                  guideNets={guideNets}
+                  guideMode={guideMode}
+                  onGuideBlocked={(message) => {
+                    taskStore.setState({ notice: message })
+                    circuitStore.setState({ notice: message })
+                  }}
+                />
               </ResizablePanel>
               <ResizableHandle />
               <ResizablePanel

@@ -1,4 +1,5 @@
 import { useDroppable } from '@dnd-kit/react'
+import { canToggleReferenceOverlay, type GuideMode } from '@domain/task'
 import { CameraControls, ContactShadows, Environment, Html, useEnvironment, useGLTF } from '@react-three/drei'
 import { addAfterEffect, Canvas, type ThreeEvent, useFrame, useThree } from '@react-three/fiber'
 import { useReducedMotion } from 'motion/react'
@@ -600,12 +601,18 @@ const noGuide: readonly (readonly string[])[] = []
 export function BenchViewport3D({
   onReadyChange,
   guideNets = noGuide,
+  guideMode = 'guided',
+  onGuideBlocked,
 }: {
   onReadyChange?: (ready: boolean) => void
   /** Reference nets of the current step, drawn dashed when the guide toggle is on. */
   guideNets?: readonly (readonly string[])[]
+  guideMode?: GuideMode
+  onGuideBlocked?: (message: string) => void
 }) {
   const showGuide = useBenchView((state) => state.showGuide)
+  const effectiveGuideNets = guideMode === 'guided' ? guideNets : noGuide
+  const guideActive = showGuide && guideMode === 'guided' && effectiveGuideNets.length > 0
   const region = useRef<HTMLElement>(null)
   const startupTime = useRef(performance.now())
   const [attempt, setAttempt] = useState(0)
@@ -698,9 +705,18 @@ export function BenchViewport3D({
         placed.map(({ instanceId, instrumentId, slot }) => ({ instanceId, instrumentId, slot })),
       )}
       data-dragging-instrument={dragging ?? ''}
+      data-guide-mode={guideMode}
+      data-reference-guide={guideActive ? 'on' : 'off'}
     >
       <div className="flex flex-wrap items-center gap-2 border-b bg-background px-3 py-2">
-        <p className="mr-auto text-xs text-muted-foreground">仪表选取与接线编辑</p>
+        <p className="mr-auto text-xs text-muted-foreground">
+          仪表选取与接线编辑
+          {guideMode === 'free' && (
+            <span data-guide-mode-notice className="ml-2 text-warning">
+              （自主模式：已隐藏参考接线虚线）
+            </span>
+          )}
+        </p>
         <fieldset aria-label="预设视角" className="flex items-center gap-1">
           {presets.map((item) => (
             <Button
@@ -733,10 +749,18 @@ export function BenchViewport3D({
         </Select>
         <Button
           size="sm"
-          variant={showGuide ? 'secondary' : 'ghost'}
-          aria-pressed={showGuide}
-          disabled={loadState !== 'ready' || !guideNets.length}
-          onClick={() => useBenchView.getState().toggleGuide()}
+          variant={guideActive ? 'secondary' : 'ghost'}
+          aria-pressed={guideActive}
+          disabled={loadState !== 'ready' || (guideMode === 'guided' && !effectiveGuideNets.length)}
+          onClick={() => {
+            const check = canToggleReferenceOverlay(guideMode, guideNets)
+            if (!check.allowed) {
+              useBenchView.getState().setShowGuide(false)
+              onGuideBlocked?.(check.message)
+              return
+            }
+            useBenchView.getState().toggleGuide()
+          }}
         >
           参考接线
         </Button>
@@ -791,7 +815,7 @@ export function BenchViewport3D({
                   onContextLost={onContextLost}
                   enabled={loadState === 'ready'}
                   registry={models}
-                  guideNets={guideNets}
+                  guideNets={effectiveGuideNets}
                 />
                 {settings.shadows > 0 && (
                   <>

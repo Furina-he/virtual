@@ -10,17 +10,22 @@ import {
   type FaultFlowState,
   type FaultKind,
   type FaultSelectionMode,
+  findNextIncompleteRow,
+  type GuideMode,
   type MeasurementSnapshot,
   measurementUnit,
+  normalizeQuestionAnswers,
   observeFaultSymptom,
   recordCurrentReading,
   recordFaultMeasurement,
   repairFault,
   requiredMeasurements,
+  resolveGuideModePolicy,
   scopedReference,
   startFaultSession,
   submitFaultDiagnosis,
   type TaskState,
+  updateQuestionAnswer,
   verifyFaultRepair,
   writeTableCell,
 } from '../../domain/task'
@@ -56,6 +61,9 @@ export type TaskUiState = {
   captures: Record<string, CapturedMeasurement>
   screenshots: ReportScreenshot[]
   faultFlow: FaultFlowState
+  guideMode: GuideMode
+  focusedStepId: string | null
+  answers: Record<string, string>
   resetVersion: number
 }
 
@@ -71,6 +79,9 @@ export const taskStore = createStore<TaskUiState>()(() => ({
   captures: {},
   screenshots: [],
   faultFlow: createFaultFlowState(),
+  guideMode: 'guided',
+  focusedStepId: null,
+  answers: {},
   resetVersion: 0,
 }))
 
@@ -109,6 +120,9 @@ export function resetTask(project?: Project): void {
     captures: {},
     screenshots: [],
     faultFlow: createFaultFlowState(),
+    guideMode: 'guided',
+    focusedStepId: project?.steps[0]?.id ?? null,
+    answers: project ? normalizeQuestionAnswers(project) : {},
     resetVersion: taskStore.getState().resetVersion + 1,
   })
 }
@@ -327,10 +341,12 @@ export function recordTaskReadings(project: Project): boolean {
     if (completion.ok) task = completion.state
     completionMessage = `${completion.message}${wiring && !wiring.correct ? wiring.messages.join(' ') : ''}`
   }
-  const nextTable = currentTaskStep(project, task)?.dataTable ?? table.id
+  const nextStep = currentTaskStep(project, task)
+  const nextTable = nextStep?.dataTable ?? table.id
   const nextRows = project.dataTables.find((entry) => entry.id === nextTable)?.rows ?? table.rows
   taskStore.setState({
     task,
+    focusedStepId: nextStep?.id ?? project.steps.at(-1)?.id ?? state.focusedStepId,
     selectedTable: nextTable,
     selectedRow: Math.min(row, nextRows - 1),
     captures,
@@ -356,10 +372,12 @@ export function completeCurrentTaskStep(project: Project): boolean {
     row: state.selectedRow,
     wiringCorrect: wiring?.correct,
   })
-  const nextTable = currentTaskStep(project, update.state)?.dataTable ?? state.selectedTable
+  const nextStep = currentTaskStep(project, update.state)
+  const nextTable = nextStep?.dataTable ?? state.selectedTable
   const nextRows = project.dataTables.find((entry) => entry.id === nextTable)?.rows ?? 1
   taskStore.setState({
     task: update.state,
+    focusedStepId: update.ok ? (nextStep?.id ?? project.steps.at(-1)?.id ?? state.focusedStepId) : state.focusedStepId,
     selectedTable: nextTable,
     selectedRow: Math.min(state.selectedRow, nextRows - 1),
     leftTab: 'steps',
@@ -450,6 +468,69 @@ export function verifyTaskFaultRepair(project: Project): boolean {
   taskStore.setState({
     faultFlow: update.state,
     notice: update.message,
+  })
+  return update.ok
+}
+
+export function setTaskGuideMode(mode: GuideMode): void {
+  const policy = resolveGuideModePolicy(mode)
+  taskStore.setState({
+    guideMode: mode,
+    notice: policy.statusNotice,
+  })
+}
+
+export function focusTaskStep(project: Project, stepId: string | null): boolean {
+  if (!active(project)) return false
+  if (stepId !== null && !project.steps.some((step) => step.id === stepId)) {
+    taskStore.setState({ notice: '所选实训步骤不存在。' })
+    return false
+  }
+  const targetStep = stepId
+    ? project.steps.find((step) => step.id === stepId)
+    : currentTaskStep(project, taskStore.getState().task)
+  const linkedTable = targetStep?.dataTable ?? targetStep?.recordTable
+  const state = taskStore.getState()
+  const nextTable =
+    linkedTable && project.dataTables.some((t) => t.id === linkedTable) ? linkedTable : state.selectedTable
+  const nextRows = project.dataTables.find((t) => t.id === nextTable)?.rows ?? 1
+  taskStore.setState({
+    focusedStepId: stepId,
+    selectedTable: nextTable,
+    selectedRow: Math.min(state.selectedRow, nextRows - 1),
+  })
+  return true
+}
+
+export function recordNextTaskRowReadings(project: Project): boolean {
+  if (!active(project)) return false
+  const state = taskStore.getState()
+  const step = currentTaskStep(project, state.task)
+  const tableId = step?.dataTable ?? state.selectedTable
+  const table = project.dataTables.find((item) => item.id === tableId)
+  if (!table) {
+    taskStore.setState({ notice: '当前项目没有可记录的数据表，请选择已配置的数据表。' })
+    return false
+  }
+  const targetRow = findNextIncompleteRow(project, state.task, table.id, 0)
+  taskStore.setState({ selectedTable: table.id, selectedRow: targetRow })
+  const ok = recordTaskReadings(project)
+  if (!ok) return false
+  const after = taskStore.getState()
+  if (after.selectedTable === table.id && table.rows > 1) {
+    const nextRow = findNextIncompleteRow(project, after.task, table.id, Math.min(targetRow + 1, table.rows - 1))
+    taskStore.setState({ selectedRow: nextRow })
+  }
+  return true
+}
+
+export function setTaskQuestionAnswer(project: Project, questionIndex: number, text: string): boolean {
+  if (!active(project)) return false
+  const state = taskStore.getState()
+  const update = updateQuestionAnswer(project, state.answers, questionIndex, text)
+  taskStore.setState({
+    answers: update.answers,
+    ...(update.ok ? {} : { notice: update.message }),
   })
   return update.ok
 }

@@ -51,7 +51,7 @@
     {
       "id": "fault_points",
       "title": "放大电路排故节点电压记录",
-      "rows": 1,
+      "rows": 3,
       "columns": [
         { "id": "vcc", "title": "VCC", "unit": "V", "measurePoint": "vcc" },
         { "id": "ub", "title": "UB", "unit": "V", "measurePoint": "ub" },

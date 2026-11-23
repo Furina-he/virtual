@@ -1,5 +1,12 @@
 import { isMeasurementInstrument } from '@domain/instruments'
-import { currentTaskStep, measurementUnit } from '@domain/task'
+import {
+  buildStepViewList,
+  currentTaskStep,
+  GUIDE_MODE_LABELS,
+  GUIDE_MODES,
+  measurementUnit,
+  resolveGuideModePolicy,
+} from '@domain/task'
 import type { Project } from '@shared/schema/project'
 import { useEffect, useId, useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
@@ -10,17 +17,22 @@ import { cn } from '@/lib/utils'
 import { useInstrumentPanels } from '@/stores/instrument-panels'
 import {
   completeCurrentTaskStep,
+  focusTaskStep,
   formatTaskCellValue,
   parseTaskCellDraft,
+  recordNextTaskRowReadings,
   recordTaskReadings,
   removeReportScreenshot,
   selectTaskRow,
   selectTaskSource,
   selectTaskTable,
+  setTaskGuideMode,
+  setTaskQuestionAnswer,
   taskCellKey,
   useTask,
   writeTaskCell,
 } from '@/stores/task'
+import { useBenchView } from '@/three/bench-view'
 import type { CapturedMeasurement } from '../../../domain/task'
 
 export { completeCurrentTaskStep, recordTaskReadings } from '@/stores/task'
@@ -286,6 +298,11 @@ export function TaskDataPanel({ project }: { project?: Project }) {
             <Button variant="outline" onClick={() => recordTaskReadings(project)} disabled={!table}>
               记录当前行读数
             </Button>
+            {table && table.rows > 1 && (
+              <Button variant="outline" onClick={() => recordNextTaskRowReadings(project)}>
+                记录至下一空行
+              </Button>
+            )}
           </div>
           <p className="text-xs leading-relaxed text-muted-foreground">
             可手填有限数值，留空清除。快捷记录仅写入当前真实仪表所测的绑定列，按测量点参考方向保留符号；未接入的列保持原值。
@@ -385,12 +402,16 @@ export function TaskStepsPanel({ project }: { project?: Project }) {
   const initialized = state.projectId === project.id
   const current = initialized ? currentTaskStep(project, state.task) : undefined
   const completed = initialized ? state.task.completedSteps : []
+  const stepViews = initialized ? buildStepViewList(project, state.task, state.focusedStepId) : []
+  const policy = resolveGuideModePolicy(state.guideMode)
   return (
     <section
       aria-label="实训步骤"
       data-task-project={project.id}
       data-current-step={current?.id ?? ''}
+      data-focused-step={state.focusedStepId ?? current?.id ?? ''}
       data-completed-count={completed.length}
+      data-guide-mode={state.guideMode}
       className="min-w-0"
     >
       <div className="sticky top-0 z-10 space-y-2 border-b bg-background p-3">
@@ -400,8 +421,26 @@ export function TaskStepsPanel({ project }: { project?: Project }) {
             {completed.length}/{project.steps.length}
           </span>
         </div>
-        <p className="text-xs leading-relaxed text-muted-foreground">
-          按顺序完成。测量步骤会核对当前真实读数，手填数据不能替代测量证据。
+        <fieldset aria-label="实训引导模式" className="grid grid-cols-2 gap-1">
+          {GUIDE_MODES.map((mode) => (
+            <Button
+              key={mode}
+              size="xs"
+              variant={state.guideMode === mode ? 'secondary' : 'outline'}
+              aria-pressed={state.guideMode === mode}
+              onClick={() => {
+                if (mode === 'free') useBenchView.getState().setShowGuide(false)
+                setTaskGuideMode(mode)
+              }}
+            >
+              {GUIDE_MODE_LABELS[mode]}
+            </Button>
+          ))}
+        </fieldset>
+        <p data-guide-mode-policy className="text-xs leading-relaxed text-muted-foreground">
+          {policy.showProcessHints
+            ? '按顺序完成。测量步骤会核对当前真实读数，手填数据不能替代测量证据。'
+            : '自主模式：已隐藏 3D 参考接线虚线与步骤过程测点提示，保留安全告警与手动接线检查。'}
         </p>
         <Button className="w-full" disabled={!initialized || !current} onClick={() => completeCurrentTaskStep(project)}>
           完成当前步骤
@@ -409,20 +448,25 @@ export function TaskStepsPanel({ project }: { project?: Project }) {
         <TaskFeedback live={state.bottomTab !== 'data'} />
       </div>
       <ol className="divide-y px-3">
-        {project.steps.map((step, index) => {
-          const done = completed.includes(step.id)
-          const active = current?.id === step.id
+        {stepViews.map((step) => {
+          const done = step.status === 'completed'
+          const active = step.status === 'current'
           return (
             <li
               key={step.id}
               data-step-id={step.id}
-              data-step-state={done ? 'completed' : active ? 'current' : 'pending'}
-              className="space-y-1 py-3"
+              data-step-state={step.status}
+              data-step-focused={step.focused ? 'true' : 'false'}
+              className={cn('space-y-1.5 py-3', step.focused && 'bg-muted/40 px-2 -mx-2 rounded-sm')}
             >
               <div className="flex items-center justify-between gap-2">
-                <h3 className="font-mono text-xs">
-                  {index + 1}. {step.id}
-                </h3>
+                <button
+                  type="button"
+                  onClick={() => focusTaskStep(project, step.id)}
+                  className="text-left font-mono text-xs hover:underline focus-visible:outline-1"
+                >
+                  {step.index + 1}. {step.id}
+                </button>
                 <span
                   className={cn('text-xs', done ? 'text-success' : active ? 'text-primary' : 'text-muted-foreground')}
                 >
@@ -430,10 +474,44 @@ export function TaskStepsPanel({ project }: { project?: Project }) {
                 </span>
               </div>
               <p className="text-sm leading-relaxed">{step.text}</p>
+              {policy.showProcessHints && (step.measurePoints.length > 0 || step.dataTable) && (
+                <p data-step-hint={step.id} className="font-mono text-xs text-muted-foreground">
+                  {step.measurePoints.length > 0 ? `需测点：${step.measurePoints.join(', ')}` : ''}
+                  {step.measurePoints.length > 0 && step.dataTable ? ' · ' : ''}
+                  {step.dataTable ? `关联表：${step.dataTable}` : ''}
+                </p>
+              )}
             </li>
           )
         })}
       </ol>
+      {project.questions.length > 0 && (
+        <section aria-label="思考题作答" data-task-questions className="space-y-3 border-t p-3">
+          <h3 className="text-xs font-medium">思考题作答（{project.questions.length}）</h3>
+          <div className="space-y-3">
+            {project.questions.map((question, index) => {
+              const qKey = String(index)
+              const answer = state.answers[qKey] ?? ''
+              return (
+                <div key={question} className="space-y-1">
+                  <label htmlFor={`question-${project.id}-${index}`} className="block text-xs leading-relaxed">
+                    {index + 1}. {question}
+                  </label>
+                  <Input
+                    id={`question-${project.id}-${index}`}
+                    aria-label={`思考题 ${index + 1} 作答`}
+                    data-question-index={index}
+                    value={answer}
+                    placeholder="输入本题分析与作答（随存档与报告保存）"
+                    className="text-xs"
+                    onChange={(event) => setTaskQuestionAnswer(project, index, event.target.value)}
+                  />
+                </div>
+              )
+            })}
+          </div>
+        </section>
+      )}
     </section>
   )
 }

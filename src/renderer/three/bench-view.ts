@@ -25,6 +25,7 @@ interface BenchViewState {
   setNearbyJacks: (ids: readonly string[]) => void
   setWireMenu: (menu: BenchViewState['wireMenu']) => void
   toggleGuide: () => void
+  setShowGuide: (show: boolean) => void
 }
 
 const none: readonly string[] = []
@@ -58,6 +59,10 @@ export const useBenchView = create<BenchViewState>()((set, get) => ({
   },
   setWireMenu: (wireMenu) => set({ wireMenu }),
   toggleGuide: () => set({ showGuide: !get().showGuide }),
+  setShowGuide: (showGuide) => {
+    if (get().showGuide === showGuide) return
+    set({ showGuide })
+  },
   setNearbyJacks: (ids) => {
     const current = get().nearbyJacks
     if (ids.length === current.length && ids.every((id, index) => current[index] === id)) return
