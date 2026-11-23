@@ -17,6 +17,19 @@ if (missing.length) throw new Error(missing.join('\n'))
 const catalog: { assets: AssetDefinition[] } = JSON.parse(
   readFileSync(workspacePath('assets/layouts/catalog.json'), 'utf8'),
 )
+const onlyArg = process.argv.find((arg) => arg.startsWith('--only='))
+const onlyIds = onlyArg
+  ? onlyArg
+      .slice('--only='.length)
+      .split(',')
+      .map((id) => id.trim())
+      .filter(Boolean)
+  : []
+if (onlyIds.length) {
+  const known = new Set(catalog.assets.map((asset) => asset.id))
+  const unknown = onlyIds.filter((id) => !known.has(id))
+  if (unknown.length) throw new Error(`Unknown asset id(s) in --only: ${unknown.join(', ')}`)
+}
 const outputs = new Set<string>()
 for (const asset of catalog.assets) {
   importedSource(asset)
@@ -95,7 +108,7 @@ try {
     cwd: workspaceRoot,
     env: {
       ...process.env,
-      ASSET_EXPORT_URL: `http://127.0.0.1:${address.port}/tools/assets/export.html`,
+      ASSET_EXPORT_URL: `http://127.0.0.1:${address.port}/tools/assets/export.html${onlyIds.length ? `?only=${encodeURIComponent(onlyIds.join(','))}` : ''}`,
       ASSET_EXPORT_USER_DATA: profile,
     },
   })

@@ -4,8 +4,8 @@
     {
       "id": "bench",
       "model": "content/bench/bench.glb",
-      "bytes": 294540,
-      "sha256": "f4336be093abcb9c1854c671cc3203406b6de7821fca76e2d8445f749296a0fc",
+      "bytes": 295032,
+      "sha256": "b78ddbd6368c00d628f062ef6e19c2aaba6451355ea6390051521ff0504999d3",
       "triangles": 2134,
       "drawCalls": 3,
       "bounds": {
@@ -40,6 +40,45 @@
             0.11,
             1.405,
             -0.27
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "SLOT_INS_ACV",
+          "position": [
+            0.3,
+            1.405,
+            -0.27
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "SLOT_INS_ACA",
+          "position": [
+            0.49,
+            1.405,
+            -0.27
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "SLOT_INS_WATT",
+          "position": [
+            0.705,
+            1.385,
+            -0.28
           ],
           "normal": [
             0,
@@ -2459,11 +2498,494 @@
           "height": 1428
         }
       ]
+    },
+    {
+      "id": "ins-ac-voltmeter",
+      "model": "content/instruments/ins-ac-voltmeter/instrument.glb",
+      "bytes": 150768,
+      "sha256": "367baf6a63cc6a87d6c05febe5cb050c0b76983c40d4f053b894af41bc42c7bf",
+      "triangles": 1060,
+      "drawCalls": 6,
+      "bounds": {
+        "min": [
+          -0.07999999821186066,
+          8.940696516468449e-10,
+          -0.05000000074505806
+        ],
+        "max": [
+          0.07999999821186066,
+          0.07999999821186066,
+          0.05404999852180481
+        ]
+      },
+      "anchors": [
+        {
+          "name": "JACK_U",
+          "position": [
+            0.048,
+            0.023,
+            0.054000000000000006
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_STAR",
+          "position": [
+            0.067,
+            0.023,
+            0.054000000000000006
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "SW_RANGE",
+          "position": [
+            0.01,
+            0.021,
+            0.051500000000000004
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "SCREEN_MAIN",
+          "position": [
+            -0.027,
+            0.046,
+            0.0534
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "LED_OL",
+          "position": [
+            0.028,
+            0.054,
+            0.05260000000000001
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "textures": [
+        {
+          "mimeType": "image/webp",
+          "width": 1024,
+          "height": 512
+        }
+      ]
+    },
+    {
+      "id": "ins-ac-ammeter",
+      "model": "content/instruments/ins-ac-ammeter/instrument.glb",
+      "bytes": 150752,
+      "sha256": "1931bc93cfc32d4f6c67eb9ce186c96d21e293390f1a9d26e702f20e4ff46e34",
+      "triangles": 1060,
+      "drawCalls": 6,
+      "bounds": {
+        "min": [
+          -0.07999999821186066,
+          8.940696516468449e-10,
+          -0.05000000074505806
+        ],
+        "max": [
+          0.07999999821186066,
+          0.07999999821186066,
+          0.05404999852180481
+        ]
+      },
+      "anchors": [
+        {
+          "name": "JACK_I",
+          "position": [
+            0.048,
+            0.023,
+            0.054000000000000006
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_STAR",
+          "position": [
+            0.067,
+            0.023,
+            0.054000000000000006
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "SW_RANGE",
+          "position": [
+            0.01,
+            0.021,
+            0.051500000000000004
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "SCREEN_MAIN",
+          "position": [
+            -0.027,
+            0.046,
+            0.0534
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "LED_OL",
+          "position": [
+            0.028,
+            0.054,
+            0.05260000000000001
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "textures": [
+        {
+          "mimeType": "image/webp",
+          "width": 1024,
+          "height": 512
+        }
+      ]
+    },
+    {
+      "id": "ins-power-meter",
+      "model": "content/instruments/ins-power-meter/instrument.glb",
+      "bytes": 192088,
+      "sha256": "b1485ec320c50c5ba81aa4ea0a589efb4ca2e4ccb313b178b9ed6cdee36a4712",
+      "triangles": 1372,
+      "drawCalls": 6,
+      "bounds": {
+        "min": [
+          -0.10999999940395355,
+          2.98023217215615e-10,
+          -0.05999999865889549
+        ],
+        "max": [
+          0.10999999940395355,
+          0.10999999940395355,
+          0.06404999643564224
+        ]
+      },
+      "anchors": [
+        {
+          "name": "JACK_U",
+          "position": [
+            -0.074,
+            0.024,
+            0.064
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_U_STAR",
+          "position": [
+            -0.048,
+            0.024,
+            0.064
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_I",
+          "position": [
+            0.048,
+            0.024,
+            0.064
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_I_STAR",
+          "position": [
+            0.074,
+            0.024,
+            0.064
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "SW_MODE",
+          "position": [
+            0,
+            0.026,
+            0.0615
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "SCREEN_MAIN",
+          "position": [
+            0,
+            0.068,
+            0.0634
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "LED_OL",
+          "position": [
+            0.094,
+            0.078,
+            0.0626
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "textures": [
+        {
+          "mimeType": "image/webp",
+          "width": 1024,
+          "height": 512
+        }
+      ]
+    },
+    {
+      "id": "ins-ac-millivoltmeter",
+      "model": "content/instruments/ins-ac-millivoltmeter/instrument.glb",
+      "bytes": 299848,
+      "sha256": "7720742872fd5ee9ca5d543c3b68d77342ae056291530c200532cfce49ffd9f8",
+      "triangles": 2148,
+      "drawCalls": 6,
+      "bounds": {
+        "min": [
+          -0.10999999940395355,
+          -1.8998980166884394e-10,
+          -0.14350000023841858
+        ],
+        "max": [
+          0.10999999940395355,
+          0.13005000352859497,
+          0.1542750001847744
+        ]
+      },
+      "anchors": [
+        {
+          "name": "JACK_CH1",
+          "position": [
+            -0.072,
+            0.032,
+            0.14700000000000002
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_CH2",
+          "position": [
+            -0.024,
+            0.032,
+            0.14700000000000002
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_GND",
+          "position": [
+            -0.048,
+            0.016,
+            0.14400000000000002
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "KNOB_RANGE",
+          "position": [
+            0.056,
+            0.036,
+            0.14150000000000001
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "SW_CHANNEL",
+          "position": [
+            0.012,
+            0.036,
+            0.14150000000000001
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "SCREEN_MAIN",
+          "position": [
+            0,
+            0.084,
+            0.14340000000000003
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "textures": [
+        {
+          "mimeType": "image/webp",
+          "width": 1024,
+          "height": 640
+        }
+      ]
+    },
+    {
+      "id": "ins-galvanometer",
+      "model": "content/instruments/ins-galvanometer/instrument.glb",
+      "bytes": 183548,
+      "sha256": "b6c526b0a39ea826306cb103a4f4818e346172a72a723e0b7ab47896b7f6b604",
+      "triangles": 1280,
+      "drawCalls": 4,
+      "bounds": {
+        "min": [
+          -0.05999999865889549,
+          -1.8998980166884394e-10,
+          -0.04349999874830246
+        ],
+        "max": [
+          0.05999999865889549,
+          0.12004999816417694,
+          0.04405000060796738
+        ]
+      },
+      "anchors": [
+        {
+          "name": "JACK_POS",
+          "position": [
+            -0.022,
+            0.022,
+            0.044000000000000004
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_NEG",
+          "position": [
+            0.022,
+            0.022,
+            0.044000000000000004
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "SCREEN_MAIN",
+          "position": [
+            0,
+            0.072,
+            0.0434
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "textures": [
+        {
+          "mimeType": "image/webp",
+          "width": 1024,
+          "height": 1024
+        }
+      ]
     }
   ],
   "preview": {
-    "triangles": 22302,
-    "drawCalls": 63
+    "triangles": 25794,
+    "drawCalls": 81
   },
   "issues": []
 }

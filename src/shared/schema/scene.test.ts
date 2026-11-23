@@ -42,10 +42,11 @@ describe('BenchScene schema', () => {
 
   it('rejects duplicate instance IDs even when their asset IDs differ', () => {
     const changed = structuredClone(sceneData)
+    const duplicateIndex = changed.placements.length
     changed.placements.push({ ...firstPlacement(changed), assetId: 'another-asset' })
     const result = BenchScene.safeParse(changed)
     expect(result.success).toBe(false)
-    expect(result.error?.issues.map((issue) => issue.path)).toContainEqual(['placements', 8, 'instanceId'])
+    expect(result.error?.issues.map((issue) => issue.path)).toContainEqual(['placements', duplicateIndex, 'instanceId'])
   })
 
   it.each([NaN, Infinity, -Infinity])('rejects nonfinite camera, placement and rotation values: %s', (value) => {
@@ -83,10 +84,14 @@ describe('content:lint scene integration', () => {
 
   it('reports duplicate instance IDs with the scene file and field path', () => {
     const changed = structuredClone(sceneData)
+    const duplicateIndex = changed.placements.length
     changed.placements.push({ ...firstPlacement(changed) })
     injected.value = JSON.stringify(changed)
     expect(lintContent('content/bench')).toEqual([
-      expect.objectContaining({ file: 'content/bench/scene.json', path: 'placements[8].instanceId' }),
+      expect.objectContaining({
+        file: 'content/bench/scene.json',
+        path: `placements[${duplicateIndex}].instanceId`,
+      }),
     ])
   })
 

@@ -1,0 +1,57 @@
+{
+  "id": "ins-ac-ammeter",
+  "name": "交流数字电流表",
+  "kind": "aca",
+  "mounting": "fixed",
+  "fixedSlot": "SLOT_INS_ACA",
+  "model": "instrument.glb",
+  "jacks": [
+    { "id": "I", "label": "I", "kind": "banana4", "polarityHint": "+" },
+    { "id": "STAR", "label": "*", "kind": "banana4", "polarityHint": "-" }
+  ],
+  "ranges": [
+    {
+      "id": "r100m",
+      "label": "100 mA",
+      "mode": "aca",
+      "full": 0.1,
+      "unit": "A",
+      "displayUnit": "mA",
+      "internalR": 2,
+      "resolution": 0.0001,
+      "positiveJack": "I",
+      "negativeJack": "STAR"
+    },
+    {
+      "id": "r1",
+      "label": "1 A",
+      "mode": "aca",
+      "full": 1,
+      "unit": "A",
+      "displayUnit": "A",
+      "internalR": 0.2,
+      "resolution": 0.001,
+      "positiveJack": "I",
+      "negativeJack": "STAR"
+    },
+    {
+      "id": "r5",
+      "label": "5 A",
+      "mode": "aca",
+      "full": 5,
+      "unit": "A",
+      "displayUnit": "A",
+      "internalR": 0.04,
+      "resolution": 0.001,
+      "positiveJack": "I",
+      "negativeJack": "STAR"
+    }
+  ],
+  "defaultRange": "r1",
+  "accuracyClass": 0.5,
+  "spiceTemplate": "Rsh_{X} {J:I} m_{X} {R}\nVsense_{X} m_{X} {J:STAR} DC 0",
+  "measure": {
+    "voltage": [],
+    "series": [["I", "STAR"]]
+  }
+}

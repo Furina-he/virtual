@@ -1,11 +1,11 @@
 import type { MeasurePoint } from '../../shared/schema/project.ts'
 import { UnionFind } from '../circuit/union-find.ts'
-import { checkInstrumentJacks } from '../instruments/index.ts'
+import { checkInstrumentJacks, type PowerMetrics } from '../instruments/index.ts'
 import type { Coupling, SignalMeasurement } from '../instruments/scope.ts'
 import type { MeasurementPlan, MeterPlan } from '../measurement/plan.ts'
 import { applyModuleInternals, type CheckInput, circuitPartition, wiredJacks } from '../wiring-check/common.ts'
 
-export type ReadingValue = { status: string; value?: number | null }
+export type ReadingValue = { status: string; value?: number | null; metrics?: PowerMetrics }
 export type WaveformWindow = {
   start: number
   end: number
@@ -78,6 +78,45 @@ function mapRef(plan: MeasurementPlan, ref: string): string | undefined {
 
 function orientation(plan: MeasurementPlan, point: MeasurePoint, meter: MeterPlan): 1 | -1 | undefined {
   const { config, instanceId } = meter
+  if (point.kind === 'power') {
+    if (
+      config.mode !== 'power' ||
+      !config.wattmeter ||
+      config.passive ||
+      checkInstrumentJacks(config, meter.connectedJacks) ||
+      !meter.voltageProbe ||
+      !meter.currentProbe ||
+      !point.between ||
+      !point.branch
+    )
+      return undefined
+    const input = plan.checkInput
+    const [p, n] = point.between.map((ref) => mapRef(plan, ref))
+    const [x, y] = point.branch.map((ref) => mapRef(plan, ref))
+    if (!p || !n || !x || !y) return undefined
+    const vPos = `${instanceId}.${config.positiveJack}`
+    const vNeg = `${instanceId}.${config.negativeJack}`
+    const iPos = `${instanceId}.${config.wattmeter.currentPositiveJack}`
+    const iNeg = `${instanceId}.${config.wattmeter.currentNegativeJack}`
+    const full = physicalVoltagePartition(input)
+    let vSign: 1 | -1 | 0 = 0
+    if (full.find(vPos) === full.find(p) && full.find(vNeg) === full.find(n)) vSign = 1
+    else if (full.find(vPos) === full.find(n) && full.find(vNeg) === full.find(p)) vSign = -1
+    if (!vSign) return undefined
+    const pair = input.instruments
+      .find((entry) => entry.instanceId === instanceId)
+      ?.instrument.measure?.series.findIndex(
+        ([ia, ib]) => ia === config.wattmeter?.currentPositiveJack && ib === config.wattmeter?.currentNegativeJack,
+      )
+    if (pair === undefined || pair < 0) return undefined
+    const uf = circuitPartition(input, { instanceId, pair })
+    if (uf.find(x) === uf.find(y)) return undefined
+    let iSign: 1 | -1 | 0 = 0
+    if (uf.find(iPos) === uf.find(x) && uf.find(iNeg) === uf.find(y)) iSign = 1
+    else if (uf.find(iPos) === uf.find(y) && uf.find(iNeg) === uf.find(x)) iSign = -1
+    if (!iSign) return undefined
+    return (vSign * iSign) as 1 | -1
+  }
   const current = point.kind === 'current'
   if (
     point.kind === 'waveform' ||
@@ -134,6 +173,30 @@ export function captureMeasurePoint(
   if (!match)
     return { ok: false, reason: 'not-connected', message: `请将正确档位的仪表接到测量点 ${point.id} 后再记录。` }
   const reading = snapshot.readings[match.meter.instanceId]
+  if (point.kind === 'power') {
+    const qty = point.powerQuantity ?? 'P'
+    const metricValue = reading?.metrics?.[qty]
+    if (reading?.status !== 'ok' || typeof metricValue !== 'number' || !Number.isFinite(metricValue))
+      return { ok: false, reason: 'unavailable', message: '功率表尚无有效稳态读数，请检查接线和上电状态。' }
+    const signed = qty === 'P' || qty === 'Q' || qty === 'pf'
+    const value = metricValue === 0 ? 0 : metricValue
+    return {
+      ok: true,
+      measurement: {
+        measurePoint: point.id,
+        instanceId: match.meter.instanceId,
+        displayValueSI: value,
+        referenceValueSI: value === 0 || !signed ? Math.abs(value) : match.sign * value,
+        reversed: match.sign === -1,
+      },
+      message:
+        match.sign === -1
+          ? signed
+            ? '功率表同名端极性接反，保留仪表显示值，并按测量点参考方向记录。'
+            : '功率表同名端极性接反，幅值量不因反接改变。'
+          : `测量点 ${point.id} 的当前功率读数可记录。`,
+    }
+  }
   const ac = match.meter.config.mode === 'acv' || match.meter.config.mode === 'aca'
   if (
     reading?.status !== 'ok' ||

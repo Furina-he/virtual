@@ -34,7 +34,66 @@ function scopePanel(instanceId: string) {
   return panel?.instrument.scope ? panel : undefined
 }
 
-function paintReading(context: CanvasRenderingContext2D, reading: InstrumentReading) {
+function paintGalvanometer(context: CanvasRenderingContext2D, reading: InstrumentReading) {
+  const { width, height } = context.canvas
+  const style = getComputedStyle(document.documentElement)
+  const fg = style.getPropertyValue(readingIsWarning(reading) ? '--warning' : '--foreground').trim()
+  const accent = style.getPropertyValue('--destructive').trim()
+  context.fillStyle = style.getPropertyValue('--muted').trim()
+  context.fillRect(0, 0, width, height)
+
+  const cx = width / 2
+  const cy = height * 0.88
+  const radius = Math.min(width * 0.42, height * 0.72)
+  const maxRad = (45 * Math.PI) / 180
+
+  context.strokeStyle = fg
+  context.lineWidth = Math.max(2, height * 0.015)
+  context.beginPath()
+  context.arc(cx, cy, radius, -Math.PI / 2 - maxRad, -Math.PI / 2 + maxRad)
+  context.stroke()
+
+  context.fillStyle = fg
+  context.font = `${Math.round(height * 0.09)}px "JetBrains Mono Variable", monospace`
+  context.textAlign = 'center'
+  context.textBaseline = 'middle'
+  for (const mark of [-1, -0.5, 0, 0.5, 1]) {
+    const theta = -Math.PI / 2 + mark * maxRad
+    context.beginPath()
+    context.moveTo(cx + Math.cos(theta) * (radius * 0.88), cy + Math.sin(theta) * (radius * 0.88))
+    context.lineTo(cx + Math.cos(theta) * radius, cy + Math.sin(theta) * radius)
+    context.stroke()
+    context.fillText(
+      mark === 0 ? '0' : `${mark > 0 ? '+' : ''}${mark * 100}`,
+      cx + Math.cos(theta) * (radius * 0.72),
+      cy + Math.sin(theta) * (radius * 0.72),
+    )
+  }
+
+  const deflection = Math.max(-1, Math.min(1, reading.deflection ?? 0))
+  const needleTheta = -Math.PI / 2 + deflection * maxRad
+  context.strokeStyle = accent
+  context.lineWidth = Math.max(3, height * 0.022)
+  context.beginPath()
+  context.moveTo(cx, cy)
+  context.lineTo(cx + Math.cos(needleTheta) * (radius * 0.92), cy + Math.sin(needleTheta) * (radius * 0.92))
+  context.stroke()
+
+  context.fillStyle = fg
+  context.beginPath()
+  context.arc(cx, cy, Math.max(4, height * 0.03), 0, Math.PI * 2)
+  context.fill()
+
+  context.font = `${Math.round(height * 0.11)}px "JetBrains Mono Variable", monospace`
+  context.textAlign = 'right'
+  context.fillText(`${reading.text} ${reading.unit}`.trim(), width - height * 0.08, height * 0.14)
+}
+
+function paintReading(context: CanvasRenderingContext2D, reading: InstrumentReading, galvanometer = false) {
+  if (galvanometer) {
+    paintGalvanometer(context, reading)
+    return
+  }
   const { width, height } = context.canvas
   const style = getComputedStyle(document.documentElement)
   const padding = Math.round(height * 0.1)
@@ -196,7 +255,8 @@ export function InstrumentScreens({ model, instanceId }: { model: Object3D; inst
         continue
       }
       const reading = getInstrumentReading(instanceId, screenReadingKey(binding.id))
-      paintReading(binding.context, reading)
+      const currentPanel = useInstrumentPanels.getState().panels.find((entry) => entry.id === instanceId)
+      paintReading(binding.context, reading, currentPanel?.instrument.kind === 'galvanometer')
       binding.texture.needsUpdate = true
       binding.mesh.userData.reading = reading.text
       binding.mesh.userData.readingStatus = reading.status

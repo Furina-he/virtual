@@ -1,5 +1,11 @@
 import type { InstrumentInput } from '../../../domain/circuit/assemble'
-import { getInstrumentDefaults, scopeSettingValid, signalSettingValid } from '../../../domain/instruments'
+import {
+  getInstrumentDefaults,
+  scopeSettingValid,
+  signalSettingValid,
+  WATTMETER_DISPLAY_MODES,
+  type WattmeterDisplayMode,
+} from '../../../domain/instruments'
 import type { CircuitState } from '../../../shared/schema/circuit'
 import { instrumentCatalog } from './practice-content'
 import { circuitStore, wiringScene } from './wiring-state'
@@ -12,7 +18,12 @@ export function benchInstruments(state: CircuitState = circuitStore.getState()):
     for (const [key, value] of Object.entries(state.controlValues)) {
       if (!key.startsWith(`${instanceId}.`)) continue
       const setting = key.slice(instanceId.length + 1)
-      settings[setting] = setting === 'range' ? instrument.ranges[value]?.id : value
+      settings[setting] =
+        setting === 'range'
+          ? instrument.ranges[value]?.id
+          : setting === 'displayMode'
+            ? (WATTMETER_DISPLAY_MODES[value] ?? 'P')
+            : value
     }
     return [{ instanceId, instrument, settings }]
   })
@@ -36,13 +47,21 @@ export function setBenchInstrumentSettings(instanceId: string, patch: Record<str
       scopeSettingValid(instrument, key, value) ??
       (key === 'range'
         ? instrument.ranges.some((range) => range.id === value)
-        : typeof value === 'number' && Number.isFinite(value)
-          ? key === 'internalR'
-            ? instrument.internalROptions?.includes(value)
-            : key === 'accuracyOffset'
-              ? Math.abs(value) <= 1
-              : control && value >= control.min && value <= control.max
-          : false)
+        : key === 'channel'
+          ? Boolean(instrument.inputChannels?.some((channel) => channel.id === value))
+          : key === 'displayMode'
+            ? Boolean(
+                instrument.wattmeter &&
+                  typeof value === 'string' &&
+                  (WATTMETER_DISPLAY_MODES as readonly string[]).includes(value),
+              )
+            : typeof value === 'number' && Number.isFinite(value)
+              ? key === 'internalR'
+                ? instrument.internalROptions?.includes(value)
+                : key === 'accuracyOffset'
+                  ? Math.abs(value) <= 1
+                  : control && value >= control.min && value <= control.max
+              : false)
     if (!valid) {
       circuitStore.setState({ notice: '仪表设置无效，请选择标注的档位或参数范围。' })
       return
@@ -55,7 +74,11 @@ export function setBenchInstrumentSettings(instanceId: string, patch: Record<str
       Object.fromEntries(
         Object.entries(patch).map(([key, value]) => [
           `${instanceId}.${key}`,
-          key === 'range' ? instrument.ranges.findIndex((range) => range.id === value) : (value as number),
+          key === 'range'
+            ? instrument.ranges.findIndex((range) => range.id === value)
+            : key === 'displayMode'
+              ? WATTMETER_DISPLAY_MODES.indexOf(value as WattmeterDisplayMode)
+              : (value as number),
         ]),
       ),
     )

@@ -9,9 +9,10 @@ const SlotId = z.string().regex(/^SLOT_[A-Z0-9_]+$/, '格式应为 SLOT_<大写I
 export const MeasurePoint = z
   .object({
     id: z.string().min(1),
-    kind: z.enum(['voltage', 'current', 'waveform']),
-    mode: z.enum(['dcv', 'acv', 'dca', 'aca']).optional(),
+    kind: z.enum(['voltage', 'current', 'waveform', 'power']),
+    mode: z.enum(['dcv', 'acv', 'dca', 'aca', 'power']).optional(),
     quantity: z.enum(['mean', 'vpp', 'min', 'max', 'frequency', 'period']).optional(),
+    powerQuantity: z.enum(['P', 'Q', 'S', 'pf', 'U', 'I']).optional(),
     minCycles: z.number().int().min(2).optional(),
     // Optional bounded raw/stream window for static waveform evidence.
     windowSec: z.number().finite().gt(0).lte(16).optional(),
@@ -20,18 +21,24 @@ export const MeasurePoint = z
     branch: z.tuple([JackRef, JackRef]).optional(),
   })
   .superRefine((p, ctx) => {
-    if (p.kind === 'current' && !p.branch)
-      ctx.addIssue({ code: 'custom', message: '电流测量点需要 branch', path: ['branch'] })
+    if ((p.kind === 'current' || p.kind === 'power') && !p.branch)
+      ctx.addIssue({ code: 'custom', message: '电流/功率测量点需要 branch', path: ['branch'] })
     if (p.kind !== 'current' && !p.between)
-      ctx.addIssue({ code: 'custom', message: '电压/波形测量点需要 between', path: ['between'] })
+      ctx.addIssue({ code: 'custom', message: '电压/波形/功率测量点需要 between', path: ['between'] })
     if (
       p.mode &&
       (p.kind === 'waveform' ||
-        (p.kind === 'current' ? !['dca', 'aca'].includes(p.mode) : !['dcv', 'acv'].includes(p.mode)))
+        (p.kind === 'current'
+          ? !['dca', 'aca'].includes(p.mode)
+          : p.kind === 'power'
+            ? p.mode !== 'power'
+            : !['dcv', 'acv'].includes(p.mode)))
     )
       ctx.addIssue({ code: 'custom', message: '测量模式与测量点类型不符', path: ['mode'] })
     if (p.quantity && p.kind !== 'waveform')
       ctx.addIssue({ code: 'custom', message: 'quantity 只用于波形测量点', path: ['quantity'] })
+    if (p.powerQuantity && p.kind !== 'power')
+      ctx.addIssue({ code: 'custom', message: 'powerQuantity 只用于功率测量点', path: ['powerQuantity'] })
     if (p.minCycles && p.kind !== 'waveform')
       ctx.addIssue({ code: 'custom', message: 'minCycles 只用于波形测量点', path: ['minCycles'] })
     if (p.windowSec !== undefined && p.kind !== 'waveform')

@@ -1,0 +1,32 @@
+{
+  "id": "ins-galvanometer",
+  "name": "指针式检流计",
+  "kind": "galvanometer",
+  "mounting": "desktop",
+  "model": "instrument.glb",
+  "jacks": [
+    { "id": "POS", "label": "+", "kind": "banana4", "polarityHint": "+" },
+    { "id": "NEG", "label": "−", "kind": "banana4", "polarityHint": "-" }
+  ],
+  "ranges": [
+    {
+      "id": "r100u",
+      "label": "±100 µA",
+      "mode": "dca",
+      "full": 0.0001,
+      "unit": "A",
+      "displayUnit": "uA",
+      "internalR": 1000,
+      "resolution": 0.0000001,
+      "positiveJack": "POS",
+      "negativeJack": "NEG"
+    }
+  ],
+  "defaultRange": "r100u",
+  "accuracyClass": 1.5,
+  "spiceTemplate": "Rsh_{X} {J:POS} m_{X} {R}\nVsense_{X} m_{X} {J:NEG} DC 0",
+  "measure": {
+    "voltage": [],
+    "series": [["POS", "NEG"]]
+  }
+}

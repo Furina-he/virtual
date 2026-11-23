@@ -1,0 +1,43 @@
+{
+  "id": "ins-power-meter",
+  "name": "单相功率与功率因数表",
+  "kind": "wattmeter",
+  "mounting": "fixed",
+  "fixedSlot": "SLOT_INS_WATT",
+  "model": "instrument.glb",
+  "jacks": [
+    { "id": "U", "label": "U", "kind": "banana4", "polarityHint": "+" },
+    { "id": "U_STAR", "label": "*U", "kind": "banana4", "polarityHint": "-" },
+    { "id": "I", "label": "I", "kind": "banana4", "polarityHint": "+" },
+    { "id": "I_STAR", "label": "*I", "kind": "banana4", "polarityHint": "-" }
+  ],
+  "ranges": [
+    {
+      "id": "r2250",
+      "label": "450 V / 5 A",
+      "mode": "power",
+      "full": 2250,
+      "unit": "W",
+      "displayUnit": "W",
+      "internalR": 1000000,
+      "resolution": 0.1,
+      "positiveJack": "U",
+      "negativeJack": "U_STAR"
+    }
+  ],
+  "defaultRange": "r2250",
+  "accuracyClass": 0.5,
+  "wattmeter": {
+    "voltageJacks": ["U", "U_STAR"],
+    "currentJacks": ["I", "I_STAR"],
+    "maxVoltage": 450,
+    "maxCurrent": 5,
+    "voltageR": 1000000,
+    "currentR": 0.05
+  },
+  "spiceTemplate": "Rvol_{X} {J:U} {J:U_STAR} 1000000\nRsh_{X} {J:I} m_{X} 0.05\nVsense_{X} m_{X} {J:I_STAR} DC 0",
+  "measure": {
+    "voltage": [["U", "U_STAR"]],
+    "series": [["I", "I_STAR"]]
+  }
+}

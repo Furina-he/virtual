@@ -51,6 +51,48 @@
           ]
         },
         {
+          "id": "SLOT_INS_ACV",
+          "position": [
+            0.3,
+            1.405,
+            -0.27
+          ],
+          "kind": "fixed",
+          "dimensionsMm": [
+            160,
+            80,
+            100
+          ]
+        },
+        {
+          "id": "SLOT_INS_ACA",
+          "position": [
+            0.49,
+            1.405,
+            -0.27
+          ],
+          "kind": "fixed",
+          "dimensionsMm": [
+            160,
+            80,
+            100
+          ]
+        },
+        {
+          "id": "SLOT_INS_WATT",
+          "position": [
+            0.705,
+            1.385,
+            -0.28
+          ],
+          "kind": "fixed",
+          "dimensionsMm": [
+            220,
+            110,
+            120
+          ]
+        },
+        {
           "id": "SLOT_INS_DCPOWER",
           "position": [
             -0.62,
@@ -4151,6 +4193,463 @@
             "size": 2.6,
             "align": "middle",
             "weight": 500
+          }
+        ]
+      }
+    },
+    {
+      "estimatedDimensions": true,
+      "jacks": [
+        {
+          "id": "U",
+          "label": "U",
+          "x": 128,
+          "y": 57,
+          "color": "red",
+          "kind": "banana4",
+          "labelY": 45
+        },
+        {
+          "id": "STAR",
+          "label": "*",
+          "x": 147,
+          "y": 57,
+          "color": "black",
+          "kind": "banana4",
+          "labelY": 45
+        }
+      ],
+      "controls": [
+        {
+          "id": "RANGE",
+          "label": "RANGE",
+          "kind": "switch",
+          "x": 90,
+          "y": 59,
+          "shape": "push",
+          "radiusMm": 4,
+          "labelX": 107,
+          "labelY": 60
+        }
+      ],
+      "screens": [
+        {
+          "id": "MAIN",
+          "x": 53,
+          "y": 34,
+          "width": 84,
+          "height": 24,
+          "style": "blank"
+        }
+      ],
+      "id": "ins-ac-voltmeter",
+      "name": "交流数字电压表",
+      "kind": "instrument",
+      "bodyStyle": "meter",
+      "dimensionsMm": [
+        160,
+        80,
+        100
+      ],
+      "model": "content/instruments/ins-ac-voltmeter/instrument.glb",
+      "textureSize": [
+        1024,
+        512
+      ],
+      "mounting": "fixed",
+      "dimensionNote": "160 x 80 x 100 mm embedded true-RMS AC voltmeter, estimated in prototype selection section 7.",
+      "leds": [
+        {
+          "id": "OL",
+          "label": "OL",
+          "x": 108,
+          "y": 26,
+          "color": "red"
+        }
+      ],
+      "panel": {
+        "title": "交流数字电压表",
+        "titleSize": 4.2,
+        "texts": [
+          {
+            "text": "V~",
+            "x": 111,
+            "y": 40,
+            "size": 4.8
+          },
+          {
+            "text": "10 V / 100 V / 500 V",
+            "x": 57,
+            "y": 71,
+            "size": 2.7
+          },
+          {
+            "text": "真有效值",
+            "x": 137,
+            "y": 72,
+            "size": 2.6
+          }
+        ]
+      }
+    },
+    {
+      "estimatedDimensions": true,
+      "jacks": [
+        {
+          "id": "I",
+          "label": "I",
+          "x": 128,
+          "y": 57,
+          "color": "red",
+          "kind": "banana4",
+          "labelY": 45
+        },
+        {
+          "id": "STAR",
+          "label": "*",
+          "x": 147,
+          "y": 57,
+          "color": "black",
+          "kind": "banana4",
+          "labelY": 45
+        }
+      ],
+      "controls": [
+        {
+          "id": "RANGE",
+          "label": "RANGE",
+          "kind": "switch",
+          "x": 90,
+          "y": 59,
+          "shape": "push",
+          "radiusMm": 4,
+          "labelX": 107,
+          "labelY": 60
+        }
+      ],
+      "screens": [
+        {
+          "id": "MAIN",
+          "x": 53,
+          "y": 34,
+          "width": 84,
+          "height": 24,
+          "style": "blank"
+        }
+      ],
+      "id": "ins-ac-ammeter",
+      "name": "交流数字电流表",
+      "kind": "instrument",
+      "bodyStyle": "meter",
+      "dimensionsMm": [
+        160,
+        80,
+        100
+      ],
+      "model": "content/instruments/ins-ac-ammeter/instrument.glb",
+      "textureSize": [
+        1024,
+        512
+      ],
+      "mounting": "fixed",
+      "dimensionNote": "160 x 80 x 100 mm embedded true-RMS AC ammeter, estimated in prototype selection section 7.",
+      "leds": [
+        {
+          "id": "OL",
+          "label": "OL",
+          "x": 108,
+          "y": 26,
+          "color": "red"
+        }
+      ],
+      "panel": {
+        "title": "交流数字电流表",
+        "titleSize": 4.2,
+        "texts": [
+          {
+            "text": "A~",
+            "x": 111,
+            "y": 40,
+            "size": 4.8
+          },
+          {
+            "text": "100 mA / 1 A / 5 A",
+            "x": 57,
+            "y": 71,
+            "size": 2.7
+          },
+          {
+            "text": "真有效值",
+            "x": 137,
+            "y": 72,
+            "size": 2.6
+          }
+        ]
+      }
+    },
+    {
+      "estimatedDimensions": true,
+      "jacks": [
+        {
+          "id": "U",
+          "label": "U",
+          "x": 36,
+          "y": 86,
+          "color": "red",
+          "kind": "banana4",
+          "labelY": 74
+        },
+        {
+          "id": "U_STAR",
+          "label": "*U",
+          "x": 62,
+          "y": 86,
+          "color": "black",
+          "kind": "banana4",
+          "labelY": 74
+        },
+        {
+          "id": "I",
+          "label": "I",
+          "x": 158,
+          "y": 86,
+          "color": "green",
+          "kind": "banana4",
+          "labelY": 74
+        },
+        {
+          "id": "I_STAR",
+          "label": "*I",
+          "x": 184,
+          "y": 86,
+          "color": "green",
+          "kind": "banana4",
+          "labelY": 74
+        }
+      ],
+      "controls": [
+        {
+          "id": "MODE",
+          "label": "显示切换",
+          "kind": "switch",
+          "x": 110,
+          "y": 84,
+          "shape": "push",
+          "radiusMm": 4.5,
+          "labelX": 110,
+          "labelY": 74
+        }
+      ],
+      "screens": [
+        {
+          "id": "MAIN",
+          "x": 110,
+          "y": 42,
+          "width": 168,
+          "height": 34,
+          "style": "blank"
+        }
+      ],
+      "id": "ins-power-meter",
+      "name": "单相功率与功率因数表",
+      "kind": "instrument",
+      "bodyStyle": "meter",
+      "dimensionsMm": [
+        220,
+        110,
+        120
+      ],
+      "model": "content/instruments/ins-power-meter/instrument.glb",
+      "textureSize": [
+        1024,
+        512
+      ],
+      "mounting": "fixed",
+      "dimensionNote": "220 x 110 x 120 mm embedded single-phase wattmeter / power factor meter, estimated in prototype selection section 7.",
+      "leds": [
+        {
+          "id": "OL",
+          "label": "OL",
+          "x": 204,
+          "y": 32,
+          "color": "red"
+        }
+      ],
+      "panel": {
+        "title": "单相功率 / 功率因数表",
+        "titleSize": 4.4,
+        "texts": [
+          {
+            "text": "电压端 450 V",
+            "x": 49,
+            "y": 103,
+            "size": 2.9
+          },
+          {
+            "text": "P / Q / S / cosφ",
+            "x": 110,
+            "y": 103,
+            "size": 2.7
+          },
+          {
+            "text": "电流端 5 A",
+            "x": 171,
+            "y": 103,
+            "size": 2.9
+          }
+        ]
+      }
+    },
+    {
+      "estimatedDimensions": true,
+      "jacks": [
+        {
+          "id": "CH1",
+          "label": "CH1",
+          "x": 38,
+          "y": 98,
+          "color": "yellow",
+          "kind": "bnc",
+          "labelY": 83
+        },
+        {
+          "id": "CH2",
+          "label": "CH2",
+          "x": 86,
+          "y": 98,
+          "color": "yellow",
+          "kind": "bnc",
+          "labelY": 83
+        },
+        {
+          "id": "GND",
+          "label": "GND",
+          "x": 62,
+          "y": 114,
+          "color": "black",
+          "kind": "banana4",
+          "labelX": 62,
+          "labelY": 104
+        }
+      ],
+      "controls": [
+        {
+          "id": "RANGE",
+          "label": "量程",
+          "kind": "knob",
+          "x": 166,
+          "y": 94,
+          "radiusMm": 15,
+          "labelY": 118
+        },
+        {
+          "id": "CHANNEL",
+          "label": "CH1/CH2",
+          "kind": "switch",
+          "x": 122,
+          "y": 94,
+          "shape": "push",
+          "radiusMm": 4.5,
+          "labelY": 108
+        }
+      ],
+      "screens": [
+        {
+          "id": "MAIN",
+          "x": 110,
+          "y": 46,
+          "width": 170,
+          "height": 42,
+          "style": "blank"
+        }
+      ],
+      "id": "ins-ac-millivoltmeter",
+      "name": "双通道交流毫伏表",
+      "kind": "instrument",
+      "bodyStyle": "generator",
+      "dimensionsMm": [
+        220,
+        130,
+        280
+      ],
+      "model": "content/instruments/ins-ac-millivoltmeter/instrument.glb",
+      "textureSize": [
+        1024,
+        640
+      ],
+      "mounting": "desktop",
+      "dimensionNote": "220 x 130 x 280 mm desktop dual-channel AC millivoltmeter, estimated in prototype selection section 7.",
+      "panel": {
+        "title": "双通道交流毫伏表",
+        "titleSize": 4.8,
+        "texts": [
+          {
+            "text": "1 mV ~ 300 V  |  1 MΩ ∥ 50 pF",
+            "x": 110,
+            "y": 20,
+            "size": 3
+          }
+        ]
+      }
+    },
+    {
+      "estimatedDimensions": true,
+      "jacks": [
+        {
+          "id": "POS",
+          "label": "+",
+          "x": 38,
+          "y": 98,
+          "color": "red",
+          "kind": "banana4",
+          "labelY": 86
+        },
+        {
+          "id": "NEG",
+          "label": "−",
+          "x": 82,
+          "y": 98,
+          "color": "black",
+          "kind": "banana4",
+          "labelY": 86
+        }
+      ],
+      "controls": [],
+      "screens": [
+        {
+          "id": "MAIN",
+          "x": 60,
+          "y": 48,
+          "width": 94,
+          "height": 48,
+          "style": "blank"
+        }
+      ],
+      "id": "ins-galvanometer",
+      "name": "指针式检流计",
+      "kind": "instrument",
+      "bodyStyle": "meter",
+      "dimensionsMm": [
+        120,
+        120,
+        80
+      ],
+      "model": "content/instruments/ins-galvanometer/instrument.glb",
+      "textureSize": [
+        1024,
+        1024
+      ],
+      "mounting": "desktop",
+      "dimensionNote": "120 x 120 x 80 mm center-zero pointer galvanometer, estimated in prototype selection section 7.",
+      "panel": {
+        "title": "指针式检流计  G",
+        "titleSize": 4.4,
+        "texts": [
+          {
+            "text": "±100 µA  |  内阻 1 kΩ  |  1.5 级",
+            "x": 60,
+            "y": 113,
+            "size": 3.1
           }
         ]
       }

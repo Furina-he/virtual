@@ -1,0 +1,58 @@
+{
+  "id": "ins-ac-voltmeter",
+  "name": "交流数字电压表",
+  "kind": "acv",
+  "mounting": "fixed",
+  "fixedSlot": "SLOT_INS_ACV",
+  "model": "instrument.glb",
+  "jacks": [
+    { "id": "U", "label": "U", "kind": "banana4", "polarityHint": "+" },
+    { "id": "STAR", "label": "*", "kind": "banana4", "polarityHint": "-" }
+  ],
+  "ranges": [
+    {
+      "id": "r10",
+      "label": "10 V",
+      "mode": "acv",
+      "full": 10,
+      "unit": "V",
+      "displayUnit": "V",
+      "internalR": 1000000,
+      "resolution": 0.01,
+      "positiveJack": "U",
+      "negativeJack": "STAR"
+    },
+    {
+      "id": "r100",
+      "label": "100 V",
+      "mode": "acv",
+      "full": 100,
+      "unit": "V",
+      "displayUnit": "V",
+      "internalR": 1000000,
+      "resolution": 0.1,
+      "positiveJack": "U",
+      "negativeJack": "STAR"
+    },
+    {
+      "id": "r500",
+      "label": "500 V",
+      "mode": "acv",
+      "full": 500,
+      "unit": "V",
+      "displayUnit": "V",
+      "internalR": 1000000,
+      "resolution": 0.1,
+      "positiveJack": "U",
+      "negativeJack": "STAR"
+    }
+  ],
+  "defaultRange": "r500",
+  "internalROptions": [10000, 100000, 1000000],
+  "accuracyClass": 0.5,
+  "spiceTemplate": "Rin_{X} {J:U} {J:STAR} {R}",
+  "measure": {
+    "voltage": [["U", "STAR"]],
+    "series": []
+  }
+}

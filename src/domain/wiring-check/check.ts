@@ -97,6 +97,55 @@ export function checkMeasurePoints(input: CheckInput, reference: Reference): Wir
   const issues: WiringIssue[] = []
 
   for (const mp of reference.measurePoints) {
+    if (mp.kind === 'power' && mp.between && mp.branch) {
+      const [p, n] = mp.between.map(map) as [string, string]
+      const [x, y] = mp.branch.map(map) as [string, string]
+      let found: 'ok' | 'reversed' | undefined
+      for (const { instanceId, instrument } of input.instruments) {
+        const voltagePairs = instrument.measure?.voltage ?? []
+        const seriesPairs = instrument.measure?.series ?? []
+        if (!voltagePairs.length || !seriesPairs.length) continue
+        let vSign: 1 | -1 | 0 = 0
+        for (const [va, vb] of voltagePairs) {
+          const rva = `${instanceId}.${va}`
+          const rvb = `${instanceId}.${vb}`
+          if (!wired.has(rva) || !wired.has(rvb)) continue
+          if (full.find(rva) === full.find(p) && full.find(rvb) === full.find(n)) {
+            vSign = 1
+            break
+          }
+          if (full.find(rva) === full.find(n) && full.find(rvb) === full.find(p)) vSign = -1
+        }
+        if (!vSign) continue
+        seriesPairs.forEach(([ia, ib], pair) => {
+          const ria = `${instanceId}.${ia}`
+          const rib = `${instanceId}.${ib}`
+          if (found === 'ok' || !wired.has(ria) || !wired.has(rib)) return
+          const uf = circuitPartition(input, { instanceId, pair })
+          if (uf.find(x) === uf.find(y)) return
+          let iSign: 1 | -1 | 0 = 0
+          if (uf.find(ria) === uf.find(x) && uf.find(rib) === uf.find(y)) iSign = 1
+          else if (uf.find(ria) === uf.find(y) && uf.find(rib) === uf.find(x)) iSign = -1
+          if (!iSign) return
+          found = vSign * iSign === 1 ? 'ok' : 'reversed'
+        })
+      }
+      if (found === 'reversed')
+        issues.push({
+          severity: 'warning',
+          code: 'measure-polarity',
+          message: `测量 ${mp.id} 的功率表电压端或电流端极性接反，有功功率读数为负。请检查同名端（*）接法。`,
+          jacks: [p, n, x, y],
+        })
+      else if (!found)
+        issues.push({
+          severity: 'error',
+          code: 'measure-missing',
+          message: `测量 ${mp.id} 需要将功率表电压端接在 ${label(p)} 与 ${label(n)} 两端，并将电流端串入 ${label(x)} 与 ${label(y)} 之间。`,
+          jacks: [p, n, x, y],
+        })
+      continue
+    }
     if (mp.kind === 'current' && mp.branch) {
       const [x, y] = mp.branch.map(map) as [string, string]
       let found: 'ok' | 'reversed' | undefined

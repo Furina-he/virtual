@@ -21,15 +21,14 @@ declare global {
   }
 }
 
-const catalog: { assets: CatalogAsset[]; preview: { placements: { assetId: string }[] } } = JSON.parse(
-  readFileSync('assets/layouts/catalog.json', 'utf8'),
-)
+const catalog: { assets: CatalogAsset[] } = JSON.parse(readFileSync('assets/layouts/catalog.json', 'utf8'))
+const scene: { placements: { assetId: string }[] } = JSON.parse(readFileSync('content/bench/scene.json', 'utf8'))
 // Practice mode mounts fixed console instruments and modules at boot. Desktop
 // instruments remain cabinet inventory until the learner places them.
-const placedAssets = catalog.preview.placements
+const placedAssets = scene.placements
   .map((placement) => {
     const asset = catalog.assets.find((item) => item.id === placement.assetId)
-    if (!asset) throw new Error(`Missing preview asset ${placement.assetId}`)
+    if (!asset) throw new Error(`Missing scene asset ${placement.assetId}`)
     return asset
   })
   .filter((asset) => asset.mounting !== 'desktop')

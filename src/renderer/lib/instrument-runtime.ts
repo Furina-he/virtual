@@ -6,6 +6,7 @@ import {
   formatVoltage,
   isSelfPoweredMode,
   measureSignal,
+  PowerWindow,
   readInstrument,
   resolveScope,
   resolveSource,
@@ -188,6 +189,7 @@ export function connectInstrumentRuntime(onStatus: (status: RuntimeStatus) => vo
   let lastPacePublishedAt = Number.NEGATIVE_INFINITY
   const paceMonitor = new SimulationPaceMonitor()
   const rmsWindows = new Map<string, RmsWindow>()
+  const powerWindows = new Map<string, PowerWindow>()
   const waveformScratch = new Float32Array(65_536)
   let offMeterSamples: (() => void)[] = []
   let offScopeSamples: (() => void)[] = []
@@ -602,6 +604,7 @@ export function connectInstrumentRuntime(onStatus: (status: RuntimeStatus) => vo
     for (const off of offMeterSamples) off()
     offMeterSamples = []
     rmsWindows.clear()
+    powerWindows.clear()
   }
 
   function invalidate() {
@@ -654,6 +657,20 @@ export function connectInstrumentRuntime(onStatus: (status: RuntimeStatus) => vo
     ownsSession = true
     if (next.plan.command.analysis.kind === 'tran') {
       for (const meter of next.plan.meters) {
+        if (meter.config.mode === 'power') {
+          if (!meter.voltageProbe || !meter.currentProbe || powerWindows.has(meter.instanceId)) continue
+          const window = new PowerWindow(METER_RMS_WINDOW)
+          powerWindows.set(meter.instanceId, window)
+          offMeterSamples.push(
+            sim.onSamples(meter.voltageProbe, (data, t0, dt) => {
+              if (job === next && loadBoundary?.applied) window.pushVoltage(data, t0, dt)
+            }),
+            sim.onSamples(meter.currentProbe, (data, t0, dt) => {
+              if (job === next && loadBoundary?.applied) window.pushCurrent(data, t0, dt)
+            }),
+          )
+          continue
+        }
         const probe =
           meter.config.mode === 'acv'
             ? meter.voltageProbe
@@ -733,7 +750,21 @@ export function connectInstrumentRuntime(onStatus: (status: RuntimeStatus) => vo
         }
         if (sameSimulation(candidate, job.plan)) {
           job.input = input
+          job.plan = candidate
           showGenerators(input, state.powered)
+          for (const meter of candidate.meters) {
+            if (meter.config.mode !== 'power' || !state.powered) continue
+            const metrics = powerWindows.get(meter.instanceId)?.value
+            if (!metrics) continue
+            const reading = readInstrument(meter.config, {
+              connectedJacks: meter.connectedJacks,
+              power: metrics,
+            })
+            setInstrumentReading(meter.instanceId, {
+              ...reading,
+              mode: meterModeLabel(meter.config, metrics.loadNature),
+            })
+          }
           return
         }
       } catch {
@@ -770,7 +801,7 @@ export function connectInstrumentRuntime(onStatus: (status: RuntimeStatus) => vo
       showScopes(input, plan, state.powered, false)
       for (const meter of plan.meters) {
         const issue = checkInstrumentJacks(meter.config, meter.connectedJacks)
-        if (issue) setInstrumentReading(meter.instanceId, { ...issue, mode: meter.config.mode.toUpperCase() })
+        if (issue) setInstrumentReading(meter.instanceId, { ...issue, mode: meterModeLabel(meter.config) })
       }
       if (!state.powered && !plan.needsPreflight) {
         if (ownsSession) void sim.send({ type: 'pause' }).catch(() => {})
@@ -788,6 +819,27 @@ export function connectInstrumentRuntime(onStatus: (status: RuntimeStatus) => vo
     }
   }
 
+  function meterModeLabel(
+    config: MeasurementPlan['meters'][number]['config'],
+    loadNature?: 'R' | 'L' | 'C' | 'NONE',
+  ): string {
+    if (config.mode === 'power' && config.wattmeter) {
+      const modeName: Record<typeof config.wattmeter.displayMode, string> = {
+        P: '有功 P',
+        pf: 'cosφ',
+        S: '视在 S',
+        Q: '无功 Q',
+        U: '电压 U',
+        I: '电流 I',
+      }
+      const suffix = loadNature && loadNature !== 'NONE' ? ` (${loadNature})` : ''
+      return `${modeName[config.wattmeter.displayMode]}${suffix}`
+    }
+    if (config.instrument.kind === 'galvanometer') return 'G ±100µA'
+    if (config.channelId) return `${config.channelId} ACV`
+    return config.mode.toUpperCase()
+  }
+
   function publish(current: RuntimeJob, values: Record<string, number>, transient: boolean, simTime?: number) {
     let audible = false
     let warning = false
@@ -801,8 +853,19 @@ export function connectInstrumentRuntime(onStatus: (status: RuntimeStatus) => vo
         externalVoltage: current.external[meter.instanceId],
         rmsVoltage: undefined as number | undefined,
         rmsCurrent: undefined as number | undefined,
+        power: undefined as PowerWindow['value'],
       }
-      if (transient && (meter.config.mode === 'acv' || meter.config.mode === 'aca')) {
+      if (transient && meter.config.mode === 'power') {
+        if (meter.voltageProbe && meter.currentProbe) {
+          const metrics = powerWindows.get(meter.instanceId)?.value
+          if (!metrics) {
+            waiting = true
+            setInstrumentReading(meter.instanceId, blank('pending', '正在采集功率计算窗口。', meter.config.unit))
+            continue
+          }
+          sample.power = metrics
+        }
+      } else if (transient && (meter.config.mode === 'acv' || meter.config.mode === 'aca')) {
         const id = meter.config.mode === 'acv' ? meter.voltageProbe : meter.currentProbe
         if (id) {
           // Aggregate complete raw-sample windows without depending on waveform history capacity.
@@ -817,7 +880,10 @@ export function connectInstrumentRuntime(onStatus: (status: RuntimeStatus) => vo
         }
       }
       const reading = readInstrument(meter.config, sample)
-      setInstrumentReading(meter.instanceId, { ...reading, mode: meter.config.mode.toUpperCase() })
+      setInstrumentReading(meter.instanceId, {
+        ...reading,
+        mode: meterModeLabel(meter.config, reading.metrics?.loadNature),
+      })
       audible ||= reading.beep
       warning ||= reading.status === 'external-voltage'
     }
@@ -875,6 +941,7 @@ export function connectInstrumentRuntime(onStatus: (status: RuntimeStatus) => vo
       waveformBoundary.clear()
       resetScopeAcquisition()
       for (const window of rmsWindows.values()) window.clear()
+      for (const window of powerWindows.values()) window.clear()
       if (replayed && moduleAudio && current.plan.command.analysis.kind === 'tran') {
         moduleAudio.dispose()
         const replacement = createModuleAudio(sim, current.plan.speakers, current.plan.command.analysis.step)
@@ -902,6 +969,7 @@ export function connectInstrumentRuntime(onStatus: (status: RuntimeStatus) => vo
         }
       }
       for (const window of rmsWindows.values()) window.clear()
+      for (const window of powerWindows.values()) window.clear()
       return
     }
     if (event.type === 'error') {

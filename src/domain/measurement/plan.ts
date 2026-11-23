@@ -7,6 +7,7 @@ import {
   checkInstrumentJacks,
   getRangeSettings,
   instrumentProbe,
+  isAcTransientMode,
   isMeasurementInstrument,
   isSelfPoweredMode,
   type RangeSettings,
@@ -204,8 +205,7 @@ export function buildMeasurementPlan(
   })
   const shortest = periods.length ? Math.min(...periods) : undefined
   const alternating =
-    !options.preflight &&
-    meters.some((meter) => (meter.config.mode === 'acv' || meter.config.mode === 'aca') && meter.voltageProbe)
+    !options.preflight && meters.some((meter) => isAcTransientMode(meter.config.mode) && meter.voltageProbe)
   const simulations =
     powered && !options.preflight ? input.modules.flatMap(({ module }) => module.simulation ?? []) : []
   const realtime = speakers.length > 0 || simulations.some((simulation) => simulation.pacing !== 'window')
@@ -270,10 +270,14 @@ function simulationKey(plan: MeasurementPlan, ignoreParameters = false): string 
     plan.command.probes.map(({ kind, node, nodeRef, source }) => [kind, node, nodeRef, source]),
     plan.pacing,
     plan.needsPreflight,
-    // 换量程只改读数换算、不改网表，也必须重新发布读数
+    // 换量程只改读数换算、不改网表，也必须重新发布读数；功率表切换 P/Q/S/cosφ/U/I 仅切显示，不重启瞬态窗口
     plan.meters.map(({ instanceId, config, connectedJacks }) => [
       instanceId,
-      { ...config, instrument: config.instrument.id },
+      {
+        ...config,
+        instrument: config.instrument.id,
+        wattmeter: config.wattmeter ? { ...config.wattmeter, displayMode: '<display>' } : undefined,
+      },
       connectedJacks,
     ]),
     plan.supplies.map(({ instanceId, screenId, range }) => [instanceId, screenId, range]),

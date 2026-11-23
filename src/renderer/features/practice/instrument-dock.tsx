@@ -13,6 +13,10 @@ import { usePersistedLayout } from './use-persisted-layout'
 // 底栏"仪表"页：正在用的仪表面板并排显示（嵌套可调分栏），可弹出为独立窗口
 export function InstrumentDock() {
   const panels = useInstrumentPanels((state) => state.panels)
+  const ordered = [
+    ...panels.filter((panel) => panel.instrument.mounting === 'desktop'),
+    ...panels.filter((panel) => panel.instrument.mounting !== 'desktop'),
+  ]
   const popped = usePoppedPanels((s) => s.popped)
   const layout = usePersistedLayout('wb-instruments')
   // Focusing an instrument in 3D points at its 2D panel too (技术设计 §10.3).
@@ -21,18 +25,18 @@ export function InstrumentDock() {
   useEffect(() => {
     if (focused) sections.current.get(focused)?.scrollIntoView({ block: 'nearest', inline: 'nearest' })
   }, [focused])
-  if (!panels.length)
+  if (!ordered.length)
     return <p className="p-3 text-muted-foreground">正在加载固定仪表。台式仪表需从仪表柜选取，并由学员连接测量线。</p>
   return (
-    <div className="h-full min-h-0 w-full overflow-hidden">
+    <div className="h-full min-h-0 w-full overflow-x-auto overflow-y-hidden">
       <div className="h-full min-h-0">
         <ResizablePanelGroup
           orientation="horizontal"
           className="min-h-0 overflow-hidden"
-          style={{ minWidth: panels.length * 224, height: '100%' }}
+          style={{ minWidth: ordered.length * 224, height: '100%' }}
           {...layout}
         >
-          {panels.map((panel, i) => {
+          {ordered.map((panel, i) => {
             const isPopped = popped.includes(panel.id)
             return (
               <Fragment key={panel.id}>

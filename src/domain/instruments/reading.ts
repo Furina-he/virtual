@@ -1,4 +1,5 @@
 import { isCurrentMode, isSelfPoweredMode, type ResolvedInstrument } from './config.ts'
+import type { PowerMetrics } from './power-window.ts'
 
 export type InstrumentSample = {
   voltage?: number
@@ -7,6 +8,8 @@ export type InstrumentSample = {
   /** True RMS of the AC component; no fallback from a DC operating point. */
   rmsVoltage?: number
   rmsCurrent?: number
+  /** Synchronized AC power metrics for wattmeters. */
+  power?: PowerMetrics
   /** Local jack IDs actually wired by the learner, not software-selected probes. */
   connectedJacks?: readonly string[]
   /** Passive preflight voltage with all built-in meter test sources disabled. */
@@ -23,6 +26,10 @@ export type InstrumentReading = {
   beep: boolean
   /** Specified absolute error bound in SI, excluding display rounding. */
   uncertainty: number | null
+  /** Full multi-quantity AC power metrics when kind === 'wattmeter'. */
+  metrics?: PowerMetrics
+  /** Normalized needle deflection in [-1, 1] for center-zero analog galvanometers. */
+  deflection?: number
   message?: string
 }
 
@@ -40,12 +47,38 @@ function blank(config: ResolvedInstrument, status: InstrumentReading['status'], 
   }
 }
 
+function jackLabel(config: ResolvedInstrument, id: string): string {
+  return config.instrument.jacks.find((jack) => jack.id === id)?.label ?? id
+}
+
 export function checkInstrumentJacks(
   config: ResolvedInstrument,
   connectedJacks: readonly string[],
 ): InstrumentReading | undefined {
   const connected = new Set(connectedJacks)
-  const extra = [...connected].some((jack) => jack !== config.positiveJack && jack !== config.negativeJack)
+  if (config.mode === 'power' && config.wattmeter) {
+    const required = [
+      config.positiveJack,
+      config.negativeJack,
+      config.wattmeter.currentPositiveJack,
+      config.wattmeter.currentNegativeJack,
+    ]
+    const allowed = new Set(required)
+    if ([...connected].some((jack) => !allowed.has(jack))) {
+      return blank(config, 'wrong-jacks', '功率表存在无效插孔连线，请断电后检查接线。')
+    }
+    if (required.some((jack) => !connected.has(jack))) {
+      return blank(
+        config,
+        'disconnected',
+        `请同时连接电压端（${jackLabel(config, config.positiveJack)}、${jackLabel(config, config.negativeJack)}）与电流端（${jackLabel(config, config.wattmeter.currentPositiveJack)}、${jackLabel(config, config.wattmeter.currentNegativeJack)}）。`,
+      )
+    }
+    return undefined
+  }
+
+  const allowed = new Set(config.allowedJacks ?? [config.positiveJack, config.negativeJack])
+  const extra = [...connected].some((jack) => !allowed.has(jack))
   if (extra) {
     const modeHint = isCurrentMode(config.mode) ? '当前为电流档，不能按电压表方式跨接。' : ''
     return blank(
@@ -92,6 +125,65 @@ export function readInstrument(config: ResolvedInstrument, sample: InstrumentSam
     )
   if (config.passive) return blank(config, 'invalid', '正在进行无源安全检查，尚未启用测量输入。')
 
+  if (config.mode === 'power' && config.wattmeter) {
+    const metrics = sample.power
+    if (!metrics) return blank(config, 'invalid', '尚未收到有效的功率采样窗口数据。')
+    const { maxVoltage, maxCurrent, displayMode } = config.wattmeter
+    if (
+      !Number.isFinite(metrics.U) ||
+      !Number.isFinite(metrics.I) ||
+      !Number.isFinite(metrics.P) ||
+      metrics.U >= maxVoltage ||
+      metrics.I >= maxCurrent ||
+      Math.abs(metrics.P) >= config.fullScale
+    ) {
+      return {
+        ...blank(
+          config,
+          'overload',
+          `功率表超量程（额定 ${maxVoltage} V / ${maxCurrent} A / ${config.fullScale} W）。请断电检查回路并确认未过载。`,
+        ),
+        text: 'OL.',
+        rawValue: Number.isFinite(metrics.P) ? metrics.P : null,
+        negative: metrics.P < 0,
+        metrics,
+      }
+    }
+    const spec: Record<
+      typeof displayMode,
+      { raw: number; unit: string; resolution: number; fullScale: number; signed: boolean }
+    > = {
+      P: { raw: metrics.P, unit: 'W', resolution: config.resolution, fullScale: config.fullScale, signed: true },
+      pf: { raw: metrics.pf, unit: 'cosφ', resolution: 0.001, fullScale: 1, signed: true },
+      S: { raw: metrics.S, unit: 'VA', resolution: config.resolution, fullScale: config.fullScale, signed: false },
+      Q: { raw: metrics.Q, unit: 'var', resolution: config.resolution, fullScale: config.fullScale, signed: true },
+      U: { raw: metrics.U, unit: 'V', resolution: 0.1, fullScale: maxVoltage, signed: false },
+      I: { raw: metrics.I, unit: 'A', resolution: 0.001, fullScale: maxCurrent, signed: false },
+    }
+    const active = spec[displayMode]
+    const uncertainty =
+      (Math.abs(active.raw) * config.accuracy.percentReading) / 100 +
+      (active.fullScale * config.accuracy.percentFullScale) / 100 +
+      active.resolution * config.accuracy.digits
+    const biased = active.raw + uncertainty * config.accuracyOffset
+    const clamped =
+      displayMode === 'pf' ? Math.max(-1, Math.min(1, biased)) : active.signed ? biased : Math.max(0, biased)
+    const rounded = Math.sign(clamped) * Math.round(Math.abs(clamped) / active.resolution) * active.resolution
+    const value = rounded === 0 ? 0 : rounded
+    return {
+      status: 'ok',
+      text: value.toFixed(decimalPlaces(active.resolution)),
+      unit: active.unit,
+      value,
+      rawValue: active.raw,
+      negative: metrics.P < 0,
+      beep: false,
+      uncertainty,
+      metrics,
+      ...(metrics.P < 0 ? { message: '功率读数为负，请检查电压端或电流端同名端（*）极性。' } : {}),
+    }
+  }
+
   let raw: number | undefined
   switch (config.mode) {
     case 'dcv':
@@ -130,6 +222,7 @@ export function readInstrument(config: ResolvedInstrument, sample: InstrumentSam
   const biased = raw + (uncertainty ?? 0) * config.accuracyOffset
   const measured = config.mode === 'dcv' || config.mode === 'dca' ? biased : Math.max(0, biased)
   const rounded = Math.sign(measured) * Math.round(Math.abs(measured) / config.resolution) * config.resolution
+  const isGalvanometer = config.instrument.kind === 'galvanometer'
   if (!Number.isFinite(raw) || Math.abs(raw) >= config.fullScale || Math.abs(rounded) >= config.fullScale)
     return {
       ...blank(
@@ -143,6 +236,7 @@ export function readInstrument(config: ResolvedInstrument, sample: InstrumentSam
       rawValue: Number.isFinite(raw) ? raw : null,
       negative: raw < 0,
       uncertainty,
+      ...(isGalvanometer ? { deflection: raw < 0 ? -1 : 1 } : {}),
     }
   const value = rounded === 0 ? 0 : rounded
   return {
@@ -154,6 +248,7 @@ export function readInstrument(config: ResolvedInstrument, sample: InstrumentSam
     negative: value < 0,
     beep: config.mode === 'continuity' && raw <= (config.testSource?.continuityThreshold ?? 0),
     uncertainty,
+    ...(isGalvanometer ? { deflection: Math.max(-1, Math.min(1, value / config.fullScale)) } : {}),
   }
 }
 

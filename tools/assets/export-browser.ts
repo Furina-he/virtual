@@ -123,7 +123,10 @@ async function importAsset(asset: AssetDefinition): Promise<Group> {
 
 async function run() {
   const { assets }: { assets: AssetDefinition[] } = await (await fetch('/assets/layouts/catalog.json')).json()
-  for (const asset of assets) {
+  const onlyParam = new URLSearchParams(window.location.search).get('only')
+  const only = onlyParam ? new Set(onlyParam.split(',').filter(Boolean)) : undefined
+  const selected = only ? assets.filter((asset) => only.has(asset.id)) : assets
+  for (const asset of selected) {
     const texture = asset.kind !== 'component' && !asset.sourceFile ? await makePanel(asset) : undefined
     const object = asset.sourceFile ? await importAsset(asset) : buildAsset(asset, texture)
     const bounds = new Box3().setFromObject(object)

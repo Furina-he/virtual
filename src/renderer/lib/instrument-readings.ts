@@ -1,3 +1,5 @@
+import type { PowerMetrics } from '../../domain/instruments/power-window'
+
 export type InstrumentReading = {
   text: string
   unit: string
@@ -20,6 +22,8 @@ export type InstrumentReading = {
   beep?: boolean
   value?: number | null
   rawValue?: number | null
+  metrics?: PowerMetrics
+  deflection?: number
 }
 
 export type InstrumentReadingsSnapshot = Record<string, Record<string, InstrumentReading>>
@@ -31,10 +35,27 @@ export const PENDING_INSTRUMENT_READING: InstrumentReading = {
   message: '等待仿真读数。',
 }
 
+function sameMetrics(a: PowerMetrics | undefined, b: PowerMetrics | undefined): boolean {
+  if (a === b) return true
+  if (!a || !b) return false
+  return (
+    Object.is(a.P, b.P) &&
+    Object.is(a.Q, b.Q) &&
+    Object.is(a.S, b.S) &&
+    Object.is(a.pf, b.pf) &&
+    Object.is(a.U, b.U) &&
+    Object.is(a.I, b.I) &&
+    a.loadNature === b.loadNature
+  )
+}
+
 function sameReading(a: InstrumentReading | undefined, b: InstrumentReading): boolean {
   if (!a) return false
   const keys = Object.keys(b) as (keyof InstrumentReading)[]
-  return Object.keys(a).length === keys.length && keys.every((key) => Object.is(a[key], b[key]))
+  return (
+    Object.keys(a).length === keys.length &&
+    keys.every((key) => (key === 'metrics' ? sameMetrics(a.metrics, b.metrics) : Object.is(a[key], b[key])))
+  )
 }
 
 /** Latest samples live outside React; only the newest value is announced at 10 Hz. */

@@ -1,0 +1,40 @@
+{
+  "id": "ins-ac-millivoltmeter",
+  "name": "双通道交流毫伏表",
+  "kind": "acMillivolt",
+  "mounting": "desktop",
+  "model": "instrument.glb",
+  "jacks": [
+    { "id": "CH1", "label": "CH1", "kind": "banana4", "polarityHint": "+" },
+    { "id": "CH2", "label": "CH2", "kind": "banana4", "polarityHint": "+" },
+    { "id": "GND", "label": "GND", "kind": "banana4", "polarityHint": "-" }
+  ],
+  "inputChannels": [
+    { "id": "CH1", "label": "CH1", "positiveJack": "CH1", "negativeJack": "GND" },
+    { "id": "CH2", "label": "CH2", "positiveJack": "CH2", "negativeJack": "GND" }
+  ],
+  "ranges": [
+    { "id": "r1m", "label": "1 mV", "mode": "acv", "full": 0.001, "unit": "V", "displayUnit": "mV", "internalR": 1000000, "inputC": 5e-11, "resolution": 0.000001 },
+    { "id": "r3m", "label": "3 mV", "mode": "acv", "full": 0.003, "unit": "V", "displayUnit": "mV", "internalR": 1000000, "inputC": 5e-11, "resolution": 0.000001 },
+    { "id": "r10m", "label": "10 mV", "mode": "acv", "full": 0.01, "unit": "V", "displayUnit": "mV", "internalR": 1000000, "inputC": 5e-11, "resolution": 0.00001 },
+    { "id": "r30m", "label": "30 mV", "mode": "acv", "full": 0.03, "unit": "V", "displayUnit": "mV", "internalR": 1000000, "inputC": 5e-11, "resolution": 0.00001 },
+    { "id": "r100m", "label": "100 mV", "mode": "acv", "full": 0.1, "unit": "V", "displayUnit": "mV", "internalR": 1000000, "inputC": 5e-11, "resolution": 0.0001 },
+    { "id": "r300m", "label": "300 mV", "mode": "acv", "full": 0.3, "unit": "V", "displayUnit": "mV", "internalR": 1000000, "inputC": 5e-11, "resolution": 0.0001 },
+    { "id": "r1", "label": "1 V", "mode": "acv", "full": 1, "unit": "V", "displayUnit": "V", "internalR": 1000000, "inputC": 5e-11, "resolution": 0.001 },
+    { "id": "r3", "label": "3 V", "mode": "acv", "full": 3, "unit": "V", "displayUnit": "V", "internalR": 1000000, "inputC": 5e-11, "resolution": 0.001 },
+    { "id": "r10", "label": "10 V", "mode": "acv", "full": 10, "unit": "V", "displayUnit": "V", "internalR": 1000000, "inputC": 5e-11, "resolution": 0.01 },
+    { "id": "r30", "label": "30 V", "mode": "acv", "full": 30, "unit": "V", "displayUnit": "V", "internalR": 1000000, "inputC": 5e-11, "resolution": 0.01 },
+    { "id": "r100", "label": "100 V", "mode": "acv", "full": 100, "unit": "V", "displayUnit": "V", "internalR": 1000000, "inputC": 5e-11, "resolution": 0.1 },
+    { "id": "r300", "label": "300 V", "mode": "acv", "full": 300, "unit": "V", "displayUnit": "V", "internalR": 1000000, "inputC": 5e-11, "resolution": 0.1 }
+  ],
+  "defaultRange": "r1",
+  "accuracyClass": 3,
+  "spiceTemplate": "Rin_ch1_{X} {J:CH1} {J:GND} 1000000\nCin_ch1_{X} {J:CH1} {J:GND} 50p\nRin_ch2_{X} {J:CH2} {J:GND} 1000000\nCin_ch2_{X} {J:CH2} {J:GND} 50p",
+  "measure": {
+    "voltage": [
+      ["CH1", "GND"],
+      ["CH2", "GND"]
+    ],
+    "series": []
+  }
+}

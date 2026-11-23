@@ -2,7 +2,7 @@ import { z } from 'zod'
 import { ContentId, Jack, JackId, uniqueBy } from './common.ts'
 
 // 技术设计 §3.2
-export const InstrumentMode = z.enum(['dcv', 'acv', 'dca', 'aca', 'ohm', 'diode', 'continuity'])
+export const InstrumentMode = z.enum(['dcv', 'acv', 'dca', 'aca', 'ohm', 'diode', 'continuity', 'power'])
 
 export const InstrumentAccuracy = z.object({
   percentReading: z.number().nonnegative().optional(),
@@ -17,8 +17,9 @@ export const InstrumentRange = z.object({
   // full / resolution 始终是 SI 值；displayUnit 只控制读数显示，不改变电路参数。
   full: z.number().positive(),
   unit: z.string().min(1),
-  displayUnit: z.enum(['V', 'mV', 'A', 'mA', 'uA', 'Ω', 'kΩ', 'MΩ']).optional(),
+  displayUnit: z.enum(['V', 'mV', 'A', 'mA', 'uA', 'Ω', 'kΩ', 'MΩ', 'W', 'var', 'VA']).optional(),
   internalR: z.number().positive().optional(),
+  inputC: z.number().positive().optional(),
   resolution: z.number().positive(),
   positiveJack: JackId.optional(),
   negativeJack: JackId.optional(),
@@ -32,6 +33,22 @@ export const InstrumentRange = z.object({
       continuityThreshold: z.number().positive().optional(),
     })
     .optional(),
+})
+
+export const InputChannel = z.object({
+  id: JackId,
+  label: z.string().min(1),
+  positiveJack: JackId,
+  negativeJack: JackId,
+})
+
+export const WattmeterConfig = z.object({
+  voltageJacks: z.tuple([JackId, JackId]),
+  currentJacks: z.tuple([JackId, JackId]),
+  maxVoltage: z.number().positive(),
+  maxCurrent: z.number().positive(),
+  voltageR: z.number().positive(),
+  currentR: z.number().positive(),
 })
 
 // 函数信号发生器与示波器内置信号源（INS-08/10）。幅值为峰峰值，占空比为百分数，均为 SI 单位。
@@ -131,13 +148,24 @@ export const Instrument = z
     outputs: z.array(z.tuple([JackId, JackId])).optional(),
     signalSources: z.array(SignalSource).superRefine(uniqueBy('id')).optional(),
     scope: ScopeConfig.optional(),
+    inputChannels: z.array(InputChannel).min(1).superRefine(uniqueBy('id')).optional(),
+    wattmeter: WattmeterConfig.optional(),
   })
   .superRefine((ins, ctx) => {
     const ids = new Set(ins.jacks.map((j) => j.id))
+    const kindMode: Partial<Record<typeof ins.kind, z.infer<typeof InstrumentMode>>> = {
+      dcv: 'dcv',
+      acv: 'acv',
+      dca: 'dca',
+      aca: 'aca',
+      acMillivolt: 'acv',
+      galvanometer: 'dca',
+      wattmeter: 'power',
+    }
     if (ins.defaultRange && !ins.ranges.some((range) => range.id === ins.defaultRange))
       ctx.addIssue({ code: 'custom', message: '默认量程不存在', path: ['defaultRange'] })
     ins.ranges.forEach((range, i) => {
-      const mode = range.mode ?? ins.kind
+      const mode = range.mode ?? kindMode[ins.kind]
       const units =
         mode === 'dcv' || mode === 'acv' || mode === 'diode'
           ? ['V', 'mV']
@@ -145,12 +173,14 @@ export const Instrument = z
             ? ['A', 'mA', 'uA']
             : mode === 'ohm' || mode === 'continuity'
               ? ['Ω', 'kΩ', 'MΩ']
-              : undefined
+              : mode === 'power'
+                ? ['W', 'VA', 'var']
+                : undefined
       if (units && range.unit !== units[0])
         ctx.addIssue({ code: 'custom', message: '量程和分辨率必须使用该模式的 SI 单位', path: ['ranges', i, 'unit'] })
       if (units && range.displayUnit && !units.includes(range.displayUnit))
         ctx.addIssue({ code: 'custom', message: '显示单位与测量模式不符', path: ['ranges', i, 'displayUnit'] })
-      if (ins.kind !== 'multimeter' && range.mode && range.mode !== ins.kind)
+      if (ins.kind !== 'multimeter' && range.mode && range.mode !== kindMode[ins.kind])
         ctx.addIssue({ code: 'custom', message: '固定功能仪表的档位模式与种类不符', path: ['ranges', i, 'mode'] })
       for (const field of ['positiveJack', 'negativeJack'] as const)
         if (range[field] && !ids.has(range[field]))
@@ -220,6 +250,37 @@ export const Instrument = z
       if (!secondsPerDiv.includes(defaultSecondsPerDiv))
         ctx.addIssue({ code: 'custom', message: '默认 s/div 不在档位表中', path: ['scope', 'defaultSecondsPerDiv'] })
     }
+    ins.inputChannels?.forEach((channel, i) => {
+      for (const field of ['positiveJack', 'negativeJack'] as const)
+        if (!ids.has(channel[field]))
+          ctx.addIssue({
+            code: 'custom',
+            message: `插孔 ${channel[field]} 不存在`,
+            path: ['inputChannels', i, field],
+          })
+      if (channel.positiveJack === channel.negativeJack)
+        ctx.addIssue({
+          code: 'custom',
+          message: '输入通道正负插孔不能相同',
+          path: ['inputChannels', i, 'negativeJack'],
+        })
+    })
+    if (ins.kind === 'wattmeter' && !ins.wattmeter)
+      ctx.addIssue({ code: 'custom', message: '功率表缺少 wattmeter 回路配置', path: ['wattmeter'] })
+    if (ins.wattmeter) {
+      const all = [...ins.wattmeter.voltageJacks, ...ins.wattmeter.currentJacks]
+      for (const [field, pair] of [
+        ['voltageJacks', ins.wattmeter.voltageJacks],
+        ['currentJacks', ins.wattmeter.currentJacks],
+      ] as const) {
+        pair.forEach((jack, k) => {
+          if (!ids.has(jack))
+            ctx.addIssue({ code: 'custom', message: `插孔 ${jack} 不存在`, path: ['wattmeter', field, k] })
+        })
+      }
+      if (new Set(all).size !== 4)
+        ctx.addIssue({ code: 'custom', message: '功率表电压与电流回路的 4 个插孔必须互不相同', path: ['wattmeter'] })
+    }
     if (ins.mounting === 'fixed' && !ins.fixedSlot)
       ctx.addIssue({ code: 'custom', message: '固定在控制屏上的仪表需要 fixedSlot', path: ['fixedSlot'] })
     if (ins.mounting === 'desktop' && ins.fixedSlot)
@@ -230,6 +291,8 @@ export type Instrument = z.infer<typeof Instrument>
 export type SignalSource = z.infer<typeof SignalSource>
 export type SignalWaveform = z.infer<typeof SignalWaveform>
 export type ScopeConfig = z.infer<typeof ScopeConfig>
+export type InputChannel = z.infer<typeof InputChannel>
+export type WattmeterConfig = z.infer<typeof WattmeterConfig>
 export type InstrumentRange = z.infer<typeof InstrumentRange>
 export type InstrumentMode = z.infer<typeof InstrumentMode>
 export type InstrumentAccuracy = z.infer<typeof InstrumentAccuracy>
