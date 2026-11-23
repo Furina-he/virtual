@@ -269,4 +269,42 @@ describe('示波器采集', () => {
     feed(0.01, sine)
     expect(acquire(settings)).toBe(captured)
   })
+
+  it('手动冻结（run=0）在带电改源重载后仍保留冻结帧，且允许在冻结帧上切换 X-Y 与光标测量', () => {
+    live()
+    feed(0.01, sine)
+    const running = acquire({ run: 1 })
+    expect(running.state).toBe('triggered')
+    expect(running.measurements[0]?.vpp).toBeCloseTo(2, 2)
+
+    const frozen = acquire({ run: 0 })
+    expect(frozen.state).toBe('stopped')
+    expect(frozen.windows?.[0]?.frozen).toBe(true)
+
+    // 模拟带电改信号发生器参数触发重载：保留已手动冻结的示波器实例
+    resetScopeAcquisition(undefined, { preserveFrozenIds: new Set(['s']) })
+    buffer(scopeProbeId('s', 'CH1')).clear()
+    buffer(scopeProbeId('s', 'CH2')).clear()
+    t = 0
+    feed(0.01, (time) => 4 * Math.sin(2 * Math.PI * 2500 * time))
+
+    const stillFrozen = acquire({ run: 0, xy: 1, cursor_mode: 1, cursor_a: -1, cursor_b: 1 })
+    expect(stillFrozen.state).toBe('stopped')
+    expect(stillFrozen.measurements[0]?.vpp).toBeCloseTo(2, 2)
+    expect(stillFrozen.measurements[0]?.frequency).toBeCloseTo(1000, 0)
+
+    const summary = scopeSummary(
+      stillFrozen,
+      resolveScope(scope, { run: 0, xy: 1, cursor_mode: 1, cursor_a: -1, cursor_b: 1 }),
+    )
+    expect(summary.displayMode).toBe('xy')
+    expect(summary.xy?.xVpp).toBeCloseTo(2, 2)
+    expect(summary.cursors?.deltaT).toBeCloseTo(4e-4, 8)
+
+    // 解除冻结（run=1）后立即采集改源后的 8 Vpp / 2500 Hz 新波形
+    const unfrozen = acquire({ run: 1 })
+    expect(unfrozen.state).toBe('triggered')
+    expect(unfrozen.measurements[0]?.vpp).toBeCloseTo(8, 1)
+    expect(unfrozen.measurements[0]?.frequency).toBeCloseTo(2500, 0)
+  })
 })

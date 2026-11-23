@@ -1,5 +1,6 @@
 import {
   COUPLINGS,
+  CURSOR_MODES,
   formatSeconds,
   formatVoltage,
   resolveScope,
@@ -9,10 +10,11 @@ import {
   TRIGGER_SLOPES,
 } from '@domain/instruments'
 import type { Instrument } from '@shared/schema/instrument'
-import { OscilloscopeScreen } from '@/components/instruments/oscilloscope-screen'
+import { captureScopePng, OscilloscopeScreen } from '@/components/instruments/oscilloscope-screen'
 import { RotaryKnob } from '@/components/instruments/rotary-knob'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
+import { addReportScreenshot, useTask } from '@/stores/task'
 import { SettingSelect, SignalSourceControls } from './signal-generator-controls'
 
 type Settings = Record<string, unknown>
@@ -21,8 +23,9 @@ type Change = (patch: Record<string, number>) => void
 const COUPLING_LABEL = { dc: 'DC 直流耦合', ac: 'AC 交流耦合', gnd: 'GND 接地' } as const
 const MODE_LABEL = { auto: '自动', normal: '常规', single: '单次' } as const
 const SLOPE_LABEL = { rise: '上升沿', fall: '下降沿' } as const
+const CURSOR_MODE_LABEL = { off: '关', time: '时间光标 Δt', voltage: '电压光标 ΔV' } as const
 
-/** 示波器面板（INS-09/10）：屏幕 + 垂直、水平、触发、内置信号源 */
+/** 示波器面板（INS-09/10/11）：屏幕 + 垂直、水平、触发、X-Y、双光标、波形冻结、截图入报告、内置信号源 */
 export function OscilloscopeControls({
   instanceId,
   instrument,
@@ -36,10 +39,28 @@ export function OscilloscopeControls({
 }) {
   const scope = resolveScope(instrument, settings)
   const { config } = scope
+  const screenshotCount = useTask(
+    (state) => state.screenshots.filter((entry) => entry.instanceId === instanceId).length,
+  )
+  const cursorLimit = scope.cursors.mode === 'voltage' ? config.divisions.y / 2 : config.divisions.x / 2
+
+  const handleCaptureToReport = () => {
+    const captured = captureScopePng(instanceId)
+    if (!captured) return
+    addReportScreenshot({
+      instanceId,
+      instrumentTitle: captured.instrumentTitle,
+      dataUrl: captured.dataUrl,
+      displayMode: scope.displayMode,
+      frozen: captured.summary.state === 'stopped',
+      summaryText: captured.summaryText,
+    })
+  }
+
   return (
     <div className="@container flex flex-col gap-3">
       <OscilloscopeScreen instanceId={instanceId} channelIds={config.channels.map((channel) => channel.id)} />
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap items-center gap-2">
         <Button
           variant={scope.running ? 'outline' : 'default'}
           aria-pressed={!scope.running}
@@ -48,11 +69,33 @@ export function OscilloscopeControls({
           {scope.running ? '停止' : '运行'}
         </Button>
         <Button
+          variant={scope.running ? 'outline' : 'default'}
+          aria-pressed={!scope.running}
+          onClick={() => onChange({ run: scope.running ? 0 : 1 })}
+        >
+          {scope.running ? '冻结波形' : '解除冻结'}
+        </Button>
+        <Button
           variant="outline"
           onClick={() => onChange({ trig_mode: TRIGGER_MODES.indexOf('single'), arm: scope.arm + 1, run: 1 })}
         >
           单次
         </Button>
+        <Button
+          variant={scope.displayMode === 'xy' ? 'default' : 'outline'}
+          aria-pressed={scope.displayMode === 'xy'}
+          onClick={() => onChange({ xy: scope.displayMode === 'xy' ? 0 : 1 })}
+        >
+          X-Y 模式
+        </Button>
+        <Button variant="outline" onClick={handleCaptureToReport}>
+          截图入报告
+        </Button>
+        {screenshotCount > 0 && (
+          <span data-scope-screenshot-count={screenshotCount} className="font-mono text-xs text-muted-foreground">
+            已存 {screenshotCount} 张
+          </span>
+        )}
       </div>
       {scope.channels.map((channel, index) => {
         const prefix = channel.id.toLowerCase()
@@ -154,6 +197,43 @@ export function OscilloscopeControls({
           unit="V"
           onChange={(value) => onChange({ trig_level: value })}
         />
+      </section>
+      <Separator />
+      <section aria-label="光标测量" className="grid grid-cols-1 gap-3 @sm:grid-cols-2">
+        <SettingSelect
+          label="光标模式"
+          value={CURSOR_MODES.indexOf(scope.cursors.mode)}
+          options={CURSOR_MODES.map((mode) => CURSOR_MODE_LABEL[mode])}
+          onChange={(value) => onChange({ cursor_mode: value })}
+        />
+        <SettingSelect
+          label="光标通道"
+          value={scope.cursors.source}
+          options={scope.channels.map((channel) => channel.label)}
+          onChange={(value) => onChange({ cursor_src: value })}
+        />
+        {scope.cursors.mode !== 'off' && (
+          <>
+            <RotaryKnob
+              label="光标 A"
+              value={Math.max(-cursorLimit, Math.min(cursorLimit, scope.cursors.a))}
+              min={-cursorLimit}
+              max={cursorLimit}
+              step={0.1}
+              unit="div"
+              onChange={(value) => onChange({ cursor_a: value })}
+            />
+            <RotaryKnob
+              label="光标 B"
+              value={Math.max(-cursorLimit, Math.min(cursorLimit, scope.cursors.b))}
+              min={-cursorLimit}
+              max={cursorLimit}
+              step={0.1}
+              unit="div"
+              onChange={(value) => onChange({ cursor_b: value })}
+            />
+          </>
+        )}
       </section>
       {(instrument.signalSources ?? []).map((source) => (
         <section key={source.id} aria-label={source.label} className="flex flex-col gap-2">

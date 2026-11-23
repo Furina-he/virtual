@@ -13,6 +13,7 @@ import {
   formatTaskCellValue,
   parseTaskCellDraft,
   recordTaskReadings,
+  removeReportScreenshot,
   selectTaskRow,
   selectTaskSource,
   selectTaskTable,
@@ -335,6 +336,45 @@ export function TaskDataPanel({ project }: { project?: Project }) {
         </>
       )}
       <TaskFeedback />
+      <section aria-label="报告波形截图" data-report-screenshots className="space-y-2 border-t pt-3">
+        <div className="flex items-center justify-between gap-2">
+          <h3 className="text-xs font-medium">报告波形截图（{state.screenshots.length}）</h3>
+        </div>
+        {state.screenshots.length === 0 ? (
+          <p className="text-xs text-muted-foreground">
+            可在示波器面板点击“截图入报告”，将当前波形（含 X-Y 模式或双光标读数）保存为报告附图。
+          </p>
+        ) : (
+          <div className="grid grid-cols-1 gap-3 @md:grid-cols-2">
+            {state.screenshots.map((shot) => (
+              <figure
+                key={shot.id}
+                data-screenshot-id={shot.id}
+                data-screenshot-mode={shot.displayMode}
+                className="flex flex-col gap-2 rounded-md border p-2"
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <figcaption className="truncate text-xs font-medium">{shot.title}</figcaption>
+                  <Button
+                    size="xs"
+                    variant="ghost"
+                    aria-label={`删除 ${shot.title}`}
+                    onClick={() => removeReportScreenshot(shot.id)}
+                  >
+                    删除
+                  </Button>
+                </div>
+                <img
+                  src={shot.dataUrl}
+                  alt={shot.title}
+                  className="aspect-video w-full rounded-sm border object-contain"
+                />
+                <p className="font-mono text-xs text-muted-foreground">{shot.summaryText}</p>
+              </figure>
+            ))}
+          </div>
+        )}
+      </section>
     </section>
   )
 }

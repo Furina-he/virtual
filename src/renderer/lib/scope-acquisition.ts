@@ -1,13 +1,18 @@
 // 示波器采集（技术设计 §4.2、§7）：在 rAF / useFrame 中从探针环形缓冲取数，按触发设置定位一屏。
 // 同一窗口内 2D 面板与 3D SCREEN_ 调用同一缓存，得到同一帧；采样数据不进 React state。
 import {
+  buildXyTrace,
+  type CursorMeasurement,
   findTrigger,
+  measureCursors,
   measureSignal,
   resolveScope,
+  type ScopeDisplayMode,
   type ScopeSettings,
   type SignalMeasurement,
   screenSeconds,
   triggerColumn,
+  type XyCurveSummary,
 } from '@domain/instruments'
 import { scopeProbeId } from '@domain/measurement/plan'
 import type { WaveformWindow } from '@domain/task/measurements'
@@ -115,13 +120,16 @@ export function acquireScope(
 
   const frozen = !settings.running || (settings.trigger.mode === 'single' && acq.captured)
   if (frozen) {
-    if (acq.frame.state !== 'stopped')
+    if (acq.frame.state !== 'stopped') {
       acq.frame = {
         ...acq.frame,
         state: 'stopped',
         revision: acq.frame.revision + 1,
         windows: acq.frame.windows?.map((window) => (window ? { ...window, frozen: true } : null)),
       }
+      acq.written = -1
+      acq.key = ''
+    }
     return acq.frame
   }
 
@@ -284,14 +292,36 @@ export function acquireScope(
   return acq.frame
 }
 
-export function resetScopeAcquisition(instanceId?: string): void {
-  if (instanceId === undefined) acquisitions.clear()
-  else acquisitions.delete(instanceId)
+export function resetScopeAcquisition(
+  instanceId?: string,
+  options?: { preserveFrozenIds?: ReadonlySet<string> },
+): void {
+  const preserve = options?.preserveFrozenIds
+  if (instanceId === undefined) {
+    if (!preserve?.size) {
+      acquisitions.clear()
+      return
+    }
+    for (const [id, acq] of acquisitions.entries()) {
+      if (preserve.has(id) && acq.frame.state === 'stopped') {
+        acq.written = -1
+        acq.key = ''
+        continue
+      }
+      acquisitions.delete(id)
+    }
+    return
+  }
+  if (preserve?.has(instanceId) && acquisitions.get(instanceId)?.frame.state === 'stopped') return
+  acquisitions.delete(instanceId)
 }
 
 export type ScopeSummary = {
   state: ScopeState
   revision: number
+  displayMode: ScopeDisplayMode
+  xy: XyCurveSummary | null
+  cursors: CursorMeasurement | null
   channels: {
     id: string
     vpp: number | null
@@ -312,9 +342,17 @@ export type ScopeSummary = {
 
 /** 供测试与无障碍读取的低频摘要，与屏幕绘制使用同一帧 */
 export function scopeSummary(frame: ScopeFrame, settings: ScopeSettings): ScopeSummary {
+  const xy =
+    settings.displayMode === 'xy'
+      ? buildXyTrace(settings, frame.traces[0], frame.traces[1], frame.measurements).summary
+      : null
+  const cursors = measureCursors(settings, frame.traces, frame.measurements)
   return {
     state: frame.state,
     revision: frame.revision,
+    displayMode: settings.displayMode,
+    xy,
+    cursors,
     channels: settings.channels.map((channel, index) => {
       const trace = frame.traces[index]
       const envelope = frame.envelopes?.[index]

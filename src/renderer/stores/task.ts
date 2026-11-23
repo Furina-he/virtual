@@ -22,6 +22,17 @@ import { benchCircuitInput, currentMeasurementSnapshot } from '../lib/instrument
 
 export type TaskLeftTab = 'guide' | 'schematic' | 'steps'
 export type TaskBottomTab = 'instruments' | 'data' | 'charts' | 'log'
+export type ReportScreenshot = {
+  id: string
+  instanceId: string
+  instrumentTitle: string
+  title: string
+  dataUrl: string
+  createdAt: string
+  displayMode: 'yt' | 'xy'
+  frozen: boolean
+  summaryText: string
+}
 export type TaskUiState = {
   projectId?: string
   task: TaskState
@@ -33,6 +44,7 @@ export type TaskUiState = {
   notice: string | null
   warnings: string[]
   captures: Record<string, CapturedMeasurement>
+  screenshots: ReportScreenshot[]
   resetVersion: number
 }
 
@@ -46,6 +58,7 @@ export const taskStore = createStore<TaskUiState>()(() => ({
   notice: null,
   warnings: [],
   captures: {},
+  screenshots: [],
   resetVersion: 0,
 }))
 
@@ -82,7 +95,41 @@ export function resetTask(project?: Project): void {
     notice: null,
     warnings: [],
     captures: {},
+    screenshots: [],
     resetVersion: taskStore.getState().resetVersion + 1,
+  })
+}
+
+export function addReportScreenshot(
+  input: Omit<ReportScreenshot, 'id' | 'createdAt' | 'title'> & { title?: string },
+): ReportScreenshot {
+  const state = taskStore.getState()
+  const index = state.screenshots.length + 1
+  const modeLabel = input.displayMode === 'xy' ? 'X-Y' : 'Y-T'
+  const shot: ReportScreenshot = {
+    id: `shot-${Date.now()}-${index}`,
+    instanceId: input.instanceId,
+    instrumentTitle: input.instrumentTitle,
+    title: input.title ?? `${input.instrumentTitle} #${index} (${modeLabel})`,
+    dataUrl: input.dataUrl,
+    createdAt: new Date().toISOString(),
+    displayMode: input.displayMode,
+    frozen: input.frozen,
+    summaryText: input.summaryText,
+  }
+  taskStore.setState({
+    screenshots: [...state.screenshots, shot],
+    notice: `已将${input.instrumentTitle}波形截图存入报告附件（共 ${index} 张）。`,
+  })
+  return shot
+}
+
+export function removeReportScreenshot(id: string): void {
+  const state = taskStore.getState()
+  const next = state.screenshots.filter((item) => item.id !== id)
+  taskStore.setState({
+    screenshots: next,
+    notice: `已移除波形截图附件（剩余 ${next.length} 张）。`,
   })
 }
 

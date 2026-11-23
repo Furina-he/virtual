@@ -640,6 +640,18 @@ export function connectInstrumentRuntime(onStatus: (status: RuntimeStatus) => vo
     powerWindows.clear()
   }
 
+  function manuallyFrozenScopes(): Set<string> {
+    const state = circuitStore.getState()
+    if (!state.powered) return new Set()
+    const frozen = new Set<string>()
+    for (const entry of benchInstruments(state)) {
+      if (!entry.instrument.scope) continue
+      const resolved = resolveScope(entry.instrument, entry.settings)
+      if (!resolved.running) frozen.add(entry.instanceId)
+    }
+    return frozen
+  }
+
   function invalidate() {
     revision++
     job = undefined
@@ -653,7 +665,7 @@ export function connectInstrumentRuntime(onStatus: (status: RuntimeStatus) => vo
     requestedPaused = false
     requestedResumeAfter = undefined
     resetScopeContinuity()
-    resetScopeAcquisition()
+    resetScopeAcquisition(undefined, { preserveFrozenIds: manuallyFrozenScopes() })
     moduleAudio?.dispose()
     moduleAudio = undefined
     clearTimeout(timer)
@@ -1011,7 +1023,7 @@ export function connectInstrumentRuntime(onStatus: (status: RuntimeStatus) => vo
       publishedJob = undefined
       waveformAfterTime = Number.NEGATIVE_INFINITY
       waveformBoundary.clear()
-      resetScopeAcquisition()
+      resetScopeAcquisition(undefined, { preserveFrozenIds: manuallyFrozenScopes() })
       for (const window of rmsWindows.values()) window.clear()
       for (const window of powerWindows.values()) window.clear()
       if (replayed && moduleAudio && current.plan.command.analysis.kind === 'tran') {

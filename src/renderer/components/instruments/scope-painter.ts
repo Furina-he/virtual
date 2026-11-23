@@ -1,4 +1,13 @@
-import { formatFrequency, formatSeconds, formatVoltage, type ScopeSettings, triggerColumn } from '@domain/instruments'
+import {
+  buildXyTrace,
+  formatFrequency,
+  formatSeconds,
+  formatVoltage,
+  measureCursors,
+  type ScopeSettings,
+  triggerColumn,
+  type XyPoint,
+} from '@domain/instruments'
 import type { ScopeFrame, ScopeState } from '@/lib/scope-acquisition'
 
 // 2D OscilloscopeScreen 与 3D SCREEN_ 共用的绘制：网格、轨迹、触发标记、自动测量。颜色全部取自 CSS token。
@@ -32,6 +41,31 @@ export function measurementText(frame: ScopeFrame, settings: ScopeSettings, inde
     return 'Vpp --  f --  T --'
   const f = m.frequency === null ? null : formatFrequency(m.frequency)
   return `Vpp ${formatVoltage(m.vpp)}  f ${f ? `${f.text} ${f.unit}` : '--'}  T ${m.period === null ? '--' : formatSeconds(m.period)}`
+}
+
+export function cursorMeasurementText(frame: ScopeFrame, settings: ScopeSettings): string {
+  const cursors = measureCursors(settings, frame.traces, frame.measurements)
+  if (!cursors) return ''
+  if (cursors.mode === 'time') {
+    const t1 = cursors.t1 !== null ? formatSeconds(cursors.t1) : '--'
+    const t2 = cursors.t2 !== null ? formatSeconds(cursors.t2) : '--'
+    const dt = cursors.deltaT !== null ? formatSeconds(cursors.deltaT) : '--'
+    const f = cursors.frequency !== null ? formatFrequency(cursors.frequency) : null
+    const freqText = f ? `${f.text} ${f.unit}` : '--'
+    const dvText = cursors.deltaV !== null ? `  ΔV ${formatVoltage(cursors.deltaV)}` : ''
+    return `光标(${cursors.sourceChannelId}) T1 ${t1}  T2 ${t2}  Δt ${dt}  1/|Δt| ${freqText}${dvText}`
+  }
+  const v1 = cursors.v1 !== null ? formatVoltage(cursors.v1) : '--'
+  const v2 = cursors.v2 !== null ? formatVoltage(cursors.v2) : '--'
+  const dv = cursors.deltaV !== null ? formatVoltage(cursors.deltaV) : '--'
+  return `光标(${cursors.sourceChannelId}) V1 ${v1}  V2 ${v2}  ΔV ${dv}`
+}
+
+export function xyMeasurementText(frame: ScopeFrame, settings: ScopeSettings): string {
+  if (settings.displayMode !== 'xy') return ''
+  const { summary } = buildXyTrace(settings, frame.traces[0], frame.traces[1], frame.measurements)
+  if (!summary) return 'X-Y 模式：需同时开启并接入 CH1 (X) 与 CH2 (Y)'
+  return `X-Y 模式 (CH1→X, CH2→Y)  Vxpp ${formatVoltage(summary.xVpp)}  Vypp ${formatVoltage(summary.yVpp)}  ρ ${summary.correlation.toFixed(2)}`
 }
 
 const SANS = '"Noto Sans SC Variable", sans-serif'
@@ -103,41 +137,83 @@ export function paintScope(context: CanvasRenderingContext2D, frame: ScopeFrame,
   context.clip()
   context.lineWidth = Math.max(1.5, width / 500)
   context.lineJoin = 'round'
-  settings.channels.forEach((channel, index) => {
-    const trace = frame.traces[index]
-    const envelope = frame.envelopes?.[index]
-    if (!channel.enabled || (!envelope && (!trace || trace.length < 2))) return
-    const offset = channel.coupling === 'ac' ? (frame.measurements[index]?.mean ?? 0) : 0
-    context.strokeStyle = color(CHANNEL_TOKENS[index] ?? '--scope-text')
-    if (envelope) {
+  if (settings.displayMode === 'xy') {
+    const { points } = buildXyTrace(settings, frame.traces[0], frame.traces[1], frame.measurements)
+    if (points.length >= 2) {
+      const stride = Math.max(1, Math.floor(points.length / 2000))
+      context.strokeStyle = color(CHANNEL_TOKENS[0] ?? '--scope-text')
       context.beginPath()
-      const end = envelope.end
-      const start = end - settings.secondsPerDiv * divX
-      for (let i = 0; i < envelope.min.length; i++) {
-        const min = channel.coupling === 'gnd' ? 0 : (envelope.min[i] as number) - offset
-        const max = channel.coupling === 'gnd' ? 0 : (envelope.max[i] as number) - offset
-        if (!Number.isFinite(min) || !Number.isFinite(max)) continue
-        const x = left + ((envelope.start + i * envelope.dt - start) / settings.secondsPerDiv) * div
-        context.moveTo(x, centerY - (min / channel.voltsPerDiv + channel.position) * div)
-        context.lineTo(x, centerY - (max / channel.voltsPerDiv + channel.position) * div)
+      for (let i = 0; i < points.length; i += stride) {
+        const pt = points[i] as XyPoint
+        const x = midX + pt.xDiv * div
+        const y = centerY - pt.yDiv * div
+        if (i === 0) context.moveTo(x, y)
+        else context.lineTo(x, y)
       }
       context.stroke()
-      return
     }
-    if (!trace) return
-    const pxPerPoint = div / frame.pointsPerDiv
-    const stride = Math.max(1, Math.floor(trace.length / ((right - left) * 2)))
-    context.strokeStyle = color(CHANNEL_TOKENS[index] ?? '--scope-text')
+  } else {
+    settings.channels.forEach((channel, index) => {
+      const trace = frame.traces[index]
+      const envelope = frame.envelopes?.[index]
+      if (!channel.enabled || (!envelope && (!trace || trace.length < 2))) return
+      const offset = channel.coupling === 'ac' ? (frame.measurements[index]?.mean ?? 0) : 0
+      context.strokeStyle = color(CHANNEL_TOKENS[index] ?? '--scope-text')
+      if (envelope) {
+        context.beginPath()
+        const end = envelope.end
+        const start = end - settings.secondsPerDiv * divX
+        for (let i = 0; i < envelope.min.length; i++) {
+          const min = channel.coupling === 'gnd' ? 0 : (envelope.min[i] as number) - offset
+          const max = channel.coupling === 'gnd' ? 0 : (envelope.max[i] as number) - offset
+          if (!Number.isFinite(min) || !Number.isFinite(max)) continue
+          const x = left + ((envelope.start + i * envelope.dt - start) / settings.secondsPerDiv) * div
+          context.moveTo(x, centerY - (min / channel.voltsPerDiv + channel.position) * div)
+          context.lineTo(x, centerY - (max / channel.voltsPerDiv + channel.position) * div)
+        }
+        context.stroke()
+        return
+      }
+      if (!trace) return
+      const pxPerPoint = div / frame.pointsPerDiv
+      const stride = Math.max(1, Math.floor(trace.length / ((right - left) * 2)))
+      context.strokeStyle = color(CHANNEL_TOKENS[index] ?? '--scope-text')
+      context.beginPath()
+      for (let i = 0; i < trace.length; i += stride) {
+        const v = channel.coupling === 'gnd' ? 0 : (trace[i] as number) - offset
+        const x = left + i * pxPerPoint
+        const y = centerY - (v / channel.voltsPerDiv + channel.position) * div
+        if (i === 0) context.moveTo(x, y)
+        else context.lineTo(x, y)
+      }
+      context.stroke()
+    })
+  }
+  const cursors = measureCursors(settings, frame.traces, frame.measurements)
+  if (cursors) {
+    context.save()
+    context.strokeStyle = color(CHANNEL_TOKENS[settings.cursors.source] ?? '--scope-text')
+    context.lineWidth = Math.max(1, width / 700)
+    context.setLineDash([4, 4])
     context.beginPath()
-    for (let i = 0; i < trace.length; i += stride) {
-      const v = channel.coupling === 'gnd' ? 0 : (trace[i] as number) - offset
-      const x = left + i * pxPerPoint
-      const y = centerY - (v / channel.voltsPerDiv + channel.position) * div
-      if (i === 0) context.moveTo(x, y)
-      else context.lineTo(x, y)
+    if (cursors.mode === 'time') {
+      const x1 = midX + cursors.aDiv * div
+      const x2 = midX + cursors.bDiv * div
+      context.moveTo(x1, top)
+      context.lineTo(x1, bottom)
+      context.moveTo(x2, top)
+      context.lineTo(x2, bottom)
+    } else {
+      const y1 = centerY - cursors.aDiv * div
+      const y2 = centerY - cursors.bDiv * div
+      context.moveTo(left, y1)
+      context.lineTo(right, y1)
+      context.moveTo(left, y2)
+      context.lineTo(right, y2)
     }
     context.stroke()
-  })
+    context.restore()
+  }
   context.restore()
 
   // 通道零电平标记（左）、触发电平（右）、触发位置（上）
@@ -171,7 +247,7 @@ export function paintScope(context: CanvasRenderingContext2D, frame: ScopeFrame,
   context.lineTo(trigX + marker / 1.6, top - 2 - marker)
   context.fill()
 
-  // 顶栏：状态、时基、触发
+  // 顶栏：状态、时基/X-Y、触发
   const slope = settings.trigger.slope === 'rise' ? '↑' : '↓'
   const mode = { auto: '自动', normal: '常规', single: '单次' }[settings.trigger.mode]
   const state = scopeStateLabel(frame.state)
@@ -180,7 +256,8 @@ export function paintScope(context: CanvasRenderingContext2D, frame: ScopeFrame,
   context.font = `${font}px ${SANS}`
   context.fillText(state, margin, header / 2)
   const stateWidth = context.measureText(state).width + font
-  const info = `${formatSeconds(settings.secondsPerDiv)}/div  ${source?.label ?? ''} ${slope} ${formatVoltage(settings.trigger.level)} ${mode}`
+  const timebaseInfo = settings.displayMode === 'xy' ? 'X-Y 模式' : `${formatSeconds(settings.secondsPerDiv)}/div`
+  const info = `${timebaseInfo}  ${source?.label ?? ''} ${slope} ${formatVoltage(settings.trigger.level)} ${mode}`
   fitFont(context, info, font, SANS, width - margin * 2 - stateWidth)
   context.textAlign = 'right'
   context.fillText(info, width - margin, header / 2)
