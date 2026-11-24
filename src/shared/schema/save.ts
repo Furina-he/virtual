@@ -15,6 +15,7 @@ export const SaveFile = z.object({
   // 数据表 id → 行 → 列 id → 值，未填为 null
   tables: z.record(z.string(), z.array(z.record(z.string(), z.number().nullable()))),
   answers: z.record(z.string(), z.string()).default({}),
+  guideMode: z.enum(['guided', 'free']).optional(),
   // 排故过程记录（FLT-05）
   faultLog: z
     .object({

@@ -1,5 +1,6 @@
 import { useStore } from 'zustand'
 import { createStore } from 'zustand/vanilla'
+import type { ResolvedInstrument } from '../../domain/instruments'
 import { buildMeasurementPlan } from '../../domain/measurement/plan'
 import {
   type CapturedMeasurement,
@@ -31,7 +32,9 @@ import {
 } from '../../domain/task'
 import { checkWiring, detectDanger } from '../../domain/wiring-check'
 import { evaluateFormula } from '../../shared/formula'
-import type { Project, Step } from '../../shared/schema/project'
+import type { DataTable, Project, Step } from '../../shared/schema/project'
+import { SAVE_SCHEMA_VERSION, type SaveFile } from '../../shared/schema/save'
+import { formatEngineeringValue } from '../components/instruments/rotary-knob-values'
 import { circuitStore } from '../features/practice/wiring-state'
 import { benchCircuitInput, currentMeasurementSnapshot } from '../lib/instrument-runtime'
 
@@ -57,6 +60,7 @@ export type TaskUiState = {
   leftTab: TaskLeftTab
   bottomTab: TaskBottomTab
   notice: string | null
+  noticeDetail: string | null
   warnings: string[]
   captures: Record<string, CapturedMeasurement>
   screenshots: ReportScreenshot[]
@@ -75,6 +79,7 @@ export const taskStore = createStore<TaskUiState>()(() => ({
   leftTab: 'guide',
   bottomTab: 'instruments',
   notice: null,
+  noticeDetail: null,
   warnings: [],
   captures: {},
   screenshots: [],
@@ -106,7 +111,7 @@ export function parseTaskCellDraft(draft: string): { ok: true; value: number | n
   return { ok: true, value }
 }
 
-export function resetTask(project?: Project): void {
+export function resetTask(project?: Project, defaultGuideMode: GuideMode = 'guided'): void {
   taskStore.setState({
     projectId: project?.id,
     task: project ? createTaskState(project) : { completedSteps: [], tables: {} },
@@ -116,11 +121,12 @@ export function resetTask(project?: Project): void {
     leftTab: 'guide',
     bottomTab: 'instruments',
     notice: null,
+    noticeDetail: null,
     warnings: [],
     captures: {},
     screenshots: [],
     faultFlow: createFaultFlowState(),
-    guideMode: 'guided',
+    guideMode: defaultGuideMode,
     focusedStepId: project?.steps[0]?.id ?? null,
     answers: project ? normalizeQuestionAnswers(project) : {},
     resetVersion: taskStore.getState().resetVersion + 1,
@@ -261,17 +267,45 @@ function freshWiring(project: Project, step: Step) {
   }
 }
 
+function formatCapturedValue(valueSI: number, unit: string, meterConfig?: ResolvedInstrument): string {
+  if (!Number.isFinite(valueSI)) return unit ? `— ${unit}` : '—'
+  if (meterConfig && meterConfig.displayScale > 0) {
+    const scaled = valueSI / meterConfig.displayScale
+    const step = meterConfig.resolution / meterConfig.displayScale
+    const decimals = step > 0 && step < 1 ? Math.min(6, Math.max(0, Math.ceil(-Math.log10(step) - 1e-9))) : 0
+    return `${scaled.toFixed(decimals)}${meterConfig.unit ? ` ${meterConfig.unit}` : ''}`
+  }
+  return formatEngineeringValue(valueSI, unit)
+}
+
 function captureFeedback(
   project: Project,
   snapshot: MeasurementSnapshot | undefined,
   capture: CapturedMeasurement,
-): string {
+  table?: DataTable,
+): { summary: string; detail: string } {
   const meter = snapshot?.plan.meters.find((item) => item.instanceId === capture.instanceId)
+  const checkInstrument = snapshot?.plan.checkInput.instruments.find((item) => item.instanceId === capture.instanceId)
   const point = project.reference.measurePoints.find((item) => item.id === capture.measurePoint)
-  const unit = point ? measurementUnit(point) : ''
+  const column =
+    table?.columns.find((col) => col.measurePoint === capture.measurePoint) ??
+    project.dataTables.flatMap((entry) => entry.columns).find((col) => col.measurePoint === capture.measurePoint)
+  const pointTitle = column?.title ?? capture.measurePoint
+  const instrumentName = meter?.config.instrument.name ?? checkInstrument?.instrument.name ?? capture.instanceId
+  const sourceLabel = capture.channelId ? `${instrumentName} ${capture.channelId}` : instrumentName
+  const unit = point ? measurementUnit(point) : (column?.unit ?? '')
   const ac = meter?.config.mode === 'acv' || meter?.config.mode === 'aca'
-  const number = (value: number) => String(Number(value.toPrecision(12)))
-  return `${capture.measurePoint}：${meter?.config.instrument.name ?? capture.instanceId}（${capture.instanceId}${capture.channelId ? `.${capture.channelId}` : ''}）${capture.channelId ? '波形实测' : '表屏'} ${number(capture.displayValueSI)} ${unit}，按参考方向记录 ${number(capture.referenceValueSI)} ${unit}。${capture.reversed ? (ac ? '表线正负端接反，有效值的非负幅度不因反接改变。' : '表线正负端接反，记录按声明方向换算；未取绝对值。') : ''}`
+  const formattedDisp = formatCapturedValue(capture.displayValueSI, unit, meter?.config)
+  const formattedRef = formatCapturedValue(capture.referenceValueSI, unit, meter?.config)
+  const rawNumber = (value: number) => String(Number(value.toPrecision(12)))
+  const reversedNote = capture.reversed
+    ? ac
+      ? '（表线反接，有效值幅度不变）'
+      : `（表屏 ${formattedDisp}，表线反接已按参考方向换算）`
+    : ''
+  const summary = `${pointTitle}（${sourceLabel}）：${formattedRef}${reversedNote}`
+  const detail = `${pointTitle} [${capture.measurePoint}] · ${sourceLabel} (${capture.instanceId}${capture.channelId ? `.${capture.channelId}` : ''})：原始显示 ${rawNumber(capture.displayValueSI)} ${unit}，参考方向 ${rawNumber(capture.referenceValueSI)} ${unit}`
+  return { summary, detail }
 }
 
 function requestedWindowSeconds(project: Project, step?: Step): number[] {
@@ -344,13 +378,15 @@ export function recordTaskReadings(project: Project): boolean {
   const nextStep = currentTaskStep(project, task)
   const nextTable = nextStep?.dataTable ?? table.id
   const nextRows = project.dataTables.find((entry) => entry.id === nextTable)?.rows ?? table.rows
+  const feedbackEntries = successful.map((capture) => captureFeedback(project, snapshot, capture, table))
   taskStore.setState({
     task,
     focusedStepId: nextStep?.id ?? project.steps.at(-1)?.id ?? state.focusedStepId,
     selectedTable: nextTable,
     selectedRow: Math.min(row, nextRows - 1),
     captures,
-    notice: `已记录 ${successful.length} 项当前读数。${successful.map((capture) => captureFeedback(project, snapshot, capture)).join(' ')}${completionMessage}`,
+    notice: `已记录 ${successful.length} 项：${feedbackEntries.map((entry) => entry.summary).join('；')}。${completionMessage}`,
+    noticeDetail: feedbackEntries.map((entry) => entry.detail).join('\n'),
     warnings: sanityWarnings(project, task),
   })
   return true
@@ -382,6 +418,7 @@ export function completeCurrentTaskStep(project: Project): boolean {
     selectedRow: Math.min(state.selectedRow, nextRows - 1),
     leftTab: 'steps',
     notice: `${update.message}${wiring && !wiring.correct ? wiring.messages.join(' ') : ''}`,
+    noticeDetail: null,
     warnings: [...new Set([...sanityWarnings(project, update.state), ...(wiring?.messages ?? [])])],
   })
   return update.ok
@@ -533,4 +570,82 @@ export function setTaskQuestionAnswer(project: Project, questionIndex: number, t
     ...(update.ok ? {} : { notice: update.message }),
   })
   return update.ok
+}
+
+export function buildProjectSaveFile(project: Project): SaveFile {
+  const circuit = circuitStore.getState()
+  const taskState = taskStore.getState()
+  const fault = taskState.faultFlow
+  const hasFaultHistory = fault.history.length > 0 || fault.stage !== 'idle'
+  const activeMeasurements = fault.stage !== 'idle' && fault.stage !== 'completed' ? fault.measurementCount : 0
+  const activeWrong = fault.stage !== 'idle' && fault.stage !== 'completed' ? fault.wrongAttempts : 0
+  const activeElapsedMs = fault.stage !== 'idle' && fault.stage !== 'completed' ? fault.elapsedMs : 0
+  const faultLog = hasFaultHistory
+    ? {
+        measurements: fault.history.reduce((sum, item) => sum + item.measurementCount, 0) + activeMeasurements,
+        wrongGuesses: fault.history.reduce((sum, item) => sum + item.wrongAttempts, 0) + activeWrong,
+        seconds: Number(
+          ((fault.history.reduce((sum, item) => sum + item.elapsedMs, 0) + activeElapsedMs) / 1000).toFixed(1),
+        ),
+      }
+    : undefined
+
+  return {
+    schemaVersion: SAVE_SCHEMA_VERSION,
+    projectId: project.id,
+    updatedAt: new Date().toISOString(),
+    circuit: {
+      placedInstruments: structuredClone(circuit.placedInstruments),
+      wires: structuredClone(circuit.wires),
+      controlValues: { ...circuit.controlValues },
+      ...(circuit.activeFault ? { activeFault: circuit.activeFault } : {}),
+    },
+    completedSteps: [...taskState.task.completedSteps],
+    tables: structuredClone(taskState.task.tables),
+    answers: normalizeQuestionAnswers(project, taskState.answers),
+    guideMode: taskState.guideMode,
+    ...(faultLog ? { faultLog } : {}),
+  }
+}
+
+export function restoreTaskFromSave(project: Project, save: SaveFile, noticeMessage?: string): void {
+  const validSteps = new Set(project.steps.map((step) => step.id))
+  const completedSteps = save.completedSteps.filter((id) => validSteps.has(id))
+  let restored = createTaskState(project)
+  restored = { ...restored, completedSteps }
+
+  for (const table of project.dataTables) {
+    const savedRows = save.tables[table.id] ?? []
+    for (let rowIndex = 0; rowIndex < Math.min(table.rows, savedRows.length); rowIndex++) {
+      const savedRow = savedRows[rowIndex]
+      if (!savedRow) continue
+      for (const column of table.columns) {
+        if (column.computed) continue
+        const value = savedRow[column.id]
+        if (typeof value === 'number' && Number.isFinite(value)) {
+          const updated = writeTableCell(project, restored, table.id, rowIndex, column.id, value)
+          if (updated.ok) restored = updated.state
+        }
+      }
+    }
+  }
+
+  const nextStep = currentTaskStep(project, restored)
+  const selectedTable = nextStep?.dataTable ?? project.dataTables[0]?.id ?? ''
+  const guideMode = save.guideMode ?? 'guided'
+
+  taskStore.setState((prev) => ({
+    projectId: project.id,
+    task: restored,
+    selectedTable,
+    selectedRow: 0,
+    selectedSource: 'auto',
+    notice: noticeMessage ?? '已恢复存档进度，当前处于断电状态。',
+    warnings: sanityWarnings(project, restored),
+    captures: {},
+    guideMode,
+    focusedStepId: nextStep?.id ?? project.steps.at(-1)?.id ?? null,
+    answers: normalizeQuestionAnswers(project, save.answers),
+    resetVersion: prev.resetVersion + 1,
+  }))
 }

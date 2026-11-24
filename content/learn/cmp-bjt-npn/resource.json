@@ -1,0 +1,22 @@
+{
+  "id": "cmp-bjt-npn",
+  "category": "component",
+  "subcategory": "三极管类",
+  "title": "NPN 小功率三极管（TO-92）",
+  "subtitle": "电流控制型双极结型晶体管（放大与开关核心）",
+  "summary": "NPN 型硅三极管通过基极微小电流控制集电极电流，工作于放大、饱和与截止三个区域，是单管放大与故障排查的核心器件。",
+  "keywords": ["三极管", "BJT", "NPN", "9013", "3DG6", "TO-92", "放大", "饱和", "截止"],
+  "model": "models/components/cmp-transistor-to92.glb",
+  "relatedModules": ["mod-analog-amp"],
+  "specs": [
+    { "label": "封装形式", "value": "TO-92" },
+    { "label": "典型 UBE", "value": "0.65 ~ 0.75 V" },
+    { "label": "饱和压降 UCE(sat)", "value": "≈ 0.1 ~ 0.3 V" }
+  ],
+  "sections": {
+    "structure": "## 内部结构与三区工作机理\n\n- 内部包含发射区、极薄的基区与集电区，构成发射结与集电结两个背靠背 PN 结。\n- **放大区**：发射结正偏、集电结反偏，满足 $I_C = \\beta I_B$；**截止区**：两结反偏，$I_C \\approx 0$；**饱和区**：两结均正偏，$U_{CE} \\le 0.3\\ \\text{V}$。",
+    "symbol": "## 符号与引脚排列识别\n\n- NPN 电路符号发射极箭头**向外指**（PNP 向内指），三引脚分别为基极 B、集电极 C、发射极 E。\n- 安装 TO-92 封装时须对照具体型号手册确认 E-B-C 或 E-C-B 引脚顺序，切勿盲目按外形统一插装。",
+    "parameters": "## 电流分配与功率核算\n\n- 电流关系：$I_E = I_B + I_C = (1 + \\beta) I_B$。\n- 集电极耗散功率：$P_C = U_{CE} \\cdot I_C < P_{CM}$，超出最大允许耗散功率会导致热击穿。",
+    "troubleshooting": "## 在路电位与万用表判别\n\n- **正常放大态判据**：硅管 $U_{BE} \\approx 0.65 \\sim 0.75\\ \\text{V}$ 且 $U_C > U_B > U_E$。\n- **常见损坏**：C-E 击穿（$U_C \\approx U_E$，放大能力完全丧失）、发射结开路（$I_C = 0$，$U_C \\approx V_{CC}$）。离线可用万用表二极管档测 B-E、B-C 正向压降判别极性与好坏。"
+  }
+}

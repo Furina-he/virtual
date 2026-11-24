@@ -232,6 +232,41 @@ export function instrumentPlacementProblem(
   return null
 }
 
+const SLOT_DISPLAY_NAMES: Record<string, string> = {
+  SLOT_DESK_1: '台面左位',
+  SLOT_DESK_2: '台面中位',
+  SLOT_DESK_3: '台面右中位',
+  SLOT_DESK_4: '台面右位',
+  SLOT_SCOPE: '示波器位',
+}
+
+/** 将台面安装位 ID 转为可读中文名（T1.9A，技术设计 §11）。 */
+export function slotDisplayName(slotId: string): string {
+  return SLOT_DISPLAY_NAMES[slotId] ?? slotId
+}
+
+/** 为指定台式仪表寻找第一个空闲且通过边界/碰撞校验的台面安装位（示波器优先示波器位）。 */
+export function findAvailableDesktopSlot(
+  instrumentId: string,
+  placed: readonly PlacedInstrument[],
+  base: readonly ScenePlacement[] = fixedPlacements,
+): string | null {
+  const ordered =
+    instrumentId === 'ins-oscilloscope'
+      ? [...desktopSlots].sort((a, b) => (a.id === 'SLOT_SCOPE' ? -1 : b.id === 'SLOT_SCOPE' ? 1 : 0))
+      : desktopSlots
+  for (const slot of ordered) {
+    const candidate: PlacedInstrument = {
+      instanceId: `__probe_${slot.id}`,
+      instrumentId,
+      slot: slot.id,
+      settings: {},
+    }
+    if (instrumentPlacementProblem(candidate, placed, base) === null) return slot.id
+  }
+  return null
+}
+
 export function jackName(ref: string, jacks: readonly WiringJack[] = wiringJacks): string {
   const jack = jacks.find((entry) => entry.ref === ref)
   return jack ? `${jack.deviceName} / ${jack.label} (${jack.id})` : ref

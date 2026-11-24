@@ -36,6 +36,11 @@ const schematics = import.meta.glob<string>('../../../../content/projects/*/sche
   query: '?url',
   import: 'default',
 })
+const schematicsRaw = import.meta.glob<string>('../../../../content/projects/*/schematic.svg', {
+  eager: true,
+  query: '?raw',
+  import: 'default',
+})
 
 export const instrumentCatalog = Object.values(instruments).map((data) => Instrument.parse(data))
 export const moduleCatalog = Object.values(modules).map((data) => Module.parse(data))
@@ -53,6 +58,10 @@ export function projectGuide(project: Project): string {
 
 export function projectSchematic(project: Project): string | undefined {
   return schematics[`../../../../content/projects/${project.id}/schematic.svg`]
+}
+
+export function projectSchematicSvg(project: Project): string | undefined {
+  return schematicsRaw[`../../../../content/projects/${project.id}/schematic.svg`]
 }
 
 export function findProject(id?: string): Project | undefined {

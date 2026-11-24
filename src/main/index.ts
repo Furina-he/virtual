@@ -2,7 +2,9 @@ import { join } from 'node:path'
 import { app, BrowserWindow, session, shell } from 'electron'
 import { installNetworkGuard } from './network-guard'
 import { registerPanelWindows } from './panel-windows'
+import { registerReportPdfHandlers } from './report-pdf'
 import { SimHost } from './sim-host'
+import { registerStorageHandlers } from './storage'
 
 const devServer = process.env.ELECTRON_RENDERER_URL
 
@@ -39,6 +41,8 @@ function createWindow(): void {
 app.whenReady().then(() => {
   installNetworkGuard(session.defaultSession, devServer)
   registerPanelWindows()
+  registerReportPdfHandlers()
+  registerStorageHandlers()
   const sim = new SimHost()
   sim.start()
   // e2e 通过 app.evaluate 读取 sim 进程 pid

@@ -2,7 +2,7 @@ import { mkdtempSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { _electron as electron, expect, test } from '@playwright/test'
-import { addInstrumentWireFromList } from './helpers/instruments'
+import { addInstrumentWireFromList, openInstrumentPanel } from './helpers/instruments'
 
 test('模块开关经公共 alter 更新真实读数，且不重新载入仿真会话', async () => {
   const app = await electron.launch({
@@ -23,7 +23,7 @@ test('模块开关经公共 alter 更新真实读数，且不重新载入仿真�
     ])
       await addInstrumentWireFromList(page, a as string, b as string)
     await page.getByRole('button', { name: '上电', exact: true }).click()
-    const output = page.getByRole('region', { name: '直流数字电压表', exact: true }).locator('output[data-instance-id]')
+    const output = (await openInstrumentPanel(page, '直流数字电压表')).locator('output[data-instance-id]')
     await expect(output).toHaveAttribute('data-status', 'ok')
     await expect(output).toHaveAttribute('data-reading', '6.00')
     const sessions = await page.evaluate(

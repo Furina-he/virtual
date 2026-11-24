@@ -6,9 +6,13 @@ import {
   GUIDE_MODES,
   measurementUnit,
   resolveGuideModePolicy,
+  scopedReference,
 } from '@domain/task'
+import { missingReferenceLinks } from '@domain/wiring-check'
 import type { Project } from '@shared/schema/project'
-import { useEffect, useId, useRef, useState } from 'react'
+import { Crosshair } from 'lucide-react'
+import { useEffect, useId, useMemo, useRef, useState } from 'react'
+import { formatEngineeringValue } from '@/components/instruments/rotary-knob-values'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -34,6 +38,7 @@ import {
 } from '@/stores/task'
 import { useBenchView } from '@/three/bench-view'
 import type { CapturedMeasurement } from '../../../domain/task'
+import { jackName, useCircuit, useWiringJacks } from './wiring-state'
 
 export { completeCurrentTaskStep, recordTaskReadings } from '@/stores/task'
 
@@ -41,6 +46,7 @@ type TaskColumn = Project['dataTables'][number]['columns'][number]
 
 function TaskFeedback({ live = true }: { live?: boolean }) {
   const notice = useTask((state) => state.notice)
+  const noticeDetail = useTask((state) => state.noticeDetail)
   const warnings = useTask((state) => state.warnings)
   if (!notice && !warnings.length) return null
   return (
@@ -51,7 +57,7 @@ function TaskFeedback({ live = true }: { live?: boolean }) {
       className="space-y-1"
     >
       {notice && (
-        <p data-task-notice className="text-xs leading-relaxed">
+        <p data-task-notice title={noticeDetail ?? notice} className="text-xs leading-relaxed">
           {notice}
         </p>
       )}
@@ -74,6 +80,7 @@ function TaskCellInput({
   column,
   value,
   capture,
+  sourceTitle,
 }: {
   project: Project
   tableId: string
@@ -82,6 +89,7 @@ function TaskCellInput({
   column: TaskColumn
   value: number | null
   capture?: CapturedMeasurement
+  sourceTitle?: string
 }) {
   const [draft, setDraft] = useState(formatTaskCellValue(value))
   const [error, setError] = useState<string | null>(null)
@@ -115,7 +123,10 @@ function TaskCellInput({
     setDraft(formatTaskCellValue(parsed.value))
   }
   const captureLabel = capture
-    ? `来源 ${capture.instanceId}；表屏 ${formatTaskCellValue(capture.displayValueSI)} ${siUnit}，参考方向 ${formatTaskCellValue(capture.referenceValueSI)} ${siUnit}。`
+    ? `来自 ${sourceTitle ?? '仪表'}${capture.channelId ? ` ${capture.channelId}` : ''} · ${formatEngineeringValue(capture.referenceValueSI, siUnit)}`
+    : ''
+  const captureTitle = capture
+    ? `来自 ${sourceTitle ?? capture.instanceId}${capture.channelId ? `.${capture.channelId}` : ''} · 原始显示 ${formatTaskCellValue(capture.displayValueSI)} ${siUnit}，参考方向 ${formatTaskCellValue(capture.referenceValueSI)} ${siUnit}`
     : ''
   const describedBy = [error ? errorId : '', capture ? captureId : ''].filter(Boolean).join(' ') || undefined
   return (
@@ -171,7 +182,7 @@ function TaskCellInput({
       {capture && (
         <span
           id={captureId}
-          title={captureLabel}
+          title={captureTitle}
           className="block max-w-28 truncate font-mono text-xs text-muted-foreground"
         >
           {captureLabel}
@@ -282,11 +293,14 @@ export function TaskDataPanel({ project }: { project?: Project }) {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="auto">自动匹配已接线仪表</SelectItem>
-                  {sources.map((source) => (
-                    <SelectItem key={source.id} value={source.id}>
-                      {source.title} ({source.id})
-                    </SelectItem>
-                  ))}
+                  {sources.map((source) => {
+                    const duplicated = sources.filter((entry) => entry.title === source.title).length > 1
+                    return (
+                      <SelectItem key={source.id} value={source.id} data-source-id={source.id}>
+                        {duplicated ? `${source.title}（${source.id}）` : source.title}
+                      </SelectItem>
+                    )
+                  })}
                   {!sourcePresent && (
                     <SelectItem value={state.selectedSource} disabled>
                       {state.selectedSource}（已移除）
@@ -331,20 +345,27 @@ export function TaskDataPanel({ project }: { project?: Project }) {
                     data-state={row.index === state.selectedRow ? 'selected' : undefined}
                   >
                     <TableCell className="font-mono text-xs">{row.index + 1}</TableCell>
-                    {table.columns.map((column) => (
-                      <TableCell key={column.id} data-column-id={column.id}>
-                        <TaskCellInput
-                          key={JSON.stringify([project.id, row.id, column.id, state.resetVersion])}
-                          project={project}
-                          tableId={table.id}
-                          tableTitle={table.title}
-                          row={row.index}
-                          column={column}
-                          value={state.task.tables[table.id]?.[row.index]?.[column.id] ?? null}
-                          capture={state.captures[taskCellKey(table.id, row.index, column.id)]}
-                        />
-                      </TableCell>
-                    ))}
+                    {table.columns.map((column) => {
+                      const capture = state.captures[taskCellKey(table.id, row.index, column.id)]
+                      const sourceTitle = capture
+                        ? panels.find((panel) => panel.id === capture.instanceId)?.title
+                        : undefined
+                      return (
+                        <TableCell key={column.id} data-column-id={column.id}>
+                          <TaskCellInput
+                            key={JSON.stringify([project.id, row.id, column.id, state.resetVersion])}
+                            project={project}
+                            tableId={table.id}
+                            tableTitle={table.title}
+                            row={row.index}
+                            column={column}
+                            value={state.task.tables[table.id]?.[row.index]?.[column.id] ?? null}
+                            capture={capture}
+                            sourceTitle={sourceTitle}
+                          />
+                        </TableCell>
+                      )
+                    })}
                   </TableRow>
                 ))}
               </TableBody>
@@ -398,12 +419,38 @@ export function TaskDataPanel({ project }: { project?: Project }) {
 
 export function TaskStepsPanel({ project }: { project?: Project }) {
   const state = useTask((value) => value)
+  const wires = useCircuit((value) => value.wires)
+  const jacks = useWiringJacks()
+  const initialized = Boolean(project) && state.projectId === project?.id
+  const current = project && initialized ? currentTaskStep(project, state.task) : undefined
+  const policy = resolveGuideModePolicy(state.guideMode)
+  const availableJackSet = useMemo(() => new Set(jacks.map((jack) => jack.ref)), [jacks])
+  // 引导模式下当前步骤的待连与待测定位条目（T1.9B；自主模式严格为空）
+  const currentLocateItems = useMemo(() => {
+    if (!project || !current || !policy.showProcessHints) return []
+    const items: { key: string; label: string; a: string; b: string }[] = []
+    const ref = scopedReference(project, current)
+    const missing = missingReferenceLinks(ref.nets, wires).filter(
+      ([a, b]) => availableJackSet.has(a) && availableJackSet.has(b),
+    )
+    for (const [a, b] of missing.slice(0, 4)) {
+      items.push({ key: `net:${a}:${b}`, label: `${jackName(a)} → ${jackName(b)}`, a, b })
+    }
+    for (const mpId of current.measurePoints ?? []) {
+      const mp = project.reference.measurePoints.find((entry) => entry.id === mpId)
+      const endpoints = mp?.between ?? mp?.branch
+      if (!endpoints) continue
+      const [a, b] = endpoints
+      if (!availableJackSet.has(a) || !availableJackSet.has(b)) continue
+      const colTitle =
+        project.dataTables.flatMap((t) => t.columns).find((col) => col.measurePoint === mpId)?.title ?? mpId
+      items.push({ key: `mp:${mpId}`, label: `测量 ${colTitle}（${jackName(a)} / ${jackName(b)}）`, a, b })
+    }
+    return items
+  }, [project, current, policy.showProcessHints, wires, availableJackSet])
   if (!project) return <p className="p-3 text-sm text-muted-foreground">当前未选择有效实训项目。</p>
-  const initialized = state.projectId === project.id
-  const current = initialized ? currentTaskStep(project, state.task) : undefined
   const completed = initialized ? state.task.completedSteps : []
   const stepViews = initialized ? buildStepViewList(project, state.task, state.focusedStepId) : []
-  const policy = resolveGuideModePolicy(state.guideMode)
   return (
     <section
       aria-label="实训步骤"
@@ -429,7 +476,10 @@ export function TaskStepsPanel({ project }: { project?: Project }) {
               variant={state.guideMode === mode ? 'secondary' : 'outline'}
               aria-pressed={state.guideMode === mode}
               onClick={() => {
-                if (mode === 'free') useBenchView.getState().setShowGuide(false)
+                if (mode === 'free') {
+                  useBenchView.getState().setShowGuide(false)
+                  useBenchView.getState().setHighlightedLink(null)
+                }
                 setTaskGuideMode(mode)
               }}
             >
@@ -462,10 +512,11 @@ export function TaskStepsPanel({ project }: { project?: Project }) {
               <div className="flex items-center justify-between gap-2">
                 <button
                   type="button"
+                  aria-label={`${step.index + 1}. ${step.id}`}
                   onClick={() => focusTaskStep(project, step.id)}
-                  className="text-left font-mono text-xs hover:underline focus-visible:outline-1"
+                  className="text-left text-xs font-medium hover:underline focus-visible:outline-1"
                 >
-                  {step.index + 1}. {step.id}
+                  第 {step.index + 1} 步
                 </button>
                 <span
                   className={cn('text-xs', done ? 'text-success' : active ? 'text-primary' : 'text-muted-foreground')}
@@ -475,11 +526,60 @@ export function TaskStepsPanel({ project }: { project?: Project }) {
               </div>
               <p className="text-sm leading-relaxed">{step.text}</p>
               {policy.showProcessHints && (step.measurePoints.length > 0 || step.dataTable) && (
-                <p data-step-hint={step.id} className="font-mono text-xs text-muted-foreground">
-                  {step.measurePoints.length > 0 ? `需测点：${step.measurePoints.join(', ')}` : ''}
+                <p
+                  data-step-hint={step.id}
+                  data-measure-points={step.measurePoints.join(',')}
+                  className="text-xs text-muted-foreground"
+                >
+                  {step.measurePoints.length > 0
+                    ? `需测项：${step.measurePoints
+                        .map(
+                          (mpId) =>
+                            project.dataTables
+                              .flatMap((entry) => entry.columns)
+                              .find((col) => col.measurePoint === mpId)?.title ?? mpId,
+                        )
+                        .join('、')}`
+                    : ''}
                   {step.measurePoints.length > 0 && step.dataTable ? ' · ' : ''}
-                  {step.dataTable ? `关联表：${step.dataTable}` : ''}
+                  {step.dataTable
+                    ? `关联表：${project.dataTables.find((entry) => entry.id === step.dataTable)?.title ?? step.dataTable}`
+                    : ''}
                 </p>
+              )}
+              {active && policy.showProcessHints && currentLocateItems.length > 0 && (
+                <ul data-step-locate-list className="space-y-1 pt-1">
+                  {currentLocateItems.map((item) => (
+                    <li
+                      key={item.key}
+                      data-step-locate-item={item.key}
+                      className="flex items-center justify-between gap-1.5 rounded-sm border bg-background px-2 py-1 text-xs hover:bg-accent/50"
+                      onMouseEnter={() =>
+                        useBenchView.getState().setHighlightedLink({
+                          jacks: [item.a, item.b],
+                          guidePair: [item.a, item.b],
+                          source: 'step',
+                        })
+                      }
+                      onMouseLeave={() => useBenchView.getState().setHighlightedLink(null)}
+                    >
+                      <span className="min-w-0 flex-1 truncate text-muted-foreground" title={item.label}>
+                        {item.label}
+                      </span>
+                      <Button
+                        size="xs"
+                        variant="ghost"
+                        data-step-locate-btn={item.key}
+                        aria-label={`定位 ${item.label}`}
+                        className="h-5 shrink-0 px-1.5"
+                        onClick={() => useBenchView.getState().locateJack(item.a, [item.a, item.b], 'step')}
+                      >
+                        <Crosshair className="size-3" />
+                        定位
+                      </Button>
+                    </li>
+                  ))}
+                </ul>
               )}
             </li>
           )

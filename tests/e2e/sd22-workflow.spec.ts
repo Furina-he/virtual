@@ -6,6 +6,7 @@ import type { SignalMeasurement } from '../../src/domain/instruments/scope'
 import type { WaveformWindow } from '../../src/domain/task/measurements'
 import { requiredMeasurements } from '../../src/domain/task/progress'
 import type { Step } from '../../src/shared/schema/project'
+import { openInstrumentPanel } from './helpers/instruments'
 import {
   region,
   sd22Choose,
@@ -90,7 +91,7 @@ async function capture(page: Page, id: string) {
   const columns = table.columns.filter((column) => !column.captureSteps || column.captureSteps.includes(id))
   const deadline = Date.now() + 15_000
   do {
-    await sd22Tab(page, '仪表')
+    await openInstrumentPanel(page, '双通道数字示波器')
     await expect
       .poll(() => ready(page, step), { timeout: Math.max(1, deadline - Date.now()), intervals: [50] })
       .toBe(true)
@@ -198,10 +199,11 @@ test('SD-22 双模式完整真实操作：检查、供电、长周期/载频/CV/
     await sd22Wire(page, 'ins-dc-voltmeter.NEG', 'timer1.GND1')
     await page.getByRole('button', { name: '检查接线', exact: true }).click()
     await page.getByRole('button', { name: '上电', exact: true }).click()
-    await expect(region(page, '直流数字电压表').locator('output')).toHaveAttribute('data-status', 'ok', {
+    const dcv = await openInstrumentPanel(page, '直流数字电压表')
+    await expect(dcv.locator('output')).toHaveAttribute('data-status', 'ok', {
       timeout: 5000,
     })
-    await expect(region(page, '直流数字电压表').locator('output')).toHaveAttribute('data-reading', '5.00')
+    await expect(dcv.locator('output')).toHaveAttribute('data-reading', '5.00')
     await page.getByRole('button', { name: '记录读数', exact: true }).click()
     await expect(sd22Steps(page)).toHaveAttribute('data-current-step', 'ambulance-lf')
     await showTable(page, 'supply')

@@ -2,8 +2,9 @@ import { useThree } from '@react-three/fiber'
 import { type RefObject, useCallback, useEffect, useMemo, useRef } from 'react'
 import { type Object3D, Plane, Raycaster, Vector2, Vector3 } from 'three'
 import { circuitStore, useCircuit, type WiringJack } from '@/features/practice/wiring-state'
+import { dismissBenchOnboarding } from './bench-onboarding'
 import { useBenchView } from './bench-view'
-import type { DragDraft } from './patch-cords'
+import { type DragDraft, wireEndpointPositions } from './patch-cords'
 import {
   facesCamera,
   isOccluded,
@@ -34,6 +35,8 @@ type ScreenJack = ScreenPoint & { id: string; device: string; world: Vector3 }
 
 /** A click that moves less than this is a click, not a pan or a wire drag. */
 const CLICK_SLOP_PX = 4
+/** Screen pick radius for a selected wire's plug-end replug spheres (T1.9B). */
+const ENDPOINT_HANDLE_RADIUS_PX = 14
 /** Occlusion is ray-tested only for the nearest few screen candidates. */
 const OCCLUSION_CANDIDATES = 4
 /** Screen labels: only the nearest few jacks, and only where the device leaves room for text. */
@@ -103,7 +106,21 @@ export function useWiringInteraction(
       plane.current.constant = -(jack.position[2] + 0.08)
       invalidate()
     }
-  }, [pending, enabled, jacks, invalidate, release])
+    // 快捷落点浮窗或原理图悬停其他插孔时，3D 预览导线实时吸附指向真实物理插孔（T1.9B）
+    return useBenchView.subscribe((state, prev) => {
+      if (state.hoveredJack === prev.hoveredJack || drag.current) return
+      const targetRef = state.hoveredJack
+      if (targetRef && targetRef !== pending) {
+        const targetJack = jacks.find((entry) => entry.ref === targetRef)
+        if (targetJack) {
+          draft.current.target.set(...targetJack.position)
+          draft.current.revision++
+          if (region.current) region.current.dataset.draftTarget = targetRef
+          invalidate()
+        }
+      }
+    })
+  }, [pending, enabled, jacks, invalidate, release, region])
 
   useEffect(() => {
     const canvas = gl.domElement
@@ -118,7 +135,7 @@ export function useWiringInteraction(
       }
       return result
     }
-    const pickJack = (point: ScreenPoint, visible: ScreenJack[]) => {
+    const pickJackHit = (point: ScreenPoint, visible: ScreenJack[]) => {
       const pickable = pickableDevices(visible)
       const candidates = targetsWithin(
         point,
@@ -127,8 +144,11 @@ export function useWiringInteraction(
       )
         .slice(0, OCCLUSION_CANDIDATES)
         .filter((jack) => !isOccluded(jack.world, camera, solids.current ?? []))
-      return nearestTarget(point, candidates, JACK_PICK_RADIUS_PX, useBenchView.getState().hoveredJack)?.id ?? null
+      const target = nearestTarget(point, candidates, JACK_PICK_RADIUS_PX, useBenchView.getState().hoveredJack)
+      if (!target) return null
+      return { id: target.id, distance: Math.hypot(target.x - point.x, target.y - point.y) }
     }
+    const pickJack = (point: ScreenPoint, visible: ScreenJack[]) => pickJackHit(point, visible)?.id ?? null
     const pickWire = (point: ScreenPoint) => {
       const bounds = size()
       return nearestPolyline(
@@ -138,6 +158,27 @@ export function useWiringInteraction(
           points: cord.path.flatMap((vertex) => projectToCanvas(vertex, camera, bounds) ?? []),
         })),
       )
+    }
+    const pickSelectedWireEndpoint = (
+      point: ScreenPoint,
+    ): { wireId: string; end: 'a' | 'b'; jackRef: string; distance: number } | null => {
+      const state = circuitStore.getState()
+      if (state.powered || state.pendingJack || !state.selectedWireId) return null
+      const wire = state.wires.find((entry) => entry.id === state.selectedWireId)
+      if (!wire) return null
+      const positions = wireEndpointPositions(wire, jacks, state.wires)
+      if (!positions) return null
+      const bounds = size()
+      let best: { wireId: string; end: 'a' | 'b'; jackRef: string; distance: number } | null = null
+      for (const end of ['a', 'b'] as const) {
+        const projected = projectToCanvas(positions[end], camera, bounds)
+        if (!projected) continue
+        const distance = Math.hypot(projected.x - point.x, projected.y - point.y)
+        if (distance <= ENDPOINT_HANDLE_RADIUS_PX && (!best || distance < best.distance)) {
+          best = { wireId: wire.id, end, jackRef: wire[end], distance }
+        }
+      }
+      return best
     }
     const deviceAt = (point: ScreenPoint) => {
       raycaster.current.setFromCamera(toNdc(point, size()), camera)
@@ -169,7 +210,7 @@ export function useWiringInteraction(
       view.setHover({ hoveredJack: jack, hoveredWire: wire })
       const roomy = pickableDevices(visible, LABEL_SPACING_PX)
       view.setNearbyJacks(
-        at && !view.hoveredControl
+        at && !view.hoveredControl && view.showJackLabels && view.persistentLabels.length === 0
           ? targetsWithin(
               at,
               visible.filter((item) => roomy.has(item.device) && item.id !== jack),
@@ -180,7 +221,9 @@ export function useWiringInteraction(
           : [],
       )
       if (region.current) region.current.dataset.hoverJack = jack ?? ''
-      if (view.hoveredControl || jack || wire) setCursor('pointer')
+      const selectedEndpoint = at && !active && !view.hoveredControl ? pickSelectedWireEndpoint(at) : null
+      if (selectedEndpoint) setCursor('grab')
+      else if (view.hoveredControl || jack || wire) setCursor('pointer')
       else if (at && !active) {
         const device = deviceAt(at)
         setCursor(device && !pickableDevices(visible).has(device) ? 'zoom-in' : '')
@@ -200,10 +243,45 @@ export function useWiringInteraction(
     }
 
     const start = (ref: string, event: PointerEvent) => {
+      dismissBenchOnboarding()
       const state = circuitStore.getState()
+      // 正在改接导线端：落入目标插孔时单步改接该端
+      if (state.pendingRewire) {
+        if (ref !== state.pendingRewire.fixedJack) {
+          state.rewireEndpoint(state.pendingRewire.wireId, state.pendingRewire.end, ref)
+        } else {
+          state.cancelConnection()
+        }
+        return
+      }
+      // 断电按住 Alt 点/拖插孔：直接拔起连接到该插孔的导线端进入改接模式（T1.9A）
+      if (event.altKey && !state.pendingJack) {
+        const attached = [...state.wires].reverse().find((wire) => wire.a === ref || wire.b === ref)
+        if (attached) {
+          const end: 'a' | 'b' = attached.a === ref ? 'a' : 'b'
+          if (!state.startRewire(attached.id, end)) return
+          const fixedRef = end === 'a' ? attached.b : attached.a
+          const fixedJack = jacks.find((entry) => entry.ref === fixedRef)
+          const origJack = jacks.find((entry) => entry.ref === ref)
+          if (!fixedJack) return
+          drag.current = {
+            pointerId: event.pointerId,
+            source: fixedRef,
+            start: new Vector2(event.clientX, event.clientY),
+            moved: false,
+          }
+          originalTouchAction.current = canvas.style.touchAction
+          canvas.style.touchAction = 'none'
+          canvas.setPointerCapture(event.pointerId)
+          plane.current.constant = -((origJack?.position[2] ?? fixedJack.position[2]) + 0.08)
+          draft.current.target.set(...(origJack?.position ?? fixedJack.position)).add(new Vector3(0, 0, 0.06))
+          draft.current.revision++
+          invalidate()
+          return
+        }
+      }
       if (state.pendingJack && state.pendingJack !== ref) {
-        state.cancelConnection()
-        state.addWire(state.pendingJack, ref)
+        state.completeConnection(ref, { keepSource: event.shiftKey })
         return
       }
       const wasPending = state.pendingJack === ref
@@ -232,7 +310,39 @@ export function useWiringInteraction(
       pressed.current = press
       if (!press || !at || !enabledRef.current || event.button !== 0 || event.detail > 1) return
       if (useBenchView.getState().hoveredControl) return
-      const jack = pickJack(at, screenJacks())
+      const visibleJacks = screenJacks()
+      const jackHit = pickJackHit(at, visibleJacks)
+      // 选中导线时左键点击护套端手柄直接拔插改接；但若指针更贴近可拾取插孔中心，优先支持同孔叠插新导线（T1.9B）
+      const endpointHit = event.altKey ? null : pickSelectedWireEndpoint(at)
+      if (endpointHit && (!jackHit || endpointHit.distance < jackHit.distance)) {
+        const state = circuitStore.getState()
+        const wire = state.wires.find((entry) => entry.id === endpointHit.wireId)
+        if (wire) {
+          event.stopPropagation()
+          press.onJack = true
+          dismissBenchOnboarding()
+          if (!state.startRewire(wire.id, endpointHit.end)) return
+          const fixedRef = endpointHit.end === 'a' ? wire.b : wire.a
+          const fixedJack = jacks.find((entry) => entry.ref === fixedRef)
+          const origJack = jacks.find((entry) => entry.ref === endpointHit.jackRef)
+          if (!fixedJack) return
+          drag.current = {
+            pointerId: event.pointerId,
+            source: fixedRef,
+            start: new Vector2(event.clientX, event.clientY),
+            moved: false,
+          }
+          originalTouchAction.current = canvas.style.touchAction
+          canvas.style.touchAction = 'none'
+          canvas.setPointerCapture(event.pointerId)
+          plane.current.constant = -((origJack?.position[2] ?? fixedJack.position[2]) + 0.08)
+          draft.current.target.set(...(origJack?.position ?? fixedJack.position)).add(new Vector3(0, 0, 0.06))
+          draft.current.revision++
+          invalidate()
+          return
+        }
+      }
+      const jack = jackHit?.id ?? null
       if (!jack) return
       // Jacks win over the camera: CameraControls listens on the parent and never sees this press.
       event.stopPropagation()
@@ -249,10 +359,19 @@ export function useWiringInteraction(
         const at = point(event)
         const hit = at ? pickJack(at, screenJacks()) : null
         release()
-        if (hit && hit !== active.source) {
-          circuitStore.getState().cancelConnection()
-          circuitStore.getState().addWire(active.source, hit)
-        } else if (active.moved || !at) circuitStore.getState().cancelConnection()
+        const state = circuitStore.getState()
+        if (state.pendingRewire) {
+          if (hit && hit !== active.source && (active.moved || hit !== state.pendingRewire.originalJack)) {
+            state.rewireEndpoint(state.pendingRewire.wireId, state.pendingRewire.end, hit)
+          } else if (active.moved || !at) {
+            state.cancelConnection()
+          }
+        } else if (hit && hit !== active.source) {
+          const ok = state.completeConnection(hit, { keepSource: event.shiftKey })
+          if (!ok && !event.shiftKey) {
+            circuitStore.setState({ pendingJack: null, pendingRewire: null })
+          }
+        } else if (active.moved || !at) state.cancelConnection()
         invalidate()
         return
       }
@@ -276,7 +395,10 @@ export function useWiringInteraction(
         return
       }
       const device = deviceAt(at)
-      if (device && !pickableDevices(screenJacks()).has(device)) useBenchView.getState().focus(device)
+      if (device && !pickableDevices(screenJacks()).has(device)) {
+        dismissBenchOnboarding()
+        useBenchView.getState().focus(device)
+      }
     }
 
     const doubleClick = (event: MouseEvent) => {
@@ -284,6 +406,7 @@ export function useWiringInteraction(
       if (!at || !enabledRef.current || useBenchView.getState().hoveredControl) return
       const device = deviceAt(at)
       if (!device) return
+      dismissBenchOnboarding()
       const fresh = freshPending.current
       const state = circuitStore.getState()
       if (fresh && state.pendingJack === fresh.ref && performance.now() - fresh.at < DOUBLE_CLICK_MS)

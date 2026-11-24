@@ -6,6 +6,46 @@ import { InstanceId, JackRef } from '../../shared/schema/common.ts'
 export const DEFAULT_WIRE_SLACK = 0.12
 export const POWERED_WIRING_NOTICE = '当前已上电，请先断电再修改接线。'
 export const POWERED_INSTRUMENT_NOTICE = '当前已上电，请先断电再放置或移除仪表。'
+export const SIGNAL_WIRE_CYCLE: readonly WireColor[] = ['blue', 'yellow', 'green']
+
+function classifyJackPolarity(ref: string): 'ground' | 'positive' | 'signal' {
+  const jackId = (ref.includes('.') ? ref.slice(ref.indexOf('.') + 1) : ref).toUpperCase()
+  if (
+    /(^|_)(GND\d*|COM\d*|NEG\d*|AGND|DGND|PGND|CH\d+N|V\d+N|ISN|U\d+N|N)($|_)/.test(jackId) ||
+    jackId.endsWith('_N') ||
+    jackId.endsWith('-') ||
+    jackId.endsWith('−')
+  ) {
+    return 'ground'
+  }
+  if (
+    /(^|_)(VCC\d*|VDD\d*|POS\d*|CH\d+P|V\d+P|ISP|U\d+P)($|_)/.test(jackId) ||
+    jackId.endsWith('_P') ||
+    jackId.endsWith('+')
+  ) {
+    return 'positive'
+  }
+  return 'signal'
+}
+
+/** 可选极性自动配色推断（T1.9A，技术设计 §11）：地/负端黑线、电源/正端红线、其余测量与信号线轮换蓝/黄/绿。 */
+export function inferPolarityWireColor(a: string, b?: string, signalCount = 0): WireColor {
+  const pa = classifyJackPolarity(a)
+  const pb = b ? classifyJackPolarity(b) : 'signal'
+  if (pa === 'ground' || pb === 'ground') return 'black'
+  if (pa === 'positive' || pb === 'positive') return 'red'
+  const index = Math.abs(Math.trunc(signalCount)) % SIGNAL_WIRE_CYCLE.length
+  return SIGNAL_WIRE_CYCLE[index] ?? 'blue'
+}
+
+export type PendingRewire = {
+  wireId: string
+  end: 'a' | 'b'
+  /** 保持固定不动的那一端插孔 */
+  fixedJack: string
+  /** 被拔起的原插孔 */
+  originalJack: string
+}
 
 export type WirePatch = Partial<Pick<Wire, 'color' | 'label' | 'slack'>>
 export type CircuitHistoryState = Pick<CircuitState, 'wires' | 'placedInstruments' | 'controlValues'>
@@ -28,15 +68,22 @@ export type CircuitSceneContext = {
 export type CircuitEditorState = CircuitState & {
   selectedWireId: string | null
   wireColor: WireColor
+  autoWireColor: boolean
+  manualColorOverride: boolean
   pendingJack: string | null
+  pendingRewire: PendingRewire | null
   notice: string | null
   addWire: (a: string, b: string, color?: WireColor, slack?: number) => boolean
   deleteWire: (id: string) => boolean
   clearWires: () => boolean
   updateWire: (id: string, patch: WirePatch) => boolean
+  rewireEndpoint: (wireId: string, end: 'a' | 'b', nextJack: string) => boolean
+  startRewire: (wireId: string, end: 'a' | 'b') => boolean
   selectWire: (id: string | null) => boolean
   setWireColor: (color: WireColor) => boolean
+  setAutoWireColor: (enabled: boolean) => void
   setPendingJack: (ref: string | null) => boolean
+  completeConnection: (targetRef: string, options?: { keepSource?: boolean }) => boolean
   cancelConnection: () => boolean
   togglePower: () => boolean
   placeInstrument: (instrument: InstrumentPlacement) => boolean
@@ -45,6 +92,7 @@ export type CircuitEditorState = CircuitState & {
   setControlValue: (id: string, value: number) => boolean
   setControlValues: (patch: Record<string, number>) => boolean
   resetScene: (scene: CircuitSceneContext) => void
+  restoreState: (snapshot: Omit<CircuitState, 'powered'>, defaultControls?: Record<string, number>) => boolean
   undo: () => boolean
   redo: () => boolean
 }
@@ -153,12 +201,75 @@ export function createCircuitStore(
         activeFault: undefined,
         selectedWireId: null,
         wireColor: 'red',
+        autoWireColor: true,
+        manualColorOverride: false,
         pendingJack: null,
+        pendingRewire: null,
         notice: null,
       })
     } finally {
       if (wasTracking) history.resume()
     }
+  }
+
+  function restoreState(
+    snapshot: Omit<CircuitState, 'powered'>,
+    defaultControls: Record<string, number> = {},
+  ): boolean {
+    const parsed = CircuitState.safeParse(
+      structuredClone({
+        ...snapshot,
+        powered: false,
+      }),
+    )
+    if (!parsed.success) return reject('存档电路数据无效，无法恢复。')
+    const validInstruments: InstrumentPlacement[] = []
+    for (const instrument of parsed.data.placedInstruments) {
+      const definition = definitions.get(instrument.instrumentId)
+      if (!definition?.slots.includes(instrument.slot)) continue
+      if (
+        reservedIds.has(instrument.instanceId) ||
+        validInstruments.some((item) => item.instanceId === instrument.instanceId || item.slot === instrument.slot)
+      ) {
+        continue
+      }
+      if (!validSettings(instrument.settings)) continue
+      const problem = options.placementProblem?.(instrument, validInstruments)
+      if (problem) continue
+      validInstruments.push(instrument)
+    }
+    const refs = knownJacks({ placedInstruments: validInstruments })
+    const validWires: Wire[] = []
+    for (const wire of parsed.data.wires) {
+      if (wire.a === wire.b || !refs.has(wire.a) || !refs.has(wire.b)) continue
+      if (validWires.some((other) => other.id === wire.id || sameEndpoints(other, wire.a, wire.b))) continue
+      validWires.push(wire)
+    }
+    const mergedControls: Record<string, number> = { ...defaultControls }
+    for (const [id, value] of Object.entries(parsed.data.controlValues)) {
+      if (id && Number.isFinite(value)) mergedControls[id] = value
+    }
+
+    const history = store.temporal.getState()
+    const wasTracking = history.isTracking
+    history.pause()
+    history.clear()
+    try {
+      store.setState({
+        placedInstruments: validInstruments,
+        wires: validWires,
+        controlValues: mergedControls,
+        powered: false,
+        activeFault: parsed.data.activeFault,
+        selectedWireId: null,
+        pendingJack: null,
+        pendingRewire: null,
+        notice: null,
+      })
+    } finally {
+      if (wasTracking) history.resume()
+    }
+    return true
   }
 
   function moveHistory(direction: 'undo' | 'redo', steps = 1): boolean {
@@ -172,6 +283,7 @@ export function createCircuitStore(
     store.setState({
       selectedWireId: state.wires.some((wire) => wire.id === state.selectedWireId) ? state.selectedWireId : null,
       pendingJack: null,
+      pendingRewire: null,
       notice: null,
     })
     return true
@@ -183,7 +295,10 @@ export function createCircuitStore(
         ...initialState,
         selectedWireId: null,
         wireColor: 'red',
+        autoWireColor: true,
+        manualColorOverride: false,
         pendingJack: null,
+        pendingRewire: null,
         notice: null,
         addWire: (a, b, color, slack = DEFAULT_WIRE_SLACK) => {
           if (!editable()) return false
@@ -192,12 +307,21 @@ export function createCircuitStore(
           if (a === b) return reject('导线两端不能是同一插孔。')
           const state = get()
           if (state.wires.some((wire) => sameEndpoints(wire, a, b))) return reject('这两个插孔之间已有导线。')
-          const result = Wire.safeParse({ id: crypto.randomUUID(), a, b, color: color ?? state.wireColor, slack })
+          const signalCount = state.wires.filter((wire) => SIGNAL_WIRE_CYCLE.includes(wire.color)).length
+          const resolvedColor =
+            color ??
+            (state.autoWireColor && !state.manualColorOverride
+              ? inferPolarityWireColor(a, b, signalCount)
+              : state.wireColor)
+          const result = Wire.safeParse({ id: crypto.randomUUID(), a, b, color: resolvedColor, slack })
           if (!result.success) return reject('导线颜色或走线参数无效。')
           set({
             wires: [...state.wires, result.data],
             selectedWireId: result.data.id,
+            wireColor: state.autoWireColor ? resolvedColor : state.wireColor,
+            manualColorOverride: false,
             pendingJack: null,
+            pendingRewire: null,
             notice: null,
           })
           return true
@@ -210,6 +334,7 @@ export function createCircuitStore(
             wires: state.wires.filter((wire) => wire.id !== id),
             selectedWireId: state.selectedWireId === id ? null : state.selectedWireId,
             pendingJack: null,
+            pendingRewire: null,
             notice: null,
           })
           return true
@@ -217,7 +342,7 @@ export function createCircuitStore(
         clearWires: () => {
           if (!editable()) return false
           if (get().wires.length === 0) return false
-          set({ wires: [], selectedWireId: null, pendingJack: null, notice: null })
+          set({ wires: [], selectedWireId: null, pendingJack: null, pendingRewire: null, notice: null })
           return true
         },
         updateWire: (id, patch) => {
@@ -245,6 +370,50 @@ export function createCircuitStore(
           set({ wires: state.wires.map((entry) => (entry.id === id ? result.data : entry)), notice: null })
           return true
         },
+        rewireEndpoint: (wireId, end, nextJack) => {
+          if (!editable()) return false
+          const state = get()
+          const wire = state.wires.find((entry) => entry.id === wireId)
+          if (!wire) return reject('未找到该导线。')
+          const refs = knownJacks(state)
+          if (!refs.has(nextJack)) return reject('插孔不存在，请选择台面上的插孔。')
+          const fixedJack = end === 'a' ? wire.b : wire.a
+          if (nextJack === fixedJack) return reject('导线两端不能是同一插孔。')
+          if (nextJack === wire[end]) {
+            set({ pendingJack: null, pendingRewire: null, notice: null })
+            return false
+          }
+          const nextA = end === 'a' ? nextJack : wire.a
+          const nextB = end === 'b' ? nextJack : wire.b
+          if (state.wires.some((other) => other.id !== wireId && sameEndpoints(other, nextA, nextB))) {
+            return reject('这两个插孔之间已有导线。')
+          }
+          const result = Wire.safeParse({ ...wire, a: nextA, b: nextB })
+          if (!result.success) return reject('导线改接参数无效。')
+          set({
+            wires: state.wires.map((entry) => (entry.id === wireId ? result.data : entry)),
+            selectedWireId: wireId,
+            pendingJack: null,
+            pendingRewire: null,
+            notice: null,
+          })
+          return true
+        },
+        startRewire: (wireId, end) => {
+          if (!editable()) return false
+          const state = get()
+          const wire = state.wires.find((entry) => entry.id === wireId)
+          if (!wire) return reject('未找到该导线。')
+          const fixedJack = end === 'a' ? wire.b : wire.a
+          const originalJack = wire[end]
+          set({
+            selectedWireId: wireId,
+            pendingJack: fixedJack,
+            pendingRewire: { wireId, end, fixedJack, originalJack },
+            notice: null,
+          })
+          return true
+        },
         selectWire: (id) => {
           if (id !== null && !get().wires.some((wire) => wire.id === id)) return reject('未找到该导线。')
           if (get().selectedWireId === id) return false
@@ -253,26 +422,60 @@ export function createCircuitStore(
         },
         setWireColor: (color) => {
           if (!WireColor.safeParse(color).success) return reject('请选择有效的导线颜色。')
-          if (get().wireColor === color) return false
-          set({ wireColor: color, notice: null })
+          const state = get()
+          if (state.wireColor === color && (!state.autoWireColor || state.manualColorOverride)) return false
+          set({ wireColor: color, manualColorOverride: state.autoWireColor, notice: null })
           return true
+        },
+        setAutoWireColor: (enabled) => {
+          set({ autoWireColor: enabled, manualColorOverride: false })
         },
         setPendingJack: (ref) => {
           if (ref !== null) {
             if (!editable()) return false
             if (!knownJacks(get()).has(ref)) return reject('插孔不存在，请选择台面上的插孔。')
           }
-          if (get().pendingJack === ref) return false
-          set({ pendingJack: ref, notice: null })
+          const state = get()
+          if (state.pendingJack === ref && state.pendingRewire === null) return false
+          const signalCount = state.wires.filter((wire) => SIGNAL_WIRE_CYCLE.includes(wire.color)).length
+          const nextColor =
+            ref !== null && state.autoWireColor && !state.manualColorOverride
+              ? inferPolarityWireColor(ref, undefined, signalCount)
+              : state.wireColor
+          set({ pendingJack: ref, pendingRewire: null, wireColor: nextColor, notice: null })
           return true
         },
+        completeConnection: (targetRef, options) => {
+          const state = get()
+          if (state.pendingRewire) {
+            if (targetRef === state.pendingRewire.fixedJack) {
+              return state.cancelConnection()
+            }
+            return state.rewireEndpoint(state.pendingRewire.wireId, state.pendingRewire.end, targetRef)
+          }
+          const source = state.pendingJack
+          if (!source) return false
+          if (source === targetRef) return reject('导线两端不能是同一插孔。')
+          const ok = state.addWire(source, targetRef)
+          if (ok && options?.keepSource) {
+            const after = get()
+            const signalCount = after.wires.filter((wire) => SIGNAL_WIRE_CYCLE.includes(wire.color)).length
+            const nextColor =
+              after.autoWireColor && !after.manualColorOverride
+                ? inferPolarityWireColor(source, undefined, signalCount)
+                : after.wireColor
+            set({ pendingJack: source, pendingRewire: null, wireColor: nextColor })
+          }
+          return ok
+        },
         cancelConnection: () => {
-          if (get().pendingJack === null) return false
-          set({ pendingJack: null, notice: null })
+          const state = get()
+          if (state.pendingJack === null && state.pendingRewire === null) return false
+          set({ pendingJack: null, pendingRewire: null, notice: null })
           return true
         },
         togglePower: () => {
-          set({ powered: !get().powered, pendingJack: null, notice: null })
+          set({ powered: !get().powered, pendingJack: null, pendingRewire: null, notice: null })
           return true
         },
         placeInstrument: (instrument) => {
@@ -293,7 +496,12 @@ export function createCircuitStore(
           if (state.placedInstruments.some((item) => item.slot === next.slot)) return reject('该安装位已有仪表。')
           const problem = options.placementProblem?.(next, state.placedInstruments)
           if (problem) return reject(problem)
-          set({ placedInstruments: [...state.placedInstruments, next], pendingJack: null, notice: null })
+          set({
+            placedInstruments: [...state.placedInstruments, next],
+            pendingJack: null,
+            pendingRewire: null,
+            notice: null,
+          })
           return true
         },
         removeInstrument: (instanceId) => {
@@ -308,6 +516,7 @@ export function createCircuitStore(
             wires,
             selectedWireId: wires.some((wire) => wire.id === state.selectedWireId) ? state.selectedWireId : null,
             pendingJack: null,
+            pendingRewire: null,
             notice: null,
           })
           return true
@@ -323,6 +532,7 @@ export function createCircuitStore(
               item === instrument ? { ...item, settings: { ...item.settings, ...patch } } : item,
             ),
             pendingJack: null,
+            pendingRewire: null,
             notice: null,
           })
           return true
@@ -330,6 +540,7 @@ export function createCircuitStore(
         setControlValue: (id, value) => setControlValues({ [id]: value }),
         setControlValues,
         resetScene,
+        restoreState,
         undo: () => moveHistory('undo'),
         redo: () => moveHistory('redo'),
       }),

@@ -2,7 +2,7 @@ import { mkdtempSync, statSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 import { type ElectronApplication, _electron as electron, expect, type Page, test } from '@playwright/test'
-import { addInstrumentWireFromList } from './helpers/instruments'
+import { addInstrumentWireFromList, openInstrumentPanel } from './helpers/instruments'
 
 const fullFlowTitle = 'DG-05 真实接线、单表逐次测量、六列记录、步骤完成和重置'
 const recordingsDir = resolve('build/t015-recordings')
@@ -70,12 +70,6 @@ test.afterEach(async () => {
   expect(errors).toEqual([])
 })
 
-async function showInstruments() {
-  const tab = page.getByRole('tab', { name: '仪表', exact: true })
-  await tab.click()
-  await expect(tab).toHaveAttribute('aria-selected', 'true')
-}
-
 async function showSteps() {
   const tab = page.getByRole('tab', { name: '步骤', exact: true })
   await tab.click()
@@ -135,8 +129,7 @@ async function connectSources() {
 }
 
 async function setSourceValues() {
-  await showInstruments()
-  const source = panel('直流稳压电源')
+  const source = await openInstrumentPanel(page, '直流稳压电源')
   for (const [label, value] of [
     ['CH1 电压', 6],
     ['CH2 电压', 12],
@@ -153,8 +146,8 @@ async function setSourceValues() {
 }
 
 async function selectSetting(panelName: string, setting: string, optionName: string) {
-  await showInstruments()
-  const trigger = panel(panelName).getByRole('combobox', { name: setting, exact: true })
+  const target = await openInstrumentPanel(page, panelName)
+  const trigger = target.getByRole('combobox', { name: setting, exact: true })
   await trigger.press('Enter')
   const option = page.getByRole('option', { name: optionName, exact: true })
   await option.focus()
@@ -194,17 +187,18 @@ async function screenReading(instanceId: string) {
 }
 
 async function expectMeterReading(panelName: string, instanceId: string, value: string, unit: string) {
-  await showInstruments()
-  const output = panel(panelName).locator(`output[data-instance-id="${instanceId}"]`)
+  const target = await openInstrumentPanel(page, panelName)
+  const output = target.locator(`output[data-instance-id="${instanceId}"]`)
   await expect(output).toHaveAttribute('data-status', 'ok')
   await expect(output).toHaveAttribute('data-reading', value)
   await expect(output).toHaveAttribute('data-unit', unit)
   await expect.poll(() => screenReading(instanceId)).toBe(`ok:${value}`)
+  const dcPower = await openInstrumentPanel(page, '直流稳压电源')
   for (const [channel, reading] of [
     ['CH1', '6.00'],
     ['CH2', '12.00'],
   ] as const) {
-    const source = panel('直流稳压电源').locator(`output[data-instance-id="ins-dc-power"][data-screen-id="${channel}"]`)
+    const source = dcPower.locator(`output[data-instance-id="ins-dc-power"][data-screen-id="${channel}"]`)
     await expect(source).toHaveAttribute('data-status', 'ok')
     await expect(source).toHaveAttribute('data-reading', reading)
   }
@@ -230,6 +224,11 @@ async function expectCells(recorded: ReadonlyMap<ColumnId, RecordedValue>) {
   }
 }
 
+const SOURCE_DISPLAY_NAME: Record<string, string> = {
+  'ins-dc-ammeter': '直流数字毫安表',
+  'ins-dc-voltmeter': '直流数字电压表',
+}
+
 async function recordPoint(
   id: ColumnId,
   value: number,
@@ -245,7 +244,8 @@ async function recordPoint(
   expect(completed).toBe(before + 1)
   recorded.set(id, { value, source })
   await expectCells(recorded)
-  await expect(data().locator('[data-task-notice]')).toContainText(source)
+  // T1.9B 文案净化：反馈使用中文仪表名与工程精度，不向用户裸露 ins-* 内部编码
+  await expect(data().locator('[data-task-notice]')).toContainText(SOURCE_DISPLAY_NAME[source] ?? source)
 }
 
 async function prepareAndWire() {

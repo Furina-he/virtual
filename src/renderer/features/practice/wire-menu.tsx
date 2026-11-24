@@ -1,4 +1,4 @@
-import { Trash2 } from 'lucide-react'
+import { ArrowLeftRight, Trash2 } from 'lucide-react'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,7 +17,7 @@ import { useBenchView } from '@/three/bench-view'
 import { defaultWireSlack, wireColors, wireSlacks } from './wire-options'
 import { circuitStore, useCircuit } from './wiring-state'
 
-/** Right-click menu for a 3D wire (技术设计 §10.3): delete, recolour, change sag. */
+/** Right-click menu for a 3D wire (技术设计 §10.3): replug, recolour, change sag, delete. */
 export function WireContextMenu() {
   const menu = useBenchView((state) => state.wireMenu)
   const wire = useCircuit((state) => state.wires.find((item) => item.id === menu?.id))
@@ -33,6 +33,15 @@ export function WireContextMenu() {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="w-48" aria-label={`导线 ${index} 菜单`}>
         <DropdownMenuLabel>导线 {index}</DropdownMenuLabel>
+        <DropdownMenuItem disabled={powered} onSelect={() => circuitStore.getState().startRewire(wire.id, 'a')}>
+          <ArrowLeftRight />
+          改接起点
+        </DropdownMenuItem>
+        <DropdownMenuItem disabled={powered} onSelect={() => circuitStore.getState().startRewire(wire.id, 'b')}>
+          <ArrowLeftRight />
+          改接终点
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
         <DropdownMenuSub>
           <DropdownMenuSubTrigger disabled={powered}>颜色</DropdownMenuSubTrigger>
           <DropdownMenuSubContent>

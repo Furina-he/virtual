@@ -2,7 +2,7 @@ import { mkdtempSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { _electron as electron, expect, type Page, test } from '@playwright/test'
-import { addInstrumentWireFromList, dragInstrumentToSlot } from './helpers/instruments'
+import { addInstrumentWireFromList, dragInstrumentToSlot, enableDualInstrumentDock } from './helpers/instruments'
 
 type EnhancedSummary = {
   state: string
@@ -74,6 +74,7 @@ test('T1.3 INS-11 示波器 X-Y 模式、双光标测量、冻结后改源保持
 
     await dragInstrumentToSlot(page, 'SLOT_DESK_1', '双通道函数信号发生器')
     await dragInstrumentToSlot(page, 'SLOT_SCOPE', '双通道数字示波器')
+    await enableDualInstrumentDock(page)
     await addInstrumentWireFromList(page, 'generator1.CH1', 'scope1.CH1')
     await addInstrumentWireFromList(page, 'generator1.CH2', 'scope1.CH2')
     await addInstrumentWireFromList(page, 'generator1.GND', 'scope1.GND')

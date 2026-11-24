@@ -1,5 +1,7 @@
 import type { WireColor } from '@shared/schema/circuit'
 
+export { inferPolarityWireColor, SIGNAL_WIRE_CYCLE } from '@/stores/circuit'
+
 export const wireColors: { value: WireColor; label: string }[] = [
   { value: 'red', label: '红色' },
   { value: 'black', label: '黑色' },

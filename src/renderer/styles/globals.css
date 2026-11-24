@@ -160,3 +160,60 @@
 .workbench-shell {
   height: 100%;
 }
+
+/* 演示模式字号放大 1.25 倍（PRD 15.2） */
+html[data-font-scale="1.25"] {
+  font-size: 125%;
+}
+
+/* 原理图交互式插孔双向高亮（PRD 14.3、TSK-02） */
+.schematic-viewer svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.schematic-viewer [data-linked-jack] {
+  cursor: pointer;
+  transition: stroke 150ms ease-out, fill 150ms ease-out, stroke-width 150ms ease-out;
+}
+
+.schematic-viewer [data-schematic-highlighted="true"],
+.schematic-viewer [data-schematic-highlighted="true"] circle {
+  stroke: var(--primary);
+  fill: var(--primary);
+  stroke-width: 4;
+}
+
+.schematic-viewer [data-schematic-highlighted="true"] text {
+  fill: var(--primary);
+  font-weight: 700;
+}
+
+.schematic-viewer [data-schematic-pending="true"],
+.schematic-viewer [data-schematic-pending="true"] circle {
+  stroke: var(--success);
+  fill: var(--success);
+  stroke-width: 5;
+}
+
+/* 站内大尺寸仪表面板浮层（T1.9B） */
+.instrument-enlarged-dialog {
+  width: min(92vw, 68rem);
+  max-width: min(92vw, 68rem);
+  max-height: 88dvh;
+}
+
+@page {
+  size: A4;
+  margin: 14mm;
+}
+
+@media print {
+  html,
+  body,
+  #root {
+    height: auto;
+    overflow: visible;
+  }
+}

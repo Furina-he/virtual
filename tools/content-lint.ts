@@ -5,7 +5,7 @@ import { dirname, join, relative, sep } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import type { z } from 'zod'
 import { injectFault } from '../src/domain/circuit/fault.ts'
-import { BenchScene, Instrument, Module, Project } from '../src/shared/schema/index.ts'
+import { BenchScene, Instrument, LearnResource, Module, Project } from '../src/shared/schema/index.ts'
 
 export type LintIssue = { file: string; path: string; message: string }
 
@@ -14,6 +14,7 @@ const SCHEMAS: Record<string, z.ZodType> = {
   'instrument.json': Instrument,
   'project.json': Project,
   'scene.json': BenchScene,
+  'resource.json': LearnResource,
 }
 
 function walk(dir: string): string[] {

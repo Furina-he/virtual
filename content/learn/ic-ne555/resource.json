@@ -1,0 +1,22 @@
+{
+  "id": "ic-ne555",
+  "category": "ic",
+  "subcategory": "定时与振荡集成电路",
+  "title": "NE555 通用集成定时器",
+  "subtitle": "数模混合 DIP-8 经典定时、单稳与多谐振荡芯片",
+  "summary": "NE555 内部集成三只 5 kΩ 精密分压电阻、双比较器、RS 触发器与放电三极管，可构成多谐振荡、单稳态触发与压控调频电路。",
+  "keywords": ["NE555", "555", "定时器", "多谐振荡", "DIP-8", "CV控制", "SD-22", "SD-13"],
+  "model": "models/components/cmp-dip8.glb",
+  "relatedModules": ["mod-555-app"],
+  "specs": [
+    { "label": "封装引脚", "value": "DIP-8" },
+    { "label": "工作电压", "value": "4.5 V ~ 16 V" },
+    { "label": "内部分压阈值", "value": "1/3 VCC 与 2/3 VCC" }
+  ],
+  "sections": {
+    "structure": "## 内部结构与工作原理\n\n- 内部由三只串联 $5\\ \\text{k}\\Omega$ 分压电阻产生 $\\frac{1}{3}V_{CC}$ 与 $\\frac{2}{3}V_{CC}$ 基准电位，驱动高/低两个电压比较器控制 RS 锁存器及输出级与 7 脚放电管。\n- 当 5 脚（CV）接入外部调制电压时，上比较阈值由 $U_{CV}$ 决定、下比较阈值变为 $\\frac{1}{2}U_{CV}$，从而改变多谐振荡器载频（如 `SD-22` 报警音调调制）。",
+    "symbol": "## DIP-8 引脚排列识别\n\n- 缺口朝左或朝上，逆时针编号 1~8 脚：\n  - `1 GND`（地）、`2 TRIG`（触发）、`3 OUT`（输出）、`4 RESET`（复位，低电平有效）\n  - `5 CTRL/CV`（控制电压）、`6 THR`（阈值）、`7 DIS`（放电）、`8 VCC`（电源正）",
+    "parameters": "## 无稳态多谐振荡频率公式\n\n- 电容经 $R_A + R_B$ 充电、经 $R_B$ 放电：\n  $$T_H = 0.693 (R_A + R_B) C, \\quad T_L = 0.693 R_B C$$\n  $$f = \\frac{1.44}{(R_A + 2 R_B) C}$$\n- 占空比：$D = \\frac{R_A + R_B}{R_A + 2 R_B}$。",
+    "troubleshooting": "## 常见停振与调频故障排查\n\n1. **无振荡输出**：检查 8 脚 VCC、1 脚 GND 是否接通，4 脚 RESET 是否误悬空或接地。\n2. **高阻电容信号直接连 5 脚 CV 停振**：5 脚内部等效电阻约 $3.33\\ \\text{k}\\Omega$，会加载前级 RC 定时网络，必须经单位增益高阻缓冲器隔离（如 `SD-22` 消防车模式）。\n3. **实测频率略低于理论值**：示波器探头 $1\\ \\text{M}\\Omega \\parallel 20\\ \\text{pF}$ 接入高阻定时电容端时会引入并联泄漏负载。"
+  }
+}

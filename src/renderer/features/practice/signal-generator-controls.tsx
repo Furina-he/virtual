@@ -78,15 +78,38 @@ export function SignalSourceControls({
         </Button>
       </div>
       {source.frequency && (
-        <RotaryKnob
-          label={`${source.label} 频率`}
-          value={resolved.frequency}
-          min={source.frequency.min}
-          max={source.frequency.max}
-          step={0.1}
-          unit="Hz"
-          onChange={(value) => onChange({ [sourceKey(source, 'freq')]: value })}
-        />
+        <div className="flex flex-col gap-1.5">
+          <RotaryKnob
+            label={`${source.label} 频率`}
+            value={resolved.frequency}
+            min={source.frequency.min}
+            max={source.frequency.max}
+            step={0.1}
+            unit="Hz"
+            onChange={(value) => onChange({ [sourceKey(source, 'freq')]: value })}
+          />
+          <fieldset aria-label={`${source.label} 常用频率预设`} className="flex flex-wrap gap-1 border-0 p-0">
+            {[
+              { value: 100, label: '100 Hz' },
+              { value: 1000, label: '1 kHz' },
+              { value: 10_000, label: '10 kHz' },
+            ]
+              .filter(
+                (preset) =>
+                  source.frequency && preset.value >= source.frequency.min && preset.value <= source.frequency.max,
+              )
+              .map((preset) => (
+                <Button
+                  key={preset.value}
+                  size="xs"
+                  variant={Math.abs(resolved.frequency - preset.value) < 1e-6 ? 'default' : 'outline'}
+                  onClick={() => onChange({ [sourceKey(source, 'freq')]: preset.value })}
+                >
+                  {preset.label}
+                </Button>
+              ))}
+          </fieldset>
+        </div>
       )}
       {source.amplitude && (
         <RotaryKnob
@@ -133,15 +156,17 @@ export function SignalGeneratorControls({
   instrument,
   settings,
   onChange,
+  hideSyncedNotes = false,
 }: {
   instrument: Instrument
   settings: Settings
   onChange: Change
+  hideSyncedNotes?: boolean
 }) {
   const sources = adjustableSources(instrument)
   const selected = typeof settings.display_ch === 'number' ? settings.display_ch : 0
   const source = sources[selected] ?? sources[0]
-  const synced = (instrument.signalSources ?? []).filter((entry) => entry.syncTo)
+  const synced = hideSyncedNotes ? [] : (instrument.signalSources ?? []).filter((entry) => entry.syncTo)
   if (!source) return null
   return (
     <div className="@container flex flex-col gap-3">

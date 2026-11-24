@@ -2,15 +2,15 @@ import { mkdtempSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { _electron as electron, expect, type Page, test } from '@playwright/test'
-import { addInstrumentWireFromList } from './helpers/instruments'
+import { addInstrumentWireFromList, openInstrumentPanel } from './helpers/instruments'
 
 const viewport = (page: Page) => page.getByRole('region', { name: '3D 实训台', exact: true })
 const stepsPanel = (page: Page) => page.getByRole('region', { name: '实训步骤', exact: true })
 const dataPanel = (page: Page) => page.getByRole('region', { name: '实训数据记录', exact: true })
-const meterPanel = (page: Page, name: string) => page.getByRole('region', { name, exact: true })
 
 async function setExact(page: Page, panelName: string, label: string, value: string) {
-  const input = meterPanel(page, panelName).getByRole('spinbutton', { name: `${label}精确值`, exact: true })
+  const panel = await openInstrumentPanel(page, panelName)
+  const input = panel.getByRole('spinbutton', { name: `${label}精确值`, exact: true })
   await input.fill(value)
   await input.press('Enter')
 }
@@ -37,17 +37,21 @@ test('T1.5 TSK-01/03/07 WIR-08 引导/自主模式切换联动 3D 参考虚线�
     await viewport(page).getByRole('button', { name: '参考接线', exact: true }).click()
     await expect(viewport(page)).toHaveAttribute('data-reference-guide', 'on')
 
-    // 切换到左栏“步骤”标签页，核对引导模式过程提示可见
+    // 切换到左栏“步骤”标签页，核对引导模式过程提示与定位列表可见（文案已净化为中文测项名）
     await page.getByRole('tab', { name: '步骤', exact: true }).click()
     await expect(stepsPanel(page)).toHaveAttribute('data-guide-mode', 'guided')
-    await expect(stepsPanel(page).locator('[data-step-hint="measure-locate"]')).toContainText('需测点：uc')
+    const measureHint = stepsPanel(page).locator('[data-step-hint="measure-locate"]')
+    await expect(measureHint).toHaveAttribute('data-measure-points', 'uc')
+    await expect(measureHint).toContainText('需测项：')
+    await expect(stepsPanel(page).locator('[data-step-locate-list]')).toBeVisible()
 
-    // 点击顶栏切换为“自主模式” -> 3D 参考虚线立即关闭，且步骤过程测点提示隐藏
+    // 点击顶栏切换为“自主模式” -> 3D 参考虚线立即关闭，且步骤过程测点提示与定位列表全部隐藏
     await page.getByRole('button', { name: '切换引导或自主模式', exact: true }).click()
     await expect(viewport(page)).toHaveAttribute('data-guide-mode', 'free')
     await expect(viewport(page)).toHaveAttribute('data-reference-guide', 'off')
     await expect(viewport(page).locator('[data-guide-mode-notice]')).toContainText('自主模式')
     await expect(stepsPanel(page).locator('[data-step-hint="measure-locate"]')).toHaveCount(0)
+    await expect(stepsPanel(page).locator('[data-step-locate-list]')).toHaveCount(0)
 
     // 在自主模式下点击“参考接线”按钮，保持 off 并给出状态提示
     await viewport(page).getByRole('button', { name: '参考接线', exact: true }).click()

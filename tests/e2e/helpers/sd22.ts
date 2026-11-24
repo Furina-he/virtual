@@ -7,7 +7,7 @@ import type { WaveformWindow } from '../../../src/domain/task/measurements'
 import { analyzeTone } from '../../../src/shared/audio/tone'
 import type { SimCommand, SimEvent } from '../../../src/shared/ipc/sim'
 import { Project } from '../../../src/shared/schema/project'
-import { dragInstrumentToSlot } from './instruments'
+import { dragInstrumentToSlot, openInstrumentPanel } from './instruments'
 
 export const sd22Project = Project.parse(JSON.parse(readFileSync('content/projects/SD-22/project.json', 'utf8')))
 export const region = (page: Page, name: string) => page.getByRole('region', { name, exact: true })
@@ -107,16 +107,16 @@ export async function sd22Tab(page: Page, name: string) {
 }
 
 export async function sd22Choose(page: Page, panelName: string, label: string, optionName: string) {
-  await sd22Tab(page, '仪表')
-  const trigger = region(page, panelName).getByRole('combobox', { name: label, exact: true })
+  const panel = await openInstrumentPanel(page, panelName)
+  const trigger = panel.getByRole('combobox', { name: label, exact: true })
   await trigger.click()
   await page.getByRole('option', { name: optionName, exact: true }).click()
   await expect(trigger).toHaveAttribute('aria-expanded', 'false')
 }
 
 export async function sd22Exact(page: Page, panelName: string, label: string, value: number) {
-  await sd22Tab(page, '仪表')
-  const input = region(page, panelName).getByRole('spinbutton', { name: `${label}精确值`, exact: true })
+  const panel = await openInstrumentPanel(page, panelName)
+  const input = panel.getByRole('spinbutton', { name: `${label}精确值`, exact: true })
   await input.fill(String(value))
   await input.press('Enter')
   await expect(input).toHaveValue(String(value))

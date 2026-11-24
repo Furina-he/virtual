@@ -178,6 +178,37 @@ export function InstrumentScreens({ model, instanceId }: { model: Object3D; inst
             0,
             panel.instrument.ranges.length - 1,
           )
+        } else if (panel.instrument.scope) {
+          const scope = resolveScope(panel.instrument, panel.settings)
+          const { config } = scope
+          switch (knob.node.name) {
+            case 'KNOB_CH1_SCALE':
+              degrees = knobAngle(
+                config.voltsPerDiv.indexOf(scope.channels[0]?.voltsPerDiv ?? config.voltsPerDiv[0] ?? 1),
+                0,
+                config.voltsPerDiv.length - 1,
+              )
+              break
+            case 'KNOB_CH2_SCALE':
+              degrees = knobAngle(
+                config.voltsPerDiv.indexOf(scope.channels[1]?.voltsPerDiv ?? config.voltsPerDiv[0] ?? 1),
+                0,
+                config.voltsPerDiv.length - 1,
+              )
+              break
+            case 'KNOB_CH1_POSITION':
+              degrees = knobAngle(scope.channels[0]?.position ?? 0, -4, 4)
+              break
+            case 'KNOB_CH2_POSITION':
+              degrees = knobAngle(scope.channels[1]?.position ?? 0, -4, 4)
+              break
+            case 'KNOB_TIMEBASE':
+              degrees = knobAngle(config.secondsPerDiv.indexOf(scope.secondsPerDiv), 0, config.secondsPerDiv.length - 1)
+              break
+            case 'KNOB_TRIGGER':
+              degrees = knobAngle(scope.trigger.level, -20, 20)
+              break
+          }
         }
         if (degrees !== undefined) knob.moving.rotation.z = knob.rotation - (degrees * Math.PI) / 180
       }

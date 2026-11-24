@@ -1,6 +1,7 @@
 export * from './circuit.ts'
 export * from './common.ts'
 export * from './instrument.ts'
+export * from './learn.ts'
 export * from './module.ts'
 export * from './project.ts'
 export * from './save.ts'

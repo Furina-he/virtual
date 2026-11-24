@@ -35,14 +35,31 @@ export function JackNode3D({
   pending: boolean
 }) {
   const hovered = useBenchView((state) => state.hoveredJack === globalId)
+  const showJackLabels = useBenchView((state) => state.showJackLabels)
   const nearby = useBenchView((state) => state.nearbyJacks.includes(globalId))
+  const persistent = useBenchView((state) => state.persistentLabels.find((item) => item.id === globalId))
+  const diagnosticHighlighted = useBenchView(
+    (state) => Boolean(state.highlightedLink?.jacks.includes(globalId)) || state.pulsingJack === globalId,
+  )
+  const pulsing = useBenchView((state) => state.pulsingJack === globalId)
   const invalidate = useThree((state) => state.invalidate)
   useEffect(() => {
-    if (hovered || pending || nearby) invalidate()
-  }, [hovered, pending, nearby, invalidate])
+    if (hovered || pending || nearby || persistent || diagnosticHighlighted || pulsing) invalidate()
+  }, [hovered, pending, nearby, persistent, diagnosticHighlighted, pulsing, invalidate])
   return (
     <group position={anchor.position} quaternion={anchor.quaternion}>
-      {nearby && !hovered && (
+      {showJackLabels && persistent && !hovered && !pulsing && (
+        <Html center position={[0, 0, 0.012]} style={{ pointerEvents: 'none' }}>
+          <span
+            data-persistent-jack-label={globalId}
+            style={{ transform: `translate(${persistent.offsetX}px, ${persistent.offsetY}px)` }}
+            className="pointer-events-none inline-block rounded-sm border bg-background/95 px-1 py-0.5 text-xs leading-none whitespace-nowrap text-foreground shadow-xs"
+          >
+            {anchor.label}
+          </span>
+        </Html>
+      )}
+      {showJackLabels && !persistent && nearby && !hovered && !pulsing && (
         <Html center position={[0, 0.016, 0.012]} style={{ pointerEvents: 'none' }}>
           <span
             data-jack-label={globalId}
@@ -52,12 +69,28 @@ export function JackNode3D({
           </span>
         </Html>
       )}
-      {(hovered || pending) && (
+      {(hovered || pending || diagnosticHighlighted) && (
         <>
           <mesh position={[0, 0, 0.002]} userData={{ ignoreWiringHit: true }} raycast={() => null}>
-            <ringGeometry args={[0.006, 0.008, 24]} />
+            <ringGeometry args={[0.006, 0.0085, 24]} />
             <meshBasicMaterial color={color} toneMapped={false} />
           </mesh>
+          {pulsing && (
+            <>
+              <mesh position={[0, 0, 0.0025]} userData={{ ignoreWiringHit: true }} raycast={() => null}>
+                <ringGeometry args={[0.01, 0.013, 24]} />
+                <meshBasicMaterial color={color} transparent opacity={0.85} toneMapped={false} />
+              </mesh>
+              <Html center position={[0, 0.022, 0.014]} style={{ pointerEvents: 'none' }}>
+                <span
+                  data-pulsing-jack-badge={globalId}
+                  className="pointer-events-none rounded-sm border border-primary bg-primary px-1.5 py-0.5 text-xs font-medium whitespace-nowrap text-primary-foreground shadow-sm"
+                >
+                  {anchor.label}
+                </span>
+              </Html>
+            </>
+          )}
           {hovered && (
             <Html center position={[0, 0.025, 0.012]} style={{ pointerEvents: 'none' }}>
               <TooltipProvider>

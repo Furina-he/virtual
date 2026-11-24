@@ -4,7 +4,7 @@
 
 开始前先读 [执行计划](docs/执行计划.md) 的当前状态和近期优先级。需求与实现冲突时先告诉用户，不自行改门槛或绕过设计。
 
-## 常用命令
+## 常用命令（日常本地只跑轻量定向，全量重测交由 GitHub Actions）
 
 | 用途 | 命令 |
 |------|------|
@@ -12,10 +12,10 @@
 | 只编译应用 / 打 NSIS | `pnpm build:app` / `pnpm build` |
 | 类型、格式规则、文档 | `pnpm typecheck` / `pnpm lint` / `pnpm docs:lint` |
 | 内容与资产校验 | `pnpm content:lint` / `pnpm assets:lint` |
-| 单元与真实金标准 | `node tools/run-exclusive.ts test --maxWorkers=1` |
-| 仅真实金标准 | `node tools/run-exclusive.ts test:golden` |
-| 构建后完整 Electron E2E | `node tools/run-exclusive.ts e2e` |
-| 10 分钟浸泡 | 设置 `SIM_SOAK_SEC=600` 后运行上述 E2E |
+| 定向单测（日常优先） | `pnpm exec vitest run <对应.test.ts>` |
+| 定向 Electron E2E（日常优先） | `node tools/run-exclusive.ts e2e <对应.spec.ts>` |
+| 仅受影响金标准（改电路/仪表时） | `node tools/run-exclusive.ts test tests/golden/<对应.test.ts> --maxWorkers=1` |
+| 全量单元/金标准与功能 E2E | 推送后由 `.github/workflows/ci.yml`（GitHub Actions `windows-latest`）自动执行；仅里程碑封板或本地排障时手动全跑 |
 | 本地资产构建 | `node tools/run-exclusive.ts assets:build` |
 
-不重叠运行重验证，不擅自删共享锁；做完后在执行计划里勾选状态并写结果。
+日常迭代只跑静态校验 + 受影响单测/定向 E2E，不在本地每次重跑全量套件；本地跑重任务仍通过 `run-exclusive.ts` 串行执行，不擅自删共享锁。

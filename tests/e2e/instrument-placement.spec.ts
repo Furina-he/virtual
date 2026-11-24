@@ -35,7 +35,8 @@ test('默认操作视角由学员拖入万用表，已占用安装位不覆盖�
   await expect(cabinet().getByRole('button', { name: /拖放 直流/ })).toHaveCount(0)
   await dragInstrumentToSlot(page)
   await expect(cabinet()).toHaveAttribute('data-placed-count', '1')
-  await expect(cabinet().locator('[data-placed-instrument="meter1"]')).toContainText('SLOT_DESK_2')
+  await expect(cabinet().locator('[data-placed-instrument="meter1"]')).toContainText('台面中位')
+  await expect(cabinet().locator('[data-placed-instrument="meter1"]')).toHaveAttribute('data-slot-id', 'SLOT_DESK_2')
   await expect(viewport()).toHaveAttribute('data-assets-state', 'ready')
   await expect(viewport()).toHaveAttribute('data-jack-count', '52')
   await expect(viewport()).toHaveAttribute('data-wire-count', '0')
@@ -46,7 +47,7 @@ test('默认操作视角由学员拖入万用表，已占用安装位不覆盖�
   await expect(cabinet()).toHaveAttribute('data-placed-count', '1')
   await expect(viewport()).toHaveAttribute('data-placed-instruments', placements ?? '')
   await expect(editor()).toHaveAttribute('data-undo-count', history ?? '')
-  await expect(cabinet().getByRole('status')).toContainText(/已有仪表|未命中/)
+  await expect(editor().getByRole('status')).toContainText(/已有仪表|未命中/)
   await expect(viewport()).toHaveAttribute('data-wire-count', '0')
 })
 

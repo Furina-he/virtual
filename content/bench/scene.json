@@ -3,8 +3,8 @@
   "schemaVersion": 1,
   "workSurface": { "min": [-0.9, 0.8, -0.375], "max": [0.9, 0.8, 0.375] },
   "camera": {
-    "position": [0.85, 1.48, 1.8],
-    "target": [0, 1.17, 0]
+    "position": [0.3, 1.38, 1.54],
+    "target": [0, 1.13, -0.08]
   },
   "placements": [
     {

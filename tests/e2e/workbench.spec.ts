@@ -2,7 +2,7 @@ import { mkdtempSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { type ElectronApplication, _electron as electron, expect, type Page, test } from '@playwright/test'
-import { dragInstrumentToSlot } from './helpers/instruments'
+import { dragInstrumentToSlot, openInstrumentPanel } from './helpers/instruments'
 
 let app: ElectronApplication
 let win: Page
@@ -36,7 +36,7 @@ async function expectLayoutFits(page: Page, width: number, height: number) {
     expect(box, name).not.toBeNull()
     expect((box?.x ?? 0) + (box?.width ?? 0)).toBeLessThanOrEqual(size.w)
   }
-  for (const label of ['3D 实训台', '直流数字电压表']) {
+  for (const label of ['3D 实训台', '直流稳压电源']) {
     const box = await page.getByRole('region', { name: label }).boundingBox()
     expect(box?.width ?? 0, label).toBeGreaterThan(100)
     expect(box?.height ?? 0, label).toBeGreaterThan(60)
@@ -104,7 +104,7 @@ test('专注台面一键收起三栏并恢复，首次提示关闭后重载不�
 })
 
 test('仪表面板弹出为独立窗口，状态与底栏同步，关闭后回到底栏', async () => {
-  const dock = win.getByRole('region', { name: '直流数字毫安表' })
+  const dock = await openInstrumentPanel(win, '直流数字毫安表')
   await dock.getByRole('combobox', { name: '量程' }).click()
   await win.getByRole('option', { name: '20 mA', exact: true }).click()
 

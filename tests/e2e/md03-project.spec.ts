@@ -2,7 +2,7 @@ import { mkdtempSync, readFileSync, statSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 import { type ElectronApplication, _electron as electron, expect, type Page, test } from '@playwright/test'
-import { addInstrumentWireFromList, dragInstrumentToSlot } from './helpers/instruments'
+import { addInstrumentWireFromList, dragInstrumentToSlot, openInstrumentPanel } from './helpers/instruments'
 
 const project = JSON.parse(readFileSync('content/projects/MD-03/project.json', 'utf8')) as {
   title: string
@@ -182,7 +182,7 @@ async function setModuleCE(enabled: boolean) {
 }
 
 async function configureGenerator(frequency: number, amplitude: number, enabled = true) {
-  await showTab('仪表')
+  await openInstrumentPanel(page, '双通道函数信号发生器')
   await generator().getByRole('tab', { name: 'CH1', exact: true }).click()
   await selectOption(generator(), 'CH1 波形', '正弦波')
   await exact(generator(), 'CH1 频率', frequency)
@@ -197,7 +197,7 @@ async function configureGenerator(frequency: number, amplitude: number, enabled 
 }
 
 async function configureScope(frequency: number, differential = false, inputPair = false) {
-  await showTab('仪表')
+  await openInstrumentPanel(page, '双通道数字示波器')
   await selectOption(scope(), 'CH1 耦合', 'DC 直流耦合')
   await selectOption(scope(), 'CH2 耦合', 'DC 直流耦合')
   await selectOption(scope(), '触发源', 'CH1')
@@ -293,7 +293,7 @@ async function scopeTime() {
 }
 
 async function waitScope(frequency: number, differential = false, afterTime = 0) {
-  await showTab('仪表')
+  await openInstrumentPanel(page, '双通道数字示波器')
   try {
     await expect
       .poll(scopeTime, { timeout: 15_000, message: '真实仿真推进到参数/启动后的稳定采样窗口' })
@@ -476,13 +476,13 @@ function scalar(value: number | null, channel: string): RecordedCell {
 async function prepareSources() {
   await dragInstrumentToSlot(page, 'SLOT_DESK_1', '双通道函数信号发生器')
   await dragInstrumentToSlot(page, 'SLOT_SCOPE', '双通道数字示波器')
-  await showTab('仪表')
-  await exact(panel('直流稳压电源'), 'CH1 电压', 12)
+  await exact(await openInstrumentPanel(page, '直流稳压电源'), 'CH1 电压', 12)
   await configureGenerator(1000, 0.1, false)
   await generator().getByRole('tab', { name: 'CH2', exact: true }).click()
   const ch2 = generator().getByRole('button', { name: '输出开', exact: true })
   if (await ch2.count()) await ch2.click()
   await generator().getByRole('tab', { name: 'CH1', exact: true }).click()
+  await openInstrumentPanel(page, '双通道数字示波器')
   const output = scope().getByRole('button', { name: '输出开', exact: true })
   if (await output.count()) await output.click()
   await setModuleRW(22000)
@@ -511,9 +511,9 @@ async function prepareAndWire() {
 }
 
 async function staticPoints(recorded: Map<string, RecordedCell>) {
-  await showTab('仪表')
-  await selectOption(panel('直流数字电压表'), '量程', '20 V')
-  await selectOption(panel('直流数字电压表'), '输入内阻', '10 MΩ')
+  const vmPanel = await openInstrumentPanel(page, '直流数字电压表')
+  await selectOption(vmPanel, '量程', '20 V')
+  await selectOption(vmPanel, '输入内阻', '10 MΩ')
   for (const [index, id, jack, display, next, completed] of [
     [0, 'vcc', 'AMP_VCC', '12.00', 'static-b', 3],
     [1, 'ub', 'AMP_UB', '3.29', 'static-c', 4],
@@ -524,8 +524,8 @@ async function staticPoints(recorded: Map<string, RecordedCell>) {
     if (index) await removeVM()
     await connectVM(`amp1.${jack}`)
     await turnOn()
-    await showTab('仪表')
-    const output = panel('直流数字电压表').locator('output[data-instance-id="ins-dc-voltmeter"]')
+    const activeVm = await openInstrumentPanel(page, '直流数字电压表')
+    const output = activeVm.locator('output[data-instance-id="ins-dc-voltmeter"]')
     await expect(output).toHaveAttribute('data-status', 'ok')
     await expect(output).toHaveAttribute('data-unit', 'V')
     await expect(output).toHaveAttribute('data-reading', display)
@@ -851,7 +851,7 @@ test('MD-03 GND耦合、未接参考地和断电旧波形不能冒充有效示�
   const inputBefore = await numeric('gain', 'ui_vpp')
   await turnOff()
   await removeWires('li[data-wire-a="scope1.GND"], li[data-wire-b="scope1.GND"]', 1)
-  await showTab('仪表')
+  await openInstrumentPanel(page, '双通道数字示波器')
   await selectOption(scope(), 'CH2 耦合', 'DC 直流耦合')
   await turnOn()
   await expect.poll(scopeTime, { timeout: 15_000 }).toBeGreaterThan(0.25)

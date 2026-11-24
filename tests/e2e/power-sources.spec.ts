@@ -2,21 +2,21 @@ import { mkdtempSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { type ElectronApplication, _electron as electron, expect, type Page, test } from '@playwright/test'
-import { addInstrumentWireFromList } from './helpers/instruments'
+import { addInstrumentWireFromList, openInstrumentPanel } from './helpers/instruments'
 
 let app: ElectronApplication
 let page: Page
 let errors: string[]
 
 const viewport = () => page.getByRole('region', { name: '3D 实训台', exact: true })
-const meterPanel = (name: string) => page.getByRole('region', { name, exact: true })
 
 async function addWire(a: string, b: string) {
   await addInstrumentWireFromList(page, a, b)
 }
 
 async function setExact(panelName: string, label: string, value: string) {
-  const input = meterPanel(panelName).getByRole('spinbutton', { name: `${label}精确值`, exact: true })
+  const panel = await openInstrumentPanel(page, panelName)
+  const input = panel.getByRole('spinbutton', { name: `${label}精确值`, exact: true })
   await input.fill(value)
   await input.press('Enter')
 }
@@ -50,7 +50,6 @@ test.afterEach(async () => {
 })
 
 test('T1.2 INS-07 直流稳压电源 CV/CC 限流自动切换与三档恒流源测量', async () => {
-  const dcPanel = meterPanel('直流稳压电源')
   // Wire CH1 across dc1 R5 = 330 Ω (KH_D to KH_C); at 24 V, load current is 24 / 330 ≈ 72.7 mA
   await setExact('直流稳压电源', 'CH1 电压', '24')
   await setExact('直流稳压电源', 'CH1 限流', '0.2')
@@ -59,7 +58,7 @@ test('T1.2 INS-07 直流稳压电源 CV/CC 限流自动切换与三档恒流源�
 
   // Wire Constant Current Source (20 mA range, set to 15 mA) through dc1 R1 = 510 Ω (KH_F to KH_A) and DC ammeter
   await setExact('直流稳压电源', '恒流源电流', '15')
-  await meterPanel('直流数字毫安表').getByRole('combobox', { name: '量程', exact: true }).click()
+  await (await openInstrumentPanel(page, '直流数字毫安表')).getByRole('combobox', { name: '量程', exact: true }).click()
   await page.getByRole('option', { name: '20 mA', exact: true }).click()
   await addWire('ins-dc-power.ISP', 'ins-dc-ammeter.POS')
   await addWire('ins-dc-ammeter.NEG', 'dc1.KH_F')
@@ -67,9 +66,14 @@ test('T1.2 INS-07 直流稳压电源 CV/CC 限流自动切换与三档恒流源�
 
   await page.getByRole('button', { name: '上电', exact: true }).click()
 
-  const ch1Out = dcPanel.locator('output[data-instance-id="ins-dc-power"][data-screen-id="CH1"]')
-  const isOut = dcPanel.locator('output[data-instance-id="ins-dc-power"][data-screen-id="IS"]')
-  const dcaOut = meterPanel('直流数字毫安表').locator('output[data-instance-id="ins-dc-ammeter"]')
+  const dcaOut = (await openInstrumentPanel(page, '直流数字毫安表')).locator(
+    'output[data-instance-id="ins-dc-ammeter"]',
+  )
+  await expect(dcaOut).toHaveAttribute('data-reading', '15.00', { timeout: 10_000 })
+
+  const activeDcPanel = await openInstrumentPanel(page, '直流稳压电源')
+  const ch1Out = activeDcPanel.locator('output[data-instance-id="ins-dc-power"][data-screen-id="CH1"]')
+  const isOut = activeDcPanel.locator('output[data-instance-id="ins-dc-power"][data-screen-id="IS"]')
 
   await expect(ch1Out).toHaveAttribute('data-status', 'ok', { timeout: 10_000 })
   await expect(ch1Out).toHaveAttribute('data-reading', '24.00')
@@ -78,7 +82,6 @@ test('T1.2 INS-07 直流稳压电源 CV/CC 限流自动切换与三档恒流源�
   await expect(isOut).toHaveAttribute('data-status', 'ok')
   await expect(isOut).toHaveAttribute('data-reading', '15.00')
   await expect(isOut).toContainText('CC 恒流')
-  await expect(dcaOut).toHaveAttribute('data-reading', '15.00')
 
   // Lower CH1 current limit to 0.03 A (30 mA) => 30 mA * 330 Ω = 9.90 V, entering CC mode!
   await setExact('直流稳压电源', 'CH1 限流', '0.03')
@@ -88,7 +91,7 @@ test('T1.2 INS-07 直流稳压电源 CV/CC 限流自动切换与三档恒流源�
 })
 
 test('T1.2 SIM-04 三相调压交流电源相电压/线电压 √3 关系与真实接线测量', async () => {
-  const acPanel = meterPanel('三相调压交流电源')
+  const acPanel = await openInstrumentPanel(page, '三相调压交流电源')
   const phaseScreen = acPanel.locator('output[data-instance-id="ins-ac-power"][data-screen-id="PHASE"]')
   const lineScreen = acPanel.locator('output[data-instance-id="ins-ac-power"][data-screen-id="LINE"]')
 
@@ -107,7 +110,9 @@ test('T1.2 SIM-04 三相调压交流电源相电压/线电压 √3 关系与真�
 
   await page.getByRole('button', { name: '上电', exact: true }).click()
 
-  const acvOut = meterPanel('交流数字电压表').locator('output[data-instance-id="ins-ac-voltmeter"]')
+  const acvOut = (await openInstrumentPanel(page, '交流数字电压表')).locator(
+    'output[data-instance-id="ins-ac-voltmeter"]',
+  )
   await expect(acvOut).toHaveAttribute('data-status', 'ok', { timeout: 15_000 })
   const measuredLine = Number(await acvOut.getAttribute('data-reading'))
   expect(measuredLine).toBeGreaterThan(171.5)

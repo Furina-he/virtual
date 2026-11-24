@@ -14,7 +14,7 @@ createRoot(root).render(
     <MotionConfig reducedMotion="user">
       <TooltipProvider>
         <App />
-        <Toaster />
+        <Toaster position="bottom-center" />
       </TooltipProvider>
     </MotionConfig>
   </StrictMode>,

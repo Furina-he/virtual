@@ -49,11 +49,16 @@
     <circle cx="470" cy="520" r="3"/><circle cx="560" cy="520" r="3"/>
   </g>
   <g class="jack">
-    <circle cx="80" cy="310" r="6"/><circle cx="200" cy="310" r="6"/>
-    <circle cx="340" cy="310" r="6"/><circle cx="470" cy="220" r="6"/>
-    <circle cx="470" cy="380" r="6"/><circle cx="730" cy="220" r="6"/>
-    <circle cx="730" cy="340" r="6"/><circle cx="730" cy="110" r="6"/>
-    <circle cx="80" cy="520" r="6"/><circle cx="730" cy="520" r="6"/>
+    <circle id="JACK_AMP_US" data-jack="amp1.AMP_US" cx="80" cy="310" r="6"/>
+    <circle id="JACK_AMP_UI" data-jack="amp1.AMP_UI" cx="200" cy="310" r="6"/>
+    <circle id="JACK_AMP_UB" data-jack="amp1.AMP_UB" cx="340" cy="310" r="6"/>
+    <circle id="JACK_AMP_UC" data-jack="amp1.AMP_UC" cx="470" cy="220" r="6"/>
+    <circle id="JACK_AMP_UE" data-jack="amp1.AMP_UE" cx="470" cy="380" r="6"/>
+    <circle id="JACK_AMP_UO" data-jack="amp1.AMP_UO" cx="730" cy="220" r="6"/>
+    <circle id="JACK_AMP_RL" data-jack="amp1.AMP_RL" cx="730" cy="340" r="6"/>
+    <circle id="JACK_AMP_VCC" data-jack="amp1.AMP_VCC" cx="730" cy="110" r="6"/>
+    <circle id="JACK_AMP_GND2" data-jack="amp1.AMP_GND2" cx="80" cy="520" r="6"/>
+    <circle id="JACK_AMP_GND1" data-jack="amp1.AMP_GND1" cx="730" cy="520" r="6"/>
   </g>
   <text x="80" y="282" class="center">Us</text><text x="80" y="341" class="center small">AMP_US</text>
   <text x="140" y="282" class="center">R1 5.1 kΩ</text>

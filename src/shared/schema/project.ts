@@ -85,6 +85,7 @@ export const DataTable = z.object({
 
 export const Chart = z.object({
   id: z.string().min(1),
+  title: z.string().min(1).optional(),
   table: z.string().min(1),
   x: z.string().min(1),
   y: z.array(z.string().min(1)).min(1),
@@ -305,3 +306,4 @@ export type FaultDef = z.infer<typeof FaultDef>
 export type MeasurePoint = z.infer<typeof MeasurePoint>
 export type Step = z.infer<typeof Step>
 export type DataTable = z.infer<typeof DataTable>
+export type Chart = z.infer<typeof Chart>

@@ -230,14 +230,15 @@ for (const compact of [false, true]) {
       .poll(() =>
         scroll.evaluate((element) => {
           const status = element.querySelector('[role="status"]')
-          const node = status?.firstChild
-          if (!node?.textContent?.length) return false
-          const range = document.createRange()
-          range.setStart(node, node.textContent.length - 1)
-          range.setEnd(node, node.textContent.length)
-          const last = range.getBoundingClientRect()
+          const tail = status?.lastElementChild
+          if (!tail) return false
+          const last = tail.getBoundingClientRect()
           const bounds = element.getBoundingClientRect()
-          return last.top >= bounds.top && last.bottom <= bounds.bottom
+          return (
+            element.scrollTop + element.clientHeight >= element.scrollHeight - 2 &&
+            last.bottom >= bounds.top &&
+            last.bottom <= bounds.bottom + 1
+          )
         }),
       )
       .toBe(true)

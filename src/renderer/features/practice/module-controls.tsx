@@ -1,9 +1,14 @@
 import { moduleControlValid } from '@domain/circuit/module-controls'
+import { findLearnResourceForBenchTarget } from '@domain/learn/catalog'
 import type { Project } from '@shared/schema/project'
+import { BookOpen } from 'lucide-react'
+import { useLocation, useNavigate } from 'react-router'
 import { create } from 'zustand'
 import { RotaryKnob } from '@/components/instruments/rotary-knob'
+import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { learnCatalog } from '@/features/learn/learn-content'
 import { FaultPanel } from './fault-panel'
 import { moduleCatalog } from './practice-content'
 import { WiringPanel } from './wiring-panel'
@@ -35,6 +40,8 @@ export function setModuleControl(instanceId: string, controlId: string, value: n
 }
 
 export function ModuleProperties({ project }: { project?: Project }) {
+  const navigate = useNavigate()
+  const location = useLocation()
   const tab = moduleSelection((state) => state.tab)
   const selected = moduleSelection((state) => state.instanceId)
   const placements = useActivePlacements()
@@ -44,6 +51,9 @@ export function ModuleProperties({ project }: { project?: Project }) {
     return module?.controls.length ? [{ instanceId: placement.instanceId, module }] : []
   })
   const active = modules.find((entry) => entry.instanceId === selected) ?? modules[0]
+  const activeLearnResource = active
+    ? findLearnResourceForBenchTarget(learnCatalog, { moduleId: active.module.id })
+    : undefined
   return (
     <Tabs
       value={tab}
@@ -68,16 +78,33 @@ export function ModuleProperties({ project }: { project?: Project }) {
               <SelectValue placeholder="无可调模块" />
             </SelectTrigger>
             <SelectContent>
-              {modules.map((entry) => (
-                <SelectItem key={entry.instanceId} value={entry.instanceId}>
-                  {entry.module.name} ({entry.instanceId})
-                </SelectItem>
-              ))}
+              {modules.map((entry, index) => {
+                const duplicated = modules.filter((other) => other.module.name === entry.module.name).length > 1
+                return (
+                  <SelectItem key={entry.instanceId} value={entry.instanceId} data-instance-id={entry.instanceId}>
+                    {duplicated ? `${entry.module.name} #${index + 1}` : entry.module.name}
+                  </SelectItem>
+                )
+              })}
             </SelectContent>
           </Select>
           <p className="text-xs text-muted-foreground">
             可在台面操作旋钮和开关，或精确设置数值；上电时仅修改已声明参数，不重接电路。
           </p>
+          {active && activeLearnResource && (
+            <Button
+              size="xs"
+              variant="outline"
+              onClick={() =>
+                navigate(`/learn/${activeLearnResource.id}`, {
+                  state: { from: location.pathname },
+                })
+              }
+            >
+              <BookOpen className="size-3.5" />
+              查看器件资料
+            </Button>
+          )}
           {active?.module.controls.map((control) => {
             const steps = control.steps
             const actual = values[`${active.instanceId}.${control.id}`] ?? control.default

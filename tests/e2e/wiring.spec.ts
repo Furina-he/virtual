@@ -52,6 +52,16 @@ async function expandBench() {
 async function selectOption(label: string, option: string | RegExp) {
   const trigger = editor().getByRole('combobox', { name: label, exact: true })
   await page.mouse.move(0, 0)
+  if (label === '接线起点' || label === '接线终点') {
+    await trigger.click()
+    const item = page.getByRole('option', { name: option, exact: typeof option === 'string' })
+    const ref = await item.getAttribute('data-jack-ref')
+    await item.scrollIntoViewIfNeeded()
+    await item.click()
+    await expect(trigger).toHaveAttribute('aria-expanded', 'false')
+    if (ref) await expect(trigger).toHaveAttribute('data-selected-jack', ref)
+    return
+  }
   await trigger.press('Enter')
   const item = page.getByRole('option', { name: option, exact: typeof option === 'string' })
   const ref = await item.getAttribute('data-jack-ref')
@@ -245,25 +255,24 @@ test('长插孔列表连续切换首尾项目后提交所选值并关闭列表',
     }
 
   const trigger = editor().getByRole('combobox', { name: '接线终点', exact: true })
-  const selectedRef = await trigger.getAttribute('data-selected-jack')
-  await trigger.press('Enter')
-  await expect(page.locator(`[role="option"][data-jack-ref="${selectedRef}"]`)).toBeFocused()
-  const options = page.locator('[role="option"][data-jack-ref]:not([data-disabled])')
+  await trigger.click()
+  const search = page.getByRole('combobox', { name: '搜索接线终点', exact: true })
+  await expect(search).toBeFocused()
+  const options = page.locator('[role="option"][data-jack-ref]:not([data-disabled="true"])')
   await page.keyboard.press('Home')
-  await expect(options.first()).toBeFocused()
+  await expect(options.first()).toHaveAttribute('data-selected', 'true')
   await page.keyboard.press('ArrowDown')
-  await expect(options.nth(1)).toBeFocused()
+  await expect(options.nth(1)).toHaveAttribute('data-selected', 'true')
   await page.keyboard.press('End')
-  await expect(options.last()).toBeFocused()
+  await expect(options.last()).toHaveAttribute('data-selected', 'true')
   await page.keyboard.press('ArrowUp')
   const previous = options.nth((await options.count()) - 2)
-  await expect(previous).toBeFocused()
+  await expect(previous).toHaveAttribute('data-selected', 'true')
   const previousRef = await previous.getAttribute('data-jack-ref')
   if (!previousRef) throw new Error('Keyboard-selected jack needs a stable reference')
   await page.keyboard.press('Enter')
   await expect(trigger).toHaveAttribute('aria-expanded', 'false')
   await expect(trigger).toHaveAttribute('data-selected-jack', previousRef)
-  await expect(trigger).toBeFocused()
   await expect(viewport()).toHaveAttribute('data-wire-count', '0')
 })
 
@@ -296,7 +305,7 @@ test('T0.16 相机与拾取：单击设备特写、24 px 吸附、待接线可�
   // Left drag on empty space pans; only the right button rotates.
   const azimuthOf = async () => Number(await viewport().getAttribute('data-camera-azimuth'))
   const azimuth = await azimuthOf()
-  const empty = { x: canvas.x + canvas.width * 0.92, y: canvas.y + canvas.height * 0.5 }
+  const empty = { x: canvas.x + canvas.width * 0.08, y: canvas.y + canvas.height * 0.5 }
   await page.mouse.move(empty.x, empty.y)
   await page.mouse.down()
   await page.mouse.move(empty.x - 80, empty.y + 20, { steps: 8 })
@@ -354,11 +363,11 @@ test('T0.16 P1：参考接线虚线、导线右键菜单、仪表特写高亮 2D
     'true',
   )
 
-  // Close-up labels: the nearest jacks of a roomy device carry their silkscreen name.
+  // Close-up labels: persistent anti-overlap labels show silkscreen names on the focused device (T1.9B).
   await focusDevice(page, 'ins-dc-power')
-  const jack = await jackPoint(page, 'ins-dc-power.CH2P')
-  await page.mouse.move(jack.x + 30, jack.y + 30)
-  await expect(page.locator('[data-jack-label]').first()).toBeVisible()
-  expect(await page.locator('[data-jack-label]').count()).toBeLessThanOrEqual(4)
+  await expect(page.locator('[data-persistent-jack-label]').first()).toBeVisible()
+  const labelCount = await page.locator('[data-persistent-jack-label]').count()
+  expect(labelCount).toBeGreaterThanOrEqual(4)
+  expect(labelCount).toBeLessThanOrEqual(28)
   await page.screenshot({ path: test.info().outputPath('jack-labels.png') })
 })

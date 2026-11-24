@@ -67,7 +67,16 @@
       ]
     }
   ],
-  "charts": [],
+  "charts": [
+    {
+      "id": "node-voltages",
+      "title": "各次排故测量节点电位变化曲线",
+      "table": "fault_points",
+      "x": "ub",
+      "y": ["uc", "ue", "uce"],
+      "kind": "line"
+    }
+  ],
   "faults": [
     {
       "id": "f-rb1-open",

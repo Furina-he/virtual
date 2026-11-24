@@ -1,8 +1,9 @@
+import { Minus, Plus } from 'lucide-react'
 import { useEffect, useId, useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { clampKnobValue, knobAngle } from './rotary-knob-values'
+import { clampKnobValue, formatEngineeringValue, knobAngle, stepKnobValue } from './rotary-knob-values'
 
 type KnobOption = { value: number; label: string }
 
@@ -61,7 +62,8 @@ export function RotaryKnob({
       const current = latest.current
       if (current.disabled || event.deltaY === 0) return
       event.preventDefault()
-      changeRef.current(current.value + (event.deltaY < 0 ? current.step : -current.step))
+      const delta = event.deltaY < 0 ? 1 : -1
+      changeRef.current(stepKnobValue(current.value, current.min, current.max, current.step, delta, event.shiftKey))
     }
     element.addEventListener('wheel', wheel, { passive: false })
     return () => element.removeEventListener('wheel', wheel)
@@ -90,24 +92,30 @@ export function RotaryKnob({
     change(clamped)
   }
   const selectedLabel = options?.find((option) => option.value === value)?.label
+  const engText = !options && unit ? formatEngineeringValue(value, unit) : null
+  const rawText = !options && unit ? `${value} ${unit}`.trim() : null
+  const showEngBadge = Boolean(engText && rawText && engText !== rawText)
 
   return (
     <div className="flex min-w-0 flex-col gap-1">
-      <span id={labelId} className="text-xs text-muted-foreground">
-        {label}
-      </span>
-      <div className="flex min-w-0 items-center gap-3">
+      <div className="flex items-center justify-between gap-2">
+        <span id={labelId} className="text-xs text-muted-foreground">
+          {label}
+        </span>
+        {showEngBadge && <span className="font-mono text-xs text-muted-foreground">{engText}</span>}
+      </div>
+      <div className="flex min-w-0 items-center gap-2">
         <Button
           ref={button}
           type="button"
           role="slider"
           variant="outline"
-          className="relative size-12 touch-none rounded-full p-0"
+          className="relative size-11 shrink-0 touch-none rounded-full p-0"
           aria-label={`${label}旋钮`}
           aria-valuemin={min}
           aria-valuemax={max}
           aria-valuenow={value}
-          aria-valuetext={selectedLabel ?? `${value} ${unit}`.trim()}
+          aria-valuetext={selectedLabel ?? engText ?? `${value} ${unit}`.trim()}
           aria-describedby={hintId}
           disabled={disabled}
           onPointerDown={(event) => {
@@ -162,10 +170,20 @@ export function RotaryKnob({
             className="pointer-events-none absolute inset-2 rounded-full border bg-secondary"
             style={{ transform: `rotate(${knobAngle(value, min, max)}deg)` }}
           >
-            <span className="absolute inset-x-3 top-0 h-3 bg-foreground" />
+            <span className="absolute inset-x-2.5 top-0 h-2.5 bg-foreground" />
           </span>
         </Button>
-        <div className="min-w-0 flex-1">
+        <div className="flex min-w-0 flex-1 items-center gap-1">
+          <Button
+            type="button"
+            size="icon-xs"
+            variant="outline"
+            aria-label={`减小${label}`}
+            disabled={disabled || value <= min}
+            onClick={(event) => change(stepKnobValue(value, min, max, step, -1, event.shiftKey))}
+          >
+            <Minus />
+          </Button>
           {options ? (
             <Select
               value={String(value)}
@@ -174,7 +192,7 @@ export function RotaryKnob({
               onOpenChange={setOpen}
               disabled={disabled}
             >
-              <SelectTrigger ref={select} aria-labelledby={labelId} className="w-full">
+              <SelectTrigger ref={select} aria-labelledby={labelId} className="min-w-0 flex-1">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -186,7 +204,7 @@ export function RotaryKnob({
               </SelectContent>
             </Select>
           ) : (
-            <div className="flex items-center gap-2">
+            <div className="flex min-w-0 flex-1 items-center gap-1">
               <Input
                 ref={input}
                 type="number"
@@ -198,7 +216,7 @@ export function RotaryKnob({
                 aria-label={`${label}精确值`}
                 aria-invalid={error}
                 aria-describedby={error ? hintId : undefined}
-                className="font-mono"
+                className="min-w-16 flex-1 px-1.5 font-mono"
                 onFocus={() => {
                   editing.current = true
                 }}
@@ -219,13 +237,25 @@ export function RotaryKnob({
                   }
                 }}
               />
-              <span className="text-xs">{unit}</span>
+              {unit && <span className="shrink-0 text-xs text-muted-foreground">{unit}</span>}
             </div>
           )}
+          <Button
+            type="button"
+            size="icon-xs"
+            variant="outline"
+            aria-label={`增大${label}`}
+            disabled={disabled || value >= max}
+            onClick={(event) => change(stepKnobValue(value, min, max, step, 1, event.shiftKey))}
+          >
+            <Plus />
+          </Button>
         </div>
       </div>
       <p id={hintId} className={error ? 'text-xs text-destructive' : 'sr-only'}>
-        {error ? `请输入 ${min} 至 ${max} ${unit} 的数值。` : '上下拖动或滚轮微调；方向键调整，双击或 Enter 精确设置。'}
+        {error
+          ? `请输入 ${min} 至 ${max} ${unit} 的数值。`
+          : '上下拖动、滚轮或点击加减步进微调（按住 Shift 粗调）；双击或 Enter 精确设置。'}
       </p>
     </div>
   )

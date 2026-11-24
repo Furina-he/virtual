@@ -25,7 +25,6 @@ export async function dragInstrumentToSlot(page: Page, slotId = 'SLOT_DESK_2', i
   await source.scrollIntoViewIfNeeded()
   const from = await source.boundingBox()
   if (!from) throw new Error(`Instrument cabinet entry is not visible: ${instrumentName}`)
-  const to = await instrumentSlotPoint(page, slotId)
   const x = from.x + from.width / 2
   const y = from.y + from.height / 2
   await page.mouse.move(x, y)
@@ -35,6 +34,8 @@ export async function dragInstrumentToSlot(page: Page, slotId = 'SLOT_DESK_2', i
     'data-dragging-instrument',
     /.+/,
   )
+  // 拖拽态触发相机平滑显露全部桌面安装位后再读取精确投影坐标（T1.9B）
+  const to = await instrumentSlotPoint(page, slotId)
   await page.mouse.move(to.x, to.y, { steps: 16 })
   await expect(page.locator('[data-slot="bench-canvas-frame"]')).toHaveAttribute('data-drop-target', 'true')
   await page.mouse.up()
@@ -47,21 +48,60 @@ export async function dragInstrumentToSlot(page: Page, slotId = 'SLOT_DESK_2', i
 export async function selectJackFromList(page: Page, label: string, ref: string) {
   const editor = page.getByRole('region', { name: '接线编辑', exact: true })
   const trigger = editor.getByRole('combobox', { name: label, exact: true })
-  // Keep stationary pointer hover from competing with this keyboard-only selection sequence.
+  // Keep stationary pointer hover from competing with this selection sequence.
   await page.mouse.move(0, 0)
-  const selectedRef = await trigger.getAttribute('data-selected-jack')
-  await trigger.press('Enter')
-  // Radix focuses the prior selection only after positioning; wait before moving focus to the target.
-  const initialOption = selectedRef
-    ? page.locator(`[role="option"][data-jack-ref="${selectedRef}"]`)
-    : page.locator('[role="option"][data-jack-ref]:not([data-disabled])').first()
-  await expect(initialOption).toBeFocused()
+  await trigger.click()
+  const search = page.getByRole('combobox', { name: `搜索${label}`, exact: true })
+  await expect(search).toBeVisible()
+  await search.fill(ref)
   const option = page.locator(`[role="option"][data-jack-ref="${ref}"]`)
-  await option.focus()
-  await expect(option).toBeFocused()
-  await page.keyboard.press('Enter')
+  await expect(option).toBeVisible()
+  await option.click()
   await expect(trigger).toHaveAttribute('aria-expanded', 'false')
   await expect(trigger).toHaveAttribute('data-selected-jack', ref)
+}
+
+export async function openInstrumentPanel(page: Page, instrumentName: string) {
+  const instrumentsTab = page.getByRole('tab', { name: '仪表', exact: true })
+  if ((await instrumentsTab.getAttribute('aria-selected')) !== 'true') {
+    await instrumentsTab.click()
+  }
+  const existing = page.getByRole('region', { name: instrumentName, exact: true })
+  if (await existing.isVisible()) return existing
+
+  const readingsBar = page.locator('[data-live-readings-bar]')
+  const chip = readingsBar.locator(`[data-live-reading-chip][data-instrument-title="${instrumentName}"]`)
+  if ((await chip.count()) > 0) {
+    await chip.first().click()
+    await expect(existing).toBeVisible()
+    return existing
+  }
+
+  const otherFixedTrigger = page.locator('[data-other-fixed-trigger]')
+  if (await otherFixedTrigger.isVisible()) {
+    await otherFixedTrigger.click()
+    const item = page.getByRole('menuitem', { name: instrumentName, exact: true })
+    if ((await item.count()) > 0) {
+      await item.click()
+      await expect(existing).toBeVisible()
+      return existing
+    }
+    await page.keyboard.press('Escape')
+  }
+
+  await expect(existing).toBeVisible()
+  return existing
+}
+
+export async function enableDualInstrumentDock(page: Page) {
+  const instrumentsTab = page.getByRole('tab', { name: '仪表', exact: true })
+  if ((await instrumentsTab.getAttribute('aria-selected')) !== 'true') {
+    await instrumentsTab.click()
+  }
+  const dual = page.locator('[data-dock-mode="dual"]')
+  await expect(dual).toBeEnabled()
+  await dual.click()
+  await expect(dual).toHaveAttribute('aria-pressed', 'true')
 }
 
 export async function addInstrumentWireFromList(page: Page, aRef: string, bRef: string) {

@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest'
 import { CircuitState, Wire, type WireColor } from '../../shared/schema/circuit.ts'
-import { createCircuitStore, DEFAULT_WIRE_SLACK, POWERED_INSTRUMENT_NOTICE, POWERED_WIRING_NOTICE } from './circuit.ts'
+import {
+  createCircuitStore,
+  DEFAULT_WIRE_SLACK,
+  inferPolarityWireColor,
+  POWERED_INSTRUMENT_NOTICE,
+  POWERED_WIRING_NOTICE,
+} from './circuit.ts'
 
 const refs = ['supply.POS', 'meter.POS', 'meter.NEG', ...Array.from({ length: 130 }, (_, index) => `board.J${index}`)]
 const legacyWire: Wire = { id: 'legacy-wire', a: 'supply.POS', b: 'meter.POS', color: 'red' }
@@ -562,5 +568,119 @@ describe('wire schema compatibility', () => {
       powered: false,
     })
     expect(JSON.parse(JSON.stringify(state)).wires[0].slack).toBe(0.3)
+  })
+})
+
+describe('T1.9A WIR-04 rewireEndpoint and optional polarity wire coloring', () => {
+  it('rewires either endpoint as a single atomic undoable/redoable edit preserving wire metadata', () => {
+    const store = createCircuitStore(refs)
+    store.getState().addWire('supply.POS', 'meter.POS', 'blue', 0.18)
+    const wire = store.getState().wires[0]
+    if (!wire) throw new Error('Expected initial wire')
+    store.getState().updateWire(wire.id, { label: 'Vcc' })
+    expect(historyLengths(store)).toEqual([2, 0])
+
+    expect(store.getState().startRewire(wire.id, 'b')).toBe(true)
+    expect(store.getState().pendingRewire).toEqual({
+      wireId: wire.id,
+      end: 'b',
+      fixedJack: 'supply.POS',
+      originalJack: 'meter.POS',
+    })
+    expect(store.getState().pendingJack).toBe('supply.POS')
+
+    expect(store.getState().rewireEndpoint(wire.id, 'b', 'meter.NEG')).toBe(true)
+    expect(historyLengths(store)).toEqual([3, 0])
+    expect(store.getState().pendingRewire).toBeNull()
+    expect(store.getState().pendingJack).toBeNull()
+    expect(store.getState().wires).toEqual([
+      { id: wire.id, a: 'supply.POS', b: 'meter.NEG', color: 'blue', slack: 0.18, label: 'Vcc' },
+    ])
+
+    // Single undo reverts back to the original endpoint in one step
+    expect(store.getState().undo()).toBe(true)
+    expect(store.getState().wires[0]?.b).toBe('meter.POS')
+    expect(store.getState().redo()).toBe(true)
+    expect(store.getState().wires[0]?.b).toBe('meter.NEG')
+  })
+
+  it('rejects self-loop, duplicate, unknown jack, no-op, and powered rewire attempts without mutating history', () => {
+    const store = createCircuitStore(refs)
+    store.getState().addWire('supply.POS', 'meter.POS', 'red')
+    store.getState().addWire('supply.POS', 'meter.NEG', 'black')
+    const [first] = store.getState().wires
+    if (!first) throw new Error('Expected first wire')
+    const baseHistory = historyLengths(store)
+
+    expect(store.getState().rewireEndpoint(first.id, 'b', 'supply.POS')).toBe(false)
+    expect(store.getState().rewireEndpoint(first.id, 'b', 'meter.NEG')).toBe(false)
+    expect(store.getState().rewireEndpoint(first.id, 'b', 'unknown.J1')).toBe(false)
+    expect(store.getState().rewireEndpoint('missing-id', 'a', 'board.J0')).toBe(false)
+    // Dropping back onto the original jack cancels pendingRewire cleanly without history churn
+    expect(store.getState().startRewire(first.id, 'b')).toBe(true)
+    expect(store.getState().rewireEndpoint(first.id, 'b', 'meter.POS')).toBe(false)
+    expect(store.getState().pendingRewire).toBeNull()
+    expect(historyLengths(store)).toEqual(baseHistory)
+
+    // Powered guard blocks startRewire and rewireEndpoint
+    store.getState().togglePower()
+    expect(store.getState().startRewire(first.id, 'a')).toBe(false)
+    expect(store.getState().rewireEndpoint(first.id, 'a', 'board.J0')).toBe(false)
+    expect(store.getState().notice).toBe(POWERED_WIRING_NOTICE)
+    expect(historyLengths(store)).toEqual(baseHistory)
+  })
+
+  it('T1.9B defaults autoWireColor to true, honors explicit manual overrides, and supports continuous source fan-out', () => {
+    expect(inferPolarityWireColor('bench.GND')).toBe('black')
+    expect(inferPolarityWireColor('meter1.COM')).toBe('black')
+    expect(inferPolarityWireColor('dc.CH1N')).toBe('black')
+    expect(inferPolarityWireColor('dc.CH1P')).toBe('red')
+    expect(inferPolarityWireColor('board.VCC')).toBe('red')
+    expect(inferPolarityWireColor('dc.CH1P', 'bench.GND')).toBe('black')
+    expect(inferPolarityWireColor('board.J0', 'board.J1', 0)).toBe('blue')
+    expect(inferPolarityWireColor('board.J0', 'board.J2', 1)).toBe('yellow')
+    expect(inferPolarityWireColor('board.J0', 'board.J3', 2)).toBe('green')
+
+    const polarityRefs = ['supply.CH1P', 'supply.CH1N', 'board.GND', 'board.J0', 'board.J1', 'board.J2']
+    const store = createCircuitStore(polarityRefs)
+    // T1.9B: autoWireColor defaults ON
+    expect(store.getState().autoWireColor).toBe(true)
+    store.getState().setPendingJack('board.GND')
+    expect(store.getState().wireColor).toBe('black')
+    // Continuous fan-out keeps source jack pending across multiple targets
+    expect(store.getState().completeConnection('supply.CH1N', { keepSource: true })).toBe(true)
+    expect(store.getState().wires[0]?.color).toBe('black')
+    expect(store.getState().pendingJack).toBe('board.GND')
+    expect(store.getState().completeConnection('board.J0', { keepSource: false })).toBe(true)
+    expect(store.getState().wires[1]?.color).toBe('black')
+    expect(store.getState().pendingJack).toBeNull()
+
+    store.getState().setPendingJack('supply.CH1P')
+    expect(store.getState().wireColor).toBe('red')
+    expect(store.getState().completeConnection('board.J1')).toBe(true)
+    expect(store.getState().wires[2]?.color).toBe('red')
+
+    store.getState().setPendingJack('board.J0')
+    expect(store.getState().wireColor).toBe('blue')
+    // Explicit manual color pick immediately overrides auto inference
+    store.getState().setWireColor('yellowGreen')
+    expect(store.getState().completeConnection('board.J2')).toBe(true)
+    expect(store.getState().wires[3]?.color).toBe('yellowGreen')
+
+    // Turning autoWireColor OFF uses explicit wireColor directly
+    store.getState().setAutoWireColor(false)
+    store.getState().setWireColor('white')
+    store.getState().setPendingJack('board.GND')
+    expect(store.getState().wireColor).toBe('white')
+    expect(store.getState().completeConnection('board.J1')).toBe(true)
+    expect(store.getState().wires[4]?.color).toBe('white')
+
+    // completeConnection also finishes single-step pendingRewire
+    const targetWire = store.getState().wires[4]
+    if (!targetWire) throw new Error('Expected wire 4')
+    expect(store.getState().startRewire(targetWire.id, 'b')).toBe(true)
+    expect(store.getState().completeConnection('board.J2')).toBe(true)
+    expect(store.getState().wires[4]?.b).toBe('board.J2')
+    expect(store.getState().pendingRewire).toBeNull()
   })
 })

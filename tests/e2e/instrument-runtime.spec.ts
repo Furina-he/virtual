@@ -2,7 +2,7 @@ import { mkdtempSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { type ElectronApplication, _electron as electron, expect, type Page, test } from '@playwright/test'
-import { addInstrumentWireFromList, dragInstrumentToSlot } from './helpers/instruments'
+import { addInstrumentWireFromList, dragInstrumentToSlot, openInstrumentPanel } from './helpers/instruments'
 
 let app: ElectronApplication
 let page: Page
@@ -24,7 +24,8 @@ async function wireDg01VoltagePoint() {
 }
 
 async function reading(panelName: string) {
-  const output = meterPanel(panelName).locator('output[data-instance-id]')
+  const panel = await openInstrumentPanel(page, panelName)
+  const output = panel.locator('output[data-instance-id]')
   await expect(output).toHaveAttribute('data-status', /^(ok|overload)$/)
   return output
 }
@@ -56,7 +57,7 @@ test.afterEach(async () => {
 test('DG-01 实际接线读数随电压表内阻变化，且 2 V 档显示 OL.', async () => {
   await wireDg01VoltagePoint()
   await page.getByRole('button', { name: '上电', exact: true }).click()
-  const panel = meterPanel('直流数字电压表')
+  const panel = await openInstrumentPanel(page, '直流数字电压表')
   const output = await reading('直流数字电压表')
   await expect(output).toHaveAttribute('data-reading', '3.64')
   await expect(output).toHaveAttribute('data-unit', 'V')

@@ -2,7 +2,12 @@ import { mkdtempSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { type ElectronApplication, _electron as electron, expect, type Page, test } from '@playwright/test'
-import { addInstrumentWireFromList, dragInstrumentToSlot } from './helpers/instruments'
+import {
+  addInstrumentWireFromList,
+  dragInstrumentToSlot,
+  enableDualInstrumentDock,
+  openInstrumentPanel,
+} from './helpers/instruments'
 
 // T0.12：示波器与函数信号发生器。所有读数来自学员接线后的真实 ngspice 瞬态仿真。
 let app: ElectronApplication
@@ -96,6 +101,7 @@ test.afterEach(async () => {
 test('信号发生器接示波器：四种波形、Vpp/频率 ≤1%、调幅与上下左右移动，2D 与 3D 同步', async () => {
   await dragInstrumentToSlot(page, 'SLOT_DESK_1', '双通道函数信号发生器')
   await dragInstrumentToSlot(page, 'SLOT_SCOPE', '双通道数字示波器')
+  await enableDualInstrumentDock(page)
   await expect(scope().locator('canvas[data-instance-id="scope1"]')).toBeVisible()
   await addInstrumentWireFromList(page, 'generator1.CH1', 'scope1.CH1')
   await addInstrumentWireFromList(page, 'generator1.GND', 'scope1.GND')
@@ -187,6 +193,7 @@ test('示波器内置信号源输出四种波形；单次触发捕获后冻结',
 test('信号经挂箱电阻网络分压：示波器两路读数与电路理论一致', async () => {
   await dragInstrumentToSlot(page, 'SLOT_DESK_1', '双通道函数信号发生器')
   await dragInstrumentToSlot(page, 'SLOT_SCOPE', '双通道数字示波器')
+  await enableDualInstrumentDock(page)
   await addInstrumentWireFromList(page, 'generator1.CH1', 'dc1.TH_USP')
   await addInstrumentWireFromList(page, 'generator1.GND', 'dc1.TH_USN')
   await addInstrumentWireFromList(page, 'scope1.CH1', 'dc1.TH_USP')
@@ -220,6 +227,7 @@ test('示波器显示断线与缺少 GND 的提示，弹出窗口保持提示并
 
   await page.getByRole('button', { name: '断电', exact: true }).click()
   await dragInstrumentToSlot(page, 'SLOT_DESK_1', '双通道函数信号发生器')
+  await openInstrumentPanel(page, '双通道数字示波器')
   await addInstrumentWireFromList(page, 'generator1.CH1', 'scope1.CH1')
   await page.getByRole('button', { name: '上电', exact: true }).click()
   const groundNotice = 'CH1 的 GND 未接线，读数以示波器自身地为参考。'

@@ -511,3 +511,88 @@ export function measureCursors(
     deltaV,
   }
 }
+
+function pickAtLeast(values: readonly number[], target: number): number {
+  const sorted = [...values].sort((a, b) => a - b)
+  for (const candidate of sorted) if (candidate >= target) return candidate
+  return sorted[sorted.length - 1] ?? target
+}
+
+function pickNearestLog(values: readonly number[], target: number): number {
+  if (!values.length || target <= 0) return values[0] ?? target
+  const logTarget = Math.log(target)
+  let best = values[0] as number
+  let bestDist = Math.abs(Math.log(best) - logTarget)
+  for (const candidate of values) {
+    if (candidate <= 0) continue
+    const dist = Math.abs(Math.log(candidate) - logTarget)
+    if (dist < bestDist) {
+      best = candidate
+      bestDist = dist
+    }
+  }
+  return best
+}
+
+/**
+ * 示波器自动设置（T1.9A / INS-09）：仅根据当前已采集到的真实通道峰峰值与频率匹配合适的 V/div、s/div、
+ * 居中垂直位移与触发电平，不改动电路或伪造信号。
+ */
+export function computeScopeAutoSet(
+  settings: ScopeSettings,
+  measurements: readonly (SignalMeasurement | null)[],
+): Record<string, number> | null {
+  const { config } = settings
+  const patch: Record<string, number> = {}
+  let matchedAny = false
+  let primaryPeriod: number | null = null
+  let primaryTriggerLevel: number | null = null
+  let primarySourceIndex: number | null = null
+
+  for (let index = 0; index < settings.channels.length; index++) {
+    const channel = settings.channels[index]
+    const m = measurements[index]
+    if (!channel?.enabled || !m || !Number.isFinite(m.min) || !Number.isFinite(m.max)) continue
+    if (channel.coupling === 'gnd') continue
+    const prefix = channel.id.toLowerCase()
+    const vpp = Math.max(0, m.max - m.min)
+    const midpoint = (m.min + m.max) / 2
+    const acOnly = channel.coupling === 'ac'
+    // 信号幅值占约 5 格；纯直流信号按绝对值留足余量
+    const spanForScale = vpp > 1e-4 ? vpp / 4.8 : Math.max(Math.abs(midpoint) / 2.2, 0.05)
+    const vdiv = pickAtLeast(config.voltsPerDiv, spanForScale)
+    const rawPos = acOnly ? 0 : -midpoint / vdiv
+    const pos = Number(Math.max(-SCOPE_POSITION_LIMIT, Math.min(SCOPE_POSITION_LIMIT, rawPos)).toFixed(1))
+    patch[`${prefix}_vdiv`] = vdiv
+    patch[`${prefix}_pos`] = Math.abs(pos) < 0.05 ? 0 : pos
+    matchedAny = true
+
+    const hasPeriodic = m.frequency !== null && Number.isFinite(m.frequency) && m.frequency > 0 && vpp > 1e-4
+    const isTriggerSource = index === settings.trigger.source
+    if (hasPeriodic && (primaryPeriod === null || isTriggerSource)) {
+      primaryPeriod = 1 / (m.frequency as number)
+      primarySourceIndex = index
+      primaryTriggerLevel = acOnly ? 0 : midpoint
+    } else if (primaryTriggerLevel === null && (isTriggerSource || primarySourceIndex === null)) {
+      primarySourceIndex = index
+      primaryTriggerLevel = acOnly ? 0 : midpoint
+    }
+  }
+
+  if (!matchedAny) return null
+
+  if (primaryPeriod !== null && primaryPeriod > 0) {
+    // 屏幕横轴默认展示约 2.5~3 个完整周期
+    const idealTdiv = (primaryPeriod * 2.5) / config.divisions.x
+    patch.tdiv = pickNearestLog(config.secondsPerDiv, idealTdiv)
+  }
+  if (primarySourceIndex !== null) patch.trig_src = primarySourceIndex
+  if (primaryTriggerLevel !== null && Number.isFinite(primaryTriggerLevel)) {
+    const clamped = Math.max(-SCOPE_TRIGGER_LEVEL_LIMIT, Math.min(SCOPE_TRIGGER_LEVEL_LIMIT, primaryTriggerLevel))
+    patch.trig_level = Number(clamped.toFixed(2))
+  }
+  patch.hpos = 0
+  patch.trig_mode = TRIGGER_MODES.indexOf('auto')
+  patch.run = 1
+  return patch
+}

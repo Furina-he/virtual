@@ -1,0 +1,129 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      include_realtime_e2e:
+        description: '同时运行依赖物理时钟/GPU 的实时音频与帧率 E2E（云端共享虚机可能因无独显波动）'
+        required: false
+        default: false
+        type: boolean
+      build_nsis:
+        description: '额外构建 Windows NSIS 离线安装包并上传产物'
+        required: false
+        default: false
+        type: boolean
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  static:
+    name: 静态与契约校验
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+      - name: 安装锁定依赖
+        run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: 类型、代码规范、文档、内容与 3D 资产校验
+        run: |
+          pnpm typecheck
+          pnpm lint
+          pnpm docs:lint
+          pnpm content:lint
+          pnpm assets:lint
+
+  unit-golden:
+    name: 单元与 ngspice 金标准（Windows x64）
+    runs-on: windows-latest
+    needs: static
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+      - name: 安装锁定依赖（含 koffi 原生绑定）
+        run: pnpm install --frozen-lockfile
+      - name: 串行运行全量单元与 ngspice 真实金标准
+        run: pnpm exec vitest run --maxWorkers=1
+
+  electron-e2e:
+    name: Electron 端到端回归（Windows x64）
+    runs-on: windows-latest
+    needs: static
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+      - name: 安装锁定依赖（含 Electron）
+        run: pnpm install --frozen-lockfile
+      - name: 编译 Electron 应用
+        run: pnpm build:app
+      - name: 运行功能端到端测试
+        shell: pwsh
+        run: |
+          if ('${{ inputs.include_realtime_e2e }}' -eq 'true') {
+            pnpm exec playwright test
+          } else {
+            # 云端共享虚机无物理独显（WebGL 走软件光栅化），默认跳过强依赖物理 GPU 帧率与硬实时声卡时钟的基准项
+            $hardwareBound = @(
+              'scene-performance.spec.ts',
+              'sd22-realtime.spec.ts',
+              'sim-audio.spec.ts',
+              'long-window.spec.ts'
+            )
+            $specs = Get-ChildItem tests/e2e/*.spec.ts |
+              Where-Object { $_.Name -notin $hardwareBound } |
+              ForEach-Object { "tests/e2e/$($_.Name)" }
+            pnpm exec playwright test @specs
+          }
+      - name: 上传失败现场与截图证据
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-failure-results
+          path: |
+            test-results/
+            playwright-report/
+          retention-days: 7
+
+  package-nsis:
+    name: 构建 Windows NSIS 安装包
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.build_nsis == true }}
+    runs-on: windows-latest
+    needs: [unit-golden, electron-e2e]
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+      - name: 安装锁定依赖
+        run: pnpm install --frozen-lockfile
+      - name: 打包 NSIS 安装程序
+        run: pnpm build
+      - name: 上传安装包产物
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-nsis-installer
+          path: dist/*.exe
+          retention-days: 14

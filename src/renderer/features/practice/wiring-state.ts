@@ -2,10 +2,12 @@ import { useMemo } from 'react'
 import { useStore } from 'zustand'
 import { JackRef } from '../../../shared/schema/common'
 import type { Project } from '../../../shared/schema/project'
+import type { SaveFile } from '../../../shared/schema/save'
 import { type CircuitEditorState, type CircuitSceneContext, createCircuitStore } from '../../stores/circuit'
 import { instrumentCatalog, moduleCatalog } from './practice-content'
 import {
   desktopSlots,
+  findAvailableDesktopSlot as findDesktopSlot,
   fixedPlacements,
   initialInstruments,
   instrumentPlacementProblem,
@@ -19,7 +21,7 @@ import {
   wiringAssets,
 } from './wiring-context'
 
-export { type WiringJack, wiringJacks, wiringScene } from './wiring-context'
+export { slotDisplayName, type WiringJack, wiringJacks, wiringScene } from './wiring-context'
 
 function sceneContext(placements: readonly ScenePlacement[]): CircuitSceneContext {
   const controlValues: Record<string, number> = {}
@@ -90,6 +92,11 @@ export function resetProject(): void {
   circuitStore.getState().resetScene(sceneContext(activeBasePlacements))
 }
 
+export function restoreProjectCircuit(save: SaveFile): boolean {
+  const defaults = sceneContext(activeBasePlacements).controlValues ?? {}
+  return circuitStore.getState().restoreState(save.circuit, defaults)
+}
+
 export function getActiveProject(): Project | undefined {
   return activeProject
 }
@@ -111,6 +118,30 @@ export function nextInstrumentInstanceId(instrumentId: string): string {
   let index = 1
   while (used.has(`${prefix}${index}`)) index++
   return `${prefix}${index}`
+}
+
+/** 一键放置台式仪表到首个空闲台面安装位（T1.9A，不自动接线）。 */
+export function placeInstrumentInFirstSlot(instrumentId: string): boolean {
+  const state = circuitStore.getState()
+  if (state.powered) {
+    return state.placeInstrument({
+      instanceId: nextInstrumentInstanceId(instrumentId),
+      instrumentId,
+      slot: desktopSlots[0]?.id ?? 'SLOT_DESK_1',
+      settings: {},
+    })
+  }
+  const slot = findDesktopSlot(instrumentId, state.placedInstruments, activeBasePlacements)
+  if (!slot) {
+    circuitStore.setState({ notice: '当前没有适合该仪表的空闲台面安装位，请先移除已有台式仪表。' })
+    return false
+  }
+  return state.placeInstrument({
+    instanceId: nextInstrumentInstanceId(instrumentId),
+    instrumentId,
+    slot,
+    settings: {},
+  })
 }
 
 export function getWiringJacks() {
