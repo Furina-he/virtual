@@ -162,26 +162,36 @@ export function acquireScope(
   const pre = Math.round(triggerColumn(settings) * pointsPerDiv)
   const post = screenPoints - pre
 
-  // 自动测量：长记录、10 Hz 刷新；在线 alter 后不混入旧参数采样
+  // 自动测量：长记录、10 Hz 刷新；在线 alter 后不混入旧参数采样，首批新采样到达前保持上次读数避免瞬时归零闪烁
   let measurements = acq.frame.measurements
   let windows = acq.frame.windows
-  const boundaryChanged =
-    acq.boundaries.length !== boundaries.length ||
-    boundaries.some((boundary, index) => boundary !== acq.boundaries[index])
+  const boundaryPending = channelBuffers.some(
+    (buffer, index) =>
+      live[index] &&
+      settings.channels[index]?.coupling !== 'gnd' &&
+      buffer.boundary !== (acq.boundaries[index] ?? 0) &&
+      buffer.sinceBoundary >= 2,
+  )
   if (
-    boundaryChanged ||
+    boundaryPending ||
     now - acq.measuredAt >= MEASURE_INTERVAL_MS ||
     measurements.length !== settings.channels.length
   ) {
     acq.measuredAt = now
-    acq.boundaries = boundaries
+    const nextBoundaries = [...acq.boundaries]
     if (acq.measureScratch.length < MEASURE_POINTS) acq.measureScratch = new Float32Array(MEASURE_POINTS)
     windows = []
     measurements = channelBuffers.map((buffer, index) => {
       if (!live[index] || settings.channels[index]?.coupling === 'gnd') {
+        nextBoundaries[index] = buffer.boundary
         windows?.push(null)
         return null
       }
+      if (buffer.boundary > 0 && buffer.sinceBoundary < 2) {
+        windows?.push(acq.frame.windows?.[index] ?? null)
+        return acq.frame.measurements[index] ?? null
+      }
+      nextBoundaries[index] = buffer.boundary
       const raw = latest(buffer, acq.measureScratch, Math.min(MEASURE_POINTS, buffer.sinceBoundary))
       let measured = measureSignal(raw, dt)
       let window: WaveformWindow = {
@@ -206,6 +216,7 @@ export function acquireScope(
       windows?.push(window)
       return measured
     })
+    acq.boundaries = nextBoundaries
   }
 
   if (screenPoints > reference.capacity && observationSource) {

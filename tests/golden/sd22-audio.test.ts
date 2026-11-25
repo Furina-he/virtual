@@ -150,8 +150,8 @@ describe('SD-22 音频方案（SIM-13）', () => {
     for (let i = 1; i < n; i++) if ((out1[i - 1] ?? 0) < 2 && (out1[i] ?? 0) >= 2) rises.push(i * DT)
     const modPeriod = rises.length > 1 ? ((rises.at(-1) ?? 0) - (rises[0] ?? 0)) / (rises.length - 1) : Number.NaN
 
-    // 稳态段：最后一个 IC1 高电平段中间 0.2 s
-    const lastRise = rises.at(-1) ?? 0.5
+    // 稳态段：最后一个完整覆盖 [+0.2 s, +0.4 s] 的 IC1 高电平段中间 0.2 s（避免录制停在上升沿后 <0.4 s 时切片越界为空）
+    const lastRise = rises.findLast((t) => t + 0.4 <= simSec) ?? rises.at(-1) ?? 0.5
     const seg0 = Math.round((lastRise + 0.2) / DT)
     const seg = spk.slice(seg0, seg0 + Math.round(0.2 / DT))
     const segF0 = median(frames.filter((f) => f.t > lastRise + 0.2 && f.t < lastRise + 0.4).map((f) => f.f0))

@@ -337,10 +337,10 @@ describe('示波器采集', () => {
     expect(before.measurements[0]?.frequency).toBeGreaterThan(29.5)
     expect(before.measurements[0]?.frequency).toBeLessThan(30.5)
 
-    // 在线 alter 切换至 60 r/min：清空观测窗并标记环形缓冲边界，但保留原始显示缓冲
+    // 在线 alter 切换至 60 r/min：清空观测窗并标记环形缓冲边界，新采样到达前保持上次读数避免瞬时归零闪烁
     observed.clear()
     raw.markBoundary()
-    const cleared = acquireScope(
+    const waiting = acquireScope(
       's',
       scope,
       { tdiv: 0.05 },
@@ -348,16 +348,16 @@ describe('示波器采集', () => {
       () => raw,
       () => observed,
     )
-    expect(cleared.measurements[0]).toBeNull()
+    expect(waiting.measurements[0]?.frequency).toBeGreaterThan(29.5)
     expect(raw.length).toBe(4000)
 
-    // 仅推进 0.2 s 的 60 Hz 新采样，自动测量应立即读出 ~60 Hz（而非与 2 s 旧 30 Hz 混算出的 ~33 Hz）
+    // 即使尚在 100 ms 节流窗内，首批 0.2 s 的 60 Hz 新采样到达后即刻切换至 ~60 Hz（不混入 2 s 旧 30 Hz 历史）
     pushFreq(0.2, 60)
     const after = acquireScope(
       's',
       scope,
       { tdiv: 0.05 },
-      250,
+      140,
       () => raw,
       () => observed,
     )
