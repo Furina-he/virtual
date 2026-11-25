@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 440" role="img" aria-labelledby="title desc">
+  <title id="title">DG-15 三相四线制星形负载原理图</title>
+  <desc id="desc">三相四线交流电源 U/V/W/N 经相电流插座驱动三相灯组负载 A/B/C，星形中性点 N' 经中线开关 KN 与中线电流插座返回电源 N。</desc>
+  <style>
+    text { font-family: "Noto Sans SC Variable", sans-serif; fill: #18181b; font-size: 14px; }
+    .wire { fill: none; stroke: #18181b; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    .box { fill: #ffffff; stroke: #18181b; stroke-width: 2; }
+    .jack { fill: #ffffff; stroke: #18181b; stroke-width: 2; cursor: pointer; }
+    .small { font-size: 12.5px; fill: #52525b; }
+    .center { text-anchor: middle; }
+  </style>
+  <rect width="800" height="440" fill="#ffffff"/>
+  <text x="400" y="32" class="center" style="font-size: 20px; font-weight: 600">DG-15 三相四线制星形（Y）负载与中线作用测量电路</text>
+  <text x="400" y="56" class="center small">mod-3ph-lamp · U相 = 220 V / U线 = 381 V · 每相 1~3 盏 40 W 灯泡 · 中线开关 KN</text>
+
+  <g class="wire">
+    <path d="M90 115 H230 M270 115 H420 M500 115 H610 V335"/>
+    <path d="M90 190 H230 M270 190 H420 M500 190 H610"/>
+    <path d="M90 265 H230 M270 265 H420 M500 265 H610"/>
+    <path d="M90 335 H340 M380 335 H465 M505 335 H610"/>
+    <path d="M230 115 H270 M230 190 H270 M230 265 H270 M340 335 H380" stroke-dasharray="3 3"/>
+    <path d="M465 335 L500 322"/>
+  </g>
+
+  <rect x="420" y="103" width="80" height="24" class="box"/>
+  <text x="460" y="120" class="center small">LA (KA)</text>
+  <rect x="420" y="178" width="80" height="24" class="box"/>
+  <text x="460" y="195" class="center small">LB (KB)</text>
+  <rect x="420" y="253" width="80" height="24" class="box"/>
+  <text x="460" y="270" class="center small">LC (KC)</text>
+
+  <circle id="JACK_U" data-jack="ins-ac-power.U" cx="90" cy="115" r="4.5" class="jack"/>
+  <circle id="JACK_V" data-jack="ins-ac-power.V" cx="90" cy="190" r="4.5" class="jack"/>
+  <circle id="JACK_W" data-jack="ins-ac-power.W" cx="90" cy="265" r="4.5" class="jack"/>
+  <circle id="JACK_N" data-jack="ins-ac-power.N" cx="90" cy="335" r="4.5" class="jack"/>
+
+  <circle id="JACK_U_IN" data-jack="lamp3.U_IN" cx="160" cy="115" r="4.5" class="jack"/>
+  <circle id="JACK_IA_A" data-jack="lamp3.IA_A" cx="230" cy="115" r="4.5" class="jack"/>
+  <circle id="JACK_IA_B" data-jack="lamp3.IA_B" cx="270" cy="115" r="4.5" class="jack"/>
+  <circle id="JACK_A1" data-jack="lamp3.A1" cx="385" cy="115" r="4.5" class="jack"/>
+  <circle id="JACK_A2" data-jack="lamp3.A2" cx="545" cy="115" r="4.5" class="jack"/>
+
+  <circle id="JACK_V_IN" data-jack="lamp3.V_IN" cx="160" cy="190" r="4.5" class="jack"/>
+  <circle id="JACK_B1" data-jack="lamp3.B1" cx="385" cy="190" r="4.5" class="jack"/>
+  <circle id="JACK_B2" data-jack="lamp3.B2" cx="545" cy="190" r="4.5" class="jack"/>
+
+  <circle id="JACK_W_IN" data-jack="lamp3.W_IN" cx="160" cy="265" r="4.5" class="jack"/>
+  <circle id="JACK_C1" data-jack="lamp3.C1" cx="385" cy="265" r="4.5" class="jack"/>
+  <circle id="JACK_C2" data-jack="lamp3.C2" cx="545" cy="265" r="4.5" class="jack"/>
+
+  <circle id="JACK_N_OUT" data-jack="lamp3.N_OUT" cx="160" cy="335" r="4.5" class="jack"/>
+  <circle id="JACK_IN_B" data-jack="lamp3.IN_B" cx="340" cy="335" r="4.5" class="jack"/>
+  <circle id="JACK_IN_A" data-jack="lamp3.IN_A" cx="380" cy="335" r="4.5" class="jack"/>
+  <circle id="JACK_N_STAR" data-jack="lamp3.N_STAR" cx="610" cy="335" r="4.5" class="jack"/>
+
+  <text x="64" y="119" class="small" text-anchor="end">U</text>
+  <text x="64" y="194" class="small" text-anchor="end">V</text>
+  <text x="64" y="269" class="small" text-anchor="end">W</text>
+  <text x="64" y="339" class="small" text-anchor="end">N</text>
+  <text x="360" y="358" class="center small">中线插座 I_N</text>
+  <text x="485" y="358" class="center small">开关 KN</text>
+  <text x="634" y="339" class="small">N'</text>
+
+  <text x="400" y="392" class="center small">对比：对称有中线 (3-3-3) · 不对称有中线 (3-2-1, I_N≈0.315 A) · 不对称断中线 (U_NN'≈63.5 V)。</text>
+  <text x="400" y="418" class="center small">本项目自绘离线原理图 · 悬停或点击插孔与 3D 台面双向联动</text>
+</svg>

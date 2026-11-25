@@ -1,0 +1,15 @@
+.subckt mod_phase_dimmer AC_L AC_N LP_1 LP_2 MT2 MT1 GATE RC_IN RC_MID RC_N DB_1 DB_2 params: rp_dim=50000
+* 阻容移相调光实验挂箱（原型选型说明 §3.1 #7，服务 DG-11）
+* 电源端接线柱隔离防浮空泄放
+R_ac_bleed AC_L AC_N 100Meg
+* 1. 220 V / 25 W 钨丝灯泡负载
+XLP1 LP_1 LP_2 LAMP_220V_25W
+* 2. RC 移相网络（4.7 kΩ 保护电阻 + 可调移相电位器 RP + 0.1 µF 移相电容）
+RRPDIM RC_IN RC_MID {4700 + rp_dim}
+CPHASE RC_MID RC_N 0.1u
+R_cbleed RC_MID RC_N 100Meg
+* 3. DB3 双向触发二极管（V_BO ≈ 32 V）与 BTA06 双向晶闸管
+XDB1 DB_1 DB_2 DB3
+XTR1 MT2 MT1 GATE BTA06
+.ends mod_phase_dimmer
+.include power.lib

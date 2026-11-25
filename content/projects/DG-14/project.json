@@ -1,0 +1,87 @@
+{
+  "id": "DG-14",
+  "group": "交流电路",
+  "title": "R、L、C 串联谐振电路的研究",
+  "type": "basic",
+  "modules": [{ "instanceId": "rlc1", "moduleId": "mod-rlc-transient", "slot": "SLOT_BOX_L1" }],
+  "allowedInstruments": ["ins-func-gen", "ins-ac-millivoltmeter", "ins-oscilloscope"],
+  "reference": {
+    "nets": [
+      ["ins-func-gen.CH1", "rlc1.RS_1"],
+      ["rlc1.RS_2", "rlc1.LS_1"],
+      ["rlc1.LS_2", "rlc1.CS_1"],
+      ["rlc1.CS_2", "ins-func-gen.GND"]
+    ],
+    "measurePoints": [
+      { "id": "u_r", "kind": "voltage", "mode": "acv", "between": ["rlc1.RS_1", "rlc1.RS_2"] },
+      { "id": "u_c", "kind": "voltage", "mode": "acv", "between": ["rlc1.CS_1", "rlc1.CS_2"] },
+      { "id": "u_l", "kind": "voltage", "mode": "acv", "between": ["rlc1.LS_1", "rlc1.LS_2"] },
+      { "id": "u_in", "kind": "voltage", "mode": "acv", "between": ["rlc1.RS_1", "rlc1.CS_2"] }
+    ]
+  },
+  "steps": [
+    {
+      "id": "prepare",
+      "text": "保持断电，从仪表柜拖出函数信号发生器、双通道交流毫伏表与双通道数字示波器；确认挂箱 Rs = 51 Ω（高 Q 档）、L = 10 mH、C = 0.1 µF，信号发生器 CH1 设为正弦波 2 Vpp、初始频率 5033 Hz。",
+      "measurePoints": [],
+      "dataTable": "resonance_curve"
+    },
+    {
+      "id": "wire",
+      "text": "断电按图串联 RLC 回路：ins-func-gen.CH1→Rs1、Rs2→L1、L2→C1、C2→GND；交流毫伏表先接于电容两端 C1–C2（或电阻两端 Rs1–Rs2），点击“检查接线”。",
+      "measurePoints": ["u_c"],
+      "checkWiring": true,
+      "dataTable": "resonance_curve"
+    },
+    {
+      "id": "peak",
+      "text": "保持 Rs = 51 Ω、f = 5033 Hz（理论谐振点 f0 = 1/(2π√LC) ≈ 5033 Hz），上电读取电容端谐振电压 U_C（约 2.10 Vrms，远超输入端约 0.36 Vrms，呈现显著电压谐振放大特性）。",
+      "measurePoints": ["u_c"],
+      "expect": { "measurePoint": "u_c", "min": 1.85, "max": 2.35 },
+      "dataTable": "resonance_curve"
+    },
+    {
+      "id": "sweep",
+      "text": "依次在 2500、3500、4500、5033、5600、6800、8500 Hz 扫频并记录 U_C 至 resonance_curve 表；随后将 Rs 切至 150 Ω（低 Q 档）对比谐振峰值显著下降、通频带变宽的品质因数规律。",
+      "measurePoints": ["u_c"],
+      "dataTable": "resonance_curve"
+    },
+    {
+      "id": "analyse",
+      "text": "断电后查看谐振特性曲线，计算谐振频率 f0、品质因数 Q 与通频带 BW，完成思考题。",
+      "measurePoints": [],
+      "recordTable": "resonance_curve",
+      "dataTable": "resonance_curve"
+    }
+  ],
+  "dataTables": [
+    {
+      "id": "resonance_curve",
+      "title": "RLC 串联谐振频率扫描记录（L=10 mH, C=0.1 µF, Rs=51 Ω, Us=2 Vpp）",
+      "rows": 7,
+      "columns": [
+        { "id": "freq_hz", "title": "激励频率 f", "unit": "Hz" },
+        { "id": "u_c", "title": "电容电压 U_C", "unit": "V", "measurePoint": "u_c" }
+      ],
+      "sanity": [
+        { "column": "freq_hz", "min": 1000, "max": 15000, "message": "扫频范围为 2500 ~ 8500 Hz，中心谐振点 5033 Hz。" },
+        { "column": "u_c", "min": 0.1, "max": 3.0, "message": "谐振点 5033 Hz 处 U_C 达到明显单峰（约 2.1 V），偏离谐振迅速衰减。" }
+      ]
+    }
+  ],
+  "charts": [
+    {
+      "id": "rlc-resonance-plot",
+      "title": "RLC 串联谐振曲线（U_C–f）",
+      "table": "resonance_curve",
+      "x": "freq_hz",
+      "y": ["u_c"],
+      "kind": "line"
+    }
+  ],
+  "questions": [
+    "RLC 串联谐振时为什么电容和电感两端电压 U_C ≈ U_L 可以数倍高于输入电压，却不违背能量守恒？",
+    "将回路电阻 Rs 由 51 Ω 切换为 150 Ω 后，谐振频率 f0、品质因数 Q、谐振峰值和通频带 Δf 各发生什么变化？",
+    "实际实验中函数信号发生器 50 Ω 输出内阻与电感线圈 5 Ω 绕组电阻对回路实际品质因数 Q 有何影响？"
+  ]
+}

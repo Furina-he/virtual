@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 450" role="img" aria-labelledby="title desc">
+  <title id="title">DG-13 RLC 频率特性与桥式整流滤波原理图</title>
+  <desc id="desc">左侧为信号发生器经 1 kΩ 电阻与 10 mH 电感或 0.1 µF 电容串联测频电路；右侧为 1N4007 全波整流桥与可切换无滤波/电容/π型 LC 滤波电路。</desc>
+  <style>
+    text { font-family: "Noto Sans SC Variable", sans-serif; fill: #18181b; font-size: 14px; }
+    .wire { fill: none; stroke: #18181b; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    .box { fill: #ffffff; stroke: #18181b; stroke-width: 2; }
+    .jack { fill: #ffffff; stroke: #18181b; stroke-width: 2; cursor: pointer; }
+    .small { font-size: 12.5px; fill: #52525b; }
+    .center { text-anchor: middle; }
+  </style>
+  <rect width="820" height="450" fill="#ffffff"/>
+  <text x="410" y="32" class="center" style="font-size: 20px; font-weight: 600">DG-13 R/L/C 交流频率特性与全波整流滤波电路</text>
+  <text x="410" y="56" class="center small">mod-rlc-transient · 左：RL/RC 分压扫频（500 Hz ~ 8 kHz） · 右：全波整流与 C / π型 LC 滤波</text>
+
+  <!-- 左：频率特性 -->
+  <text x="200" y="90" class="center" style="font-weight: 600">阶段 1：R–L / R–C 阻抗频率特性</text>
+  <g class="wire">
+    <path d="M72 135 H155 M225 135 H315 V190 M315 260 V320 H72 V255 M72 195 V135"/>
+  </g>
+  <circle cx="72" cy="225" r="26" class="box"/>
+  <text x="72" y="230" class="center">~</text>
+  <text x="32" y="225" class="center small">FG</text>
+  <rect x="155" y="125" width="70" height="20" class="box"/>
+  <text x="190" y="112" class="center small">Rs 1 kΩ</text>
+  <rect x="299" y="190" width="32" height="70" class="box"/>
+  <text x="360" y="220" class="center small">L 10mH</text>
+  <text x="360" y="240" class="center small">或 C 0.1µF</text>
+
+  <circle id="JACK_FG_CH1" data-jack="generator1.CH1" cx="72" cy="162" r="4.5" class="jack"/>
+  <circle id="JACK_FG_GND" data-jack="generator1.GND" cx="72" cy="288" r="4.5" class="jack"/>
+  <circle id="JACK_RS_1" data-jack="rlc1.RS_1" cx="135" cy="135" r="4.5" class="jack"/>
+  <circle id="JACK_RS_2" data-jack="rlc1.RS_2" cx="245" cy="135" r="4.5" class="jack"/>
+  <circle id="JACK_LS_1" data-jack="rlc1.LS_1" cx="315" cy="168" r="4.5" class="jack"/>
+  <circle id="JACK_LS_2" data-jack="rlc1.LS_2" cx="315" cy="282" r="4.5" class="jack"/>
+  <circle id="JACK_CS_1" data-jack="rlc1.CS_1" cx="275" cy="168" r="4" class="jack"/>
+  <circle id="JACK_CS_2" data-jack="rlc1.CS_2" cx="275" cy="282" r="4" class="jack"/>
+
+  <line x1="418" y1="86" x2="418" y2="355" stroke="#d4d4d8" stroke-width="1.5" stroke-dasharray="4 4"/>
+
+  <!-- 右：桥式整流滤波 -->
+  <text x="615" y="90" class="center" style="font-weight: 600">阶段 2：全波整流桥与 C / π型 LC 滤波</text>
+  <g class="wire">
+    <path d="M460 175 H515 M460 265 H515"/>
+    <path d="M555 150 L595 220 L555 290 L515 220 Z"/>
+    <path d="M555 150 H730 V190 M730 250 V290 H555"/>
+    <path d="M620 150 V205 M620 223 V290 M604 205 H636 M604 223 H636"/>
+    <path d="M688 150 V205 M688 223 V290 M672 205 H704 M672 223 H704"/>
+  </g>
+  <rect x="638" y="140" width="38" height="20" class="box"/>
+  <text x="657" y="130" class="center small">L 0.2H</text>
+  <rect x="720" y="190" width="20" height="60" class="box"/>
+  <text x="766" y="224" class="center small">RL 1kΩ</text>
+  <text x="555" y="224" class="center small">4×1N4007</text>
+
+  <circle id="JACK_BR_AC1" data-jack="rlc1.BR_AC1" cx="468" cy="175" r="4.5" class="jack"/>
+  <circle id="JACK_BR_AC2" data-jack="rlc1.BR_AC2" cx="468" cy="265" r="4.5" class="jack"/>
+  <circle id="JACK_BR_P" data-jack="rlc1.BR_P" cx="595" cy="150" r="4.5" class="jack"/>
+  <circle id="JACK_FL_OUT" data-jack="rlc1.FL_OUT" cx="730" cy="150" r="4.5" class="jack"/>
+  <circle id="JACK_BR_N" data-jack="rlc1.BR_N" cx="730" cy="290" r="4.5" class="jack"/>
+  <text x="468" y="160" class="center small">~1</text>
+  <text x="468" y="286" class="center small">~2</text>
+  <text x="595" y="136" class="center small">桥+</text>
+  <text x="730" y="136" class="center small">Vo</text>
+  <text x="730" y="310" class="center small">桥−</text>
+
+  <text x="410" y="394" class="center small">阶段 1 用毫伏表测 L/C 电压；阶段 2 用直流电压表和示波器接 Vo 与 桥− 对比三种滤波方式。</text>
+  <text x="410" y="422" class="center small">本项目自绘离线原理图 · 悬停或点击插孔与 3D 台面双向联动</text>
+</svg>

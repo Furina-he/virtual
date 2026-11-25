@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 780 430" role="img" aria-labelledby="title desc">
+  <title id="title">DG-10 日光灯 RL 串联电路原理图</title>
+  <desc id="desc">单相 220 V 50 Hz 交流电源经总电流插座、功率表电流插座驱动铁芯镇流器与 30 W 日光灯管串联支路，测量总压 U、镇流器压降 UL 与灯管压降 UA。</desc>
+  <style>
+    text { font-family: "Noto Sans SC Variable", sans-serif; fill: #18181b; font-size: 14px; }
+    .wire { fill: none; stroke: #18181b; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    .meter { fill: none; stroke: #2563eb; stroke-width: 1.8; stroke-dasharray: 5 4; }
+    .box { fill: #ffffff; stroke: #18181b; stroke-width: 2; }
+    .jack { fill: #ffffff; stroke: #18181b; stroke-width: 2; cursor: pointer; }
+    .small { font-size: 12.5px; fill: #52525b; }
+    .center { text-anchor: middle; }
+  </style>
+  <rect width="780" height="430" fill="#ffffff"/>
+  <text x="390" y="34" class="center" style="font-size: 20px; font-weight: 600">DG-10 日光灯（RL 串联）启辉与电压相量测量电路</text>
+  <text x="390" y="58" class="center small">mod-ac-fluorescent · 50 Hz 调压交流源 · 镇流器 (60 Ω + 1.65 H) · 灯管 (240 Ω 稳态)</text>
+
+  <g class="wire">
+    <path d="M90 120 H180 M220 120 H290 M330 120 H410 M495 120 H560 M635 120 H690 V300 H90 V240 M90 180 V120"/>
+    <path d="M180 120 H220 M290 120 H330" stroke-dasharray="3 3"/>
+  </g>
+  <g class="meter">
+    <path d="M380 120 V220 H430 M474 220 H530 V120"/>
+    <path d="M530 220 H580 M624 220 H690"/>
+  </g>
+
+  <circle cx="90" cy="210" r="28" class="box"/>
+  <text x="90" y="216" class="center">~</text>
+  <text x="44" y="206" class="center small">AC U/N</text>
+  <text x="44" y="224" class="center small">220V</text>
+
+  <rect x="410" y="108" width="85" height="24" class="box"/>
+  <text x="452" y="96" class="center small">镇流器 L=1.65H</text>
+
+  <rect x="560" y="108" width="75" height="24" class="box"/>
+  <text x="598" y="96" class="center small">灯管 30W</text>
+
+  <circle cx="452" cy="220" r="20" class="box" style="stroke: #2563eb"/>
+  <text x="452" y="225" class="center" style="fill: #2563eb; font-weight: 600">U_L</text>
+  <circle cx="602" cy="220" r="20" class="box" style="stroke: #2563eb"/>
+  <text x="602" y="225" class="center" style="fill: #2563eb; font-weight: 600">U_A</text>
+
+  <circle id="JACK_U" data-jack="ins-ac-power.U" cx="90" cy="152" r="4.5" class="jack"/>
+  <circle id="JACK_N" data-jack="ins-ac-power.N" cx="90" cy="268" r="4.5" class="jack"/>
+  <circle id="JACK_AC_L" data-jack="ac1.AC_L" cx="140" cy="120" r="4.5" class="jack"/>
+  <circle id="JACK_I_LINE_A" data-jack="ac1.I_LINE_A" cx="180" cy="120" r="4.5" class="jack"/>
+  <circle id="JACK_I_LINE_B" data-jack="ac1.I_LINE_B" cx="220" cy="120" r="4.5" class="jack"/>
+  <circle id="JACK_I_TOT_A" data-jack="ac1.I_TOT_A" cx="290" cy="120" r="4.5" class="jack"/>
+  <circle id="JACK_I_TOT_B" data-jack="ac1.I_TOT_B" cx="330" cy="120" r="4.5" class="jack"/>
+  <circle id="JACK_LOAD_IN" data-jack="ac1.LOAD_IN" cx="380" cy="120" r="4.5" class="jack"/>
+  <circle id="JACK_BALLAST_OUT" data-jack="ac1.BALLAST_OUT" cx="530" cy="120" r="4.5" class="jack"/>
+  <circle id="JACK_LAMP_N" data-jack="ac1.LAMP_N" cx="690" cy="250" r="4.5" class="jack"/>
+  <circle id="JACK_AC_N" data-jack="ac1.AC_N" cx="140" cy="300" r="4.5" class="jack"/>
+
+  <text x="200" y="144" class="center small">I总 (A)</text>
+  <text x="310" y="144" class="center small">Iw (W)</text>
+  <text x="380" y="104" class="center small">U</text>
+  <text x="530" y="104" class="center small">M</text>
+  <text x="710" y="254" class="small">N1</text>
+
+  <text x="390" y="366" class="center small">220 V 稳态：U_L ≈ 191.7 V、U_A ≈ 88.2 V，代数和 ≈ 280 V &gt; 220 V（相量合成 = 220 V）。</text>
+  <text x="390" y="394" class="center small">本项目自绘离线原理图 · 悬停或点击插孔与 3D 台面双向联动</text>
+</svg>

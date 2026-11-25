@@ -52,6 +52,17 @@
       "targets": [{ "element": "RKC3", "values": [1000000000, 0.01] }],
       "unit": "",
       "default": 0
+    },
+    {
+      "id": "SW_START",
+      "label": "启辉状态",
+      "kind": "rotary",
+      "param": "sw_start",
+      "steps": [0, 1, 2],
+      "stepLabels": ["未启辉", "稳态点亮", "启辉预热"],
+      "targets": [{ "element": "Rlamp", "values": [100000, 240, 30] }],
+      "unit": "",
+      "default": 1
     }
   ],
   "indicators": [],

@@ -1,0 +1,104 @@
+{
+  "id": "DG-15",
+  "group": "交流电路",
+  "title": "三相四线制负载电压、电流的测量",
+  "type": "basic",
+  "modules": [{ "instanceId": "lamp3", "moduleId": "mod-3ph-lamp", "slot": "SLOT_BOX_L1" }],
+  "allowedInstruments": ["ins-multimeter"],
+  "reference": {
+    "nets": [
+      ["ins-ac-power.U", "lamp3.U_IN"],
+      ["ins-ac-power.V", "lamp3.V_IN"],
+      ["ins-ac-power.W", "lamp3.W_IN"],
+      ["lamp3.A2", "lamp3.B2", "lamp3.C2", "lamp3.N_STAR"],
+      ["lamp3.N_OUT", "ins-ac-power.N"]
+    ],
+    "measurePoints": [
+      { "id": "u_a", "kind": "voltage", "mode": "acv", "between": ["lamp3.A1", "lamp3.A2"] },
+      { "id": "u_b", "kind": "voltage", "mode": "acv", "between": ["lamp3.B1", "lamp3.B2"] },
+      { "id": "u_c", "kind": "voltage", "mode": "acv", "between": ["lamp3.C1", "lamp3.C2"] },
+      { "id": "u_nn", "kind": "voltage", "mode": "acv", "between": ["lamp3.N_STAR", "lamp3.N_OUT"] },
+      { "id": "i_a", "kind": "current", "mode": "aca", "branch": ["lamp3.IA_A", "lamp3.IA_B"] },
+      { "id": "i_n", "kind": "current", "mode": "aca", "branch": ["lamp3.IN_A", "lamp3.IN_B"] }
+    ]
+  },
+  "steps": [
+    {
+      "id": "prepare",
+      "text": "保持断电，阅读指导书与原理图；确认三相调压交流电源相电压设为 220 V（线电压 381 V），挂箱三相灯数 KA=3、KB=3、KC=3，中线开关 KN 处于“接通中线”。",
+      "measurePoints": [],
+      "dataTable": "three_phase_4w"
+    },
+    {
+      "id": "wire",
+      "text": "断电搭建三相四线星形（Y）负载：U→U进、V→V进、W→W进；将 A2、B2、C2 与负载中性点 N' 短接；中线电源端 N 接电源 N；交流电流表（1 A 档）串入中线插座 IN+/IN−，交流电压表（500 V 档）先跨接 A1–A2，点击“检查接线”。",
+      "measurePoints": ["u_a", "i_n"],
+      "checkWiring": true,
+      "dataTable": "three_phase_4w"
+    },
+    {
+      "id": "sym_4w",
+      "text": "工况 1（对称负载有中线，3-3-3, KN 接通）：上电测得各相电压均约 220 V、中线电流 I_N ≈ 0 A、中性点位移电压 U_NN' ≈ 0 V，记入第 1 行。",
+      "measurePoints": ["u_a", "i_n"],
+      "expect": { "measurePoint": "u_a", "min": 215, "max": 225 },
+      "expects": [{ "measurePoint": "i_n", "min": 0, "max": 0.02 }],
+      "dataTable": "three_phase_4w"
+    },
+    {
+      "id": "asym_4w",
+      "text": "工况 2（不对称负载有中线，KA=3, KB=2, KC=1, KN 接通）：带电调整各相灯数为 3/2/1 盏，观察三相负载相电压仍维持约 220 V，同时中线流过明显不平衡电流 I_N（约 0.315 A），记入第 2 行。",
+      "measurePoints": ["u_a", "i_n"],
+      "expect": { "measurePoint": "i_n", "min": 0.29, "max": 0.34 },
+      "dataTable": "three_phase_4w"
+    },
+    {
+      "id": "asym_3w",
+      "text": "工况 3（不对称负载断开中线，KA=3, KB=2, KC=1, KN 断开）：将中线开关 KN 切换为“断开中线”，观察严重中性点位移：重负载 A 相电压骤降至约 164 V（变暗），轻负载 C 相电压飙升至约 279 V（过压烧毁风险），U_NN' 约 63.5 V，记入第 3 行。",
+      "measurePoints": ["u_a"],
+      "expect": { "measurePoint": "u_a", "min": 152, "max": 175 },
+      "dataTable": "three_phase_4w"
+    },
+    {
+      "id": "analyse",
+      "text": "断电后对比三种工况的各相电压与中性点位移曲线，总结三相四线制中线严禁装设熔断器与开关的安全原则，完成思考题。",
+      "measurePoints": [],
+      "recordTable": "three_phase_4w",
+      "dataTable": "three_phase_4w"
+    }
+  ],
+  "dataTables": [
+    {
+      "id": "three_phase_4w",
+      "title": "三相四线星形负载对称/不对称及断中线实测记录（U相=220 V）",
+      "rows": 3,
+      "columns": [
+        { "id": "case_id", "title": "工况号 (1/2/3)", "unit": "" },
+        { "id": "u_a", "title": "A 相电压 U_A", "unit": "V", "measurePoint": "u_a" },
+        { "id": "u_b", "title": "B 相电压 U_B", "unit": "V", "measurePoint": "u_b" },
+        { "id": "u_c", "title": "C 相电压 U_C", "unit": "V", "measurePoint": "u_c" },
+        { "id": "u_nn", "title": "中性点位移 U_NN'", "unit": "V", "measurePoint": "u_nn" },
+        { "id": "i_n", "title": "中线电流 I_N", "unit": "A", "measurePoint": "i_n" }
+      ],
+      "sanity": [
+        { "column": "case_id", "min": 1, "max": 3, "message": "1=对称有中线，2=不对称有中线，3=不对称断中线。" },
+        { "column": "u_a", "min": 140, "max": 240, "message": "A 相（3 盏最重负载）有中线时约 220 V，断中线时降至约 164 V。" },
+        { "column": "u_c", "min": 200, "max": 300, "message": "C 相（1 盏最轻负载）断中线时过压升至约 279 V。" }
+      ]
+    }
+  ],
+  "charts": [
+    {
+      "id": "phase-voltage-shift",
+      "title": "三种工况下各相负载电压与中性点位移对比",
+      "table": "three_phase_4w",
+      "x": "case_id",
+      "y": ["u_a", "u_b", "u_c", "u_nn"],
+      "kind": "line"
+    }
+  ],
+  "questions": [
+    "三相四线制星形负载在对称与不对称两种情况下，中线电流 I_N 分别呈现什么规律？",
+    "不对称星形负载（3-2-1 盏）断开中线后，为什么轻负载 C 相电压远高于 220 V 而重负载 A 相电压远低于 220 V？",
+    "为什么国家电气规范严禁在三相四线制照明配电线路的中性线上单独安装熔断器或单极开关？"
+  ]
+}

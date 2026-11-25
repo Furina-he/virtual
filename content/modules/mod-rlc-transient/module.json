@@ -1,0 +1,106 @@
+{
+  "id": "mod-rlc-transient",
+  "name": "动态电路与 RLC 综合实验挂箱",
+  "form": "box",
+  "model": "module.glb",
+  "netlist": "module.cir",
+  "jacks": [
+    { "id": "RS_1", "label": "谐振电阻左 Rs1", "kind": "banana4" },
+    { "id": "RS_2", "label": "谐振电阻右 Rs2", "kind": "banana4" },
+    { "id": "LS_1", "label": "空心电感左 L1 (10mH)", "kind": "banana4" },
+    { "id": "LS_2", "label": "空心电感右 L2 (10mH)", "kind": "banana4" },
+    { "id": "CS_1", "label": "谐振电容左 C1 (0.1µF)", "kind": "banana4" },
+    { "id": "CS_2", "label": "谐振电容右 C2 (0.1µF)", "kind": "banana4" },
+    { "id": "BR_AC1", "label": "整流桥交流端 ~1", "kind": "banana4" },
+    { "id": "BR_AC2", "label": "整流桥交流端 ~2", "kind": "banana4" },
+    { "id": "BR_P", "label": "整流桥直流输出 +", "kind": "banana4", "polarityHint": "+" },
+    { "id": "FL_OUT", "label": "滤波负载输出 Vo", "kind": "banana4" },
+    { "id": "BR_N", "label": "整流桥公共端 −", "kind": "banana4", "polarityHint": "-" },
+    { "id": "IND_IN", "label": "断电开关入口", "kind": "banana4", "polarityHint": "+" },
+    { "id": "IND_1", "label": "大电感线圈上端 L+", "kind": "banana4" },
+    { "id": "IND_2", "label": "大电感线圈下端 L−", "kind": "banana4", "polarityHint": "-" },
+    { "id": "TR_1", "label": "暂态电阻左 Rt1", "kind": "banana4" },
+    { "id": "TR_2", "label": "暂态电阻右 Rt2", "kind": "banana4" },
+    { "id": "TC_1", "label": "暂态电容左 Ct1", "kind": "banana4" },
+    { "id": "TC_2", "label": "暂态电容右 Ct2", "kind": "banana4" }
+  ],
+  "controls": [
+    {
+      "id": "SW_RLC_R",
+      "label": "谐振电阻 Rs",
+      "kind": "rotary",
+      "param": "r_ser",
+      "steps": [51, 150, 1000],
+      "stepLabels": ["51 Ω (高 Q)", "150 Ω (低 Q)", "1 kΩ (阻抗测绘)"],
+      "targets": [{ "element": "RRSER", "values": [51, 150, 1000] }],
+      "unit": "Ω",
+      "default": 51
+    },
+    {
+      "id": "SW_FILT",
+      "label": "整流滤波方式",
+      "kind": "rotary",
+      "param": "sw_filt",
+      "steps": [0, 1, 2],
+      "stepLabels": ["无滤波", "电容滤波 (100 µF)", "π型 LC 滤波"],
+      "targets": [
+        { "element": "RFILT_C1", "values": [100000000, 1, 1] },
+        { "element": "RFILT_BYP", "values": [1, 1, 100000000] },
+        { "element": "RFILT_L", "values": [100000000, 100000000, 1] },
+        { "element": "RFILT_C2", "values": [100000000, 100000000, 1] }
+      ],
+      "unit": "",
+      "default": 0
+    },
+    {
+      "id": "SW_IND",
+      "label": "电感通断开关",
+      "kind": "switch",
+      "param": "sw_ind",
+      "steps": [0, 1],
+      "stepLabels": ["断开 (产生尖峰)", "闭合 (励磁)"],
+      "targets": [{ "element": "RSW_IND", "values": [500, 1] }],
+      "unit": "",
+      "default": 1
+    },
+    {
+      "id": "SW_SUPP",
+      "label": "尖峰抑制方式",
+      "kind": "rotary",
+      "param": "sw_supp",
+      "steps": [0, 1, 2],
+      "stepLabels": ["无抑制", "续流二极管 (1N4007)", "RC 吸收 (100Ω+1µF)"],
+      "targets": [
+        { "element": "RSUPP_D", "values": [100000000, 1, 100000000] },
+        { "element": "RSUPP_RC", "values": [100000000, 100000000, 100] }
+      ],
+      "unit": "",
+      "default": 0
+    },
+    {
+      "id": "SW_TAU_R",
+      "label": "暂态电阻 Rt",
+      "kind": "rotary",
+      "param": "r_tau",
+      "steps": [1000, 5000, 10000],
+      "stepLabels": ["1 kΩ", "5 kΩ", "10 kΩ"],
+      "targets": [{ "element": "RRTAU", "values": [1000, 5000, 10000] }],
+      "unit": "Ω",
+      "default": 1000
+    },
+    {
+      "id": "SW_TAU_C",
+      "label": "暂态电容 Ct",
+      "kind": "switch",
+      "param": "c_tau",
+      "steps": [0, 1],
+      "stepLabels": ["0.01 µF", "0.1 µF"],
+      "targets": [{ "element": "RCTAU_B", "values": [100000000, 1] }],
+      "unit": "",
+      "default": 1
+    }
+  ],
+  "indicators": [],
+  "commonNets": [],
+  "internalJumpers": []
+}

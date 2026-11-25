@@ -1,0 +1,114 @@
+{
+  "id": "DG-13",
+  "group": "交流电路",
+  "title": "R、L、C 元件在交流电路中的阻抗与频率特性的研究与应用——整流滤波电路的研究",
+  "type": "basic",
+  "modules": [{ "instanceId": "rlc1", "moduleId": "mod-rlc-transient", "slot": "SLOT_BOX_L1" }],
+  "allowedInstruments": ["ins-func-gen", "ins-oscilloscope", "ins-ac-millivoltmeter", "ins-multimeter"],
+  "reference": {
+    "nets": [
+      ["ins-func-gen.CH1", "rlc1.RS_1"],
+      ["rlc1.RS_2", "rlc1.LS_1"],
+      ["rlc1.LS_2", "ins-func-gen.GND"]
+    ],
+    "measurePoints": [
+      { "id": "u_r", "kind": "voltage", "mode": "acv", "between": ["rlc1.RS_1", "rlc1.RS_2"] },
+      { "id": "u_l", "kind": "voltage", "mode": "acv", "between": ["rlc1.LS_1", "rlc1.LS_2"] },
+      { "id": "u_c", "kind": "voltage", "mode": "acv", "between": ["rlc1.CS_1", "rlc1.CS_2"] },
+      { "id": "u_dc", "kind": "voltage", "mode": "dcv", "between": ["rlc1.FL_OUT", "rlc1.BR_N"] },
+      { "id": "u_rip", "kind": "waveform", "quantity": "vpp", "between": ["rlc1.FL_OUT", "rlc1.BR_N"] }
+    ]
+  },
+  "steps": [
+    {
+      "id": "prepare",
+      "text": "保持断电，从仪表柜拖出函数信号发生器、双通道交流毫伏表与双通道数字示波器；将挂箱“谐振电阻 Rs”旋至 1 kΩ（阻抗测绘档），信号发生器 CH1 设为正弦波 4 Vpp。",
+      "measurePoints": [],
+      "dataTable": "impedance_freq"
+    },
+    {
+      "id": "impedance_l",
+      "text": "阶段 1a（电感感抗频率特性）：断电按图连接 ins-func-gen.CH1→Rs1、Rs2→L1、L2→GND；交流毫伏表测 L1–L2 两端电压 U_L（并在 Rs 两端核对电流），点击“检查接线”。上电依次扫频 500、1000、2000、4000、8000 Hz，记录电感电压 U_L 随频率升高而增大的感抗特性。",
+      "measurePoints": ["u_l"],
+      "checkWiring": true,
+      "dataTable": "impedance_freq"
+    },
+    {
+      "id": "impedance_c",
+      "text": "阶段 1b（电容容抗频率特性）：断电将电感替换为电容 C1/C2（ins-func-gen.CH1→Rs1、Rs2→C1、C2→GND），毫伏表改接 C1–C2，检查接线。上电在相同 5 个频率点记录 U_C 随频率升高而单调下降的容抗特性。",
+      "referenceNets": [
+        ["ins-func-gen.CH1", "rlc1.RS_1"],
+        ["rlc1.RS_2", "rlc1.CS_1"],
+        ["rlc1.CS_2", "ins-func-gen.GND"]
+      ],
+      "measurePoints": ["u_c"],
+      "checkWiring": true,
+      "dataTable": "impedance_freq"
+    },
+    {
+      "id": "rectifier_filter",
+      "text": "阶段 2（桥式整流与 C / π型 LC 滤波对比）：断电改接 ins-func-gen.CH1→~1、GND→~2（设为 50 Hz、10 Vpp 正弦波）；直流电压表（20 V 档）与示波器 CH1 均接 Vo 与 桥−，检查接线。上电依次切换“滤波方式”为无滤波、电容滤波（100 µF）、π型 LC 滤波，记录直流均值 U_DC 与纹波峰峰值 Vpp。",
+      "referenceNets": [
+        ["ins-func-gen.CH1", "rlc1.BR_AC1"],
+        ["ins-func-gen.GND", "rlc1.BR_AC2"]
+      ],
+      "measurePoints": ["u_dc", "u_rip"],
+      "checkWiring": true,
+      "dataTable": "filter_compare"
+    },
+    {
+      "id": "analyse",
+      "text": "断电后查看 L/C 电压–频率曲线与三种滤波方式纹波对比表，分析容抗/感抗频率特性在整流滤波电路中的工程应用，完成思考题。",
+      "measurePoints": [],
+      "recordTable": "filter_compare",
+      "dataTable": "filter_compare"
+    }
+  ],
+  "dataTables": [
+    {
+      "id": "impedance_freq",
+      "title": "电感（10 mH）与电容（0.1 µF）频率分压特性记录（Rs=1 kΩ, Us=4 Vpp）",
+      "rows": 5,
+      "columns": [
+        { "id": "freq_hz", "title": "频率 f", "unit": "Hz" },
+        { "id": "u_l", "title": "电感压降 U_L", "unit": "V", "measurePoint": "u_l", "captureSteps": ["impedance_l"] },
+        { "id": "u_c", "title": "电容压降 U_C", "unit": "V", "measurePoint": "u_c", "captureSteps": ["impedance_c"] }
+      ],
+      "sanity": [
+        { "column": "freq_hz", "min": 100, "max": 20000, "message": "请按 500 ~ 8000 Hz 五个频点依次扫频。" },
+        { "column": "u_l", "min": 0.01, "max": 2.0, "message": "电感压降 U_L 应随频率升高而单调增大。" },
+        { "column": "u_c", "min": 0.05, "max": 2.0, "message": "电容压降 U_C 应随频率升高而单调减小。" }
+      ]
+    },
+    {
+      "id": "filter_compare",
+      "title": "全波整流桥无滤波、电容滤波与 π型 LC 滤波对比记录（50 Hz, 10 Vpp, RL=1 kΩ）",
+      "rows": 3,
+      "columns": [
+        { "id": "mode_idx", "title": "滤波档位 (0/1/2)", "unit": "" },
+        { "id": "u_dc", "title": "直流输出 U_DC", "unit": "V", "measurePoint": "u_dc", "captureSteps": ["rectifier_filter"] },
+        { "id": "u_rip", "title": "输出纹波 Vpp", "unit": "V", "measurePoint": "u_rip", "captureSteps": ["rectifier_filter"] }
+      ],
+      "sanity": [
+        { "column": "mode_idx", "min": 0, "max": 2, "message": "档位 0=无滤波、1=电容滤波、2=π型 LC 滤波。" },
+        { "column": "u_dc", "min": 1.0, "max": 4.8, "message": "加入滤波电容后输出直流均值应由约 2.1 V 抬升至约 3.2 V。" },
+        { "column": "u_rip", "min": 0, "max": 4.5, "message": "纹波峰峰值应从无滤波约 3.5 V 降至单电容 < 0.5 V，π型 LC < 0.08 V。" }
+      ]
+    }
+  ],
+  "charts": [
+    {
+      "id": "lc-freq-curve",
+      "title": "电感压降 U_L 与电容压降 U_C 频率特性曲线",
+      "table": "impedance_freq",
+      "x": "freq_hz",
+      "y": ["u_l", "u_c"],
+      "kind": "line"
+    }
+  ],
+  "questions": [
+    "为什么串联 1 kΩ 电阻后，电感两端电压随频率升高而增大、电容两端电压随频率升高而减小？两曲线交点对应什么物理频率？",
+    "在桥式整流输出端并联 100 µF 电容后，为什么输出直流平均值升高且交流纹波大幅减小？",
+    "π型 LC 滤波比单一电容滤波进一步抑制纹波的机理是什么？电感与电容在其中分别起什么作用？"
+  ]
+}

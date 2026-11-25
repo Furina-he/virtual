@@ -1,0 +1,95 @@
+{
+  "id": "mod-3ph-lamp",
+  "name": "三相灯组负载实验挂箱",
+  "form": "box",
+  "model": "module.glb",
+  "netlist": "module.cir",
+  "jacks": [
+    { "id": "U_IN", "label": "U 相输入", "kind": "banana4", "polarityHint": "+" },
+    { "id": "IA_A", "label": "U 线电流+", "kind": "banana4" },
+    { "id": "IA_B", "label": "U 线电流−", "kind": "banana4" },
+    { "id": "A_VTX", "label": "A 相节点", "kind": "banana4" },
+    { "id": "IPA_A", "label": "A 相电流+", "kind": "banana4" },
+    { "id": "IPA_B", "label": "A 相电流−", "kind": "banana4" },
+    { "id": "A1", "label": "A 组首端 A1", "kind": "banana4" },
+    { "id": "A2", "label": "A 组尾端 A2", "kind": "banana4" },
+    { "id": "V_IN", "label": "V 相输入", "kind": "banana4", "polarityHint": "+" },
+    { "id": "IB_A", "label": "V 线电流+", "kind": "banana4" },
+    { "id": "IB_B", "label": "V 线电流−", "kind": "banana4" },
+    { "id": "B1", "label": "B 组首端 B1", "kind": "banana4" },
+    { "id": "B2", "label": "B 组尾端 B2", "kind": "banana4" },
+    { "id": "W_IN", "label": "W 相输入", "kind": "banana4", "polarityHint": "+" },
+    { "id": "IC_A", "label": "W 线电流+", "kind": "banana4" },
+    { "id": "IC_B", "label": "W 线电流−", "kind": "banana4" },
+    { "id": "C1", "label": "C 组首端 C1", "kind": "banana4" },
+    { "id": "C2", "label": "C 组尾端 C2", "kind": "banana4" },
+    { "id": "N_STAR", "label": "负载中性点 N'", "kind": "banana4", "polarityHint": "-" },
+    { "id": "IN_A", "label": "中线电流+", "kind": "banana4" },
+    { "id": "IN_B", "label": "中线电流−", "kind": "banana4" },
+    { "id": "N_OUT", "label": "中线电源端 N", "kind": "banana4", "polarityHint": "-" }
+  ],
+  "controls": [
+    {
+      "id": "KA",
+      "label": "A 相亮灯数",
+      "kind": "rotary",
+      "param": "ka",
+      "steps": [1, 2, 3],
+      "stepLabels": ["1 盏 (40W)", "2 盏 (80W)", "3 盏 (120W)"],
+      "targets": [{ "element": "RLA", "values": [1210, 605, 403.3333] }],
+      "unit": "盏",
+      "default": 3
+    },
+    {
+      "id": "KB",
+      "label": "B 相亮灯数",
+      "kind": "rotary",
+      "param": "kb",
+      "steps": [1, 2, 3],
+      "stepLabels": ["1 盏 (40W)", "2 盏 (80W)", "3 盏 (120W)"],
+      "targets": [{ "element": "RLB", "values": [1210, 605, 403.3333] }],
+      "unit": "盏",
+      "default": 3
+    },
+    {
+      "id": "KC",
+      "label": "C 相亮灯数",
+      "kind": "rotary",
+      "param": "kc",
+      "steps": [1, 2, 3],
+      "stepLabels": ["1 盏 (40W)", "2 盏 (80W)", "3 盏 (120W)"],
+      "targets": [{ "element": "RLC", "values": [1210, 605, 403.3333] }],
+      "unit": "盏",
+      "default": 3
+    },
+    {
+      "id": "KN",
+      "label": "中线开关 KN",
+      "kind": "switch",
+      "param": "kn",
+      "steps": [0, 1],
+      "stepLabels": ["断开中线", "接通中线"],
+      "targets": [{ "element": "RKN", "values": [1000000000, 0.01] }],
+      "unit": "",
+      "default": 1
+    }
+  ],
+  "indicators": [],
+  "commonNets": [
+    ["U_IN", "IA_A"],
+    ["IA_B", "A_VTX", "IPA_A"],
+    ["IPA_B", "A1"],
+    ["V_IN", "IB_A"],
+    ["IB_B", "B1"],
+    ["W_IN", "IC_A"],
+    ["IC_B", "C1"],
+    ["IN_B", "N_OUT"]
+  ],
+  "internalJumpers": [
+    { "id": "S_IA", "kind": "currentSocket", "a": "IA_A", "b": "IA_B" },
+    { "id": "S_IPA", "kind": "currentSocket", "a": "IPA_A", "b": "IPA_B" },
+    { "id": "S_IB", "kind": "currentSocket", "a": "IB_A", "b": "IB_B" },
+    { "id": "S_IC", "kind": "currentSocket", "a": "IC_A", "b": "IC_B" },
+    { "id": "S_IN", "kind": "currentSocket", "a": "IN_A", "b": "IN_B" }
+  ]
+}

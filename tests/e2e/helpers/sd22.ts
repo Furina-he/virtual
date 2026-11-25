@@ -54,7 +54,19 @@ type AudioModule = {
 
 export async function mouseJack(page: Page, label: string, ref: string) {
   const trigger = editor(page).getByRole('combobox', { name: label, exact: true })
-  await trigger.click()
+  await page.mouse.move(0, 0)
+  await trigger.scrollIntoViewIfNeeded()
+  await expect
+    .poll(
+      async () => {
+        if ((await trigger.getAttribute('aria-expanded')) !== 'true') {
+          await trigger.click()
+        }
+        return (await trigger.getAttribute('aria-expanded')) === 'true'
+      },
+      { timeout: 5_000, intervals: [150, 300, 500] },
+    )
+    .toBe(true)
   const option = page.locator(`[role="option"][data-jack-ref="${ref}"]`)
   await option.scrollIntoViewIfNeeded()
   await option.hover()

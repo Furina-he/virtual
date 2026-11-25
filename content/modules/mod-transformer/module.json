@@ -1,0 +1,44 @@
+{
+  "id": "mod-transformer",
+  "name": "互感与铁芯变压器实验挂箱",
+  "form": "box",
+  "model": "module.glb",
+  "netlist": "module.cir",
+  "jacks": [
+    { "id": "M1_DOT", "label": "线圈 1 同名端 1*", "kind": "banana4", "polarityHint": "+" },
+    { "id": "M1_END", "label": "线圈 1 尾端 1", "kind": "banana4" },
+    { "id": "M2_DOT", "label": "线圈 2 同名端 2*", "kind": "banana4", "polarityHint": "+" },
+    { "id": "M2_END", "label": "线圈 2 尾端 2", "kind": "banana4" },
+    { "id": "IM1_IN", "label": "电流支路入口", "kind": "banana4" },
+    { "id": "IM1_A", "label": "电流插座 I+", "kind": "banana4" },
+    { "id": "IM1_B", "label": "电流插座 I−", "kind": "banana4" },
+    { "id": "IM1_OUT", "label": "电流支路出口", "kind": "banana4" },
+    { "id": "TP_1", "label": "变压器原边 220V+", "kind": "banana4", "polarityHint": "+" },
+    { "id": "TP_2", "label": "变压器原边 220V−", "kind": "banana4", "polarityHint": "-" },
+    { "id": "TS_1", "label": "变压器副边 36V+", "kind": "banana4", "polarityHint": "+" },
+    { "id": "TS_2", "label": "变压器副边 36V−", "kind": "banana4", "polarityHint": "-" },
+    { "id": "TL_1", "label": "副边负载端 1", "kind": "banana4" },
+    { "id": "TL_2", "label": "副边负载端 2", "kind": "banana4" }
+  ],
+  "controls": [
+    {
+      "id": "SW_TLOAD",
+      "label": "变压器副边负载 RL",
+      "kind": "rotary",
+      "param": "t_load",
+      "steps": [0, 1, 2, 3],
+      "stepLabels": ["空载 (∞)", "100 Ω", "50 Ω", "25 Ω"],
+      "targets": [{ "element": "RTLOAD", "values": [10000000, 100, 50, 25] }],
+      "unit": "Ω",
+      "default": 0
+    }
+  ],
+  "indicators": [],
+  "commonNets": [
+    ["IM1_IN", "IM1_A"],
+    ["IM1_B", "IM1_OUT"]
+  ],
+  "internalJumpers": [
+    { "id": "S_IM1", "kind": "currentSocket", "a": "IM1_A", "b": "IM1_B" }
+  ]
+}

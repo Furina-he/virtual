@@ -1,0 +1,110 @@
+{
+  "id": "DG-10",
+  "group": "交流电路",
+  "title": "电阻电感串联电路(日光灯电路)的分析与研究",
+  "type": "basic",
+  "modules": [{ "instanceId": "ac1", "moduleId": "mod-ac-fluorescent", "slot": "SLOT_BOX_L1" }],
+  "allowedInstruments": ["ins-multimeter"],
+  "reference": {
+    "nets": [
+      ["ins-ac-power.U", "ac1.AC_L"],
+      ["ins-ac-power.N", "ac1.AC_N"]
+    ],
+    "measurePoints": [
+      { "id": "u_total", "kind": "voltage", "mode": "acv", "between": ["ac1.LOAD_IN", "ac1.AC_N"] },
+      { "id": "u_ballast", "kind": "voltage", "mode": "acv", "between": ["ac1.LOAD_IN", "ac1.BALLAST_OUT"] },
+      { "id": "u_lamp", "kind": "voltage", "mode": "acv", "between": ["ac1.BALLAST_OUT", "ac1.LAMP_N"] },
+      { "id": "i_rl", "kind": "current", "mode": "aca", "branch": ["ac1.I_LINE_A", "ac1.I_LINE_B"] },
+      {
+        "id": "p_rl",
+        "kind": "power",
+        "mode": "power",
+        "powerQuantity": "P",
+        "between": ["ac1.LOAD_IN", "ac1.AC_N"],
+        "branch": ["ac1.I_TOT_A", "ac1.I_TOT_B"]
+      },
+      {
+        "id": "pf_rl",
+        "kind": "power",
+        "mode": "power",
+        "powerQuantity": "pf",
+        "between": ["ac1.LOAD_IN", "ac1.AC_N"],
+        "branch": ["ac1.I_TOT_A", "ac1.I_TOT_B"]
+      }
+    ]
+  },
+  "steps": [
+    {
+      "id": "prepare",
+      "text": "保持断电，阅读指导书与原理图；确认补偿电容开关 KC1~KC3 均断开、不接入补偿电容支路（U 与 C 之间不连线），三相调压交流电源相电压设为 220 V。",
+      "measurePoints": [],
+      "dataTable": "phasor_sweep"
+    },
+    {
+      "id": "wire",
+      "text": "断电连接交流电源 U→L、N→N；交流电流表（1 A 档）串入 I总 插座，功率表电流端串入 Iw 插座、电压端并联至 U 与 N，交流电压表（500 V 档）先并联至 U 与 N，点击“检查接线”。",
+      "measurePoints": ["u_total", "i_rl", "p_rl", "pf_rl"],
+      "checkWiring": true,
+      "dataTable": "phasor_sweep"
+    },
+    {
+      "id": "ignition",
+      "text": "将“启辉状态”先置为“未启辉”，上电观察电流接近 0；切换为“启辉预热”观察预热电流增大（约 0.42 A）；再切至“稳态点亮”，确认稳态电流约 0.367 A、有功功率约 40.5 W、功率因数约 0.50。",
+      "measurePoints": ["u_total", "i_rl", "p_rl", "pf_rl"],
+      "expect": { "measurePoint": "i_rl", "min": 0.34, "max": 0.39 },
+      "expects": [{ "measurePoint": "pf_rl", "min": 0.47, "max": 0.53 }],
+      "dataTable": "phasor_sweep"
+    },
+    {
+      "id": "phasor",
+      "text": "保持“稳态点亮”，依次设定交流电源相电压为 180、200、220、240 V，分别用交流电压表测总电压 U（U-N）、镇流器电压 U_L（U-M）与灯管电压 U_A（M-N1），同步记录 I 与 P，验证 U_A + U_L 明显大于 U 且满足电压相量三角形关系。",
+      "measurePoints": ["i_rl", "p_rl", "pf_rl"],
+      "dataTable": "phasor_sweep"
+    },
+    {
+      "id": "analyse",
+      "text": "断电后查看电压–电流与分压关系曲线，根据实测数据计算镇流器等效内阻与感抗，完成思考题。",
+      "measurePoints": [],
+      "recordTable": "phasor_sweep",
+      "dataTable": "phasor_sweep"
+    }
+  ],
+  "dataTables": [
+    {
+      "id": "phasor_sweep",
+      "title": "日光灯 RL 串联支路电压相量与功率测量记录",
+      "rows": 4,
+      "columns": [
+        { "id": "u_set", "title": "设定电源 U", "unit": "V" },
+        { "id": "u_total", "title": "总电压 U", "unit": "V", "measurePoint": "u_total" },
+        { "id": "u_ballast", "title": "镇流器压降 U_L", "unit": "V", "measurePoint": "u_ballast" },
+        { "id": "u_lamp", "title": "灯管压降 U_A", "unit": "V", "measurePoint": "u_lamp" },
+        { "id": "i_rl", "title": "支路电流 I", "unit": "A", "measurePoint": "i_rl" },
+        { "id": "p_rl", "title": "有功功率 P", "unit": "W", "measurePoint": "p_rl" },
+        { "id": "pf_rl", "title": "功率因数 cosφ", "unit": "", "measurePoint": "pf_rl" },
+        { "id": "u_sum", "title": "代数和 U_A+U_L", "unit": "V", "computed": "u_lamp+u_ballast" }
+      ],
+      "sanity": [
+        { "column": "u_set", "min": 160, "max": 250, "message": "请依次记录 180、200、220、240 V 四组调压点。" },
+        { "column": "u_ballast", "min": 140, "max": 230, "message": "220 V 时镇流器两端电压约 191.7 V，请确认电压表跨接 U 与 M。" },
+        { "column": "u_lamp", "min": 60, "max": 110, "message": "220 V 稳态点亮时灯管电压约 88.2 V，请确认“启辉状态”在“稳态点亮”。" },
+        { "column": "pf_rl", "min": 0.45, "max": 0.56, "message": "日光灯未补偿感性支路功率因数约 0.50。" }
+      ]
+    }
+  ],
+  "charts": [
+    {
+      "id": "phasor-voltage-curve",
+      "title": "日光灯支路镇流器压降 U_L 与灯管压降 U_A 随电源电压变化曲线",
+      "table": "phasor_sweep",
+      "x": "u_set",
+      "y": ["u_ballast", "u_lamp", "u_sum"],
+      "kind": "line"
+    }
+  ],
+  "questions": [
+    "为什么实测镇流器电压 U_L（约 191.7 V）与灯管电压 U_A（约 88.2 V）的代数和约 280 V，远大于电源电压 220 V？请画出电压相量图说明。",
+    "日光灯启辉瞬间，启辉器断开时镇流器起什么作用？稳态点亮后镇流器又起什么作用？",
+    "由 220 V 稳态实测的 U、I、P、U_A、U_L 如何推算镇流器的等效电阻 R_L 与电感量 L？"
+  ]
+}

@@ -1,0 +1,24 @@
+.subckt mod_transformer M1_DOT M1_END M2_DOT M2_END IM1_IN IM1_A IM1_B IM1_OUT TP_1 TP_2 TS_1 TS_2 TL_1 TL_2 params: t_load=0
+* 互感与铁芯变压器实验挂箱（原型选型说明 §3.1 #6，服务 DG-18，含 PRD Q4 变压器内容）
+* 1. 通用常闭电流插座（10 mΩ 总线桥接）
+Rcu_im1 IM1_IN IM1_A 10m
+Rcu_im2 IM1_B IM1_OUT 10m
+Rleak_im1 IM1_A IM1_B 1T
+* 2. 互感耦合线圈：L1 = 0.20 H (r1=20 Ω), L2 = 0.20 H (r2=20 Ω), k = 0.60, M = 0.120 H
+*    顺串 L_aid = 0.640 H，反串 L_opp = 0.160 H
+RM1 M1_DOT n_m1 20
+LM1 n_m1 M1_END 0.2
+RM2 M2_DOT n_m2 20
+LM2 n_m2 M2_END 0.2
+KMUT LM1 LM2 0.6
+Riso_m M2_END M1_END 100Meg
+* 3. 50 VA 220 V / 36 V 铁芯变压器（变比 n = 220/36 = 6.1111, Lp = 10 H, Ls = 0.267769 H, k = 0.996）
+RTP TP_1 n_tp 12
+LTP n_tp TP_2 10
+LTS TS_1 n_ts 0.267769
+RTS n_ts TS_2 0.4
+KXFMR LTP LTS 0.996
+Riso_t TS_2 TP_2 100Meg
+* 4. 副边可切换电阻负载（空载 10 MΩ / 100 Ω / 50 Ω / 25 Ω）
+RTLOAD TL_1 TL_2 {t_load < 0.5 ? 10Meg : (t_load < 1.5 ? 100 : (t_load < 2.5 ? 50 : 25))}
+.ends mod_transformer

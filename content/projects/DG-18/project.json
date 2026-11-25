@@ -1,0 +1,120 @@
+{
+  "id": "DG-18",
+  "group": "磁路与变压器",
+  "title": "互感电路的研究（含铁芯变压器特性）",
+  "type": "basic",
+  "modules": [{ "instanceId": "xf1", "moduleId": "mod-transformer", "slot": "SLOT_BOX_S1" }],
+  "allowedInstruments": ["ins-multimeter"],
+  "reference": {
+    "nets": [
+      ["ins-ac-power.U", "xf1.IM1_IN"],
+      ["xf1.IM1_OUT", "xf1.M1_DOT"],
+      ["xf1.M1_END", "xf1.M2_DOT"],
+      ["xf1.M2_END", "ins-ac-power.N"]
+    ],
+    "measurePoints": [
+      { "id": "u_mut", "kind": "voltage", "mode": "acv", "between": ["xf1.M1_DOT", "xf1.M2_END"] },
+      { "id": "u_mut_opp", "kind": "voltage", "mode": "acv", "between": ["xf1.M1_DOT", "xf1.M2_DOT"] },
+      { "id": "i_im1", "kind": "current", "mode": "aca", "branch": ["xf1.IM1_A", "xf1.IM1_B"] },
+      { "id": "u_sec", "kind": "voltage", "mode": "acv", "between": ["xf1.TS_1", "xf1.TS_2"] }
+    ]
+  },
+  "steps": [
+    {
+      "id": "prepare",
+      "text": "保持断电，阅读指导书与原理图；先将三相调压交流电源相电压调至 36 V 用于互感线圈顺串/反串测定。",
+      "measurePoints": [],
+      "dataTable": "mutual_meas"
+    },
+    {
+      "id": "mutual_aid",
+      "text": "阶段 1a（互感线圈同向顺串）：断电连接 U→I进、I出→1*、1→2*、2→N；交流电流表（1 A 档）串入 I+/I−，交流电压表（100 V 档）接 1*–2，点击“检查接线”。上电测录顺串电压 36 V 与电流 I_aid（约 0.176 A，总阻抗约 205 Ω，L_aid = L1+L2+2M = 0.64 H）。",
+      "measurePoints": ["u_mut", "i_im1"],
+      "checkWiring": true,
+      "expect": { "measurePoint": "i_im1", "min": 0.165, "max": 0.188 },
+      "dataTable": "mutual_meas"
+    },
+    {
+      "id": "mutual_opp",
+      "text": "阶段 1b（互感线圈反向反串）：断电对调线圈 2 首尾，改为 1→2、2*→N，电压表改接 1*–2*，点击“检查接线”。上电测录反串电流 I_opp（约 0.560 A，总阻抗骤降至约 64.2 Ω，L_opp = L1+L2−2M = 0.16 H），由此求得 M = (L_aid−L_opp)/4 = 0.120 H、耦合系数 k = 0.60。",
+      "referenceNets": [
+        ["ins-ac-power.U", "xf1.IM1_IN"],
+        ["xf1.IM1_OUT", "xf1.M1_DOT"],
+        ["xf1.M1_END", "xf1.M2_END"],
+        ["xf1.M2_DOT", "ins-ac-power.N"]
+      ],
+      "measurePoints": ["u_mut_opp", "i_im1"],
+      "checkWiring": true,
+      "expect": { "measurePoint": "i_im1", "min": 0.53, "max": 0.59 },
+      "dataTable": "mutual_meas"
+    },
+    {
+      "id": "transformer_load",
+      "text": "阶段 2（220 V/36 V 铁芯变压器变比与外特性）：断电清空接线，将交流电源相电压调至 220 V 接入变压器原边 P1/P2；副边 S1→I进、I出→RL1、S2→RL2，交流电压表（100 V 档）并接 S1–S2，交流电流表（5 A 档）串入 I+/I−，点击“检查接线”。上电依次切换副边负载 RL 为空载、100 Ω、50 Ω、25 Ω，记录副边电压 U2 与电流 I2。",
+      "referenceNets": [
+        ["ins-ac-power.U", "xf1.TP_1"],
+        ["ins-ac-power.N", "xf1.TP_2"],
+        ["xf1.TS_1", "xf1.IM1_IN"],
+        ["xf1.IM1_OUT", "xf1.TL_1"],
+        ["xf1.TS_2", "xf1.TL_2"]
+      ],
+      "measurePoints": ["u_sec", "i_im1"],
+      "checkWiring": true,
+      "expect": { "measurePoint": "u_sec", "min": 31, "max": 37 },
+      "dataTable": "xfmr_load"
+    },
+    {
+      "id": "analyse",
+      "text": "断电后查看互感阻抗对比与变压器副边外特性曲线 U2–I2，计算互感 M、耦合系数 k、空载变比 n 与电压调整率，完成思考题。",
+      "measurePoints": [],
+      "recordTable": "xfmr_load",
+      "dataTable": "xfmr_load"
+    }
+  ],
+  "dataTables": [
+    {
+      "id": "mutual_meas",
+      "title": "互感线圈顺串与反串 50 Hz 交流阻抗测定记录（U=36 V, L1=L2=0.20 H）",
+      "rows": 2,
+      "columns": [
+        { "id": "mode_id", "title": "接法 (1=顺串, 2=反串)", "unit": "" },
+        { "id": "u_m", "title": "串联端电压 U", "unit": "V", "measurePoint": "u_mut" },
+        { "id": "i_m", "title": "串联电流 I", "unit": "A", "measurePoint": "i_im1", "captureSteps": ["mutual_aid", "mutual_opp"] },
+        { "id": "z_m", "title": "等效阻抗 Z=U/I", "unit": "Ω", "computed": "u_m/i_m" }
+      ],
+      "sanity": [
+        { "column": "mode_id", "min": 1, "max": 2, "message": "第 1 行记录顺串（1），第 2 行记录反串（2）。" },
+        { "column": "i_m", "min": 0.1, "max": 0.8, "message": "36 V 下顺串电流约 0.176 A，反串电流约 0.560 A。" }
+      ]
+    },
+    {
+      "id": "xfmr_load",
+      "title": "220 V / 36 V 铁芯变压器副边外特性记录（原边 U1=220 V）",
+      "rows": 4,
+      "columns": [
+        { "id": "load_idx", "title": "负载档 (0=空载,1=100Ω,2=50Ω,3=25Ω)", "unit": "" },
+        { "id": "u_sec", "title": "副边电压 U2", "unit": "V", "measurePoint": "u_sec", "captureSteps": ["transformer_load"] },
+        { "id": "i_sec", "title": "副边电流 I2", "unit": "A", "measurePoint": "i_im1", "captureSteps": ["transformer_load"] }
+      ],
+      "sanity": [
+        { "column": "load_idx", "min": 0, "max": 3, "message": "依次记录空载（0）、100 Ω（1）、50 Ω（2）、25 Ω（3）四点。" },
+        { "column": "u_sec", "min": 30, "max": 38, "message": "空载副边电压约 35.8 V，随负载电流增大略有下降。" }
+      ]
+    }
+  ],
+  "charts": [
+    {
+      "id": "xfmr-ext-curve",
+      "title": "220 V / 36 V 铁芯变压器副边外特性曲线（U2–I2）",
+      "table": "xfmr_load",
+      "x": "i_sec",
+      "y": ["u_sec"],
+      "kind": "line"
+    }
+  ],
+  "questions": [
+    "如何仅用交流电源和交流电压/电流表判别两个未知耦合线圈的同名端，并由顺串/反串等效电感求得互感 M 与耦合系数 k？",
+    "为什么铁芯变压器的耦合系数 k 可高达 0.99 以上，而空心或半开磁路互感线圈的 k 显著更小？",
+    "变压器带电阻负载后副边端电压 U2 为什么略低于空载电压 U20？哪些参数决定变压器的电压调整率？"
+  ]
+}

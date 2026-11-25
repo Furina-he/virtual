@@ -116,7 +116,7 @@ test('公共慢速状态提示：正常实时不误报，细步长慢于实时�
   const scope = meterPanel('双通道数字示波器')
   await expect(scope.locator('canvas[data-instance-id="scope1"]')).toBeVisible()
   await addWire('scope1.OUT', 'scope1.CH1')
-  await addWire('scope1.GND', 'dc1.TH_USN')
+  await addWire('scope1.GND', 'rlc1.TC_2')
 
   const choose = async (label: string, option: string) => {
     await scope.getByRole('combobox', { name: label, exact: true }).click()

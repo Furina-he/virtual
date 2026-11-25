@@ -3183,10 +3183,10 @@
     {
       "id": "mod-ac-fluorescent",
       "model": "content/modules/mod-ac-fluorescent/module.glb",
-      "bytes": 439856,
-      "sha256": "4b771357dda8875f9e7487e845aef09875915c2864f34d0f085ce8427f888382",
-      "triangles": 3074,
-      "drawCalls": 6,
+      "bytes": 495448,
+      "sha256": "132e1aa0ae238cda7962924590eef2224c1d1e42d0294dde08b6fbd41e1d9853",
+      "triangles": 3478,
+      "drawCalls": 7,
       "bounds": {
         "min": [
           -0.14499999582767487,
@@ -3400,6 +3400,19 @@
           "position": [
             0.093,
             0.114,
+            0.029
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "KNOB_SW_START",
+          "position": [
+            0.063,
+            0.294,
             0.029
           ],
           "normal": [
@@ -4329,6 +4342,1136 @@
           "position": [
             0.1,
             0.042,
+            0.029
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "textures": [
+        {
+          "mimeType": "image/webp",
+          "width": 1264,
+          "height": 2048
+        }
+      ]
+    },
+    {
+      "id": "mod-phase-dimmer",
+      "model": "content/modules/mod-phase-dimmer/module.glb",
+      "bytes": 373608,
+      "sha256": "7a4239f826ef72d03c32ccba68eb0b45da6980db27f60955cb43048ed313fdde",
+      "triangles": 2662,
+      "drawCalls": 4,
+      "bounds": {
+        "min": [
+          -0.07249999791383743,
+          5.9604643443123e-10,
+          -0.030500000342726707
+        ],
+        "max": [
+          0.07249999791383743,
+          0.4699999988079071,
+          0.037425000123679636
+        ]
+      },
+      "anchors": [
+        {
+          "name": "JACK_AC_L",
+          "position": [
+            -0.0365,
+            0.398,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_AC_N",
+          "position": [
+            0.0365,
+            0.398,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_LP_1",
+          "position": [
+            -0.0365,
+            0.336,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_LP_2",
+          "position": [
+            0.0365,
+            0.336,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_MT2",
+          "position": [
+            -0.0465,
+            0.066,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_MT1",
+          "position": [
+            0.0455,
+            0.066,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_GATE",
+          "position": [
+            -0.0005,
+            0.066,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_RC_IN",
+          "position": [
+            -0.0465,
+            0.256,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_RC_MID",
+          "position": [
+            -0.0005,
+            0.256,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_RC_N",
+          "position": [
+            0.0455,
+            0.256,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_DB_1",
+          "position": [
+            -0.0365,
+            0.146,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_DB_2",
+          "position": [
+            0.0365,
+            0.146,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "KNOB_RP_DIM",
+          "position": [
+            -0.0005,
+            0.212,
+            0.029
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "textures": [
+        {
+          "mimeType": "image/webp",
+          "width": 640,
+          "height": 2048
+        }
+      ]
+    },
+    {
+      "id": "mod-3ph-lamp",
+      "model": "content/modules/mod-3ph-lamp/module.glb",
+      "bytes": 735244,
+      "sha256": "7f68fca8a403e0d617b899a05173f57807dda70e912ed08aa540ea177b4cbee8",
+      "triangles": 5250,
+      "drawCalls": 7,
+      "bounds": {
+        "min": [
+          -0.14499999582767487,
+          5.9604643443123e-10,
+          -0.030500000342726707
+        ],
+        "max": [
+          0.14499999582767487,
+          0.4699999988079071,
+          0.041299999594688414
+        ]
+      },
+      "anchors": [
+        {
+          "name": "JACK_U_IN",
+          "position": [
+            -0.123,
+            0.394,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_IA_A",
+          "position": [
+            -0.093,
+            0.394,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_IA_B",
+          "position": [
+            -0.069,
+            0.394,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_A_VTX",
+          "position": [
+            -0.037,
+            0.394,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_IPA_A",
+          "position": [
+            -0.007,
+            0.394,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_IPA_B",
+          "position": [
+            0.017,
+            0.394,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_A1",
+          "position": [
+            0.051,
+            0.394,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_A2",
+          "position": [
+            0.121,
+            0.394,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_V_IN",
+          "position": [
+            -0.117,
+            0.292,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_IB_A",
+          "position": [
+            -0.069,
+            0.292,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_IB_B",
+          "position": [
+            -0.039,
+            0.292,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_B1",
+          "position": [
+            0.031,
+            0.292,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_B2",
+          "position": [
+            0.117,
+            0.292,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_W_IN",
+          "position": [
+            -0.117,
+            0.19,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_IC_A",
+          "position": [
+            -0.069,
+            0.19,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_IC_B",
+          "position": [
+            -0.039,
+            0.19,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_C1",
+          "position": [
+            0.031,
+            0.19,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_C2",
+          "position": [
+            0.117,
+            0.19,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_N_STAR",
+          "position": [
+            -0.109,
+            0.076,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_IN_A",
+          "position": [
+            0.009,
+            0.076,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_IN_B",
+          "position": [
+            0.041,
+            0.076,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_N_OUT",
+          "position": [
+            0.109,
+            0.076,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "KNOB_KA",
+          "position": [
+            0.086,
+            0.356,
+            0.029
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "KNOB_KB",
+          "position": [
+            0.074,
+            0.254,
+            0.029
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "KNOB_KC",
+          "position": [
+            0.074,
+            0.152,
+            0.029
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "SW_KN",
+          "position": [
+            -0.049,
+            0.076,
+            0.029
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "textures": [
+        {
+          "mimeType": "image/webp",
+          "width": 1264,
+          "height": 2048
+        }
+      ]
+    },
+    {
+      "id": "mod-transformer",
+      "model": "content/modules/mod-transformer/module.glb",
+      "bytes": 414212,
+      "sha256": "80b70939611fc3443a84023fb74e5d5bb3ff04324f463895d3dfab8cf7b3f870",
+      "triangles": 2974,
+      "drawCalls": 4,
+      "bounds": {
+        "min": [
+          -0.07249999791383743,
+          5.9604643443123e-10,
+          -0.030500000342726707
+        ],
+        "max": [
+          0.07249999791383743,
+          0.4699999988079071,
+          0.036575000170618294
+        ]
+      },
+      "anchors": [
+        {
+          "name": "JACK_M1_DOT",
+          "position": [
+            -0.0385,
+            0.398,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_M1_END",
+          "position": [
+            -0.0385,
+            0.334,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_M2_DOT",
+          "position": [
+            0.0385,
+            0.398,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_M2_END",
+          "position": [
+            0.0385,
+            0.334,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_IM1_IN",
+          "position": [
+            -0.0505,
+            0.272,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_IM1_A",
+          "position": [
+            -0.0185,
+            0.272,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_IM1_B",
+          "position": [
+            0.0115,
+            0.272,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_IM1_OUT",
+          "position": [
+            0.0495,
+            0.272,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_TP_1",
+          "position": [
+            -0.0385,
+            0.176,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_TP_2",
+          "position": [
+            -0.0385,
+            0.112,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_TS_1",
+          "position": [
+            0.0385,
+            0.176,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_TS_2",
+          "position": [
+            0.0385,
+            0.112,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_TL_1",
+          "position": [
+            -0.0445,
+            0.05,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_TL_2",
+          "position": [
+            0.0445,
+            0.05,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "KNOB_SW_TLOAD",
+          "position": [
+            -0.0005,
+            0.05,
+            0.029
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "textures": [
+        {
+          "mimeType": "image/webp",
+          "width": 640,
+          "height": 2048
+        }
+      ]
+    },
+    {
+      "id": "mod-rlc-transient",
+      "model": "content/modules/mod-rlc-transient/module.glb",
+      "bytes": 745300,
+      "sha256": "57e509d9646300f673fd70e4456613f7e055b2015f223ddfd64829cb1524f877",
+      "triangles": 5250,
+      "drawCalls": 9,
+      "bounds": {
+        "min": [
+          -0.14499999582767487,
+          5.9604643443123e-10,
+          -0.030500000342726707
+        ],
+        "max": [
+          0.14499999582767487,
+          0.4699999988079071,
+          0.041299999594688414
+        ]
+      },
+      "anchors": [
+        {
+          "name": "JACK_RS_1",
+          "position": [
+            -0.121,
+            0.404,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_RS_2",
+          "position": [
+            -0.067,
+            0.404,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_LS_1",
+          "position": [
+            -0.029,
+            0.404,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_LS_2",
+          "position": [
+            0.025,
+            0.404,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_CS_1",
+          "position": [
+            0.063,
+            0.404,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_CS_2",
+          "position": [
+            0.119,
+            0.404,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_BR_AC1",
+          "position": [
+            -0.121,
+            0.284,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_BR_AC2",
+          "position": [
+            -0.079,
+            0.284,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_BR_P",
+          "position": [
+            -0.019,
+            0.284,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_FL_OUT",
+          "position": [
+            0.067,
+            0.284,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_BR_N",
+          "position": [
+            0.119,
+            0.284,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_IND_IN",
+          "position": [
+            -0.111,
+            0.172,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_IND_1",
+          "position": [
+            -0.019,
+            0.172,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_IND_2",
+          "position": [
+            0.109,
+            0.172,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_TR_1",
+          "position": [
+            -0.117,
+            0.07,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_TR_2",
+          "position": [
+            -0.029,
+            0.07,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_TC_1",
+          "position": [
+            0.029,
+            0.07,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_TC_2",
+          "position": [
+            0.117,
+            0.07,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "KNOB_SW_RLC_R",
+          "position": [
+            -0.094,
+            0.364,
+            0.029
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "KNOB_SW_FILT",
+          "position": [
+            0.024,
+            0.248,
+            0.029
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "SW_SW_IND",
+          "position": [
+            -0.065,
+            0.142,
+            0.029
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "KNOB_SW_SUPP",
+          "position": [
+            0.045,
+            0.142,
+            0.029
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "KNOB_SW_TAU_R",
+          "position": [
+            -0.073,
+            0.04,
+            0.029
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "SW_SW_TAU_C",
+          "position": [
+            0.073,
+            0.04,
             0.029
           ],
           "normal": [

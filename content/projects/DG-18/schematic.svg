@@ -1,0 +1,77 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 450" role="img" aria-labelledby="title desc">
+  <title id="title">DG-18 互感线圈与铁芯变压器实验原理图</title>
+  <desc id="desc">左侧为互感线圈 L1 与 L2 串联测定同名端与互感 M 电路；右侧为 220 V/36 V 铁芯变压器原边供电与副边可变负载外特性测试电路。</desc>
+  <style>
+    text { font-family: "Noto Sans SC Variable", sans-serif; fill: #18181b; font-size: 14px; }
+    .wire { fill: none; stroke: #18181b; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    .box { fill: #ffffff; stroke: #18181b; stroke-width: 2; }
+    .jack { fill: #ffffff; stroke: #18181b; stroke-width: 2; cursor: pointer; }
+    .small { font-size: 12.5px; fill: #52525b; }
+    .center { text-anchor: middle; }
+  </style>
+  <rect width="820" height="450" fill="#ffffff"/>
+  <text x="410" y="32" class="center" style="font-size: 20px; font-weight: 600">DG-18 互感线圈串联测定与 220V/36V 铁芯变压器特性</text>
+  <text x="410" y="56" class="center small">mod-transformer · 左：L1/L2 (0.2 H, k=0.60, M=0.12 H) · 右：50 VA 220 V / 36 V 变压器</text>
+
+  <!-- 左：互感 -->
+  <text x="200" y="90" class="center" style="font-weight: 600">阶段 1：互感线圈顺串 / 反串</text>
+  <g class="wire">
+    <path d="M65 130 H130 M170 130 H225 V175 M225 255 V295 H315 V255 M315 175 V130"/>
+    <path d="M315 295 V330 H65 V255 M65 195 V130"/>
+    <path d="M130 130 H170" stroke-dasharray="3 3"/>
+  </g>
+  <circle cx="65" cy="225" r="24" class="box"/>
+  <text x="65" y="230" class="center">~</text>
+  <text x="28" y="225" class="center small">36V</text>
+  <rect x="211" y="175" width="28" height="80" class="box"/>
+  <text x="225" y="220" class="center small">L1</text>
+  <rect x="301" y="175" width="28" height="80" class="box"/>
+  <text x="315" y="220" class="center small">L2</text>
+  <circle cx="203" cy="180" r="3" fill="#18181b"/>
+  <circle cx="293" cy="180" r="3" fill="#18181b"/>
+
+  <circle id="JACK_U" data-jack="ins-ac-power.U" cx="65" cy="160" r="4.5" class="jack"/>
+  <circle id="JACK_N" data-jack="ins-ac-power.N" cx="65" cy="290" r="4.5" class="jack"/>
+  <circle id="JACK_IM1_IN" data-jack="xf1.IM1_IN" cx="105" cy="130" r="4.5" class="jack"/>
+  <circle id="JACK_IM1_A" data-jack="xf1.IM1_A" cx="130" cy="130" r="4.5" class="jack"/>
+  <circle id="JACK_IM1_B" data-jack="xf1.IM1_B" cx="170" cy="130" r="4.5" class="jack"/>
+  <circle id="JACK_IM1_OUT" data-jack="xf1.IM1_OUT" cx="195" cy="130" r="4.5" class="jack"/>
+  <circle id="JACK_M1_DOT" data-jack="xf1.M1_DOT" cx="225" cy="155" r="4.5" class="jack"/>
+  <circle id="JACK_M1_END" data-jack="xf1.M1_END" cx="225" cy="275" r="4.5" class="jack"/>
+  <circle id="JACK_M2_DOT" data-jack="xf1.M2_DOT" cx="315" cy="155" r="4.5" class="jack"/>
+  <circle id="JACK_M2_END" data-jack="xf1.M2_END" cx="315" cy="275" r="4.5" class="jack"/>
+  <text x="242" y="158" class="small">1*</text>
+  <text x="242" y="280" class="small">1</text>
+  <text x="332" y="158" class="small">2*</text>
+  <text x="332" y="280" class="small">2</text>
+
+  <line x1="400" y1="84" x2="400" y2="355" stroke="#d4d4d8" stroke-width="1.5" stroke-dasharray="4 4"/>
+
+  <!-- 右：变压器 -->
+  <text x="615" y="90" class="center" style="font-weight: 600">阶段 2：220V / 36V 铁芯变压器</text>
+  <g class="wire">
+    <path d="M455 155 H545 V295 H455 V155"/>
+    <path d="M580 155 V295 M590 155 V295"/>
+    <path d="M625 155 H745 V195 M745 255 V295 H625 V155"/>
+  </g>
+  <rect x="533" y="185" width="24" height="80" class="box"/>
+  <text x="510" y="228" class="center small">220V</text>
+  <rect x="613" y="185" width="24" height="80" class="box"/>
+  <text x="662" y="228" class="center small">36V</text>
+  <rect x="733" y="195" width="24" height="60" class="box"/>
+  <text x="782" y="228" class="center small">RL</text>
+
+  <circle id="JACK_TP_1" data-jack="xf1.TP_1" cx="505" cy="155" r="4.5" class="jack"/>
+  <circle id="JACK_TP_2" data-jack="xf1.TP_2" cx="505" cy="295" r="4.5" class="jack"/>
+  <circle id="JACK_TS_1" data-jack="xf1.TS_1" cx="660" cy="155" r="4.5" class="jack"/>
+  <circle id="JACK_TS_2" data-jack="xf1.TS_2" cx="660" cy="295" r="4.5" class="jack"/>
+  <circle id="JACK_TL_1" data-jack="xf1.TL_1" cx="745" cy="175" r="4.5" class="jack"/>
+  <circle id="JACK_TL_2" data-jack="xf1.TL_2" cx="745" cy="275" r="4.5" class="jack"/>
+  <text x="505" y="140" class="center small">P1</text>
+  <text x="505" y="316" class="center small">P2</text>
+  <text x="660" y="140" class="center small">S1</text>
+  <text x="660" y="316" class="center small">S2</text>
+
+  <text x="410" y="392" class="center small">顺串（1→2*）阻抗大（≈205 Ω）；反串（1→2）阻抗小（≈64 Ω）；变压器副边经电流插座接 RL。</text>
+  <text x="410" y="420" class="center small">本项目自绘离线原理图 · 悬停或点击插孔与 3D 台面双向联动</text>
+</svg>

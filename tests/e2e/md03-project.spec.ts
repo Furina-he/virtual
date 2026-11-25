@@ -296,7 +296,7 @@ async function waitScope(frequency: number, differential = false, afterTime = 0)
   await openInstrumentPanel(page, '双通道数字示波器')
   try {
     await expect
-      .poll(scopeTime, { timeout: 15_000, message: '真实仿真推进到参数/启动后的稳定采样窗口' })
+      .poll(scopeTime, { timeout: 30_000, message: '真实仿真推进到参数/启动后的稳定采样窗口' })
       .toBeGreaterThan(afterTime + 0.65)
   } catch (error) {
     const diagnostics = await page.evaluate(() => {

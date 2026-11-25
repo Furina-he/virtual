@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 440" role="img" aria-labelledby="title desc">
+  <title id="title">DG-19 一阶 RC 与 RL 暂态过程研究原理图</title>
+  <desc id="desc">左侧为方波激励一阶 RC 电路（Rt=1/5/10 kΩ 与 Ct=0.1 µF），右侧为方波激励一阶 RL 电路（L=10 mH 与 Rs=51 Ω），由示波器双通道观测输入方波与暂态响应。</desc>
+  <style>
+    text { font-family: "Noto Sans SC Variable", sans-serif; fill: #18181b; font-size: 14px; }
+    .wire { fill: none; stroke: #18181b; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    .box { fill: #ffffff; stroke: #18181b; stroke-width: 2; }
+    .jack { fill: #ffffff; stroke: #18181b; stroke-width: 2; cursor: pointer; }
+    .small { font-size: 12.5px; fill: #52525b; }
+    .center { text-anchor: middle; }
+  </style>
+  <rect width="800" height="440" fill="#ffffff"/>
+  <text x="400" y="32" class="center" style="font-size: 20px; font-weight: 600">DG-19 一阶 RC / RL 暂态响应与时间常数 τ 测定电路</text>
+  <text x="400" y="56" class="center small">mod-rlc-transient · 方波激励 (0↔4 V) · 左：RC (1/5/10 kΩ + 0.1 µF) · 右：RL (10 mH + 51 Ω)</text>
+
+  <!-- 左：RC -->
+  <text x="200" y="90" class="center" style="font-weight: 600">阶段 1：一阶 RC 电路</text>
+  <g class="wire">
+    <path d="M72 130 H155 M235 130 H320 V200 M320 220 V310 H72 V250 M72 190 V130"/>
+    <path d="M298 200 H342 M298 220 H342"/>
+  </g>
+  <circle cx="72" cy="220" r="26" class="box"/>
+  <path d="M58 226 H65 V214 H79 V226 H86" class="wire"/>
+  <rect x="155" y="118" width="80" height="24" class="box"/>
+  <text x="195" y="106" class="center small">Rt 1/5/10 kΩ</text>
+  <text x="268" y="214" class="center small">Ct 0.1µF</text>
+
+  <circle id="JACK_CH1" data-jack="generator1.CH1" cx="72" cy="158" r="4.5" class="jack"/>
+  <circle id="JACK_GND" data-jack="generator1.GND" cx="72" cy="282" r="4.5" class="jack"/>
+  <circle id="JACK_TR_1" data-jack="rlc1.TR_1" cx="132" cy="130" r="4.5" class="jack"/>
+  <circle id="JACK_TR_2" data-jack="rlc1.TR_2" cx="258" cy="130" r="4.5" class="jack"/>
+  <circle id="JACK_TC_1" data-jack="rlc1.TC_1" cx="320" cy="160" r="4.5" class="jack"/>
+  <circle id="JACK_TC_2" data-jack="rlc1.TC_2" cx="320" cy="278" r="4.5" class="jack"/>
+  <text x="342" y="164" class="small">Ct1 (CH2)</text>
+  <text x="342" y="282" class="small">Ct2 (GND)</text>
+
+  <line x1="400" y1="84" x2="400" y2="345" stroke="#d4d4d8" stroke-width="1.5" stroke-dasharray="4 4"/>
+
+  <!-- 右：RL -->
+  <text x="605" y="90" class="center" style="font-weight: 600">阶段 2：一阶 RL 电路</text>
+  <g class="wire">
+    <path d="M475 130 H555 M635 130 H715 V180 M715 260 V310 H475 V250 M475 190 V130"/>
+  </g>
+  <circle cx="475" cy="220" r="26" class="box"/>
+  <path d="M461 226 H468 V214 H482 V226 H489" class="wire"/>
+  <rect x="555" y="118" width="80" height="24" class="box"/>
+  <text x="595" y="106" class="center small">L 10 mH</text>
+  <rect x="703" y="180" width="24" height="80" class="box"/>
+  <text x="670" y="224" class="center small">Rs 51Ω</text>
+
+  <circle id="JACK_LS_1" data-jack="rlc1.LS_1" cx="535" cy="130" r="4.5" class="jack"/>
+  <circle id="JACK_LS_2" data-jack="rlc1.LS_2" cx="658" cy="130" r="4.5" class="jack"/>
+  <circle id="JACK_RS_1" data-jack="rlc1.RS_1" cx="715" cy="158" r="4.5" class="jack"/>
+  <circle id="JACK_RS_2" data-jack="rlc1.RS_2" cx="715" cy="282" r="4.5" class="jack"/>
+  <text x="738" y="162" class="small">Rs1 (CH2)</text>
+  <text x="738" y="286" class="small">Rs2 (GND)</text>
+
+  <text x="400" y="384" class="center small">示波器 CH1 观测输入方波，CH2 观测指数过渡波形；DC 耦合 + 双光标测定 0.632·Um 处 τ。</text>
+  <text x="400" y="412" class="center small">本项目自绘离线原理图 · 悬停或点击插孔与 3D 台面双向联动</text>
+</svg>

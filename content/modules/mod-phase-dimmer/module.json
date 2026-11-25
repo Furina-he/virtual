@@ -1,0 +1,37 @@
+{
+  "id": "mod-phase-dimmer",
+  "name": "阻容移相调光实验挂箱",
+  "form": "box",
+  "model": "module.glb",
+  "netlist": "module.cir",
+  "jacks": [
+    { "id": "AC_L", "label": "电源 L", "kind": "banana4", "polarityHint": "+" },
+    { "id": "AC_N", "label": "电源 N", "kind": "banana4", "polarityHint": "-" },
+    { "id": "LP_1", "label": "灯泡端 1 (25W)", "kind": "banana4" },
+    { "id": "LP_2", "label": "灯泡端 2 (25W)", "kind": "banana4" },
+    { "id": "MT2", "label": "晶闸管 MT2", "kind": "banana4" },
+    { "id": "MT1", "label": "晶闸管 MT1", "kind": "banana4" },
+    { "id": "GATE", "label": "晶闸管门极 G", "kind": "banana4" },
+    { "id": "RC_IN", "label": "移相网络输入", "kind": "banana4" },
+    { "id": "RC_MID", "label": "移相电容节点 C", "kind": "banana4" },
+    { "id": "RC_N", "label": "移相公共端", "kind": "banana4", "polarityHint": "-" },
+    { "id": "DB_1", "label": "DB3 触发端 1", "kind": "banana4" },
+    { "id": "DB_2", "label": "DB3 触发端 2", "kind": "banana4" }
+  ],
+  "controls": [
+    {
+      "id": "RP_DIM",
+      "label": "移相电位器 RP",
+      "kind": "pot",
+      "param": "rp_dim",
+      "range": [5000, 350000],
+      "step": 5000,
+      "targets": [{ "element": "RRPDIM", "scale": 1, "offset": 4700, "min": 4700 }],
+      "unit": "Ω",
+      "default": 50000
+    }
+  ],
+  "indicators": [],
+  "commonNets": [],
+  "internalJumpers": []
+}

@@ -1,0 +1,25 @@
+.subckt mod_3ph_lamp U_IN IA_A IA_B A_VTX IPA_A IPA_B A1 A2 V_IN IB_A IB_B B1 B2 W_IN IC_A IC_B C1 C2 N_STAR IN_A IN_B N_OUT params: ka=3 kb=3 kc=3 kn=1
+* 三相灯组负载实验挂箱（原型选型说明 §3.1 #5，服务 DG-15 / DG-16）
+* 每相由 3 只 220 V / 40 W（等效热阻 1210 Ω）白炽灯并联开关控制，采用 10 mΩ 铜箔桥接防空载奇异矩阵
+Rcu_u1 U_IN IA_A 10m
+Rcu_u2 IA_B A_VTX 10m
+Rcu_u3 A_VTX IPA_A 10m
+Rcu_u4 IPA_B A1 10m
+Rcu_v1 V_IN IB_A 10m
+Rcu_v2 IB_B B1 10m
+Rcu_w1 W_IN IC_A 10m
+Rcu_w2 IC_B C1 10m
+Rcu_n1 IN_B N_OUT 10m
+* 电流插座断开时的防悬空微泄放
+Rleak_ia IA_A IA_B 1T
+Rleak_ipa IPA_A IPA_B 1T
+Rleak_ib IB_A IB_B 1T
+Rleak_ic IC_A IC_B 1T
+Rleak_in IN_A IN_B 1T
+* 三相灯组主负载（1 盏=1210 Ω, 2 盏=605 Ω, 3 盏=403.3333 Ω）
+RLA A1 A2 {1210 / ka}
+RLB B1 B2 {1210 / kb}
+RLC C1 C2 {1210 / kc}
+* 中线开关 KN（接通 10 mΩ，断开 1 GΩ）
+RKN N_STAR IN_A {kn > 0.5 ? 0.01 : 1G}
+.ends mod_3ph_lamp

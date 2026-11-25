@@ -1,0 +1,88 @@
+{
+  "id": "DG-11",
+  "group": "交流电路",
+  "title": "阻容移相电路的应用——调光台灯电路的研究（综合）",
+  "type": "integrated",
+  "modules": [{ "instanceId": "dim1", "moduleId": "mod-phase-dimmer", "slot": "SLOT_BOX_S1" }],
+  "allowedInstruments": ["ins-oscilloscope", "ins-multimeter"],
+  "reference": {
+    "nets": [
+      ["ins-ac-power.U", "dim1.AC_L", "dim1.LP_1"],
+      ["dim1.LP_2", "dim1.MT2", "dim1.RC_IN"],
+      ["dim1.RC_MID", "dim1.DB_1"],
+      ["dim1.DB_2", "dim1.GATE"],
+      ["dim1.MT1", "dim1.RC_N", "dim1.AC_N", "ins-ac-power.N"]
+    ],
+    "measurePoints": [
+      { "id": "u_lamp", "kind": "voltage", "mode": "acv", "between": ["dim1.LP_1", "dim1.LP_2"] },
+      { "id": "u_mt", "kind": "voltage", "mode": "acv", "between": ["dim1.MT2", "dim1.MT1"] },
+      { "id": "w_mt", "kind": "waveform", "quantity": "vpp", "between": ["dim1.MT2", "dim1.MT1"] },
+      { "id": "w_rc", "kind": "waveform", "quantity": "vpp", "between": ["dim1.RC_MID", "dim1.MT1"] }
+    ]
+  },
+  "steps": [
+    {
+      "id": "prepare",
+      "text": "保持断电，阅读指导书与原理图；从仪表柜拖出双通道数字示波器至示波器位，三相调压交流电源相电压设为 220 V，将挂箱移相电位器 RP 调至 10 kΩ。",
+      "measurePoints": [],
+      "dataTable": "dimmer_sweep"
+    },
+    {
+      "id": "wire",
+      "text": "断电按图搭建双向晶闸管调光电路：电源 U→L→LP1，LP2→MT2→RC移相输入，RC电容节点→DB1，DB2→门极 G，MT1→RC公共端→N→电源 N；交流电压表（500 V 档）先并联于灯泡两端 LP1–LP2，示波器 CH1 接 MT2、CH2 接 RC_MID、GND 接 MT1，点击“检查接线”。",
+      "measurePoints": ["u_lamp", "w_mt", "w_rc"],
+      "checkWiring": true,
+      "dataTable": "dimmer_sweep"
+    },
+    {
+      "id": "bright",
+      "text": "保持 RP = 10 kΩ（小移相角），上电观察示波器 CH1 晶闸管压降仅在过零附近有很窄脉冲，灯泡几乎全周期导通，交流电压表读数高于 195 V。",
+      "measurePoints": ["u_lamp"],
+      "expect": { "measurePoint": "u_lamp", "min": 195, "max": 225 },
+      "dataTable": "dimmer_sweep"
+    },
+    {
+      "id": "sweep",
+      "text": "带电依次将移相电位器 RP 调至 10、50、100、180、260 kΩ，每档等待有效值稳定后记录灯泡电压 U_lamp 与示波器观察到的移相导通角变化（RP 增大时触发角推迟、导通角缩小、灯泡有效电压显著下降）。",
+      "measurePoints": ["u_lamp"],
+      "dataTable": "dimmer_sweep"
+    },
+    {
+      "id": "analyse",
+      "text": "断电后查看“灯泡有效电压–移相电阻”调光特性曲线，结合 DB3 双向 32 V 击穿与 BTA06 过零自动关断机理完成思考题。",
+      "measurePoints": [],
+      "recordTable": "dimmer_sweep",
+      "dataTable": "dimmer_sweep"
+    }
+  ],
+  "dataTables": [
+    {
+      "id": "dimmer_sweep",
+      "title": "阻容移相调光电路电位器阻值与灯泡电压实测记录（U=220 V, 50 Hz）",
+      "rows": 5,
+      "columns": [
+        { "id": "rp_kohm", "title": "移相电阻 RP", "unit": "kΩ" },
+        { "id": "u_lamp", "title": "灯泡有效电压 U_L", "unit": "V", "measurePoint": "u_lamp" }
+      ],
+      "sanity": [
+        { "column": "rp_kohm", "min": 5, "max": 350, "message": "移相电位器 RP 调节范围为 5 ~ 350 kΩ。" },
+        { "column": "u_lamp", "min": 20, "max": 225, "message": "灯泡有效电压应随 RP 增大由约 210 V 单调降至 100 V 以下。" }
+      ]
+    }
+  ],
+  "charts": [
+    {
+      "id": "dimmer-curve",
+      "title": "调光特性曲线（灯泡有效电压 U_L 随移相电阻 RP 变化）",
+      "table": "dimmer_sweep",
+      "x": "rp_kohm",
+      "y": ["u_lamp"],
+      "kind": "line"
+    }
+  ],
+  "questions": [
+    "为什么仅用单个电位器串联分压调光效率低，而采用双向晶闸管移相斩波调光能耗极低？",
+    "双向触发二极管 DB3 在电路中起什么作用？若取消 DB3 直接用电容电压触发晶闸管门极会出现什么问题？",
+    "增大移相电阻 RP 时，RC 电容充电速度、触发延迟角 α、导通角 θ 与灯泡两端有效电压分别怎样变化？"
+  ]
+}

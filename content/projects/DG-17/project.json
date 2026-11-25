@@ -1,0 +1,98 @@
+{
+  "id": "DG-17",
+  "group": "磁路与变压器",
+  "title": "自感系数的测定、电路断电时电感尖峰电压的测量及抑制的方法",
+  "type": "basic",
+  "modules": [{ "instanceId": "rlc1", "moduleId": "mod-rlc-transient", "slot": "SLOT_BOX_L1" }],
+  "allowedInstruments": ["ins-multimeter", "ins-oscilloscope"],
+  "reference": {
+    "nets": [
+      ["ins-ac-power.U", "rlc1.IND_1"],
+      ["ins-ac-power.N", "rlc1.IND_2"]
+    ],
+    "measurePoints": [
+      { "id": "u_ind", "kind": "voltage", "mode": "acv", "between": ["rlc1.IND_1", "rlc1.IND_2"] },
+      { "id": "i_ind", "kind": "current", "mode": "aca", "branch": ["ins-ac-power.U", "rlc1.IND_1"] },
+      { "id": "v_spike", "kind": "waveform", "quantity": "min", "between": ["rlc1.IND_1", "rlc1.IND_2"] }
+    ]
+  },
+  "steps": [
+    {
+      "id": "prepare",
+      "text": "保持断电，阅读指导书与原理图；从仪表柜拖出数字万用表和双通道数字示波器；确认挂箱“尖峰抑制”在“无抑制”、“电感通断”在“闭合（励磁）”，三相调压交流电源先设为 24 V。",
+      "measurePoints": [],
+      "dataTable": "inductance_meas"
+    },
+    {
+      "id": "self_inductance",
+      "text": "阶段 1（交流伏安法测自感 L）：先用万用表电阻档测线圈 L+–L− 直流电阻 R_w ≈ 50 Ω；随后将交流电源 U 经交流电流表（1 A 档）串入 rlc1.IND_1，rlc1.IND_2 接交流电源 N，交流电压表（100 V 档）并接 L+–L−，点击“检查接线”。上电依次设交流相电压为 12、24、36 V，记录 U、I 并由 Z = U/I 算得 L ≈ 0.500 H。",
+      "measurePoints": ["u_ind", "i_ind"],
+      "checkWiring": true,
+      "expect": { "measurePoint": "i_ind", "min": 0.135, "max": 0.155 },
+      "dataTable": "inductance_meas"
+    },
+    {
+      "id": "turnoff_spike",
+      "text": "阶段 2（直流断电尖峰捕捉与抑制对比）：断电改接直流电源 CH1（12 V）至 rlc1.IND_IN（+）与 rlc1.IND_2（−）；示波器 CH1 接 L+（IND_1）、GND 接 L−（IND_2），时基 1 ms/div、下降沿单次触发（触发电平 −5 V），点击“检查接线”。依次在“无抑制”“续流二极管”“RC 吸收”三种模式下，先闭合再断开“电感通断”开关，捕捉并比较断电负向尖峰峰值。",
+      "referenceNets": [
+        ["ins-dc-power.CH1P", "rlc1.IND_IN"],
+        ["rlc1.IND_2", "ins-dc-power.CH1N"]
+      ],
+      "measurePoints": ["v_spike"],
+      "checkWiring": true,
+      "dataTable": "spike_compare"
+    },
+    {
+      "id": "analyse",
+      "text": "断电后对比三种抑制方式下的断电负向尖峰电压柱状/折线数据，分析续流二极管与 RC 吸收网络抑制反电动势的原理，完成思考题。",
+      "measurePoints": [],
+      "recordTable": "spike_compare",
+      "dataTable": "spike_compare"
+    }
+  ],
+  "dataTables": [
+    {
+      "id": "inductance_meas",
+      "title": "铁芯电感线圈（标称 0.5 H / 50 Ω）50 Hz 交流伏安法测自感记录",
+      "rows": 3,
+      "columns": [
+        { "id": "u_set", "title": "设定交流电压", "unit": "V" },
+        { "id": "u_ind", "title": "线圈电压 U", "unit": "V", "measurePoint": "u_ind", "captureSteps": ["self_inductance"] },
+        { "id": "i_ind", "title": "线圈电流 I", "unit": "A", "measurePoint": "i_ind", "captureSteps": ["self_inductance"] },
+        { "id": "z_calc", "title": "交流阻抗 Z=U/I", "unit": "Ω", "computed": "u_ind/i_ind" }
+      ],
+      "sanity": [
+        { "column": "u_set", "min": 10, "max": 50, "message": "请依次在 12、24、36 V 下测试线圈交流阻抗。" },
+        { "column": "z_calc", "min": 155, "max": 175, "message": "50 Hz 下 0.5 H / 50 Ω 线圈总阻抗约 164.9 Ω。" }
+      ]
+    },
+    {
+      "id": "spike_compare",
+      "title": "12 V 直流断电电感反电势尖峰及抑制对比记录",
+      "rows": 3,
+      "columns": [
+        { "id": "supp_mode", "title": "抑制方式 (0=无, 1=二极管, 2=RC)", "unit": "" },
+        { "id": "v_peak", "title": "负向尖峰峰值 U_min", "unit": "V", "measurePoint": "v_spike", "captureSteps": ["turnoff_spike"] }
+      ],
+      "sanity": [
+        { "column": "supp_mode", "min": 0, "max": 2, "message": "0=无抑制、1=续流二极管、2=RC 吸收。" },
+        { "column": "v_peak", "min": -150, "max": 0, "message": "无抑制负尖峰约 −105 V，RC 吸收约 −58 V，续流二极管钳位在 −1 V 以内。" }
+      ]
+    }
+  ],
+  "charts": [
+    {
+      "id": "spike-suppression-plot",
+      "title": "三种抑制方式下电感断电尖峰峰值对比",
+      "table": "spike_compare",
+      "x": "supp_mode",
+      "y": ["v_peak"],
+      "kind": "line"
+    }
+  ],
+  "questions": [
+    "为什么仅用直流电桥或万用表电阻档无法直接测出电感量 L，而必须结合 50 Hz 交流伏安法并扣除绕组直流电阻 R_w？",
+    "12 V 直流供电下断开电感开关时，为什么线圈两端会产生超过 −100 V、远高于电源电压的反向尖峰电压？",
+    "续流二极管与 RC 吸收电路各自如何抑制断电尖峰？在交流继电器线圈中能否直接并联单只续流二极管，为什么？"
+  ]
+}

@@ -1,0 +1,99 @@
+{
+  "id": "DG-16",
+  "group": "交流电路",
+  "title": "三相三线制对称负载星形及三角形接法时负载电压与电流的测定",
+  "type": "basic",
+  "modules": [{ "instanceId": "lamp3", "moduleId": "mod-3ph-lamp", "slot": "SLOT_BOX_L1" }],
+  "allowedInstruments": ["ins-multimeter"],
+  "reference": {
+    "nets": [
+      ["ins-ac-power.U", "lamp3.U_IN"],
+      ["ins-ac-power.V", "lamp3.V_IN"],
+      ["ins-ac-power.W", "lamp3.W_IN"],
+      ["lamp3.A2", "lamp3.B2", "lamp3.C2"]
+    ],
+    "measurePoints": [
+      { "id": "u_line", "kind": "voltage", "mode": "acv", "between": ["lamp3.U_IN", "lamp3.V_IN"] },
+      { "id": "u_phase", "kind": "voltage", "mode": "acv", "between": ["lamp3.A1", "lamp3.A2"] },
+      { "id": "i_line", "kind": "current", "mode": "aca", "branch": ["lamp3.IA_A", "lamp3.IA_B"] },
+      { "id": "i_phase", "kind": "current", "mode": "aca", "branch": ["lamp3.IPA_A", "lamp3.IPA_B"] }
+    ]
+  },
+  "steps": [
+    {
+      "id": "prepare",
+      "text": "保持断电，阅读指导书与原理图；将三相调压交流电源相电压下调至 127 V（对应线电压 220 V，确保 Y 与 △ 两种接法下 220 V 灯泡均不过压），挂箱三相灯数设为对称 KA=KB=KC=3。",
+      "measurePoints": [],
+      "dataTable": "y_delta_compare"
+    },
+    {
+      "id": "star_3w",
+      "text": "阶段 1（三相三线对称星形 Y 接法）：断电连接 U→U进、V→V进、W→W进，短接 A2-B2-C2（不接中线）；交流电压表接 A1–A2 测相电压 U_p，交流电流表串入 IU+/IU− 测线电流 I_L，点击“检查接线”。上电测录线电压 220 V、相电压约 127 V（U_L = √3 U_p）、线电流 = 相电流约 0.315 A。",
+      "measurePoints": ["u_phase", "i_line"],
+      "checkWiring": true,
+      "expect": { "measurePoint": "u_phase", "min": 124, "max": 130 },
+      "expects": [{ "measurePoint": "i_line", "min": 0.30, "max": 0.33 }],
+      "dataTable": "y_delta_compare"
+    },
+    {
+      "id": "delta_3w",
+      "text": "阶段 2（三相三线对称三角形 △ 接法）：断电拆除星形短接线，改接首尾相接 A2→B1、B2→C1、C2→A相节点 Av；交流电压表接 A1–A2、交流电流表先后串入 IU+/IU−（线电流 I_L）与 IA+/IA−（相电流 I_p），点击“检查接线”。上电验证 U_p = U_L ≈ 220 V、I_p ≈ 0.545 A、I_L = √3 I_p ≈ 0.945 A（为 Y 接法线电流的 3 倍）。",
+      "referenceNets": [
+        ["ins-ac-power.U", "lamp3.U_IN"],
+        ["ins-ac-power.V", "lamp3.V_IN"],
+        ["ins-ac-power.W", "lamp3.W_IN"],
+        ["lamp3.A2", "lamp3.B1"],
+        ["lamp3.B2", "lamp3.C1"],
+        ["lamp3.C2", "lamp3.A_VTX"]
+      ],
+      "measurePoints": ["u_phase", "i_line"],
+      "checkWiring": true,
+      "expect": { "measurePoint": "u_phase", "min": 216, "max": 224 },
+      "expects": [{ "measurePoint": "i_line", "min": 0.91, "max": 0.98 }],
+      "dataTable": "y_delta_compare"
+    },
+    {
+      "id": "analyse",
+      "text": "断电后核对表内自动计算的 U_L/U_p 与 I_L/I_p 比值（√3 ≈ 1.732）及电流对比曲线，完成思考题。",
+      "measurePoints": [],
+      "recordTable": "y_delta_compare",
+      "dataTable": "y_delta_compare"
+    }
+  ],
+  "dataTables": [
+    {
+      "id": "y_delta_compare",
+      "title": "同一三相电源（U线=220 V）下 Y 接法与 △ 接法对比记录（KA=KB=KC=3）",
+      "rows": 2,
+      "columns": [
+        { "id": "conn_id", "title": "接法 (1=Y, 2=△)", "unit": "" },
+        { "id": "u_line", "title": "线电压 U_L", "unit": "V", "measurePoint": "u_line" },
+        { "id": "u_phase", "title": "相电压 U_p", "unit": "V", "measurePoint": "u_phase" },
+        { "id": "i_line", "title": "线电流 I_L", "unit": "A", "measurePoint": "i_line" },
+        { "id": "i_phase", "title": "相电流 I_p", "unit": "A", "measurePoint": "i_phase" },
+        { "id": "u_ratio", "title": "U_L / U_p", "unit": "", "computed": "u_line/u_phase" },
+        { "id": "i_ratio", "title": "I_L / I_p", "unit": "", "computed": "i_line/i_phase" }
+      ],
+      "sanity": [
+        { "column": "conn_id", "min": 1, "max": 2, "message": "第 1 行记录星形 Y（1），第 2 行记录三角形 △（2）。" },
+        { "column": "u_line", "min": 210, "max": 230, "message": "保持三相线电压为 220 V（相电压设 127 V）。" },
+        { "column": "i_line", "min": 0.25, "max": 1.1, "message": "Y 接法线电流约 0.315 A，△ 接法线电流约 0.945 A（3 倍关系）。" }
+      ]
+    }
+  ],
+  "charts": [
+    {
+      "id": "y-delta-plot",
+      "title": "Y 接法与 △ 接法线电流/相电流对比",
+      "table": "y_delta_compare",
+      "x": "conn_id",
+      "y": ["i_line", "i_phase"],
+      "kind": "line"
+    }
+  ],
+  "questions": [
+    "为什么本实验要求先把三相电源调压至线电压 220 V（相电压 127 V），而不是直接用 380 V 线电压做三角形接法实验？",
+    "在同一对称线电压 U_L 下，同一组对称电阻负载由 Y 改接为 △ 后，相电压、相电流、线电流与总有功功率分别变为原来的多少倍？",
+    "三相异步电动机常用 Y–△ 降压启动的物理原理与本实验测得的数据有何对应关系？"
+  ]
+}

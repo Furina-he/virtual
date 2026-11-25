@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 780 440" role="img" aria-labelledby="title desc">
+  <title id="title">DG-11 阻容移相双向晶闸管调光台灯原理图</title>
+  <desc id="desc">220 V 50 Hz 交流电源串联 25 W 灯泡与 BTA06 双向晶闸管；并联 RC 移相网络经 DB3 双向触发二极管向 BTA06 门极提供移相触发脉冲。</desc>
+  <style>
+    text { font-family: "Noto Sans SC Variable", sans-serif; fill: #18181b; font-size: 14px; }
+    .wire { fill: none; stroke: #18181b; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    .meter { fill: none; stroke: #2563eb; stroke-width: 1.8; stroke-dasharray: 5 4; }
+    .box { fill: #ffffff; stroke: #18181b; stroke-width: 2; }
+    .jack { fill: #ffffff; stroke: #18181b; stroke-width: 2; cursor: pointer; }
+    .small { font-size: 12.5px; fill: #52525b; }
+    .center { text-anchor: middle; }
+  </style>
+  <rect width="780" height="440" fill="#ffffff"/>
+  <text x="390" y="34" class="center" style="font-size: 20px; font-weight: 600">DG-11 阻容移相双向晶闸管调光台灯电路</text>
+  <text x="390" y="58" class="center small">mod-phase-dimmer · AC 220 V 50 Hz · RP (5~350 kΩ) + 0.1 µF · DB3 (32 V) · BTA06</text>
+
+  <g class="wire">
+    <path d="M90 110 H200 M260 110 H560 V180 M560 250 V330 H90 V250 M90 185 V110"/>
+    <path d="M360 110 V145 M360 215 V260 M360 278 V330"/>
+    <path d="M360 235 H430 M486 235 H540 L552 222"/>
+    <path d="M342 260 H378 M342 278 H378"/>
+  </g>
+  <g class="meter">
+    <path d="M180 110 V165 H215 M255 165 H290 V110"/>
+  </g>
+
+  <circle cx="90" cy="218" r="26" class="box"/>
+  <text x="90" y="223" class="center">~</text>
+  <text x="44" y="216" class="center small">220V</text>
+  <text x="44" y="234" class="center small">50Hz</text>
+
+  <circle cx="230" cy="110" r="22" class="box"/>
+  <path d="M216 96 L244 124 M244 96 L216 124" class="wire"/>
+  <text x="230" y="78" class="center small">25 W 灯泡</text>
+
+  <circle cx="235" cy="165" r="18" class="box" style="stroke: #2563eb"/>
+  <text x="235" y="170" class="center" style="fill: #2563eb; font-weight: 600">V</text>
+
+  <rect x="348" y="145" width="24" height="70" class="box"/>
+  <text x="310" y="185" class="center small">RP</text>
+  <text x="316" y="274" class="center small">0.1µF</text>
+
+  <rect x="430" y="223" width="56" height="24" class="box"/>
+  <text x="458" y="214" class="center small">DB3 32V</text>
+
+  <rect x="536" y="180" width="48" height="70" class="box"/>
+  <text x="560" y="212" class="center small">BTA06</text>
+  <text x="560" y="230" class="center small">TRIAC</text>
+
+  <circle id="JACK_U" data-jack="ins-ac-power.U" cx="90" cy="150" r="4.5" class="jack"/>
+  <circle id="JACK_N" data-jack="ins-ac-power.N" cx="90" cy="285" r="4.5" class="jack"/>
+  <circle id="JACK_AC_L" data-jack="dim1.AC_L" cx="140" cy="110" r="4.5" class="jack"/>
+  <circle id="JACK_LP_1" data-jack="dim1.LP_1" cx="180" cy="110" r="4.5" class="jack"/>
+  <circle id="JACK_LP_2" data-jack="dim1.LP_2" cx="290" cy="110" r="4.5" class="jack"/>
+  <circle id="JACK_RC_IN" data-jack="dim1.RC_IN" cx="360" cy="110" r="4.5" class="jack"/>
+  <circle id="JACK_RC_MID" data-jack="dim1.RC_MID" cx="360" cy="235" r="4.5" class="jack"/>
+  <circle id="JACK_DB_1" data-jack="dim1.DB_1" cx="412" cy="235" r="4.5" class="jack"/>
+  <circle id="JACK_DB_2" data-jack="dim1.DB_2" cx="504" cy="235" r="4.5" class="jack"/>
+  <circle id="JACK_MT2" data-jack="dim1.MT2" cx="560" cy="155" r="4.5" class="jack"/>
+  <circle id="JACK_GATE" data-jack="dim1.GATE" cx="536" cy="222" r="4.5" class="jack"/>
+  <circle id="JACK_MT1" data-jack="dim1.MT1" cx="560" cy="285" r="4.5" class="jack"/>
+  <circle id="JACK_RC_N" data-jack="dim1.RC_N" cx="360" cy="330" r="4.5" class="jack"/>
+  <circle id="JACK_AC_N" data-jack="dim1.AC_N" cx="140" cy="330" r="4.5" class="jack"/>
+
+  <text x="582" y="159" class="small">MT2</text>
+  <text x="582" y="289" class="small">MT1</text>
+  <text x="380" y="254" class="small">C点</text>
+
+  <text x="390" y="382" class="center small">示波器 CH1 测 MT2、CH2 测 RC_MID，参考地 GND 接 MT1；交流电压表跨接 LP1–LP2。</text>
+  <text x="390" y="408" class="center small">本项目自绘离线原理图 · 悬停或点击插孔与 3D 台面双向联动</text>
+</svg>

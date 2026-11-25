@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 450" role="img" aria-labelledby="title desc">
+  <title id="title">DG-17 自感系数测定与电感断电尖峰抑制原理图</title>
+  <desc id="desc">左侧为 50 Hz 交流伏安法测 0.5 H 电感线圈阻抗电路；右侧为 12 V 直流经通断开关激励 0.5 H 电感并可切换续流二极管或 RC 吸收网络抑制断电尖峰电路。</desc>
+  <style>
+    text { font-family: "Noto Sans SC Variable", sans-serif; fill: #18181b; font-size: 14px; }
+    .wire { fill: none; stroke: #18181b; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    .opt { fill: none; stroke: #2563eb; stroke-width: 1.6; stroke-dasharray: 5 4; }
+    .box { fill: #ffffff; stroke: #18181b; stroke-width: 2; }
+    .jack { fill: #ffffff; stroke: #18181b; stroke-width: 2; cursor: pointer; }
+    .small { font-size: 12.5px; fill: #52525b; }
+    .center { text-anchor: middle; }
+  </style>
+  <rect width="820" height="450" fill="#ffffff"/>
+  <text x="410" y="32" class="center" style="font-size: 20px; font-weight: 600">DG-17 自感系数测定与断电反电势尖峰抑制电路</text>
+  <text x="410" y="56" class="center small">mod-rlc-transient · L = 0.5 H / Rw = 50 Ω · 通断开关 SW_IND · 续流 1N4007 / RC 吸收</text>
+
+  <!-- 左：交流测自感 -->
+  <text x="195" y="90" class="center" style="font-weight: 600">阶段 1：50 Hz 交流伏安法测自感</text>
+  <g class="wire">
+    <path d="M80 130 H170 M210 130 H290 V185 M290 265 V320 H80 V255 M80 195 V130"/>
+  </g>
+  <circle cx="80" cy="225" r="26" class="box"/>
+  <text x="80" y="230" class="center">~</text>
+  <text x="36" y="222" class="center small">AC</text>
+  <text x="36" y="240" class="center small">24 V</text>
+  <circle cx="190" cy="130" r="18" class="box"/>
+  <text x="190" y="135" class="center small">A</text>
+  <rect x="276" y="185" width="28" height="80" class="box"/>
+  <text x="344" y="218" class="center small">L = 0.5 H</text>
+  <text x="344" y="238" class="center small">Rw = 50 Ω</text>
+
+  <circle id="JACK_AC_U" data-jack="ins-ac-power.U" cx="80" cy="162" r="4.5" class="jack"/>
+  <circle id="JACK_AC_N" data-jack="ins-ac-power.N" cx="80" cy="288" r="4.5" class="jack"/>
+
+  <line x1="410" y1="84" x2="410" y2="355" stroke="#d4d4d8" stroke-width="1.5" stroke-dasharray="4 4"/>
+
+  <!-- 右：直流断电尖峰与抑制 -->
+  <text x="615" y="90" class="center" style="font-weight: 600">阶段 2：12 V 直流断电尖峰与抑制</text>
+  <g class="wire">
+    <path d="M475 130 H525 M565 130 H630 V185 M630 265 V320 H475 V255 M475 195 V130"/>
+    <path d="M525 130 L560 116"/>
+  </g>
+  <g class="opt">
+    <path d="M630 155 H735 V295 H630"/>
+  </g>
+  <circle cx="475" cy="225" r="24" class="box"/>
+  <text x="475" y="220" class="center">+</text>
+  <text x="475" y="240" class="center">−</text>
+  <text x="438" y="225" class="center small">12 V</text>
+  <text x="545" y="152" class="center small">SW_IND</text>
+  <rect x="616" y="185" width="28" height="80" class="box"/>
+  <text x="580" y="228" class="center small">0.5H</text>
+  <rect x="706" y="192" width="58" height="66" rx="4" class="box" style="stroke: #2563eb"/>
+  <text x="735" y="218" class="center small" style="fill: #2563eb">续流 D</text>
+  <text x="735" y="238" class="center small" style="fill: #2563eb">或 RC</text>
+
+  <circle id="JACK_CH1P" data-jack="ins-dc-power.CH1P" cx="475" cy="162" r="4.5" class="jack"/>
+  <circle id="JACK_CH1N" data-jack="ins-dc-power.CH1N" cx="475" cy="288" r="4.5" class="jack"/>
+  <circle id="JACK_IND_IN" data-jack="rlc1.IND_IN" cx="515" cy="130" r="4.5" class="jack"/>
+  <circle id="JACK_IND_1" data-jack="rlc1.IND_1" cx="630" cy="155" r="4.5" class="jack"/>
+  <circle id="JACK_IND_2" data-jack="rlc1.IND_2" cx="630" cy="295" r="4.5" class="jack"/>
+  <text x="515" y="114" class="center small">SW进</text>
+  <text x="612" y="150" class="small" text-anchor="end">L+</text>
+  <text x="612" y="302" class="small" text-anchor="end">L−</text>
+
+  <text x="410" y="392" class="center small">示波器 CH1 接 L+、GND 接 L−，下降沿单次触发捕捉 SW_IND 断开瞬间的反向尖峰。</text>
+  <text x="410" y="420" class="center small">本项目自绘离线原理图 · 悬停或点击插孔与 3D 台面双向联动</text>
+</svg>

@@ -379,7 +379,9 @@ test('T0.16 P1：参考接线虚线、导线右键菜单、仪表特写高亮 2D
 
   // Close-up labels: persistent anti-overlap labels show silkscreen names on the focused device (T1.9B).
   await focusDevice(page, 'ins-dc-power')
-  await expect(page.locator('[data-persistent-jack-label]').first()).toBeVisible()
+  const powerLabels = page.locator('[data-persistent-jack-label^="ins-dc-power."]')
+  await expect(powerLabels.first()).toBeVisible()
+  await expect.poll(() => powerLabels.count()).toBeGreaterThanOrEqual(4)
   const labelCount = await page.locator('[data-persistent-jack-label]').count()
   expect(labelCount).toBeGreaterThanOrEqual(4)
   expect(labelCount).toBeLessThanOrEqual(28)

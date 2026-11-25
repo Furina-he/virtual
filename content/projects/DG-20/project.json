@@ -1,0 +1,89 @@
+{
+  "id": "DG-20",
+  "group": "暂态电路",
+  "title": "微分电路和积分电路及其应用（综合）",
+  "type": "integrated",
+  "modules": [{ "instanceId": "rlc1", "moduleId": "mod-rlc-transient", "slot": "SLOT_BOX_L1" }],
+  "allowedInstruments": ["ins-func-gen", "ins-oscilloscope"],
+  "reference": {
+    "nets": [
+      ["ins-func-gen.CH1", "rlc1.TC_1"],
+      ["rlc1.TC_2", "rlc1.TR_1"],
+      ["rlc1.TR_2", "ins-func-gen.GND"]
+    ],
+    "measurePoints": [
+      { "id": "u_in_diff", "kind": "waveform", "quantity": "vpp", "between": ["rlc1.TC_1", "rlc1.TR_2"] },
+      { "id": "u_out_diff", "kind": "waveform", "quantity": "vpp", "between": ["rlc1.TR_1", "rlc1.TR_2"] },
+      { "id": "u_in_int", "kind": "waveform", "quantity": "vpp", "between": ["rlc1.TR_1", "rlc1.TC_2"] },
+      { "id": "u_out_int", "kind": "waveform", "quantity": "vpp", "between": ["rlc1.TC_1", "rlc1.TC_2"] }
+    ]
+  },
+  "steps": [
+    {
+      "id": "prepare",
+      "text": "保持断电，从仪表柜拖出双通道函数信号发生器和双通道数字示波器；将挂箱暂态电阻 Rt 设 1 kΩ、暂态电容 Ct 设 0.01 µF（τ = 10.5 µs），信号发生器 CH1 设为 500 Hz、4 Vpp 零偏置对称方波（脉宽 tp = 1000 µs ≈ 95 τ）。",
+      "measurePoints": [],
+      "dataTable": "wave_shaping"
+    },
+    {
+      "id": "differentiator",
+      "text": "阶段 1（RC 微分电路，τ ≪ tp，电阻端输出）：断电按图连接 ins-func-gen.CH1→Ct1、Ct2→Rt1、Rt2→GND；示波器 CH1 接 Ct1、CH2 接 Rt1、GND 接 Rt2，点击“检查接线”。上电观测方波上升/下降沿被变换为尖锐正负双向尖脉冲（Vpp ≈ 7.6 V，接近输入峰峰值 2 倍），记录至第 1 行；将 Ct 切至 0.1 µF（τ = 105 µs）观察脉冲变宽并记入第 2 行。",
+      "measurePoints": ["u_in_diff", "u_out_diff"],
+      "checkWiring": true,
+      "expect": { "measurePoint": "u_out_diff", "min": 6.5, "max": 8.4 },
+      "dataTable": "wave_shaping"
+    },
+    {
+      "id": "integrator",
+      "text": "阶段 2（RC 积分电路，τ ≫ tp，电容端输出）：断电对调 R 与 C 顺序，改为 ins-func-gen.CH1→Rt1、Rt2→Ct1、Ct2→GND；示波器 CH1 接 Rt1、CH2 接 Ct1、GND 接 Ct2，点击“检查接线”。设 Rt = 10 kΩ、Ct = 0.1 µF（τ = 1.005 ms），信号源调至 2 kHz（tp = 0.25 ms ≈ 0.25 τ）、4 Vpp 方波；上电观测输出变换为线性度良好的三角波（Vpp ≈ 0.50 V），记录至第 3 行；降频至 500 Hz（tp ≈ τ）对比弧形失真并记入第 4 行。",
+      "referenceNets": [
+        ["ins-func-gen.CH1", "rlc1.TR_1"],
+        ["rlc1.TR_2", "rlc1.TC_1"],
+        ["rlc1.TC_2", "ins-func-gen.GND"]
+      ],
+      "measurePoints": ["u_in_int", "u_out_int"],
+      "checkWiring": true,
+      "expect": { "measurePoint": "u_out_int", "min": 0.38, "max": 0.65 },
+      "dataTable": "wave_shaping"
+    },
+    {
+      "id": "analyse",
+      "text": "断电后对比 τ/tp 比例变化对波形变换（方波→尖脉冲 / 方波→三角波）及输出幅度的定量影响，完成思考题。",
+      "measurePoints": [],
+      "recordTable": "wave_shaping",
+      "dataTable": "wave_shaping"
+    }
+  ],
+  "dataTables": [
+    {
+      "id": "wave_shaping",
+      "title": "RC 微分电路与积分电路 τ/tp 条件及输出幅值实测记录（输入方波 4 Vpp）",
+      "rows": 4,
+      "columns": [
+        { "id": "tau_over_tp", "title": "时间常数比 τ/tp", "unit": "" },
+        { "id": "u_diff", "title": "微分输出 Vpp", "unit": "V", "measurePoint": "u_out_diff", "captureSteps": ["differentiator"] },
+        { "id": "u_int", "title": "积分输出 Vpp", "unit": "V", "measurePoint": "u_out_int", "captureSteps": ["integrator"] }
+      ],
+      "sanity": [
+        { "column": "tau_over_tp", "min": 0.005, "max": 10, "message": "微分电路满足 τ/tp ≪ 1（如 0.01），积分电路满足 τ/tp ≫ 1（如 4.0）。" },
+        { "column": "u_diff", "min": 4.0, "max": 8.5, "message": "4 Vpp 对称方波经微分后正负尖峰总峰峰值可达约 7.6 V。" },
+        { "column": "u_int", "min": 0.2, "max": 3.5, "message": "τ/tp = 4 时积分三角波峰峰值约 0.50 V，随 τ/tp 减小幅值增大但线性度变差。" }
+      ]
+    }
+  ],
+  "charts": [
+    {
+      "id": "shaping-amplitude-plot",
+      "title": "微分与积分输出幅值随 τ/tp 变化关系",
+      "table": "wave_shaping",
+      "x": "tau_over_tp",
+      "y": ["u_diff", "u_int"],
+      "kind": "scatter"
+    }
+  ],
+  "questions": [
+    "为什么同一只电阻与同一只电容组成的 RC 串联电路，只需改变输出取样元件与 τ/tp 比例就能分别实现微分和积分功能？",
+    "对称 4 Vpp 方波（±2 V）输入微分电路时，为什么电阻两端输出的正负尖脉冲总峰峰值接近 8 V（2 倍于输入 Vpp）？",
+    "积分电路欲获得线性度更好的三角波，为什么增大 τ/tp 会同时导致输出三角波幅度明显减小？实际工程中常用什么电路兼顾线性度与幅度？"
+  ]
+}

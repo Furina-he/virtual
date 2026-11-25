@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 440" role="img" aria-labelledby="title desc">
+  <title id="title">DG-20 RC 微分电路与积分电路原理图</title>
+  <desc id="desc">左侧为 C 串联输入、R 对地输出的 RC 微分电路（方波变正负尖脉冲）；右侧为 R 串联输入、C 对地输出的 RC 积分电路（方波变三角波）。</desc>
+  <style>
+    text { font-family: "Noto Sans SC Variable", sans-serif; fill: #18181b; font-size: 14px; }
+    .wire { fill: none; stroke: #18181b; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    .box { fill: #ffffff; stroke: #18181b; stroke-width: 2; }
+    .jack { fill: #ffffff; stroke: #18181b; stroke-width: 2; cursor: pointer; }
+    .small { font-size: 12.5px; fill: #52525b; }
+    .center { text-anchor: middle; }
+  </style>
+  <rect width="800" height="440" fill="#ffffff"/>
+  <text x="400" y="32" class="center" style="font-size: 20px; font-weight: 600">DG-20 无源 RC 微分电路与积分电路波形变换</text>
+  <text x="400" y="56" class="center small">mod-rlc-transient · 左：微分电路 (τ ≪ tp，电阻输出) · 右：积分电路 (τ ≫ tp，电容输出)</text>
+
+  <!-- 左：微分电路 -->
+  <text x="200" y="90" class="center" style="font-weight: 600">阶段 1：RC 微分电路（方波 → 尖脉冲）</text>
+  <g class="wire">
+    <path d="M72 130 H182 M202 130 H320 V180 M320 260 V310 H72 V250 M72 190 V130"/>
+    <path d="M182 108 V152 M202 108 V152"/>
+  </g>
+  <circle cx="72" cy="220" r="26" class="box"/>
+  <path d="M58 226 H65 V214 H79 V226 H86" class="wire"/>
+  <text x="192" y="96" class="center small">Ct 0.01µF</text>
+  <rect x="308" y="180" width="24" height="80" class="box"/>
+  <text x="276" y="224" class="center small">Rt 1kΩ</text>
+
+  <circle id="JACK_CH1" data-jack="generator1.CH1" cx="72" cy="158" r="4.5" class="jack"/>
+  <circle id="JACK_GND" data-jack="generator1.GND" cx="72" cy="282" r="4.5" class="jack"/>
+  <circle id="JACK_TC_1" data-jack="rlc1.TC_1" cx="132" cy="130" r="4.5" class="jack"/>
+  <circle id="JACK_TC_2" data-jack="rlc1.TC_2" cx="255" cy="130" r="4.5" class="jack"/>
+  <circle id="JACK_TR_1" data-jack="rlc1.TR_1" cx="320" cy="158" r="4.5" class="jack"/>
+  <circle id="JACK_TR_2" data-jack="rlc1.TR_2" cx="320" cy="282" r="4.5" class="jack"/>
+  <text x="342" y="162" class="small">uo (CH2)</text>
+  <text x="342" y="286" class="small">GND</text>
+
+  <line x1="400" y1="84" x2="400" y2="345" stroke="#d4d4d8" stroke-width="1.5" stroke-dasharray="4 4"/>
+
+  <!-- 右：积分电路 -->
+  <text x="605" y="90" class="center" style="font-weight: 600">阶段 2：RC 积分电路（方波 → 三角波）</text>
+  <g class="wire">
+    <path d="M475 130 H555 M635 130 H715 V200 M715 220 V310 H475 V250 M475 190 V130"/>
+    <path d="M693 200 H737 M693 220 H737"/>
+  </g>
+  <circle cx="475" cy="220" r="26" class="box"/>
+  <path d="M461 226 H468 V214 H482 V226 H489" class="wire"/>
+  <rect x="555" y="118" width="80" height="24" class="box"/>
+  <text x="595" y="106" class="center small">Rt 10 kΩ</text>
+  <text x="664" y="214" class="center small">Ct 0.1µF</text>
+  <text x="742" y="162" class="small">uo (CH2)</text>
+  <text x="742" y="286" class="small">GND</text>
+
+  <text x="400" y="384" class="center small">微分：500 Hz, τ=10.5 µs → 正负尖脉冲 (≈7.6 Vpp)；积分：2 kHz, τ=1.0 ms → 三角波 (≈0.50 Vpp)。</text>
+  <text x="400" y="412" class="center small">本项目自绘离线原理图 · 悬停或点击插孔与 3D 台面双向联动</text>
+</svg>

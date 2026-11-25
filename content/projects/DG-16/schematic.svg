@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 450" role="img" aria-labelledby="title desc">
+  <title id="title">DG-16 三相三线星形与三角形接法原理图</title>
+  <desc id="desc">左侧为三相三线星形 Y 接法（A2-B2-C2 短接），右侧为三相三线三角形 △ 接法（A2-B1、B2-C1、C2-Av 首尾相接），线电流插座测 IL，相电流插座测 Ip。</desc>
+  <style>
+    text { font-family: "Noto Sans SC Variable", sans-serif; fill: #18181b; font-size: 14px; }
+    .wire { fill: none; stroke: #18181b; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    .box { fill: #ffffff; stroke: #18181b; stroke-width: 2; }
+    .jack { fill: #ffffff; stroke: #18181b; stroke-width: 2; cursor: pointer; }
+    .small { font-size: 12.5px; fill: #52525b; }
+    .center { text-anchor: middle; }
+  </style>
+  <rect width="820" height="450" fill="#ffffff"/>
+  <text x="410" y="32" class="center" style="font-size: 20px; font-weight: 600">DG-16 三相三线对称负载星形（Y）与三角形（△）接法</text>
+  <text x="410" y="56" class="center small">mod-3ph-lamp · U相 = 127 V / U线 = 220 V · KA = KB = KC = 3</text>
+
+  <!-- 左：Y 接 -->
+  <text x="200" y="90" class="center" style="font-weight: 600">阶段 1：星形（Y）接法</text>
+  <g class="wire">
+    <path d="M56 130 H120 M155 130 H215 M275 130 H330 V310"/>
+    <path d="M56 220 H215 M275 220 H330"/>
+    <path d="M56 310 H215 M275 310 H330"/>
+    <path d="M120 130 H155" stroke-dasharray="3 3"/>
+  </g>
+  <rect x="215" y="118" width="60" height="24" class="box"/>
+  <text x="245" y="135" class="center small">LA</text>
+  <rect x="215" y="208" width="60" height="24" class="box"/>
+  <text x="245" y="225" class="center small">LB</text>
+  <rect x="215" y="298" width="60" height="24" class="box"/>
+  <text x="245" y="315" class="center small">LC</text>
+  <circle id="JACK_U" data-jack="ins-ac-power.U" cx="56" cy="130" r="4.5" class="jack"/>
+  <circle id="JACK_V" data-jack="ins-ac-power.V" cx="56" cy="220" r="4.5" class="jack"/>
+  <circle id="JACK_W" data-jack="ins-ac-power.W" cx="56" cy="310" r="4.5" class="jack"/>
+  <circle id="JACK_U_IN" data-jack="lamp3.U_IN" cx="92" cy="130" r="4.5" class="jack"/>
+  <circle id="JACK_IA_A" data-jack="lamp3.IA_A" cx="120" cy="130" r="4.5" class="jack"/>
+  <circle id="JACK_IA_B" data-jack="lamp3.IA_B" cx="155" cy="130" r="4.5" class="jack"/>
+  <circle id="JACK_A_VTX" data-jack="lamp3.A_VTX" cx="178" cy="130" r="4.5" class="jack"/>
+  <circle id="JACK_A1" data-jack="lamp3.A1" cx="202" cy="130" r="4.5" class="jack"/>
+  <circle id="JACK_A2" data-jack="lamp3.A2" cx="295" cy="130" r="4.5" class="jack"/>
+  <circle id="JACK_V_IN" data-jack="lamp3.V_IN" cx="92" cy="220" r="4.5" class="jack"/>
+  <circle id="JACK_B1" data-jack="lamp3.B1" cx="202" cy="220" r="4.5" class="jack"/>
+  <circle id="JACK_B2" data-jack="lamp3.B2" cx="295" cy="220" r="4.5" class="jack"/>
+  <circle id="JACK_W_IN" data-jack="lamp3.W_IN" cx="92" cy="310" r="4.5" class="jack"/>
+  <circle id="JACK_C1" data-jack="lamp3.C1" cx="202" cy="310" r="4.5" class="jack"/>
+  <circle id="JACK_C2" data-jack="lamp3.C2" cx="295" cy="310" r="4.5" class="jack"/>
+  <text x="138" y="152" class="center small">I_L</text>
+
+  <line x1="410" y1="84" x2="410" y2="355" stroke="#d4d4d8" stroke-width="1.5" stroke-dasharray="4 4"/>
+
+  <!-- 右：△ 接 -->
+  <text x="615" y="90" class="center" style="font-weight: 600">阶段 2：三角形（△）接法</text>
+  <g class="wire">
+    <path d="M460 130 H615 L725 310 L505 310 L615 130"/>
+    <path d="M460 220 H545 L725 310"/>
+    <path d="M460 310 H505"/>
+  </g>
+  <circle id="JACK_IPA_A" data-jack="lamp3.IPA_A" cx="645" cy="180" r="4.5" class="jack"/>
+  <circle id="JACK_IPA_B" data-jack="lamp3.IPA_B" cx="662" cy="208" r="4.5" class="jack"/>
+  <text x="688" y="196" class="small">LA (I_p)</text>
+  <text x="615" y="334" class="center small">LB (B1-B2)</text>
+  <text x="530" y="210" class="small" text-anchor="end">LC</text>
+  <text x="615" y="116" class="center small">Av / C2</text>
+  <text x="742" y="314" class="small">A2 / B1</text>
+  <text x="488" y="330" class="center small">B2 / C1</text>
+
+  <text x="410" y="392" class="center small">Y 接：U_L = √3·U_p = 220 V，I_L = I_p ≈ 0.315 A；△ 接：U_p = U_L = 220 V，I_L = √3·I_p ≈ 0.945 A。</text>
+  <text x="410" y="420" class="center small">本项目自绘离线原理图 · 悬停或点击插孔与 3D 台面双向联动</text>
+</svg>

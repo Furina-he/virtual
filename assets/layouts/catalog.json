@@ -4852,7 +4852,8 @@
       "controls": [
         { "id": "KC1", "label": "KC1 1µF", "kind": "switch", "x": 106, "y": 356, "param": "kc1", "labelY": 374 },
         { "id": "KC2", "label": "KC2 2.2µF", "kind": "switch", "x": 172, "y": 356, "param": "kc2", "labelY": 374 },
-        { "id": "KC3", "label": "KC3 4.7µF", "kind": "switch", "x": 238, "y": 356, "param": "kc3", "labelY": 374 }
+        { "id": "KC3", "label": "KC3 4.7µF", "kind": "switch", "x": 238, "y": 356, "param": "kc3", "labelY": 374 },
+        { "id": "SW_START", "label": "启辉状态", "kind": "knob", "x": 208, "y": 176, "radiusMm": 7, "param": "sw_start", "labelY": 192 }
       ],
       "screens": [],
       "panel": {
@@ -5054,6 +5055,254 @@
           { "text": "0~100℃", "x": 168, "y": 432, "size": 2.9 }
         ],
         "footer": "DC 元件箱 · 二极管/稳压管测绘请串接 Rlim 限流"
+      }
+    },
+    {
+      "estimatedDimensions": true,
+      "id": "mod-phase-dimmer",
+      "name": "阻容移相调光实验挂箱",
+      "kind": "module",
+      "bodyStyle": "module",
+      "dimensionsMm": [145, 470, 55],
+      "model": "content/modules/mod-phase-dimmer/module.glb",
+      "textureSize": [640, 2048],
+      "dimensionNote": "Panel 145 x 470 mm and 55 mm housing depth follow the DGJ-3 small module box envelope.",
+      "jacks": [
+        { "id": "AC_L", "label": "电源 L", "silkLabel": "L", "x": 36, "y": 72, "color": "red", "kind": "banana4" },
+        { "id": "AC_N", "label": "电源 N", "silkLabel": "N", "x": 109, "y": 72, "color": "black", "kind": "banana4" },
+        { "id": "LP_1", "label": "灯泡端 1 (25W)", "silkLabel": "LP1", "x": 36, "y": 134, "color": "yellow", "kind": "banana4" },
+        { "id": "LP_2", "label": "灯泡端 2 (25W)", "silkLabel": "LP2", "x": 109, "y": 134, "color": "yellow", "kind": "banana4" },
+        { "id": "MT2", "label": "晶闸管 MT2", "silkLabel": "MT2", "x": 26, "y": 404, "color": "yellow", "kind": "banana4" },
+        { "id": "MT1", "label": "晶闸管 MT1", "silkLabel": "MT1", "x": 118, "y": 404, "color": "black", "kind": "banana4" },
+        { "id": "GATE", "label": "晶闸管门极 G", "silkLabel": "G", "x": 72, "y": 404, "color": "yellow", "kind": "banana4" },
+        { "id": "RC_IN", "label": "移相网络输入", "silkLabel": "IN", "x": 26, "y": 214, "color": "yellow", "kind": "banana4" },
+        { "id": "RC_MID", "label": "移相电容节点 C", "silkLabel": "C点", "x": 72, "y": 214, "color": "yellow", "kind": "banana4" },
+        { "id": "RC_N", "label": "移相公共端", "silkLabel": "COM", "x": 118, "y": 214, "color": "black", "kind": "banana4" },
+        { "id": "DB_1", "label": "DB3 触发端 1", "silkLabel": "DB1", "x": 36, "y": 324, "color": "yellow", "kind": "banana4" },
+        { "id": "DB_2", "label": "DB3 触发端 2", "silkLabel": "DB2", "x": 109, "y": 324, "color": "yellow", "kind": "banana4" }
+      ],
+      "controls": [
+        { "id": "RP_DIM", "label": "移相电位器 RP", "kind": "knob", "x": 72, "y": 258, "radiusMm": 9, "param": "rp_dim", "labelY": 278 }
+      ],
+      "screens": [],
+      "panel": {
+        "title": "阻容移相调光实验",
+        "titleSize": 4.8,
+        "frames": [
+          { "x": 6, "y": 26, "width": 133, "height": 134, "label": "220 V 输入与白炽灯" },
+          { "x": 6, "y": 170, "width": 133, "height": 122, "label": "RC 移相网络" },
+          { "x": 6, "y": 300, "width": 133, "height": 146, "label": "DB3 + BTA06 晶闸管" }
+        ],
+        "lines": [
+          { "points": [[26, 214], [118, 214]] },
+          { "points": [[36, 324], [109, 324]] }
+        ],
+        "symbols": [
+          { "kind": "resistor", "x": 72, "y": 134, "length": 44, "label": "220V 25W" },
+          { "kind": "diode", "x": 72, "y": 324, "length": 44, "label": "DB3 32V" }
+        ],
+        "texts": [
+          { "text": "C=0.1 µF", "x": 100, "y": 234, "size": 3.0 },
+          { "text": "BTA06 双向晶闸管", "x": 72, "y": 374, "size": 3.2 }
+        ],
+        "footer": "AC 220 V 调光 · 先断电接线"
+      }
+    },
+    {
+      "estimatedDimensions": true,
+      "id": "mod-3ph-lamp",
+      "name": "三相灯组负载实验挂箱",
+      "kind": "module",
+      "bodyStyle": "module",
+      "dimensionsMm": [290, 470, 55],
+      "model": "content/modules/mod-3ph-lamp/module.glb",
+      "textureSize": [1264, 2048],
+      "dimensionNote": "Panel 290 x 470 mm and 55 mm housing depth follow the DGJ-3 large module box envelope.",
+      "jacks": [
+        { "id": "U_IN", "label": "U 相输入", "silkLabel": "U进", "x": 22, "y": 76, "color": "red", "kind": "banana4" },
+        { "id": "IA_A", "label": "U 线电流+", "silkLabel": "IU+", "x": 52, "y": 76, "color": "green", "kind": "banana4" },
+        { "id": "IA_B", "label": "U 线电流−", "silkLabel": "", "x": 76, "y": 76, "color": "green", "kind": "banana4" },
+        { "id": "A_VTX", "label": "A 相节点", "silkLabel": "Av", "x": 108, "y": 76, "color": "yellow", "kind": "banana4" },
+        { "id": "IPA_A", "label": "A 相电流+", "silkLabel": "IA+", "x": 138, "y": 76, "color": "green", "kind": "banana4" },
+        { "id": "IPA_B", "label": "A 相电流−", "silkLabel": "", "x": 162, "y": 76, "color": "green", "kind": "banana4" },
+        { "id": "A1", "label": "A 组首端 A1", "silkLabel": "A1", "x": 196, "y": 76, "color": "yellow", "kind": "banana4" },
+        { "id": "A2", "label": "A 组尾端 A2", "silkLabel": "A2", "x": 266, "y": 76, "color": "yellow", "kind": "banana4" },
+        { "id": "V_IN", "label": "V 相输入", "silkLabel": "V进", "x": 28, "y": 178, "color": "red", "kind": "banana4" },
+        { "id": "IB_A", "label": "V 线电流+", "silkLabel": "IV+", "x": 76, "y": 178, "color": "green", "kind": "banana4" },
+        { "id": "IB_B", "label": "V 线电流−", "silkLabel": "", "x": 106, "y": 178, "color": "green", "kind": "banana4" },
+        { "id": "B1", "label": "B 组首端 B1", "silkLabel": "B1", "x": 176, "y": 178, "color": "yellow", "kind": "banana4" },
+        { "id": "B2", "label": "B 组尾端 B2", "silkLabel": "B2", "x": 262, "y": 178, "color": "yellow", "kind": "banana4" },
+        { "id": "W_IN", "label": "W 相输入", "silkLabel": "W进", "x": 28, "y": 280, "color": "red", "kind": "banana4" },
+        { "id": "IC_A", "label": "W 线电流+", "silkLabel": "IW+", "x": 76, "y": 280, "color": "green", "kind": "banana4" },
+        { "id": "IC_B", "label": "W 线电流−", "silkLabel": "", "x": 106, "y": 280, "color": "green", "kind": "banana4" },
+        { "id": "C1", "label": "C 组首端 C1", "silkLabel": "C1", "x": 176, "y": 280, "color": "yellow", "kind": "banana4" },
+        { "id": "C2", "label": "C 组尾端 C2", "silkLabel": "C2", "x": 262, "y": 280, "color": "yellow", "kind": "banana4" },
+        { "id": "N_STAR", "label": "负载中性点 N'", "silkLabel": "N'", "x": 36, "y": 394, "color": "black", "kind": "banana4" },
+        { "id": "IN_A", "label": "中线电流+", "silkLabel": "IN+", "x": 154, "y": 394, "color": "green", "kind": "banana4" },
+        { "id": "IN_B", "label": "中线电流−", "silkLabel": "", "x": 186, "y": 394, "color": "green", "kind": "banana4" },
+        { "id": "N_OUT", "label": "中线电源端 N", "silkLabel": "N", "x": 254, "y": 394, "color": "black", "kind": "banana4" }
+      ],
+      "controls": [
+        { "id": "KA", "label": "A 相灯数", "kind": "knob", "x": 231, "y": 114, "radiusMm": 8, "param": "ka", "labelY": 132 },
+        { "id": "KB", "label": "B 相灯数", "kind": "knob", "x": 219, "y": 216, "radiusMm": 8, "param": "kb", "labelY": 234 },
+        { "id": "KC", "label": "C 相灯数", "kind": "knob", "x": 219, "y": 318, "radiusMm": 8, "param": "kc", "labelY": 336 },
+        { "id": "KN", "label": "中线开关 KN", "kind": "switch", "x": 96, "y": 394, "param": "kn", "labelY": 414 }
+      ],
+      "screens": [],
+      "panel": {
+        "title": "三相灯组负载实验挂箱",
+        "titleSize": 5.5,
+        "frames": [
+          { "x": 8, "y": 24, "width": 274, "height": 118, "label": "A 相灯组（3×40 W / 220 V）" },
+          { "x": 8, "y": 148, "width": 274, "height": 96, "label": "B 相灯组（3×40 W / 220 V）" },
+          { "x": 8, "y": 250, "width": 274, "height": 96, "label": "C 相灯组（3×40 W / 220 V）" },
+          { "x": 8, "y": 354, "width": 274, "height": 94, "label": "中线开关 KN 与中线电流插座" }
+        ],
+        "lines": [
+          { "points": [[22, 76], [266, 76]] },
+          { "points": [[28, 178], [262, 178]] },
+          { "points": [[28, 280], [262, 280]] },
+          { "points": [[36, 394], [254, 394]] }
+        ],
+        "symbols": [
+          { "kind": "resistor", "x": 231, "y": 76, "length": 44, "label": "LA (1~3盏)" },
+          { "kind": "resistor", "x": 219, "y": 178, "length": 48, "label": "LB (1~3盏)" },
+          { "kind": "resistor", "x": 219, "y": 280, "length": 48, "label": "LC (1~3盏)" }
+        ],
+        "texts": [
+          { "text": "Y 接：A2-B2-C2 短接；△ 接：A2-B1、B2-C1、C2-Av", "x": 145, "y": 438, "size": 3.0 }
+        ],
+        "footer": "三相四线 Y / 三相三线 Y·△ 通用负载"
+      }
+    },
+    {
+      "estimatedDimensions": true,
+      "id": "mod-transformer",
+      "name": "互感与铁芯变压器实验挂箱",
+      "kind": "module",
+      "bodyStyle": "module",
+      "dimensionsMm": [145, 470, 55],
+      "model": "content/modules/mod-transformer/module.glb",
+      "textureSize": [640, 2048],
+      "dimensionNote": "Panel 145 x 470 mm and 55 mm housing depth follow the DGJ-3 small module box envelope.",
+      "jacks": [
+        { "id": "M1_DOT", "label": "线圈 1 同名端 1*", "silkLabel": "1*", "x": 34, "y": 72, "color": "red", "kind": "banana4" },
+        { "id": "M1_END", "label": "线圈 1 尾端 1", "silkLabel": "1", "x": 34, "y": 136, "color": "yellow", "kind": "banana4" },
+        { "id": "M2_DOT", "label": "线圈 2 同名端 2*", "silkLabel": "2*", "x": 111, "y": 72, "color": "red", "kind": "banana4" },
+        { "id": "M2_END", "label": "线圈 2 尾端 2", "silkLabel": "2", "x": 111, "y": 136, "color": "yellow", "kind": "banana4" },
+        { "id": "IM1_IN", "label": "电流支路入口", "silkLabel": "I进", "x": 22, "y": 198, "color": "yellow", "kind": "banana4" },
+        { "id": "IM1_A", "label": "电流插座 I+", "silkLabel": "I+", "x": 54, "y": 198, "color": "green", "kind": "banana4" },
+        { "id": "IM1_B", "label": "电流插座 I−", "silkLabel": "", "x": 84, "y": 198, "color": "green", "kind": "banana4" },
+        { "id": "IM1_OUT", "label": "电流支路出口", "silkLabel": "I出", "x": 122, "y": 198, "color": "yellow", "kind": "banana4" },
+        { "id": "TP_1", "label": "变压器原边 220V+", "silkLabel": "P1", "x": 34, "y": 294, "color": "red", "kind": "banana4" },
+        { "id": "TP_2", "label": "变压器原边 220V−", "silkLabel": "P2", "x": 34, "y": 358, "color": "black", "kind": "banana4" },
+        { "id": "TS_1", "label": "变压器副边 36V+", "silkLabel": "S1", "x": 111, "y": 294, "color": "yellow", "kind": "banana4" },
+        { "id": "TS_2", "label": "变压器副边 36V−", "silkLabel": "S2", "x": 111, "y": 358, "color": "black", "kind": "banana4" },
+        { "id": "TL_1", "label": "副边负载端 1", "silkLabel": "RL1", "x": 28, "y": 420, "color": "yellow", "kind": "banana4" },
+        { "id": "TL_2", "label": "副边负载端 2", "silkLabel": "RL2", "x": 117, "y": 420, "color": "yellow", "kind": "banana4" }
+      ],
+      "controls": [
+        { "id": "SW_TLOAD", "label": "副边负载 RL", "kind": "knob", "x": 72, "y": 420, "radiusMm": 8, "param": "t_load", "labelY": 440 }
+      ],
+      "screens": [],
+      "panel": {
+        "title": "互感与铁芯变压器",
+        "titleSize": 4.8,
+        "frames": [
+          { "x": 6, "y": 26, "width": 133, "height": 134, "label": "互感线圈 L1 / L2" },
+          { "x": 6, "y": 168, "width": 133, "height": 58, "label": "常闭电流插座" },
+          { "x": 6, "y": 236, "width": 133, "height": 216, "label": "220V/36V 铁芯变压器" }
+        ],
+        "lines": [
+          { "points": [[34, 72], [34, 136]] },
+          { "points": [[111, 72], [111, 136]] },
+          { "points": [[22, 198], [122, 198]] },
+          { "points": [[34, 294], [34, 358]] },
+          { "points": [[111, 294], [111, 358]] },
+          { "points": [[70, 294], [70, 358]] },
+          { "points": [[75, 294], [75, 358]] }
+        ],
+        "symbols": [
+          { "kind": "resistor", "x": 34, "y": 104, "length": 36, "angle": 90, "label": "L1", "labelX": 52, "labelY": 106 },
+          { "kind": "resistor", "x": 111, "y": 104, "length": 36, "angle": 90, "label": "L2", "labelX": 92, "labelY": 106 }
+        ],
+        "texts": [
+          { "text": "M=0.12H  k=0.60", "x": 72, "y": 150, "size": 3.0 },
+          { "text": "220V : 36V", "x": 72, "y": 274, "size": 3.2 }
+        ],
+        "footer": "互感同名端与变压器特性"
+      }
+    },
+    {
+      "estimatedDimensions": true,
+      "id": "mod-rlc-transient",
+      "name": "动态电路与 RLC 综合实验挂箱",
+      "kind": "module",
+      "bodyStyle": "module",
+      "dimensionsMm": [290, 470, 55],
+      "model": "content/modules/mod-rlc-transient/module.glb",
+      "textureSize": [1264, 2048],
+      "dimensionNote": "Panel 290 x 470 mm and 55 mm housing depth follow the DGJ-3 large module box envelope.",
+      "jacks": [
+        { "id": "RS_1", "label": "谐振电阻左 Rs1", "silkLabel": "Rs1", "x": 24, "y": 66, "color": "yellow", "kind": "banana4" },
+        { "id": "RS_2", "label": "谐振电阻右 Rs2", "silkLabel": "Rs2", "x": 78, "y": 66, "color": "yellow", "kind": "banana4" },
+        { "id": "LS_1", "label": "空心电感左 L1 (10mH)", "silkLabel": "L1", "x": 116, "y": 66, "color": "yellow", "kind": "banana4" },
+        { "id": "LS_2", "label": "空心电感右 L2 (10mH)", "silkLabel": "L2", "x": 170, "y": 66, "color": "yellow", "kind": "banana4" },
+        { "id": "CS_1", "label": "谐振电容左 C1 (0.1µF)", "silkLabel": "C1", "x": 208, "y": 66, "color": "yellow", "kind": "banana4" },
+        { "id": "CS_2", "label": "谐振电容右 C2 (0.1µF)", "silkLabel": "C2", "x": 264, "y": 66, "color": "yellow", "kind": "banana4" },
+        { "id": "BR_AC1", "label": "整流桥交流端 ~1", "silkLabel": "~1", "x": 24, "y": 186, "color": "yellow", "kind": "banana4" },
+        { "id": "BR_AC2", "label": "整流桥交流端 ~2", "silkLabel": "~2", "x": 66, "y": 186, "color": "yellow", "kind": "banana4" },
+        { "id": "BR_P", "label": "整流桥直流输出 +", "silkLabel": "桥+", "x": 126, "y": 186, "color": "red", "kind": "banana4" },
+        { "id": "FL_OUT", "label": "滤波负载输出 Vo", "silkLabel": "Vo", "x": 212, "y": 186, "color": "yellow", "kind": "banana4" },
+        { "id": "BR_N", "label": "整流桥公共端 −", "silkLabel": "桥−", "x": 264, "y": 186, "color": "black", "kind": "banana4" },
+        { "id": "IND_IN", "label": "断电开关入口", "silkLabel": "SW进", "x": 34, "y": 298, "color": "red", "kind": "banana4" },
+        { "id": "IND_1", "label": "大电感线圈上端 L+", "silkLabel": "L+", "x": 126, "y": 298, "color": "yellow", "kind": "banana4" },
+        { "id": "IND_2", "label": "大电感线圈下端 L−", "silkLabel": "L−", "x": 254, "y": 298, "color": "black", "kind": "banana4" },
+        { "id": "TR_1", "label": "暂态电阻左 Rt1", "silkLabel": "Rt1", "x": 28, "y": 400, "color": "yellow", "kind": "banana4" },
+        { "id": "TR_2", "label": "暂态电阻右 Rt2", "silkLabel": "Rt2", "x": 116, "y": 400, "color": "yellow", "kind": "banana4" },
+        { "id": "TC_1", "label": "暂态电容左 Ct1", "silkLabel": "Ct1", "x": 174, "y": 400, "color": "yellow", "kind": "banana4" },
+        { "id": "TC_2", "label": "暂态电容右 Ct2", "silkLabel": "Ct2", "x": 262, "y": 400, "color": "yellow", "kind": "banana4" }
+      ],
+      "controls": [
+        { "id": "SW_RLC_R", "label": "谐振电阻 Rs", "kind": "knob", "x": 51, "y": 106, "radiusMm": 8, "param": "r_ser", "labelY": 124 },
+        { "id": "SW_FILT", "label": "滤波方式", "kind": "knob", "x": 169, "y": 222, "radiusMm": 8, "param": "sw_filt", "labelY": 240 },
+        { "id": "SW_IND", "label": "电感通断", "kind": "switch", "x": 80, "y": 328, "param": "sw_ind", "labelY": 344 },
+        { "id": "SW_SUPP", "label": "尖峰抑制", "kind": "knob", "x": 190, "y": 328, "radiusMm": 8, "param": "sw_supp", "labelY": 346 },
+        { "id": "SW_TAU_R", "label": "暂态电阻 Rt", "kind": "knob", "x": 72, "y": 430, "radiusMm": 7, "param": "r_tau", "labelY": 446 },
+        { "id": "SW_TAU_C", "label": "暂态电容 Ct", "kind": "switch", "x": 218, "y": 430, "param": "c_tau", "labelY": 446 }
+      ],
+      "screens": [],
+      "panel": {
+        "title": "动态电路与 RLC 综合挂箱",
+        "titleSize": 5.5,
+        "frames": [
+          { "x": 8, "y": 22, "width": 274, "height": 114, "label": "RLC 阻抗频率特性与串联谐振（f0≈5.03 kHz）" },
+          { "x": 8, "y": 144, "width": 274, "height": 108, "label": "1N4007 全波整流桥与 C / π型 LC 滤波（RL=1kΩ）" },
+          { "x": 8, "y": 260, "width": 274, "height": 98, "label": "自感测量与电感断电尖峰抑制（L=0.5 H, 50 Ω）" },
+          { "x": 8, "y": 366, "width": 274, "height": 90, "label": "一阶 RC 暂态与微分 / 积分网络" }
+        ],
+        "lines": [
+          { "points": [[24, 66], [78, 66]] },
+          { "points": [[116, 66], [170, 66]] },
+          { "points": [[208, 66], [264, 66]] },
+          { "points": [[126, 186], [212, 186]] },
+          { "points": [[34, 298], [254, 298]] },
+          { "points": [[28, 400], [116, 400]] },
+          { "points": [[174, 400], [262, 400]] }
+        ],
+        "symbols": [
+          { "kind": "resistor", "x": 51, "y": 66, "length": 34, "label": "Rs" },
+          { "kind": "resistor", "x": 143, "y": 66, "length": 34, "label": "L 10mH" },
+          { "kind": "resistor", "x": 236, "y": 66, "length": 34, "label": "C 0.1µF" },
+          { "kind": "diode", "x": 96, "y": 186, "length": 34, "label": "整流桥" },
+          { "kind": "resistor", "x": 190, "y": 298, "length": 54, "label": "L 0.5H/50Ω" },
+          { "kind": "resistor", "x": 72, "y": 400, "length": 44, "label": "Rt 1/5/10k" },
+          { "kind": "resistor", "x": 218, "y": 400, "length": 44, "label": "Ct 0.01/0.1µF" }
+        ],
+        "texts": [
+          { "text": "测自感直连 L+/L−；测断电尖峰从 SW进 供电", "x": 145, "y": 278, "size": 2.9 }
+        ],
+        "footer": "RLC 频率特性 · 谐振 · 整流滤波 · 一阶暂态"
       }
     }
   ],
