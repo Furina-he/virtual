@@ -1,4 +1,5 @@
 export * from './charts.ts'
+export * from './competition.ts'
 export * from './fault-flow.ts'
 export * from './guided-mode.ts'
 export * from './measurements.ts'

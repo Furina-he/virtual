@@ -1,0 +1,52 @@
+{
+  "id": "mod-app-lm386",
+  "name": "LM386 集成音响功放实验板",
+  "form": "board",
+  "model": "module.glb",
+  "netlist": "module.cir",
+  "jacks": [
+    { "id": "AMP_VS", "label": "+9V 电源", "kind": "banana4", "polarityHint": "+" },
+    { "id": "AMP_GND1", "label": "GND 1", "kind": "banana4", "polarityHint": "-" },
+    { "id": "AMP_GND2", "label": "GND 2", "kind": "banana4", "polarityHint": "-" },
+    { "id": "AMP_IN", "label": "音频输入 IN", "kind": "banana4" },
+    { "id": "AMP_WIP", "label": "音量抽头 IN+", "kind": "banana4" },
+    { "id": "AMP_G1", "label": "增益脚 1", "kind": "banana4" },
+    { "id": "AMP_G8", "label": "增益脚 8", "kind": "banana4" },
+    { "id": "AMP_BYP", "label": "旁路脚 7", "kind": "banana4" },
+    { "id": "AMP_OUT", "label": "功放输出脚 5", "kind": "banana4" },
+    { "id": "AMP_SPK_P", "label": "扬声器输出 +", "kind": "banana4", "polarityHint": "+" },
+    { "id": "AMP_SPK_N", "label": "扬声器输出 −", "kind": "banana4", "polarityHint": "-" }
+  ],
+  "controls": [
+    {
+      "id": "VOL_POT",
+      "label": "输入音量电位器",
+      "kind": "pot",
+      "param": "vol_pct",
+      "range": [0, 100],
+      "step": 5,
+      "targets": [
+        { "element": "RV_TOP", "scale": -98, "offset": 10000, "min": 100 },
+        { "element": "RV_BOT", "scale": 98, "offset": 200, "min": 100 }
+      ],
+      "unit": "%",
+      "default": 60
+    },
+    {
+      "id": "SW_GAIN",
+      "label": "增益电容开关 (1–8 脚)",
+      "kind": "rotary",
+      "param": "sw_gain",
+      "steps": [0, 1],
+      "stepLabels": ["20× (26 dB，1–8 开路)", "200× (46 dB，1–8 接 10 µF)"],
+      "targets": [{ "element": "RSW_GAIN", "values": [100000000, 1] }],
+      "unit": "",
+      "default": 0
+    }
+  ],
+  "indicators": [
+    { "id": "SPK1", "kind": "speaker", "between": ["AMP_SPK_P", "AMP_SPK_N"], "audio": { "fullScale": 3.5 } }
+  ],
+  "commonNets": [["AMP_GND1", "AMP_GND2", "AMP_SPK_N"]],
+  "simulation": { "analysis": "tran", "maxStep": 0.00002, "pacing": "realtime" }
+}

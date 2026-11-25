@@ -1,0 +1,51 @@
+{
+  "id": "mod-app-smoke",
+  "name": "气敏烟雾报警器实验板",
+  "form": "board",
+  "model": "module.glb",
+  "netlist": "module.cir",
+  "jacks": [
+    { "id": "SMK_VCC", "label": "+5V 电源", "kind": "banana4", "polarityHint": "+" },
+    { "id": "SMK_GND1", "label": "GND 1", "kind": "banana4", "polarityHint": "-" },
+    { "id": "SMK_GND2", "label": "GND 2", "kind": "banana4", "polarityHint": "-" },
+    { "id": "SMK_VS", "label": "气敏采样 Vs", "kind": "banana4" },
+    { "id": "SMK_VREF", "label": "比较阈值 Vref", "kind": "banana4" },
+    { "id": "SMK_CMP", "label": "比较器输出 Vo", "kind": "banana4" },
+    { "id": "SMK_LED_A", "label": "报警灯阳极", "kind": "banana4" },
+    { "id": "SMK_ALM_K", "label": "报警驱动端 K", "kind": "banana4" },
+    { "id": "SMK_SND_P", "label": "蜂鸣声输出 +", "kind": "banana4", "polarityHint": "+" },
+    { "id": "SMK_SND_N", "label": "蜂鸣声输出 −", "kind": "banana4", "polarityHint": "-" }
+  ],
+  "controls": [
+    {
+      "id": "SMOKE_PPM",
+      "label": "模拟烟雾浓度",
+      "kind": "rotary",
+      "param": "smoke_ppm",
+      "steps": [0, 200, 500, 1000],
+      "stepLabels": ["洁净空气 (0 ppm)", "轻度烟雾 (200 ppm)", "中度烟雾 (500 ppm)", "重度烟雾 (1000 ppm)"],
+      "targets": [{ "element": "RMQ2", "values": [20000, 6900, 2880, 1310] }],
+      "unit": "ppm",
+      "default": 0
+    },
+    {
+      "id": "VREF_POT",
+      "label": "报警阈值电位器",
+      "kind": "pot",
+      "param": "vref_pct",
+      "range": [10, 90],
+      "step": 5,
+      "targets": [
+        { "element": "RVREF_T", "scale": -100, "offset": 10000, "min": 500 },
+        { "element": "RVREF_B", "scale": 100, "offset": 0, "min": 500 }
+      ],
+      "unit": "%",
+      "default": 50
+    }
+  ],
+  "indicators": [
+    { "id": "BUZ1", "kind": "speaker", "between": ["SMK_SND_P", "SMK_SND_N"], "audio": { "fullScale": 2.5 } }
+  ],
+  "commonNets": [["SMK_GND1", "SMK_GND2", "SMK_SND_N"]],
+  "simulation": { "analysis": "tran", "maxStep": 0.00002, "pacing": "realtime" }
+}

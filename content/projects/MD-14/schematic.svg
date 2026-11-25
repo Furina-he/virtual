@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 740 310" width="740" height="310" font-family="sans-serif" font-size="13">
+  <rect width="740" height="310" fill="#f8fafc" stroke="#cbd5e1"/>
+  <text x="20" y="28" font-size="16" font-weight="bold" fill="#0f172a">MD-14 运放积分（方波→三角波）与微分（三角波→方波）原理图</text>
+  <circle cx="50" cy="60" r="5" fill="#dc2626" data-jack="oa1.OA_VP"/>
+  <text x="60" y="64" fill="#dc2626">+12V</text>
+  <circle cx="135" cy="60" r="5" fill="#2563eb" data-jack="oa1.OA_VM"/>
+  <text x="145" y="64" fill="#2563eb">−12V</text>
+  <circle cx="65" cy="145" r="5" fill="#d97706" data-jack="oa1.OA1_IN1"/>
+  <rect x="100" y="133" width="75" height="24" fill="#eff6ff" stroke="#2563eb" stroke-width="2"/>
+  <text x="116" y="150" font-size="11">R1 10k</text>
+  <line x1="70" y1="145" x2="100" y2="145" stroke="#0f172a" stroke-width="2"/>
+  <line x1="175" y1="145" x2="310" y2="145" stroke="#0f172a" stroke-width="2"/>
+  <circle cx="245" cy="145" r="5" fill="#d97706" data-jack="oa1.OA1_SUM"/>
+  <line x1="245" y1="145" x2="245" y2="78" stroke="#0f172a" stroke-width="2"/>
+  <circle cx="290" cy="78" r="5" fill="#d97706" data-jack="oa1.OA1_C1"/>
+  <rect x="330" y="62" width="115" height="32" fill="#fefce8" stroke="#ca8a04" stroke-width="2"/>
+  <text x="342" y="83" font-size="11">C 22nF // 500k</text>
+  <circle cx="485" cy="78" r="5" fill="#d97706" data-jack="oa1.OA1_C2"/>
+  <line x1="245" y1="78" x2="330" y2="78" stroke="#0f172a" stroke-width="2"/>
+  <line x1="445" y1="78" x2="555" y2="78" stroke="#0f172a" stroke-width="2"/>
+  <circle cx="485" cy="112" r="5" fill="#d97706" data-jack="oa1.OA1_FB"/>
+  <text x="496" y="116" font-size="11" fill="#475569">Rf 20k(微分)</text>
+  <polygon points="310,120 310,225 450,172" fill="#f0fdf4" stroke="#16a34a" stroke-width="2"/>
+  <text x="322" y="150" font-weight="bold">−</text>
+  <text x="322" y="202" font-weight="bold">+</text>
+  <text x="352" y="176" font-weight="bold" fill="#15803d">OA1</text>
+  <circle cx="245" cy="198" r="5" fill="#d97706" data-jack="oa1.OA1_PIN"/>
+  <line x1="245" y1="198" x2="310" y2="198" stroke="#0f172a" stroke-width="2"/>
+  <line x1="450" y1="172" x2="625" y2="172" stroke="#dc2626" stroke-width="2"/>
+  <line x1="555" y1="78" x2="555" y2="172" stroke="#dc2626" stroke-width="2"/>
+  <circle cx="625" cy="172" r="5" fill="#dc2626" data-jack="oa1.OA1_OUT"/>
+  <text x="635" y="176" fill="#dc2626">UO1</text>
+  <line x1="45" y1="272" x2="685" y2="272" stroke="#0f172a" stroke-width="2.5"/>
+  <circle cx="200" cy="272" r="5" fill="#0f172a" data-jack="oa1.OA_GND1"/>
+  <circle cx="420" cy="272" r="5" fill="#0f172a" data-jack="oa1.OA_GND2"/>
+</svg>

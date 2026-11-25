@@ -1,0 +1,40 @@
+.subckt mod_analog_otl OTL_VCC OTL_GND1 OTL_GND2 OTL_IN OTL_BDRV OTL_BUP OTL_BDN OTL_MID OTL_BOOT OTL_SPK_P OTL_SPK_N params: rp_mid=50 sw_xover=0
+* 典型复合互补 OTL 功率放大实验板（原型选型说明 §4.2，服务 MD-10 / MD-11）
+Rcu_gnd1 OTL_GND1 OTL_GND2 10m
+Rcu_gnd2 OTL_GND1 OTL_SPK_N 10m
+R_iso_gnd OTL_GND1 0 100Meg
+* ---- 1. 输入耦合与中点直流负反馈偏置网络（调 RP_MID 使 OTL_MID ≈ VCC/2 = 6.0 V）----
+C_in OTL_IN OTL_BDRV 10u
+R_in_bleed OTL_IN OTL_GND1 100k
+R_bias1 OTL_MID n_bm 10k
+RRP_MID_T n_bm OTL_BDRV {max(500, 2000 + 200 * rp_mid)}
+R_bias2 OTL_BDRV OTL_GND1 4.3k
+* ---- 2. 激励推动级（S9013 共射 + 自举网络）----
+Q_drv OTL_BDN OTL_BDRV n_edrv S9013
+R_edrv n_edrv OTL_GND1 100
+R_boot OTL_VCC OTL_BOOT 1.2k
+R_cdrv OTL_BOOT OTL_BUP 470
+C_boot OTL_MID n_cboot 100u
+R_cboot_esr n_cboot OTL_BOOT 0.5
+* ---- 3. 消除交越失真三管偏置链（SW_XOVER=1 时短接以演示交越失真）----
+D_bias1 OTL_BUP n_d12 D1N4148
+D_bias2 n_d12 n_d23 D1N4148
+D_bias3 n_d23 OTL_BDN D1N4148
+RSW_XOVER OTL_BUP OTL_BDN {sw_xover < 0.5 ? 100Meg : 1}
+* ---- 4. 上复合 NPN（Darlington：S9013 + TIP41C）----
+Q_n1 OTL_VCC OTL_BUP n_n2b S9013
+R_n12 n_n2b OTL_MID 220
+Q_n2 OTL_VCC n_n2b n_mid_u TIP41C
+R_eu n_mid_u OTL_MID 0.5
+* ---- 5. 下复合 PNP（Sziklai：S9012 + TIP41C）----
+Q_p1 n_p2b OTL_BDN OTL_MID S9012
+R_p12 n_p2b OTL_GND1 220
+Q_p2 n_mid_d n_p2b OTL_GND1 TIP41C
+R_ed OTL_MID n_mid_d 0.5
+* ---- 6. 输出隔直大电容与 8 Ω 扬声器负载 ----
+C_out OTL_MID n_cout 470u
+R_cout_esr n_cout OTL_SPK_P 0.2
+R_spk OTL_SPK_P OTL_SPK_N 8
+.ends mod_analog_otl
+.include "bjt.lib"
+.include "diodes.lib"

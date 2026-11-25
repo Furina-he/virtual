@@ -1,0 +1,87 @@
+{
+  "id": "MD-19",
+  "group": "波形发生与振荡",
+  "title": "RC（文氏桥式）正弦波振荡器的制作与调试",
+  "type": "basic",
+  "modules": [{ "instanceId": "oa1", "moduleId": "mod-opamp", "slot": "SLOT_BOX_L1" }],
+  "allowedInstruments": ["ins-oscilloscope", "ins-multimeter"],
+  "reference": {
+    "nets": [
+      ["ins-dc-power.CH1P", "oa1.OA_VP", "oa1.WIEN_EN"],
+      ["ins-dc-power.CH1N", "ins-dc-power.CH2P", "oa1.OA_GND1", "oa1.OA_GND2"],
+      ["ins-dc-power.CH2N", "oa1.OA_VM"]
+    ],
+    "measurePoints": [
+      { "id": "f_wien", "kind": "waveform", "quantity": "frequency", "between": ["oa1.WIEN_OUT", "oa1.OA_GND1"] },
+      { "id": "u_wien_vpp", "kind": "waveform", "quantity": "vpp", "between": ["oa1.WIEN_OUT", "oa1.OA_GND1"] }
+    ]
+  },
+  "steps": [
+    {
+      "id": "prepare",
+      "text": "保持断电，拖放双通道数字示波器；直流电源 CH1 = 12 V、CH2 = 12 V 串联构成 ±12 V 双电源；运放挂箱“文氏桥起振反馈电阻 Rf”先置 17 kΩ，“选频档位 SW_WIEN_C”置 1.0 kHz (15.9 nF)。",
+      "measurePoints": [],
+      "dataTable": "wien_osc"
+    },
+    {
+      "id": "wire",
+      "text": "断电连接 ±12 V 供电至 OA_VP/OA_VM/OA_GND1，短接 OA_VP→文氏桥供电入 WIEN_EN；示波器 CH1 接文氏桥输出 WIEN_OUT、CH2 接选频节点 WIEN_P、GND 接 GND2，点击“检查接线”。",
+      "measurePoints": ["f_wien", "u_wien_vpp"],
+      "checkWiring": true,
+      "dataTable": "wien_osc"
+    },
+    {
+      "id": "startup_stab",
+      "text": "起振条件与二极管稳幅调试：上电先将 Rf 调小至 11 kΩ（Av < 3），观察停振归零；再调回 17 kΩ（小信号 Av > 3 起振、反并联 1N4148 自动稳幅），观测不削顶纯净正弦波（f ≈ 1000 Hz），测录第 1 行；继续增大 Rf 至 23 kΩ 观察正弦波变为削顶过驱动失真。",
+      "measurePoints": ["f_wien", "u_wien_vpp"],
+      "expect": { "measurePoint": "f_wien", "min": 920, "max": 1080 },
+      "expects": [{ "measurePoint": "u_wien_vpp", "min": 2.0, "max": 12.0 }],
+      "dataTable": "wien_osc"
+    },
+    {
+      "id": "freq_switch",
+      "text": "选频电容换档验证 f = 1/(2πRC)：保持 Rf = 17 kΩ，带电将 SW_WIEN_C 切至“2.0 kHz (7.96 nF)”，验证振荡频率翻倍至约 2000 Hz（误差 ≤ 5%），记录第 2 行。",
+      "measurePoints": ["f_wien", "u_wien_vpp"],
+      "expect": { "measurePoint": "f_wien", "min": 1850, "max": 2150 },
+      "dataTable": "wien_osc"
+    },
+    {
+      "id": "analyse",
+      "text": "断电后核对两档电容实测频率与理论公式 f = 1/(2πRC) 偏差，完成思考题。",
+      "measurePoints": [],
+      "recordTable": "wien_osc",
+      "dataTable": "wien_osc"
+    }
+  ],
+  "dataTables": [
+    {
+      "id": "wien_osc",
+      "title": "RC 文氏桥正弦波振荡器双频档位与二极管稳幅实测记录（R = 10 kΩ，Rf = 19 kΩ）",
+      "rows": 2,
+      "columns": [
+        { "id": "c_nf", "title": "选频电容 C", "unit": "nF" },
+        { "id": "f_hz", "title": "实测振荡频率 f", "unit": "Hz", "measurePoint": "f_wien", "captureSteps": ["startup_stab", "freq_switch"] },
+        { "id": "u_vpp", "title": "稳幅正弦 Vpp", "unit": "V", "measurePoint": "u_wien_vpp", "captureSteps": ["startup_stab", "freq_switch"] }
+      ],
+      "sanity": [
+        { "column": "f_hz", "min": 800, "max": 2300, "message": "15.9 nF 对应约 1000 Hz，7.96 nF 对应约 2000 Hz。" },
+        { "column": "u_vpp", "min": 1.5, "max": 14.0, "message": "Rf = 19 kΩ 时反并联 1N4148 将输出稳定在非削顶正弦幅度。" }
+      ]
+    }
+  ],
+  "charts": [
+    {
+      "id": "wien-freq-plot",
+      "title": "文氏桥选频电容 C 与实测正弦振荡频率 f 关系",
+      "table": "wien_osc",
+      "x": "c_nf",
+      "y": ["f_hz"],
+      "kind": "line"
+    }
+  ],
+  "questions": [
+    "文氏桥 RC 串并联选频网络在谐振频率 f0 = 1/(2πRC) 处的反馈系数与相移各是多少？为何要求同相放大器起振增益 Av > 3？",
+    "反并联 1N4148 二极管并联在反馈支路 4.7 kΩ 电阻两端后，随着输出振幅增大，负反馈强度和环路增益如何自动调节以实现低失真稳幅？",
+    "同时观测 WIEN_OUT（输出）与 WIEN_P（同相选频点）两路波形，二者的相位差与幅值之比各是多少？"
+  ]
+}

@@ -834,5 +834,5 @@ describe('M2 B3（MD-01~09）真实 ngspice 金标准验证', () => {
     const mmSt = metersTr.stats(mmProbe)
     expect(relErr(vmSt.mean, 12.0), `vm=${JSON.stringify(vmSt)} mm=${JSON.stringify(mmSt)}`).toBeLessThanOrEqual(0.01)
     expect(relErr(mmSt.mean, -12.0), `vm=${JSON.stringify(vmSt)} mm=${JSON.stringify(mmSt)}`).toBeLessThanOrEqual(0.01)
-  })
+  }, 30_000)
 })

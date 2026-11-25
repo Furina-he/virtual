@@ -21,6 +21,7 @@ import { cn } from '@/lib/utils'
 import { useInstrumentPanels } from '@/stores/instrument-panels'
 import {
   completeCurrentTaskStep,
+  evaluateTaskCompetition,
   focusTaskStep,
   formatTaskCellValue,
   parseTaskCellDraft,
@@ -32,7 +33,9 @@ import {
   selectTaskTable,
   setTaskGuideMode,
   setTaskQuestionAnswer,
+  startTaskCompetition,
   taskCellKey,
+  tickTaskCompetition,
   useTask,
   writeTaskCell,
 } from '@/stores/task'
@@ -43,6 +46,97 @@ import { jackName, useCircuit, useWiringJacks } from './wiring-state'
 export { completeCurrentTaskStep, recordTaskReadings } from '@/stores/task'
 
 type TaskColumn = Project['dataTables'][number]['columns'][number]
+
+function formatCountdown(seconds: number): string {
+  const mm = Math.floor(seconds / 60)
+  const ss = seconds % 60
+  return `${String(mm).padStart(2, '0')}:${String(ss).padStart(2, '0')}`
+}
+
+function CompetitionBanner({ project }: { project: Project }) {
+  const spec = project.competition
+  const competition = useTask((state) => state.competition)
+  useEffect(() => {
+    if (!spec || competition.status !== 'running') return
+    const timer = window.setInterval(() => tickTaskCompetition(project), 1000)
+    return () => window.clearInterval(timer)
+  }, [project, spec, competition.status])
+  if (!spec) return null
+  const statusLabel =
+    competition.status === 'passed'
+      ? '已达标'
+      : competition.status === 'expired'
+        ? '已超时'
+        : competition.status === 'running'
+          ? '计时中'
+          : '未开始'
+  return (
+    <section
+      aria-label="竞赛指标验收"
+      data-competition-panel
+      data-competition-status={competition.status}
+      data-competition-score={competition.scorePct}
+      className="space-y-2 rounded-sm border bg-muted/30 p-2.5"
+    >
+      <div className="flex items-center justify-between gap-2">
+        <span className="text-xs font-medium">{spec.title}</span>
+        <span className="font-mono text-xs tabular-nums text-muted-foreground">
+          {statusLabel} · {formatCountdown(competition.remainingSec)}
+        </span>
+      </div>
+      <p className="text-xs leading-relaxed text-muted-foreground">{spec.brief}</p>
+      <ul className="space-y-1 text-xs">
+        {spec.criteria.map((criterion) => {
+          const res = competition.results[criterion.id]
+          return (
+            <li
+              key={criterion.id}
+              data-criterion-id={criterion.id}
+              data-criterion-passed={res?.passed ? 'true' : 'false'}
+              className="flex items-center justify-between gap-2"
+            >
+              <span className="truncate">
+                {criterion.label}（{criterion.min}~{criterion.max} {criterion.unit}）
+              </span>
+              <span
+                className={cn(
+                  'shrink-0 font-mono tabular-nums',
+                  res?.passed ? 'text-success' : res ? 'text-destructive' : 'text-muted-foreground',
+                )}
+              >
+                {res?.passed
+                  ? `${res.measured?.toFixed(1) ?? ''} ${criterion.unit} ✓`
+                  : res?.measured !== null && res?.measured !== undefined
+                    ? `${res.measured.toFixed(1)} ${criterion.unit}`
+                    : '待核验'}
+              </span>
+            </li>
+          )
+        })}
+      </ul>
+      <div className="flex items-center justify-between gap-2 pt-0.5">
+        <span className="font-mono text-xs tabular-nums">
+          达成度：{competition.passedCount}/{spec.criteria.length}（{competition.scorePct}%）
+        </span>
+        <div className="flex items-center gap-1.5">
+          {competition.status === 'idle' && (
+            <Button size="xs" variant="outline" onClick={() => startTaskCompetition(project)}>
+              开始竞赛
+            </Button>
+          )}
+          <Button
+            size="xs"
+            variant="secondary"
+            disabled={competition.status === 'expired'}
+            onClick={() => evaluateTaskCompetition(project)}
+          >
+            核验竞赛指标
+          </Button>
+        </div>
+      </div>
+    </section>
+  )
+}
 
 function TaskFeedback({ live = true }: { live?: boolean }) {
   const notice = useTask((state) => state.notice)
@@ -495,6 +589,7 @@ export function TaskStepsPanel({ project }: { project?: Project }) {
         <Button className="w-full" disabled={!initialized || !current} onClick={() => completeCurrentTaskStep(project)}>
           完成当前步骤
         </Button>
+        <CompetitionBanner project={project} />
         <TaskFeedback live={state.bottomTab !== 'data'} />
       </div>
       <ol className="divide-y px-3">

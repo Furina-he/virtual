@@ -8805,6 +8805,206 @@
           }
         ]
       }
+    },
+    {
+      "id": "mod-analog-otl",
+      "name": "复合互补 OTL 功放实验板",
+      "kind": "module",
+      "bodyStyle": "board",
+      "dimensionsMm": [264, 184, 40],
+      "model": "content/modules/mod-analog-otl/module.glb",
+      "textureSize": [1536, 1070],
+      "estimatedDimensions": true,
+      "dimensionNote": "Estimated 264 x 184 x 40 mm compound complementary OTL amplifier board (MD-10 / MD-11).",
+      "jacks": [
+        { "id": "OTL_VCC", "label": "+12V 电源", "silkLabel": "+12V", "x": 26, "y": 78, "color": "red", "kind": "banana4" },
+        { "id": "OTL_GND1", "label": "GND 1", "silkLabel": "GND1", "x": 26, "y": 136, "color": "black", "kind": "banana4" },
+        { "id": "OTL_GND2", "label": "GND 2", "silkLabel": "GND2", "x": 64, "y": 136, "color": "black", "kind": "banana4" },
+        { "id": "OTL_IN", "label": "音频输入 IN", "silkLabel": "IN", "x": 64, "y": 78, "color": "yellow", "kind": "banana4" },
+        { "id": "OTL_BDRV", "label": "推动级基极 B", "silkLabel": "B_DRV", "x": 104, "y": 78, "color": "yellow", "kind": "banana4" },
+        { "id": "OTL_BUP", "label": "上复合管基极", "silkLabel": "B_UP", "x": 146, "y": 78, "color": "yellow", "kind": "banana4" },
+        { "id": "OTL_BDN", "label": "下复合管基极", "silkLabel": "B_DN", "x": 126, "y": 136, "color": "yellow", "kind": "banana4" },
+        { "id": "OTL_MID", "label": "中点电压 K", "silkLabel": "MID K", "x": 190, "y": 78, "color": "yellow", "kind": "banana4" },
+        { "id": "OTL_BOOT", "label": "自举节点", "silkLabel": "BOOT", "x": 180, "y": 136, "color": "yellow", "kind": "banana4" },
+        { "id": "OTL_SPK_P", "label": "扬声器输出 +", "silkLabel": "SPK+", "x": 236, "y": 78, "color": "red", "kind": "banana4" },
+        { "id": "OTL_SPK_N", "label": "扬声器输出 −", "silkLabel": "SPK−", "x": 236, "y": 136, "color": "black", "kind": "banana4" }
+      ],
+      "controls": [
+        { "id": "RP_MID", "label": "中点偏置", "kind": "knob", "x": 86, "y": 32, "radiusMm": 7, "param": "rp_mid", "labelX": 50, "labelY": 34 },
+        { "id": "SW_XOVER", "label": "交越偏置", "kind": "knob", "x": 192, "y": 32, "radiusMm": 7, "param": "sw_xover", "labelX": 154, "labelY": 34 }
+      ],
+      "screens": [],
+      "panel": {
+        "title": "复合互补 OTL 功率放大实验板",
+        "titleSize": 4.3,
+        "footer": "+12V 单电源 / 复合互补输出级 / 中点偏置 / 8 Ω 扬声器",
+        "lines": [
+          { "points": [[84, 54], [84, 158]] },
+          { "points": [[212, 54], [212, 158]] },
+          { "points": [[22, 164], [242, 164]] }
+        ],
+        "symbols": [],
+        "texts": [
+          { "text": "输入与推动", "x": 54, "y": 58, "size": 3.1 },
+          { "text": "复合互补推挽级", "x": 148, "y": 58, "size": 3.1 },
+          { "text": "8 Ω 扬声器", "x": 236, "y": 108, "size": 3 }
+        ]
+      }
+    },
+    {
+      "id": "mod-app-lm386",
+      "name": "LM386 集成音响功放实验板",
+      "kind": "module",
+      "bodyStyle": "board",
+      "dimensionsMm": [264, 184, 40],
+      "model": "content/modules/mod-app-lm386/module.glb",
+      "textureSize": [1536, 1070],
+      "estimatedDimensions": true,
+      "dimensionNote": "Estimated 264 x 184 x 40 mm LM386 integrated audio power amplifier board (MD-12).",
+      "jacks": [
+        { "id": "AMP_VS", "label": "+9V 电源", "silkLabel": "+9V", "x": 26, "y": 78, "color": "red", "kind": "banana4" },
+        { "id": "AMP_GND1", "label": "GND 1", "silkLabel": "GND1", "x": 26, "y": 136, "color": "black", "kind": "banana4" },
+        { "id": "AMP_GND2", "label": "GND 2", "silkLabel": "GND2", "x": 66, "y": 136, "color": "black", "kind": "banana4" },
+        { "id": "AMP_IN", "label": "音频输入 IN", "silkLabel": "IN", "x": 66, "y": 78, "color": "yellow", "kind": "banana4" },
+        { "id": "AMP_WIP", "label": "音量抽头 IN+", "silkLabel": "IN+", "x": 106, "y": 78, "color": "yellow", "kind": "banana4" },
+        { "id": "AMP_G1", "label": "增益脚 1", "silkLabel": "PIN1", "x": 148, "y": 78, "color": "yellow", "kind": "banana4" },
+        { "id": "AMP_G8", "label": "增益脚 8", "silkLabel": "PIN8", "x": 148, "y": 136, "color": "yellow", "kind": "banana4" },
+        { "id": "AMP_BYP", "label": "旁路脚 7", "silkLabel": "BYP7", "x": 106, "y": 136, "color": "yellow", "kind": "banana4" },
+        { "id": "AMP_OUT", "label": "功放输出脚 5", "silkLabel": "OUT5", "x": 192, "y": 78, "color": "yellow", "kind": "banana4" },
+        { "id": "AMP_SPK_P", "label": "扬声器输出 +", "silkLabel": "SPK+", "x": 236, "y": 78, "color": "red", "kind": "banana4" },
+        { "id": "AMP_SPK_N", "label": "扬声器输出 −", "silkLabel": "SPK−", "x": 236, "y": 136, "color": "black", "kind": "banana4" }
+      ],
+      "controls": [
+        { "id": "VOL_POT", "label": "音量调节", "kind": "knob", "x": 86, "y": 32, "radiusMm": 7, "param": "vol_pct", "labelX": 50, "labelY": 34 },
+        { "id": "SW_GAIN", "label": "20/200×", "kind": "knob", "x": 192, "y": 32, "radiusMm": 7, "param": "sw_gain", "labelX": 154, "labelY": 34 }
+      ],
+      "screens": [],
+      "panel": {
+        "title": "LM386 集成音响功放实验板",
+        "titleSize": 4.3,
+        "footer": "+9V 单电源 / 20×·200× 增益切换 / 茹贝尔网络 / 8 Ω 扬声器",
+        "lines": [
+          { "points": [[86, 54], [86, 158]] },
+          { "points": [[212, 54], [212, 158]] },
+          { "points": [[22, 164], [242, 164]] }
+        ],
+        "symbols": [],
+        "texts": [
+          { "text": "输入与音量", "x": 54, "y": 58, "size": 3.1 },
+          { "text": "LM386 核心功放", "x": 150, "y": 58, "size": 3.1 },
+          { "text": "8 Ω 扬声器", "x": 236, "y": 108, "size": 3 }
+        ]
+      }
+    },
+    {
+      "id": "mod-app-smoke",
+      "name": "气敏烟雾报警器实验板",
+      "kind": "module",
+      "bodyStyle": "board",
+      "dimensionsMm": [264, 184, 40],
+      "model": "content/modules/mod-app-smoke/module.glb",
+      "textureSize": [1536, 1070],
+      "estimatedDimensions": true,
+      "dimensionNote": "Estimated 264 x 184 x 40 mm MQ-2 gas sensor + LM393 smoke alarm board (MD-16).",
+      "jacks": [
+        { "id": "SMK_VCC", "label": "+5V 电源", "silkLabel": "+5V", "x": 26, "y": 78, "color": "red", "kind": "banana4" },
+        { "id": "SMK_GND1", "label": "GND 1", "silkLabel": "GND1", "x": 26, "y": 136, "color": "black", "kind": "banana4" },
+        { "id": "SMK_GND2", "label": "GND 2", "silkLabel": "GND2", "x": 126, "y": 136, "color": "black", "kind": "banana4" },
+        { "id": "SMK_VS", "label": "气敏采样 Vs", "silkLabel": "Vs", "x": 74, "y": 78, "color": "yellow", "kind": "banana4" },
+        { "id": "SMK_VREF", "label": "比较阈值 Vref", "silkLabel": "Vref", "x": 74, "y": 136, "color": "yellow", "kind": "banana4" },
+        { "id": "SMK_CMP", "label": "比较器输出 Vo", "silkLabel": "CMP", "x": 126, "y": 78, "color": "yellow", "kind": "banana4" },
+        { "id": "SMK_LED_A", "label": "报警灯阳极", "silkLabel": "LED+", "x": 180, "y": 78, "color": "yellow", "kind": "banana4" },
+        { "id": "SMK_ALM_K", "label": "报警驱动端 K", "silkLabel": "ALM_K", "x": 180, "y": 136, "color": "yellow", "kind": "banana4" },
+        { "id": "SMK_SND_P", "label": "蜂鸣声输出 +", "silkLabel": "BUZ+", "x": 236, "y": 78, "color": "red", "kind": "banana4" },
+        { "id": "SMK_SND_N", "label": "蜂鸣声输出 −", "silkLabel": "BUZ−", "x": 236, "y": 136, "color": "black", "kind": "banana4" }
+      ],
+      "controls": [
+        { "id": "SMOKE_PPM", "label": "烟雾浓度", "kind": "knob", "x": 86, "y": 32, "radiusMm": 7, "param": "smoke_ppm", "labelX": 50, "labelY": 34 },
+        { "id": "VREF_POT", "label": "报警阈值", "kind": "knob", "x": 192, "y": 32, "radiusMm": 7, "param": "vref_pct", "labelX": 154, "labelY": 34 }
+      ],
+      "screens": [],
+      "panel": {
+        "title": "MQ-2 气敏烟雾声光报警实验板",
+        "titleSize": 4.3,
+        "footer": "+5V 供电 / MQ-2 气敏采样 / LM393 比较器 / LED·2.4 kHz 蜂鸣器",
+        "lines": [
+          { "points": [[100, 54], [100, 158]] },
+          { "points": [[154, 54], [154, 158]] },
+          { "points": [[22, 164], [242, 164]] }
+        ],
+        "symbols": [],
+        "texts": [
+          { "text": "MQ-2 与阈值", "x": 58, "y": 58, "size": 3.1 },
+          { "text": "LM393", "x": 126, "y": 58, "size": 3.1 },
+          { "text": "LED / 蜂鸣器", "x": 208, "y": 58, "size": 3.1 }
+        ]
+      }
+    },
+    {
+      "id": "mod-opamp",
+      "name": "集成运放与波形发生综合挂箱",
+      "kind": "module",
+      "bodyStyle": "box",
+      "dimensionsMm": [290, 470, 55],
+      "model": "content/modules/mod-opamp/module.glb",
+      "textureSize": [1264, 2048],
+      "estimatedDimensions": true,
+      "dimensionNote": "Estimated 290 x 470 x 55 mm integrated op-amp and waveform generator box (MD-13~15, MD-17~19).",
+      "jacks": [
+        { "id": "OA_VP", "label": "+12V 电源", "silkLabel": "+12V", "x": 32, "y": 54, "color": "red", "kind": "banana4" },
+        { "id": "OA_VM", "label": "−12V 电源", "silkLabel": "−12V", "x": 92, "y": 54, "color": "blue", "kind": "banana4" },
+        { "id": "OA_GND1", "label": "公共地 1", "silkLabel": "GND1", "x": 156, "y": 54, "color": "black", "kind": "banana4" },
+        { "id": "OA_GND2", "label": "公共地 2", "silkLabel": "GND2", "x": 212, "y": 54, "color": "black", "kind": "banana4" },
+        { "id": "OA1_IN1", "label": "运放1 输入1 (10k)", "silkLabel": "IN1", "x": 32, "y": 112, "color": "yellow", "kind": "banana4" },
+        { "id": "OA1_IN2", "label": "运放1 输入2 (10k)", "silkLabel": "IN2", "x": 32, "y": 160, "color": "yellow", "kind": "banana4" },
+        { "id": "OA1_SUM", "label": "运放1 反相端 (−)", "silkLabel": "SUM−", "x": 84, "y": 112, "color": "yellow", "kind": "banana4" },
+        { "id": "OA1_PIN", "label": "运放1 同相入 (10k)", "silkLabel": "PIN", "x": 84, "y": 160, "color": "yellow", "kind": "banana4" },
+        { "id": "OA1_P", "label": "运放1 同相端 (+)", "silkLabel": "IN+", "x": 138, "y": 160, "color": "yellow", "kind": "banana4" },
+        { "id": "OA1_FB", "label": "反馈电阻端 (20k)", "silkLabel": "RF", "x": 138, "y": 112, "color": "yellow", "kind": "banana4" },
+        { "id": "OA1_OUT", "label": "运放1 输出 Uo1", "silkLabel": "UO1", "x": 196, "y": 112, "color": "red", "kind": "banana4" },
+        { "id": "OA1_C1", "label": "微积分电容端 1", "silkLabel": "C1", "x": 254, "y": 112, "color": "yellow", "kind": "banana4" },
+        { "id": "OA1_C2", "label": "微积分电容端 2", "silkLabel": "C2", "x": 254, "y": 160, "color": "yellow", "kind": "banana4" },
+        { "id": "CMP_IN", "label": "比较器输入 Ui", "silkLabel": "UI", "x": 32, "y": 224, "color": "yellow", "kind": "banana4" },
+        { "id": "CMP_VREF", "label": "比较器参考 Vr", "silkLabel": "VR", "x": 84, "y": 224, "color": "yellow", "kind": "banana4" },
+        { "id": "CMP_P", "label": "比较器同相端", "silkLabel": "CMP+", "x": 136, "y": 224, "color": "yellow", "kind": "banana4" },
+        { "id": "CMP_OUT", "label": "比较器输出 Uo", "silkLabel": "UO2", "x": 188, "y": 224, "color": "red", "kind": "banana4" },
+        { "id": "FG_EN", "label": "函数区供电入", "silkLabel": "FG+V", "x": 36, "y": 336, "color": "red", "kind": "banana4" },
+        { "id": "FG_SQ", "label": "方波输出 SQ", "silkLabel": "SQ", "x": 104, "y": 336, "color": "yellow", "kind": "banana4" },
+        { "id": "FG_TRI", "label": "三角/锯齿 TRI", "silkLabel": "TRI", "x": 174, "y": 336, "color": "yellow", "kind": "banana4" },
+        { "id": "FG_SIN", "label": "正弦整形 SIN", "silkLabel": "SIN", "x": 246, "y": 336, "color": "red", "kind": "banana4" },
+        { "id": "WIEN_EN", "label": "文氏桥供电入", "silkLabel": "WB+V", "x": 36, "y": 434, "color": "red", "kind": "banana4" },
+        { "id": "WIEN_P", "label": "文氏桥选频 P", "silkLabel": "WB_P", "x": 104, "y": 434, "color": "yellow", "kind": "banana4" },
+        { "id": "WIEN_N", "label": "文氏桥反馈 N", "silkLabel": "WB_N", "x": 174, "y": 434, "color": "yellow", "kind": "banana4" },
+        { "id": "WIEN_OUT", "label": "文氏桥输出 Uo", "silkLabel": "WB_O", "x": 246, "y": 434, "color": "red", "kind": "banana4" },
+        { "id": "OA_GND3", "label": "公共地 3", "silkLabel": "GND3", "x": 260, "y": 54, "color": "black", "kind": "banana4" }
+      ],
+      "controls": [
+        { "id": "SW_CMP_MODE", "label": "滞回切换", "kind": "knob", "x": 244, "y": 224, "radiusMm": 7, "param": "sw_cmp_mode", "labelX": 244, "labelY": 206 },
+        { "id": "R_FG_FREQ", "label": "频率电阻", "kind": "knob", "x": 66, "y": 294, "radiusMm": 7, "param": "r_fg_freq", "labelX": 32, "labelY": 296 },
+        { "id": "SW_FG_SYM", "label": "对称/锯齿", "kind": "knob", "x": 156, "y": 294, "radiusMm": 7, "param": "sw_fg_sym", "labelX": 120, "labelY": 296 },
+        { "id": "R_FG_AMP", "label": "正弦幅值", "kind": "knob", "x": 244, "y": 294, "radiusMm": 7, "param": "r_fg_amp", "labelX": 208, "labelY": 296 },
+        { "id": "RF_WIEN", "label": "起振 Rf", "kind": "knob", "x": 96, "y": 394, "radiusMm": 7, "param": "rf_wien", "labelX": 58, "labelY": 396 },
+        { "id": "SW_WIEN_C", "label": "1k/2kHz", "kind": "knob", "x": 222, "y": 394, "radiusMm": 7, "param": "sw_wien_c", "labelX": 182, "labelY": 396 }
+      ],
+      "screens": [],
+      "panel": {
+        "title": "集成运放与波形发生综合挂箱",
+        "titleSize": 4.8,
+        "footer": "±12V 双电源 / 基本运算·微积分 / 滞回比较器 / 方·三角·锯齿·正弦 / 文氏桥",
+        "lines": [
+          { "points": [[16, 78], [274, 78]] },
+          { "points": [[16, 184], [274, 184]] },
+          { "points": [[16, 256], [274, 256]] },
+          { "points": [[16, 362], [274, 362]] }
+        ],
+        "symbols": [],
+        "texts": [
+          { "text": "区 1：线性比例 / 加减 / 积分·微分 (OA1)", "x": 145, "y": 90, "size": 3.4 },
+          { "text": "区 2：单限 / 过零 / 滞回比较器 (OA2)", "x": 145, "y": 196, "size": 3.4 },
+          { "text": "区 3：方波 / 三角波 / 锯齿波 / 正弦波函数发生 (OA3·OA4)", "x": 145, "y": 268, "size": 3.2 },
+          { "text": "区 4：RC 文氏桥正弦波振荡器 (OA5)", "x": 145, "y": 374, "size": 3.4 }
+        ]
+      }
     }
   ],
   "preview": {

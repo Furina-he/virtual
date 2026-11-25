@@ -1,0 +1,90 @@
+{
+  "id": "MD-16",
+  "group": "综合性应用实训",
+  "title": "用气敏传感器和电压比较器制作烟雾报警器（电子产品线路）",
+  "type": "integrated",
+  "modules": [{ "instanceId": "smk1", "moduleId": "mod-app-smoke", "slot": "SLOT_BOX_L1" }],
+  "allowedInstruments": ["ins-multimeter", "ins-oscilloscope"],
+  "reference": {
+    "nets": [
+      ["ins-dc-power.V5P", "smk1.SMK_VCC"],
+      ["ins-dc-power.V5N", "smk1.SMK_GND1", "smk1.SMK_GND2", "smk1.SMK_SND_N"]
+    ],
+    "measurePoints": [
+      { "id": "u_vs", "kind": "voltage", "mode": "dcv", "between": ["smk1.SMK_VS", "smk1.SMK_GND1"] },
+      { "id": "u_vref", "kind": "voltage", "mode": "dcv", "between": ["smk1.SMK_VREF", "smk1.SMK_GND1"] },
+      { "id": "u_cmp", "kind": "voltage", "mode": "dcv", "between": ["smk1.SMK_CMP", "smk1.SMK_GND1"] },
+      { "id": "u_alm_k", "kind": "voltage", "mode": "dcv", "between": ["smk1.SMK_ALM_K", "smk1.SMK_GND1"] },
+      { "id": "u_buz", "kind": "waveform", "quantity": "vpp", "between": ["smk1.SMK_SND_P", "smk1.SMK_SND_N"] }
+    ]
+  },
+  "steps": [
+    {
+      "id": "prepare",
+      "text": "保持断电，从仪表柜拖出数字万用表；使用直流电源固定 +5 V 供电，烟雾报警板“模拟烟雾浓度”先置“洁净空气 (0 ppm)”，“报警阈值电位器”置 50%（Vref = 2.50 V）。",
+      "measurePoints": [],
+      "dataTable": "smoke_alarm"
+    },
+    {
+      "id": "wire",
+      "text": "断电按图连接 +5 V 供电（+5V→SMK_VCC，5V−→SMK_GND1）；固定直流电压表测气敏采样点 Vs（SMK_VS / SMK_GND1），数字万用表直流 20 V 档测比较器输出端 Vo（SMK_CMP / SMK_GND2），点击“检查接线”。",
+      "measurePoints": ["u_vs", "u_cmp"],
+      "checkWiring": true,
+      "dataTable": "smoke_alarm"
+    },
+    {
+      "id": "clean_air",
+      "text": "洁净空气待机状态检查：上电核实 0 ppm 下气敏采样电压 Vs ≈ 0.95 V（低于阈值 2.50 V），LM393 输出低电平 Vo < 0.25 V，驱动管截止、报警 LED 熄灭且蜂鸣器静音，记入第 1 行。",
+      "measurePoints": ["u_vs", "u_cmp"],
+      "expect": { "measurePoint": "u_vs", "min": 0.75, "max": 1.2 },
+      "expects": [{ "measurePoint": "u_cmp", "min": -0.05, "max": 0.35 }],
+      "dataTable": "smoke_alarm"
+    },
+    {
+      "id": "smoke_trigger",
+      "text": "烟雾浓度升高声光报警测试：带电将“模拟烟雾浓度”依次切至 200 ppm（Vs ≈ 2.03 V，仍待机）、500 ppm（Vs ≈ 3.10 V > 2.50 V，比较器翻转高电平，LED 点亮且 2.4 kHz 蜂鸣器实时鸣响！）与 1000 ppm（Vs ≈ 3.91 V），记录四档数据；再微调 VREF_POT 验证灵敏度阈值可调。",
+      "measurePoints": ["u_vs", "u_cmp"],
+      "expect": { "measurePoint": "u_vs", "min": 2.8, "max": 4.2 },
+      "expects": [{ "measurePoint": "u_cmp", "min": 2.4, "max": 5.0 }],
+      "dataTable": "smoke_alarm"
+    },
+    {
+      "id": "analyse",
+      "text": "断电后查看烟雾浓度–采样电压特性曲线，结合 MQ-2 分压采样与 LM393 开集电极比较驱动机理完成思考题。",
+      "measurePoints": [],
+      "recordTable": "smoke_alarm",
+      "dataTable": "smoke_alarm"
+    }
+  ],
+  "dataTables": [
+    {
+      "id": "smoke_alarm",
+      "title": "MQ-2 气敏烟雾报警器不同浓度下采样电压 Vs 与比较器输出 Vo 实测表（Vref = 2.50 V）",
+      "rows": 4,
+      "columns": [
+        { "id": "ppm", "title": "烟雾浓度", "unit": "ppm" },
+        { "id": "u_vs", "title": "气敏电压 Vs", "unit": "V", "measurePoint": "u_vs", "captureSteps": ["clean_air", "smoke_trigger"] },
+        { "id": "u_cmp", "title": "比较器输出 Vo", "unit": "V", "measurePoint": "u_cmp", "captureSteps": ["clean_air", "smoke_trigger"] }
+      ],
+      "sanity": [
+        { "column": "ppm", "min": 0, "max": 1200, "message": "依次记录 0、200、500、1000 ppm 四档浓度。" },
+        { "column": "u_vs", "min": 0.5, "max": 4.5, "message": "烟雾越浓 MQ-2 阻值越小，分压 Vs 单调升高。" }
+      ]
+    }
+  ],
+  "charts": [
+    {
+      "id": "smoke-vs-plot",
+      "title": "MQ-2 烟雾浓度与采样电压 Vs、比较器输出 Vo 响应曲线",
+      "table": "smoke_alarm",
+      "x": "ppm",
+      "y": ["u_vs", "u_cmp"],
+      "kind": "line"
+    }
+  ],
+  "questions": [
+    "为什么 MQ-2 气敏传感器在烟雾浓度升高时阻值反而减小？在分压电路中应将其放在上臂还是下臂才能使 Vs 随烟雾浓度升高而增大？",
+    "LM393 为集电极开路（OC）输出比较器，电路中的 4.7 kΩ 上拉电阻如果遗漏会出现什么故障现象？",
+    "若希望将烟雾报警灵敏度提高到 200 ppm 即触发报警，报警阈值电位器 VREF_POT 应朝增大还是减小方向调节？"
+  ]
+}

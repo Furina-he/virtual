@@ -1,0 +1,91 @@
+{
+  "id": "MD-14",
+  "group": "集成运放应用",
+  "title": "对由运放器组成的积分运算电路、微分运算电路",
+  "type": "basic",
+  "modules": [{ "instanceId": "oa1", "moduleId": "mod-opamp", "slot": "SLOT_BOX_L1" }],
+  "allowedInstruments": ["ins-func-gen", "ins-oscilloscope"],
+  "reference": {
+    "nets": [
+      ["ins-dc-power.CH1P", "oa1.OA_VP"],
+      ["ins-dc-power.CH1N", "ins-dc-power.CH2P", "oa1.OA_GND1", "oa1.OA_GND2", "oa1.OA1_PIN", "ins-func-gen.GND"],
+      ["ins-dc-power.CH2N", "oa1.OA_VM"],
+      ["ins-func-gen.CH1", "oa1.OA1_IN1"],
+      ["oa1.OA1_SUM", "oa1.OA1_C1"],
+      ["oa1.OA1_C2", "oa1.OA1_OUT"]
+    ],
+    "measurePoints": [
+      { "id": "u_in_vpp", "kind": "waveform", "quantity": "vpp", "between": ["ins-func-gen.CH1", "oa1.OA_GND1"] },
+      { "id": "u_out_vpp", "kind": "waveform", "quantity": "vpp", "between": ["oa1.OA1_OUT", "oa1.OA_GND1"] }
+    ]
+  },
+  "steps": [
+    {
+      "id": "prepare",
+      "text": "保持断电，拖放双通道函数信号发生器与双通道数字示波器；将双路直流电源接成 ±12 V 双电源（CH1 = 12 V，CH2 = 12 V）；信号源 CH1 设 1 kHz、4 Vpp 方波。",
+      "measurePoints": [],
+      "dataTable": "int_diff"
+    },
+    {
+      "id": "integrator",
+      "text": "阶段 1（反相积分运算：方波 → 三角波）：断电接 ±12 V 双电源，PIN→GND2，信号源 CH1→IN1（10 kΩ 输入），电容端 C1→SUM−、C2→UO1（22 nF 反馈电容，并联 500 kΩ 直流稳定电阻）；示波器 CH1 测输入、CH2 测 UO1，点击“检查接线”。上电观察 1 kHz 4 Vpp 方波变为约 4.5 Vpp 线性三角波（ΔUo = Um·T/(2RC)）。",
+      "measurePoints": ["u_in_vpp", "u_out_vpp"],
+      "checkWiring": true,
+      "expect": { "measurePoint": "u_out_vpp", "min": 3.8, "max": 5.3 },
+      "dataTable": "int_diff"
+    },
+    {
+      "id": "differentiator",
+      "text": "阶段 2（反相实用微分运算：三角波 → 方波）：断电改接信号源 CH1（500 Hz、4 Vpp 三角波）→C1、C2→SUM−，反馈电阻 RF→UO1（20 kΩ），点击“检查接线”。上电观察恒斜率三角波被反相微分为约 3.5 Vpp 规则方波（Uo = −Rf·C·du/dt）。",
+      "referenceNets": [
+        ["ins-dc-power.CH1P", "oa1.OA_VP"],
+        ["ins-dc-power.CH1N", "ins-dc-power.CH2P", "oa1.OA_GND1", "oa1.OA_GND2", "oa1.OA1_PIN", "ins-func-gen.GND"],
+        ["ins-dc-power.CH2N", "oa1.OA_VM"],
+        ["ins-func-gen.CH1", "oa1.OA1_C1"],
+        ["oa1.OA1_C2", "oa1.OA1_SUM"],
+        ["oa1.OA1_FB", "oa1.OA1_OUT"]
+      ],
+      "measurePoints": ["u_in_vpp", "u_out_vpp"],
+      "checkWiring": true,
+      "expect": { "measurePoint": "u_out_vpp", "min": 2.9, "max": 4.2 },
+      "dataTable": "int_diff"
+    },
+    {
+      "id": "analyse",
+      "text": "断电对比积分与微分波形变换幅度及相位关系，完成思考题。",
+      "measurePoints": [],
+      "recordTable": "int_diff",
+      "dataTable": "int_diff"
+    }
+  ],
+  "dataTables": [
+    {
+      "id": "int_diff",
+      "title": "运放积分电路（方波→三角波）与微分电路（三角波→方波）实测记录",
+      "rows": 2,
+      "columns": [
+        { "id": "mode_idx", "title": "模式 (1:积分1kHz 2:微分500Hz)", "unit": "" },
+        { "id": "u_in", "title": "输入 Vpp", "unit": "V", "measurePoint": "u_in_vpp", "captureSteps": ["integrator", "differentiator"] },
+        { "id": "u_out", "title": "输出 Vpp", "unit": "V", "measurePoint": "u_out_vpp", "captureSteps": ["integrator", "differentiator"] }
+      ],
+      "sanity": [
+        { "column": "u_out", "min": 1.0, "max": 12.0, "message": "积分输出三角波约 4.5 Vpp，微分输出方波约 3.5 Vpp。" }
+      ]
+    }
+  ],
+  "charts": [
+    {
+      "id": "int-diff-plot",
+      "title": "积分与微分运算电路输入输出幅值对比",
+      "table": "int_diff",
+      "x": "mode_idx",
+      "y": ["u_in", "u_out"],
+      "kind": "line"
+    }
+  ],
+  "questions": [
+    "在运放积分电路中，为什么必须在积分电容两端并联一只大阻值电阻（本板 500 kΩ）？若去掉它会出现什么现象？",
+    "积分电路输入方波频率由 1 kHz 升高到 2 kHz（幅值不变）时，输出三角波的峰峰值将变为原来的多少倍？",
+    "实用微分电路中在输入电容支路串联小电阻（470 Ω）对高频噪声和电路稳定性有什么作用？"
+  ]
+}

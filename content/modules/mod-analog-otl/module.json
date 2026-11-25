@@ -1,0 +1,51 @@
+{
+  "id": "mod-analog-otl",
+  "name": "复合互补 OTL 功放实验板",
+  "form": "board",
+  "model": "module.glb",
+  "netlist": "module.cir",
+  "jacks": [
+    { "id": "OTL_VCC", "label": "+12V 电源", "kind": "banana4", "polarityHint": "+" },
+    { "id": "OTL_GND1", "label": "GND 1", "kind": "banana4", "polarityHint": "-" },
+    { "id": "OTL_GND2", "label": "GND 2", "kind": "banana4", "polarityHint": "-" },
+    { "id": "OTL_IN", "label": "音频输入 IN", "kind": "banana4" },
+    { "id": "OTL_BDRV", "label": "推动级基极 B", "kind": "banana4" },
+    { "id": "OTL_BUP", "label": "上复合管基极", "kind": "banana4" },
+    { "id": "OTL_BDN", "label": "下复合管基极", "kind": "banana4" },
+    { "id": "OTL_MID", "label": "中点电压 K", "kind": "banana4" },
+    { "id": "OTL_BOOT", "label": "自举节点", "kind": "banana4" },
+    { "id": "OTL_SPK_P", "label": "扬声器输出 +", "kind": "banana4", "polarityHint": "+" },
+    { "id": "OTL_SPK_N", "label": "扬声器输出 −", "kind": "banana4", "polarityHint": "-" }
+  ],
+  "controls": [
+    {
+      "id": "RP_MID",
+      "label": "中点偏置电位器 RP1",
+      "kind": "pot",
+      "param": "rp_mid",
+      "range": [0, 100],
+      "step": 5,
+      "targets": [
+        { "element": "RRP_MID_T", "scale": 200, "offset": 2000, "min": 500 }
+      ],
+      "unit": "%",
+      "default": 50
+    },
+    {
+      "id": "SW_XOVER",
+      "label": "交越偏置开关",
+      "kind": "rotary",
+      "param": "sw_xover",
+      "steps": [0, 1],
+      "stepLabels": ["正常三管偏置（消除交越）", "短接偏置管（演示交越失真）"],
+      "targets": [{ "element": "RSW_XOVER", "values": [100000000, 1] }],
+      "unit": "",
+      "default": 0
+    }
+  ],
+  "indicators": [
+    { "id": "SPK1", "kind": "speaker", "between": ["OTL_SPK_P", "OTL_SPK_N"], "audio": { "fullScale": 4.0 } }
+  ],
+  "commonNets": [["OTL_GND1", "OTL_GND2", "OTL_SPK_N"]],
+  "simulation": { "analysis": "tran", "maxStep": 0.00002, "pacing": "realtime" }
+}

@@ -4,10 +4,13 @@ import type { ResolvedInstrument } from '../../domain/instruments'
 import { buildMeasurementPlan } from '../../domain/measurement/plan'
 import {
   type CapturedMeasurement,
+  type CompetitionState,
   completeTaskStep,
+  createCompetitionState,
   createFaultFlowState,
   createTaskState,
   currentTaskStep,
+  evaluateCompetition,
   type FaultFlowState,
   type FaultKind,
   type FaultSelectionMode,
@@ -23,9 +26,11 @@ import {
   requiredMeasurements,
   resolveGuideModePolicy,
   scopedReference,
+  startCompetition,
   startFaultSession,
   submitFaultDiagnosis,
   type TaskState,
+  tickCompetition,
   updateQuestionAnswer,
   verifyFaultRepair,
   writeTableCell,
@@ -65,6 +70,7 @@ export type TaskUiState = {
   captures: Record<string, CapturedMeasurement>
   screenshots: ReportScreenshot[]
   faultFlow: FaultFlowState
+  competition: CompetitionState
   guideMode: GuideMode
   focusedStepId: string | null
   answers: Record<string, string>
@@ -84,6 +90,7 @@ export const taskStore = createStore<TaskUiState>()(() => ({
   captures: {},
   screenshots: [],
   faultFlow: createFaultFlowState(),
+  competition: createCompetitionState(),
   guideMode: 'guided',
   focusedStepId: null,
   answers: {},
@@ -126,6 +133,7 @@ export function resetTask(project?: Project, defaultGuideMode: GuideMode = 'guid
     captures: {},
     screenshots: [],
     faultFlow: createFaultFlowState(),
+    competition: createCompetitionState(project?.competition),
     guideMode: defaultGuideMode,
     focusedStepId: project?.steps[0]?.id ?? null,
     answers: project ? normalizeQuestionAnswers(project) : {},
@@ -644,8 +652,37 @@ export function restoreTaskFromSave(project: Project, save: SaveFile, noticeMess
     warnings: sanityWarnings(project, restored),
     captures: {},
     guideMode,
+    competition: createCompetitionState(project.competition),
     focusedStepId: nextStep?.id ?? project.steps.at(-1)?.id ?? null,
     answers: normalizeQuestionAnswers(project, save.answers),
     resetVersion: prev.resetVersion + 1,
   }))
+}
+
+export function startTaskCompetition(project: Project): void {
+  if (!project.competition) return
+  const next = startCompetition(project.competition, Date.now())
+  taskStore.setState({ competition: next, notice: next.message })
+}
+
+export function tickTaskCompetition(project: Project): void {
+  if (!project.competition) return
+  const current = taskStore.getState().competition
+  if (current.status !== 'running') return
+  const next = tickCompetition(project.competition, current, Date.now())
+  if (next !== current) {
+    taskStore.setState({
+      competition: next,
+      ...(next.status === 'expired' ? { notice: next.message } : {}),
+    })
+  }
+}
+
+export function evaluateTaskCompetition(project: Project): CompetitionState {
+  const current = taskStore.getState().competition
+  if (!project.competition) return current
+  const snapshot = currentMeasurementSnapshot()
+  const next = evaluateCompetition(project, current, snapshot, Date.now())
+  taskStore.setState({ competition: next, notice: next.message })
+  return next
 }

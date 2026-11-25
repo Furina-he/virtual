@@ -1,0 +1,88 @@
+{
+  "id": "MD-15",
+  "group": "集成运放应用",
+  "title": "对由运放器组成的电压比较器传输特性的研究",
+  "type": "basic",
+  "modules": [{ "instanceId": "oa1", "moduleId": "mod-opamp", "slot": "SLOT_BOX_L1" }],
+  "allowedInstruments": ["ins-func-gen", "ins-oscilloscope", "ins-multimeter"],
+  "reference": {
+    "nets": [
+      ["ins-dc-power.CH1P", "oa1.OA_VP"],
+      ["ins-dc-power.CH1N", "ins-dc-power.CH2P", "oa1.OA_GND1", "oa1.OA_GND2", "oa1.CMP_VREF", "ins-func-gen.GND"],
+      ["ins-dc-power.CH2N", "oa1.OA_VM"],
+      ["ins-func-gen.CH1", "oa1.CMP_IN"]
+    ],
+    "measurePoints": [
+      { "id": "u_cmp_out", "kind": "waveform", "quantity": "vpp", "between": ["oa1.CMP_OUT", "oa1.OA_GND1"] },
+      { "id": "u_cmp_dc", "kind": "voltage", "mode": "dcv", "between": ["oa1.CMP_OUT", "oa1.OA_GND1"] },
+      { "id": "u_cmp_p", "kind": "voltage", "mode": "dcv", "between": ["oa1.CMP_P", "oa1.OA_GND1"] }
+    ]
+  },
+  "steps": [
+    {
+      "id": "prepare",
+      "text": "保持断电，拖放双通道函数信号发生器与双通道数字示波器；将双路直流电源接成 ±12 V 双电源（CH1 = 12 V，CH2 = 12 V），信号源 CH1 设 200 Hz、10 Vpp 三角波（用于扫出完整传输特性），比较器反馈模式 SW_CMP_MODE 先置“单限 / 过零比较”。",
+      "measurePoints": [],
+      "dataTable": "cmp_transfer"
+    },
+    {
+      "id": "wire",
+      "text": "断电按图连接：±12 V 供电接 OA_VP/OA_VM/OA_GND1，比较器参考端 CMP_VREF 接 GND2（构成过零比较器），信号源 CH1 接比较器输入 CMP_IN、GND 接 GND2；示波器 CH1 接 CMP_IN（X 轴）、CH2 接 CMP_OUT（Y 轴）、GND 接 GND2，点击“检查接线”。",
+      "measurePoints": ["u_cmp_out"],
+      "checkWiring": true,
+      "dataTable": "cmp_transfer"
+    },
+    {
+      "id": "zero_crossing",
+      "text": "过零与单限比较器传输特性：上电在 Y-T 模式下观察输入过零时输出在约 +10.5 V 与 −11.95 V 间陡峭翻转（Vpp ≈ 22.4 V）；将示波器切换至 X-Y 模式，观察垂直单线阶跃型电压传输特性（回差 ΔU = 0 V），记录第 1 行；另可将 CMP_VREF 改接 2 V 直流参考观察翻转阈值平移。",
+      "measurePoints": ["u_cmp_out"],
+      "expect": { "measurePoint": "u_cmp_out", "min": 20.0, "max": 24.0 },
+      "dataTable": "cmp_transfer"
+    },
+    {
+      "id": "hysteresis",
+      "text": "滞回（施密特）比较器传输特性：保持 200 Hz 10 Vpp 三角波输入，带电将 SW_CMP_MODE 切至“滞回比较器 (±2.2 V)”引入正反馈（R1=10 kΩ, R2=40 kΩ）；在示波器 X-Y 模式下清晰观测闭合矩形滞回传输特性环（上门限约 +2.1 V、下门限约 −2.4 V，窗口宽度 ΔU ≈ 4.5 V），记录第 2 行。",
+      "measurePoints": ["u_cmp_out"],
+      "expect": { "measurePoint": "u_cmp_out", "min": 20.0, "max": 24.0 },
+      "dataTable": "cmp_transfer"
+    },
+    {
+      "id": "analyse",
+      "text": "断电后对比过零比较器与滞回比较器的抗干扰窗口特性，完成思考题。",
+      "measurePoints": [],
+      "recordTable": "cmp_transfer",
+      "dataTable": "cmp_transfer"
+    }
+  ],
+  "dataTables": [
+    {
+      "id": "cmp_transfer",
+      "title": "过零比较器与滞回比较器电压传输特性实测记录（±12 V，R1=10 kΩ，R2=40 kΩ）",
+      "rows": 2,
+      "columns": [
+        { "id": "mode_idx", "title": "模式 (0:过零 1:滞回)", "unit": "" },
+        { "id": "u_vpp", "title": "输出跳变 Vpp", "unit": "V", "measurePoint": "u_cmp_out", "captureSteps": ["zero_crossing", "hysteresis"] },
+        { "id": "delta_u", "title": "回差宽度 ΔU", "unit": "V" }
+      ],
+      "sanity": [
+        { "column": "u_vpp", "min": 18, "max": 24.5, "message": "±12 V 供电下 LM324 输出跳变峰峰值约 22.4 V。" },
+        { "column": "delta_u", "min": 0, "max": 10, "message": "过零比较器回差为 0 V，滞回比较器理论回差约 4.5 V。" }
+      ]
+    }
+  ],
+  "charts": [
+    {
+      "id": "cmp-hyst-plot",
+      "title": "比较器工作模式与回差窗口宽度对比",
+      "table": "cmp_transfer",
+      "x": "mode_idx",
+      "y": ["delta_u"],
+      "kind": "line"
+    }
+  ],
+  "questions": [
+    "为什么在电压比较器电路中运放工作在开环或正反馈状态，不再满足线性区的“虚短”关系？",
+    "引入正反馈形成滞回比较器后，如何根据输出高/低电平与分压比 R1/(R1+R2) 定量计算上下门限电压 U_TH+ 与 U_TH−？",
+    "在实际工业检测中，当缓慢变化的输入信号叠加有 ±0.5 V 高频噪声时，为什么滞回比较器能有效防止输出抖动？"
+  ]
+}

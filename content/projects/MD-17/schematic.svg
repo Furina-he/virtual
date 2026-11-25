@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 740 310" width="740" height="310" font-family="sans-serif" font-size="13">
+  <rect width="740" height="310" fill="#f8fafc" stroke="#cbd5e1"/>
+  <text x="20" y="28" font-size="16" font-weight="bold" fill="#0f172a">MD-17 方波、三角波与不对称锯齿波发生器原理图（±12 V，C=33nF）</text>
+  <circle cx="50" cy="60" r="5" fill="#dc2626" data-jack="oa1.OA_VP"/>
+  <text x="60" y="64" fill="#dc2626">+12V</text>
+  <circle cx="135" cy="60" r="5" fill="#dc2626" data-jack="oa1.FG_EN"/>
+  <text x="145" y="64" fill="#dc2626">FG_EN</text>
+  <line x1="55" y1="60" x2="130" y2="60" stroke="#dc2626" stroke-width="2" stroke-dasharray="4 3"/>
+  <circle cx="235" cy="60" r="5" fill="#2563eb" data-jack="oa1.OA_VM"/>
+  <text x="245" y="64" fill="#2563eb">−12V</text>
+  <rect x="65" y="108" width="150" height="100" rx="6" fill="#eff6ff" stroke="#2563eb" stroke-width="2"/>
+  <text x="86" y="148" font-weight="bold" fill="#1d4ed8">OA3 滞回比较器</text>
+  <text x="84" y="172" font-size="11" fill="#475569">Rh1=10k, Rh2=20k</text>
+  <text x="96" y="192" font-size="11" fill="#475569">输出 ±11 V 方波</text>
+  <line x1="215" y1="158" x2="310" y2="158" stroke="#dc2626" stroke-width="2"/>
+  <circle cx="262" cy="158" r="5" fill="#d97706" data-jack="oa1.FG_SQ"/>
+  <text x="252" y="145" fill="#92400e">SQ</text>
+  <rect x="310" y="114" width="135" height="88" rx="6" fill="#fefce8" stroke="#ca8a04" stroke-width="2"/>
+  <text x="328" y="146" font-weight="bold" fill="#854d0e">R_FG_FREQ</text>
+  <text x="326" y="168" font-size="11" fill="#713f12">5 ~ 35 kΩ 可调</text>
+  <text x="322" y="188" font-size="11" fill="#713f12">+ SW_SYM 锯齿</text>
+  <line x1="445" y1="158" x2="505" y2="158" stroke="#0f172a" stroke-width="2"/>
+  <rect x="505" y="108" width="150" height="100" rx="6" fill="#f0fdf4" stroke="#16a34a" stroke-width="2"/>
+  <text x="526" y="148" font-weight="bold" fill="#15803d">OA4 反相积分器</text>
+  <text x="536" y="172" font-size="11" fill="#166534">C_fg = 33 nF</text>
+  <text x="528" y="192" font-size="11" fill="#166534">输出三角 / 锯齿</text>
+  <circle cx="655" cy="158" r="5" fill="#d97706" data-jack="oa1.FG_TRI"/>
+  <text x="665" y="162" fill="#15803d">TRI</text>
+  <line x1="655" y1="158" x2="655" y2="238" stroke="#16a34a" stroke-width="2"/>
+  <line x1="140" y1="238" x2="655" y2="238" stroke="#16a34a" stroke-width="2"/>
+  <line x1="140" y1="208" x2="140" y2="238" stroke="#16a34a" stroke-width="2"/>
+  <line x1="45" y1="278" x2="695" y2="278" stroke="#0f172a" stroke-width="2.5"/>
+  <circle cx="200" cy="278" r="5" fill="#0f172a" data-jack="oa1.OA_GND1"/>
+  <circle cx="440" cy="278" r="5" fill="#0f172a" data-jack="oa1.OA_GND2"/>
+  <text x="702" y="282">GND</text>
+</svg>

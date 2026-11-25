@@ -78,3 +78,85 @@ Dhigh OUT VP TLV9001_RAIL_EST
 .model TLV_GM_LIM limit(gain=100u out_lower_limit=-31.8309886184u out_upper_limit=31.8309886184u limit_range=5u)
 .model TLV_DRV_LIM limit(gain=0.05 out_lower_limit=-1m out_upper_limit=1m limit_range=0.25m)
 .ends TLV9001_EST
+
+* LM324_UNIT -- 单/双电源通用运放单元（代表 LM324 / LM358 单通道，端口：INP INM VP VM OUT）
+*   来源：本项目按 LM324/LM358 数据手册典型值自建平滑差分行为宏模型，未复制任何厂商 SPICE 模型文件。
+*   电气指标（25 °C）：单/双电源 3~32 V，开环增益 AVD = 100 V/mV，GBW ≈ 1 MHz，SR ≈ 0.5 V/us，
+*   输出摆幅 [VM + 0.05 V, VP - 1.5 V]，供电低于 2.5 V 时输出被动落回 VM 且不放大。
+*   全内部节点均相对 VP/VM 差分构建，绝不使用保留字 GND，隔离地电路下零偏移。
+*   许可证：随本项目发布，可自由再分发（项目自有内容）。
+.subckt LM324_UNIT INP INM VP VM OUT
+Riq VP VM 20k
+Rin INP INM 2Meg
+Rcm_p INP VM 20Meg
+Rcm_m INM VM 20Meg
+* 内部静态参考中点与使能门控（V(VP,VM) >= 2.5 V 时完全使能）
+E_mid n_mid VM VP VM 0.5
+B_gm n_mid n_int I = 80e-6 * tanh(v(INP,INM) * 1e-3 / 80e-6) * 0.5 * (1 + tanh((v(VP,VM) - 2.2) / 0.25))
+R_dom n_int n_mid 100Meg
+C_dom n_int n_mid 159p
+* 抗饱和积分防卷绕钳位（将 n_int 钳在电源轨附近，消除比较器与振荡器过载恢复滞后）
+D_clp_hi n_int VP D_LM324_CLP
+D_clp_lo VM n_int D_LM324_CLP
+.model D_LM324_CLP D(IS=1e-12 N=1 RS=10)
+* 平滑饱和限幅至 [VM + 0.05 V, VP - 1.5 V]（线性区无压缩，未供电时自然收拢至 VM）
+B_vlo n_lo VM V = 0.05 * 0.5 * (1 + tanh((v(VP,VM) - 2.2) / 0.25))
+B_vhi n_hi VM V = max(0.05, v(VP,VM) - 1.5) * 0.5 * (1 + tanh((v(VP,VM) - 2.2) / 0.25))
+B_clamp_hi n_ch VM V = 0.5 * (v(n_int,VM) + v(n_hi,VM) - sqrt((v(n_int,VM) - v(n_hi,VM)) * (v(n_int,VM) - v(n_hi,VM)) + 0.01))
+B_out n_out VM V = 0.5 * (v(n_ch,VM) + v(n_lo,VM) + sqrt((v(n_ch,VM) - v(n_lo,VM)) * (v(n_ch,VM) - v(n_lo,VM)) + 0.01))
+R_out n_out OUT 50
+.ends LM324_UNIT
+
+* LM393_UNIT -- 低功耗集电极开路双电压比较器单元（端口：INP INM VP VM OUT）
+*   来源：本项目按 LM393 数据手册典型值自建平滑开漏行为宏模型，未复制任何厂商 SPICE 模型文件。
+*   电气指标（25 °C）：单/双电源 2~36 V，INP > INM 时输出高阻（需外接上拉），INP < INM 时下拉饱和
+*   V_OL < 0.2 V @ 5 mA，典型压摆响应 < 1.5 us。全差分构建，绝不使用保留字 GND。
+*   许可证：随本项目发布，可自由再分发（项目自有内容）。
+.subckt LM393_UNIT INP INM VP VM OUT
+Riq VP VM 12k
+Rin INP INM 2Meg
+Rcm_p INP VM 20Meg
+Rcm_m INM VM 20Meg
+* 内部状态节点（高电平约 1 V 表示 INP < INM 导通下拉，低电平 0 V 表示 INP > INM 关断高阻）
+B_drv VM n_st I = 1m * 0.5 * (1 - tanh(v(INP,INM) / 2m)) * 0.5 * (1 + tanh((v(VP,VM) - 1.8) / 0.2))
+R_st n_st VM 1k
+C_st n_st VM 200p
+* 开集电极平滑下拉管（最大灌电流 20 mA，饱和压降约 0.12 V @ 5 mA，关断漏阻 10 MΩ）
+B_sink OUT VM I = 20e-3 * v(n_st,VM) * tanh(max(0, v(OUT,VM)) / 0.45)
+R_leak OUT VM 10Meg
+.ends LM393_UNIT
+
+* LM386 -- 低压集成音频功率放大器（DIP-8：1=GAIN1 2=INM 3=INP 4=COM 5=OUT 6=VS 7=BYP 8=GAIN8）
+*   来源：本项目按 LM386 数据手册典型结构与电气指标自建行为宏模型，未复制任何厂商 SPICE 模型文件。
+*   电气指标（25 °C）：单电源 VS = 4~12 V，静态输出自动偏置在 VS/2；
+*   脚 1–8 开路时内部反馈电阻 15 kΩ / (150 Ω + 1.35 kΩ) -> 闭环电压增益 Av = 20 (26 dB)；
+*   脚 1–8 接 10 µF 旁路电容时交流增益电阻降为 150 Ω -> 闭环电压增益 Av = 200 (46 dB)；
+*   支持直接驱动 8 Ω 扬声器，输出摆幅平滑钳位在 [0.6 V, VS - 0.6 V]，未供电时输出为 0 V。
+*   许可证：随本项目发布，可自由再分发（项目自有内容）。
+.subckt LM386 GAIN1 INM INP COM OUT VS BYP GAIN8
+Riq VS COM 2.2k
+Rin_p INP COM 50k
+Rin_m INM COM 50k
+* 内部偏置参考点 VS/2（供脚 7 旁路电容滤波）
+R_byp1 VS BYP 15k
+R_byp2 BYP COM 15k
+* 经典 1–8 脚增益网络（15 kΩ 反馈，1.35 kΩ + 150 Ω 分压：1-8 开路总阻 1.5 kΩ -> Av=20；1-8 交流短路 -> Av≈200）
+R_g1 GAIN1 GAIN8 1.35k
+R_g2 GAIN8 n_gnd_ac 150
+C_gnd_ac n_gnd_ac COM 100u
+R_gnd_dc n_gnd_ac COM 100k
+* 等效交流输入驱动：将差分输入 (INP - INM) 注入 GAIN1，再按反馈电阻 15 kΩ 换算为闭环目标增益信号
+* 当 1–8 开路时，v(GAIN1, COM) 经 R_g1+R_g2=1.5 kΩ 流过电流 i_g = v_in / 750 Ω -> 15 kΩ 压降 = 20 * v_in
+* 当 1–8 经 10 µF 交流旁路时，仅 R_g2=150 Ω 限流 -> i_g = v_in / 75 Ω -> 15 kΩ 压降 = 200 * v_in
+E_drive n_drv COM INP INM 2.0
+V_gsense n_drv GAIN1 0
+* 反馈跨阻级 + 主极点（带宽 ~300 kHz）
+B_amp COM n_sig I = i(V_gsense) * 15000 / 1000 * 0.5 * (1 + tanh((v(VS,COM) - 3.5) / 0.3))
+R_amp n_sig COM 1k
+C_amp n_sig COM 500p
+* 推挽输出级：叠加直流偏置 V(BYP, COM) ≈ VS/2，并平滑限幅于 [0.6 V, VS - 0.6 V]，驱动 8 Ω 负载
+B_target n_tgt COM V = (v(BYP,COM) + 0.5 * max(0.2, v(VS,COM) - 1.2) * tanh(v(n_sig,COM) / max(0.2, 0.5 * (v(VS,COM) - 1.2)))) * 0.5 * (1 + tanh((v(VS,COM) - 3.5) / 0.3))
+B_push VS OUT I = 0.6 * tanh(0.5 * (20 * (v(n_tgt,COM) - v(OUT,COM)) + sqrt(400 * (v(n_tgt,COM) - v(OUT,COM)) * (v(n_tgt,COM) - v(OUT,COM)) + 1e-4))) * 0.5 * (1 + tanh((v(VS,COM) - 3.5) / 0.3))
+B_pull OUT COM I = 0.6 * tanh(0.5 * (20 * (v(OUT,COM) - v(n_tgt,COM)) + sqrt(400 * (v(OUT,COM) - v(n_tgt,COM)) * (v(OUT,COM) - v(n_tgt,COM)) + 1e-4))) * 0.5 * (1 + tanh((v(VS,COM) - 3.5) / 0.3))
+R_out_leak OUT COM 100k
+.ends LM386

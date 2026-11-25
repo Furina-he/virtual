@@ -125,6 +125,30 @@ export const Step = z.object({
   dataTable: z.string().min(1).optional(),
 })
 
+// 竞赛任务定义（TSK-08）：给定频率、幅值、波形指标，限时调试并按真实实测达成度判定
+export const CompetitionCriterion = z
+  .object({
+    id: z.string().min(1),
+    label: z.string().min(1),
+    measurePoint: z.string().min(1),
+    unit: z.string().default(''),
+    target: z.number().finite(),
+    min: z.number().finite(),
+    max: z.number().finite(),
+  })
+  .superRefine((c, ctx) => {
+    if (c.min > c.max) ctx.addIssue({ code: 'custom', message: '指标上限不能小于下限', path: ['max'] })
+    if (c.target < c.min || c.target > c.max)
+      ctx.addIssue({ code: 'custom', message: '目标值必须落在允许上下限内', path: ['target'] })
+  })
+
+export const CompetitionSpec = z.object({
+  title: z.string().min(1),
+  timeLimitSec: z.number().int().positive(),
+  brief: z.string().min(1),
+  criteria: z.array(CompetitionCriterion).min(1).superRefine(uniqueBy('id')),
+})
+
 export const Project = z
   .object({
     id: ProjectId,
@@ -147,6 +171,7 @@ export const Project = z
     dataTables: z.array(DataTable).superRefine(uniqueBy('id')).default([]),
     charts: z.array(Chart).superRefine(uniqueBy('id')).default([]),
     faults: z.array(FaultDef).superRefine(uniqueBy('id')).optional(),
+    competition: CompetitionSpec.optional(),
     questions: z.array(z.string().min(1)),
   })
   .superRefine((p, ctx) => {
@@ -299,6 +324,14 @@ export const Project = z
           })
       })
     })
+    p.competition?.criteria.forEach((criterion, i) => {
+      if (!points.has(criterion.measurePoint))
+        ctx.addIssue({
+          code: 'custom',
+          message: `竞赛指标引用的测量点 ${criterion.measurePoint} 不存在`,
+          path: ['competition', 'criteria', i, 'measurePoint'],
+        })
+    })
   })
 
 export type Project = z.infer<typeof Project>
@@ -307,3 +340,5 @@ export type MeasurePoint = z.infer<typeof MeasurePoint>
 export type Step = z.infer<typeof Step>
 export type DataTable = z.infer<typeof DataTable>
 export type Chart = z.infer<typeof Chart>
+export type CompetitionCriterion = z.infer<typeof CompetitionCriterion>
+export type CompetitionSpec = z.infer<typeof CompetitionSpec>

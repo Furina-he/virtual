@@ -1,0 +1,111 @@
+{
+  "id": "mod-opamp",
+  "name": "集成运放与波形发生综合挂箱",
+  "form": "box",
+  "model": "module.glb",
+  "netlist": "module.cir",
+  "jacks": [
+    { "id": "OA_VP", "label": "+12V 电源", "kind": "banana4", "polarityHint": "+" },
+    { "id": "OA_VM", "label": "−12V 电源", "kind": "banana4", "polarityHint": "-" },
+    { "id": "OA_GND1", "label": "公共地 1", "kind": "banana4", "polarityHint": "-" },
+    { "id": "OA_GND2", "label": "公共地 2", "kind": "banana4", "polarityHint": "-" },
+    { "id": "OA1_IN1", "label": "运放1 输入1 (10k)", "kind": "banana4" },
+    { "id": "OA1_IN2", "label": "运放1 输入2 (10k)", "kind": "banana4" },
+    { "id": "OA1_SUM", "label": "运放1 反相端 (−)", "kind": "banana4" },
+    { "id": "OA1_PIN", "label": "运放1 同相入 (10k)", "kind": "banana4" },
+    { "id": "OA1_P", "label": "运放1 同相端 (+)", "kind": "banana4" },
+    { "id": "OA1_FB", "label": "反馈电阻端 (20k)", "kind": "banana4" },
+    { "id": "OA1_OUT", "label": "运放1 输出 Uo1", "kind": "banana4" },
+    { "id": "OA1_C1", "label": "微积分电容端 1", "kind": "banana4" },
+    { "id": "OA1_C2", "label": "微积分电容端 2", "kind": "banana4" },
+    { "id": "CMP_IN", "label": "比较器输入 Ui", "kind": "banana4" },
+    { "id": "CMP_VREF", "label": "比较器参考 Vr", "kind": "banana4" },
+    { "id": "CMP_P", "label": "比较器同相端", "kind": "banana4" },
+    { "id": "CMP_OUT", "label": "比较器输出 Uo", "kind": "banana4" },
+    { "id": "FG_EN", "label": "函数区供电入", "kind": "banana4", "polarityHint": "+" },
+    { "id": "FG_SQ", "label": "方波输出 SQ", "kind": "banana4" },
+    { "id": "FG_TRI", "label": "三角/锯齿 TRI", "kind": "banana4" },
+    { "id": "FG_SIN", "label": "正弦整形 SIN", "kind": "banana4" },
+    { "id": "WIEN_EN", "label": "文氏桥供电入", "kind": "banana4", "polarityHint": "+" },
+    { "id": "WIEN_P", "label": "文氏桥选频 P", "kind": "banana4" },
+    { "id": "WIEN_N", "label": "文氏桥反馈 N", "kind": "banana4" },
+    { "id": "WIEN_OUT", "label": "文氏桥输出 Uo", "kind": "banana4" },
+    { "id": "OA_GND3", "label": "公共地 3", "kind": "banana4", "polarityHint": "-" }
+  ],
+  "controls": [
+    {
+      "id": "SW_CMP_MODE",
+      "label": "比较器反馈模式",
+      "kind": "rotary",
+      "param": "sw_cmp_mode",
+      "steps": [0, 1],
+      "stepLabels": ["单限 / 过零比较", "滞回比较器 (±2.2 V)"],
+      "targets": [{ "element": "RCMP_FB", "values": [100000000, 40000] }],
+      "unit": "",
+      "default": 0
+    },
+    {
+      "id": "R_FG_FREQ",
+      "label": "函数发生器频率电阻",
+      "kind": "pot",
+      "param": "r_fg_freq",
+      "range": [5, 35],
+      "step": 1,
+      "targets": [{ "element": "RFG_FREQ", "scale": 1000, "offset": 0, "min": 4000 }],
+      "unit": "kΩ",
+      "default": 15
+    },
+    {
+      "id": "SW_FG_SYM",
+      "label": "波形对称性切换",
+      "kind": "rotary",
+      "param": "sw_fg_sym",
+      "steps": [0, 1],
+      "stepLabels": ["对称方波 / 三角波", "不对称锯齿波"],
+      "targets": [{ "element": "RSW_SYM", "values": [100000000, 2200] }],
+      "unit": "",
+      "default": 0
+    },
+    {
+      "id": "R_FG_AMP",
+      "label": "正弦整形幅值调节",
+      "kind": "pot",
+      "param": "r_fg_amp",
+      "range": [20, 100],
+      "step": 5,
+      "targets": [
+        { "element": "RAMP_T", "scale": -98, "offset": 10000, "min": 100 },
+        { "element": "RAMP_B", "scale": 98, "offset": 200, "min": 100 }
+      ],
+      "unit": "%",
+      "default": 40
+    },
+    {
+      "id": "RF_WIEN",
+      "label": "文氏桥起振反馈电阻 Rf",
+      "kind": "pot",
+      "param": "rf_wien",
+      "range": [10, 24],
+      "step": 1,
+      "targets": [{ "element": "RRF_WIEN", "scale": 1000, "offset": 0, "min": 10000 }],
+      "unit": "kΩ",
+      "default": 17
+    },
+    {
+      "id": "SW_WIEN_C",
+      "label": "文氏桥选频档位",
+      "kind": "rotary",
+      "param": "sw_wien_c",
+      "steps": [0, 1],
+      "stepLabels": ["1.0 kHz (15.9 nF)", "2.0 kHz (7.96 nF)"],
+      "targets": [
+        { "element": "RSW_WC1", "values": [1, 100000000] },
+        { "element": "RSW_WC2", "values": [1, 100000000] }
+      ],
+      "unit": "",
+      "default": 0
+    }
+  ],
+  "indicators": [],
+  "commonNets": [["OA_GND1", "OA_GND2", "OA_GND3"]]
+}

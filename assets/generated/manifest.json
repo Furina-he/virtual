@@ -6712,6 +6712,1032 @@
           "height": 1428
         }
       ]
+    },
+    {
+      "id": "mod-analog-otl",
+      "model": "content/modules/mod-analog-otl/module.glb",
+      "bytes": 477596,
+      "sha256": "daeeb3da820f8c3bc6761c5ad1447d240af87b353e140c19bf8cf705225ae8e8",
+      "triangles": 3398,
+      "drawCalls": 5,
+      "bounds": {
+        "min": [
+          -0.13199999928474426,
+          -1.8998980166884394e-10,
+          -0.02539999969303608
+        ],
+        "max": [
+          0.13199999928474426,
+          0.18404999375343323,
+          0.028225000217556955
+        ]
+      },
+      "anchors": [
+        {
+          "name": "JACK_OTL_VCC",
+          "position": [
+            -0.106,
+            0.106,
+            0.024
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_OTL_GND1",
+          "position": [
+            -0.106,
+            0.048,
+            0.024
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_OTL_GND2",
+          "position": [
+            -0.068,
+            0.048,
+            0.024
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_OTL_IN",
+          "position": [
+            -0.068,
+            0.106,
+            0.024
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_OTL_BDRV",
+          "position": [
+            -0.028,
+            0.106,
+            0.024
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_OTL_BUP",
+          "position": [
+            0.014,
+            0.106,
+            0.024
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_OTL_BDN",
+          "position": [
+            -0.006,
+            0.048,
+            0.024
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_OTL_MID",
+          "position": [
+            0.058,
+            0.106,
+            0.024
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_OTL_BOOT",
+          "position": [
+            0.048,
+            0.048,
+            0.024
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_OTL_SPK_P",
+          "position": [
+            0.104,
+            0.106,
+            0.024
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_OTL_SPK_N",
+          "position": [
+            0.104,
+            0.048,
+            0.024
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "KNOB_RP_MID",
+          "position": [
+            -0.046,
+            0.152,
+            0.021500000000000002
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "KNOB_SW_XOVER",
+          "position": [
+            0.06,
+            0.152,
+            0.021500000000000002
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "textures": [
+        {
+          "mimeType": "image/webp",
+          "width": 1536,
+          "height": 1070
+        }
+      ]
+    },
+    {
+      "id": "mod-app-lm386",
+      "model": "content/modules/mod-app-lm386/module.glb",
+      "bytes": 477404,
+      "sha256": "76a7e81ab442f4028da6448fdea6bdae675f31b185712d2d068e21b1693a4929",
+      "triangles": 3398,
+      "drawCalls": 5,
+      "bounds": {
+        "min": [
+          -0.13199999928474426,
+          -1.8998980166884394e-10,
+          -0.02539999969303608
+        ],
+        "max": [
+          0.13199999928474426,
+          0.18404999375343323,
+          0.028225000217556955
+        ]
+      },
+      "anchors": [
+        {
+          "name": "JACK_AMP_VS",
+          "position": [
+            -0.106,
+            0.106,
+            0.024
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_AMP_GND1",
+          "position": [
+            -0.106,
+            0.048,
+            0.024
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_AMP_GND2",
+          "position": [
+            -0.066,
+            0.048,
+            0.024
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_AMP_IN",
+          "position": [
+            -0.066,
+            0.106,
+            0.024
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_AMP_WIP",
+          "position": [
+            -0.026,
+            0.106,
+            0.024
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_AMP_G1",
+          "position": [
+            0.016,
+            0.106,
+            0.024
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_AMP_G8",
+          "position": [
+            0.016,
+            0.048,
+            0.024
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_AMP_BYP",
+          "position": [
+            -0.026,
+            0.048,
+            0.024
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_AMP_OUT",
+          "position": [
+            0.06,
+            0.106,
+            0.024
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_AMP_SPK_P",
+          "position": [
+            0.104,
+            0.106,
+            0.024
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_AMP_SPK_N",
+          "position": [
+            0.104,
+            0.048,
+            0.024
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "KNOB_VOL_POT",
+          "position": [
+            -0.046,
+            0.152,
+            0.021500000000000002
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "KNOB_SW_GAIN",
+          "position": [
+            0.06,
+            0.152,
+            0.021500000000000002
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "textures": [
+        {
+          "mimeType": "image/webp",
+          "width": 1536,
+          "height": 1070
+        }
+      ]
+    },
+    {
+      "id": "mod-app-smoke",
+      "model": "content/modules/mod-app-smoke/module.glb",
+      "bytes": 456640,
+      "sha256": "ebc0f0ed727dcdb6a305f9716bad93f75f937f4ec115a4f65f1fdb7f9fe95a32",
+      "triangles": 3242,
+      "drawCalls": 5,
+      "bounds": {
+        "min": [
+          -0.13199999928474426,
+          -1.8998980166884394e-10,
+          -0.02539999969303608
+        ],
+        "max": [
+          0.13199999928474426,
+          0.18404999375343323,
+          0.028225000217556955
+        ]
+      },
+      "anchors": [
+        {
+          "name": "JACK_SMK_VCC",
+          "position": [
+            -0.106,
+            0.106,
+            0.024
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_SMK_GND1",
+          "position": [
+            -0.106,
+            0.048,
+            0.024
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_SMK_GND2",
+          "position": [
+            -0.006,
+            0.048,
+            0.024
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_SMK_VS",
+          "position": [
+            -0.058,
+            0.106,
+            0.024
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_SMK_VREF",
+          "position": [
+            -0.058,
+            0.048,
+            0.024
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_SMK_CMP",
+          "position": [
+            -0.006,
+            0.106,
+            0.024
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_SMK_LED_A",
+          "position": [
+            0.048,
+            0.106,
+            0.024
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_SMK_ALM_K",
+          "position": [
+            0.048,
+            0.048,
+            0.024
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_SMK_SND_P",
+          "position": [
+            0.104,
+            0.106,
+            0.024
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_SMK_SND_N",
+          "position": [
+            0.104,
+            0.048,
+            0.024
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "KNOB_SMOKE_PPM",
+          "position": [
+            -0.046,
+            0.152,
+            0.021500000000000002
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "KNOB_VREF_POT",
+          "position": [
+            0.06,
+            0.152,
+            0.021500000000000002
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "textures": [
+        {
+          "mimeType": "image/webp",
+          "width": 1536,
+          "height": 1070
+        }
+      ]
+    },
+    {
+      "id": "mod-opamp",
+      "model": "content/modules/mod-opamp/module.glb",
+      "bytes": 1017856,
+      "sha256": "89735e5da2296658d1c492191bdaee86bcb3e1478fabd59df94fc715639d1123",
+      "triangles": 7354,
+      "drawCalls": 9,
+      "bounds": {
+        "min": [
+          -0.14499999582767487,
+          -1.8998980166884394e-10,
+          -0.03099999949336052
+        ],
+        "max": [
+          0.14499999582767487,
+          0.47005000710487366,
+          0.03572500021755695
+        ]
+      },
+      "anchors": [
+        {
+          "name": "JACK_OA_VP",
+          "position": [
+            -0.113,
+            0.416,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_OA_VM",
+          "position": [
+            -0.053,
+            0.416,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_OA_GND1",
+          "position": [
+            0.011,
+            0.416,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_OA_GND2",
+          "position": [
+            0.067,
+            0.416,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_OA1_IN1",
+          "position": [
+            -0.113,
+            0.358,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_OA1_IN2",
+          "position": [
+            -0.113,
+            0.31,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_OA1_SUM",
+          "position": [
+            -0.061,
+            0.358,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_OA1_PIN",
+          "position": [
+            -0.061,
+            0.31,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_OA1_P",
+          "position": [
+            -0.007,
+            0.31,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_OA1_FB",
+          "position": [
+            -0.007,
+            0.358,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_OA1_OUT",
+          "position": [
+            0.051,
+            0.358,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_OA1_C1",
+          "position": [
+            0.109,
+            0.358,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_OA1_C2",
+          "position": [
+            0.109,
+            0.31,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_CMP_IN",
+          "position": [
+            -0.113,
+            0.246,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_CMP_VREF",
+          "position": [
+            -0.061,
+            0.246,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_CMP_P",
+          "position": [
+            -0.009,
+            0.246,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_CMP_OUT",
+          "position": [
+            0.043,
+            0.246,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_FG_EN",
+          "position": [
+            -0.109,
+            0.134,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_FG_SQ",
+          "position": [
+            -0.041,
+            0.134,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_FG_TRI",
+          "position": [
+            0.029,
+            0.134,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_FG_SIN",
+          "position": [
+            0.101,
+            0.134,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_WIEN_EN",
+          "position": [
+            -0.109,
+            0.036,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_WIEN_P",
+          "position": [
+            -0.041,
+            0.036,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_WIEN_N",
+          "position": [
+            0.029,
+            0.036,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_WIEN_OUT",
+          "position": [
+            0.101,
+            0.036,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_OA_GND3",
+          "position": [
+            0.115,
+            0.416,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "KNOB_SW_CMP_MODE",
+          "position": [
+            0.099,
+            0.246,
+            0.029
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "KNOB_R_FG_FREQ",
+          "position": [
+            -0.079,
+            0.176,
+            0.029
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "KNOB_SW_FG_SYM",
+          "position": [
+            0.011,
+            0.176,
+            0.029
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "KNOB_R_FG_AMP",
+          "position": [
+            0.099,
+            0.176,
+            0.029
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "KNOB_RF_WIEN",
+          "position": [
+            -0.049,
+            0.076,
+            0.029
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "KNOB_SW_WIEN_C",
+          "position": [
+            0.077,
+            0.076,
+            0.029
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "textures": [
+        {
+          "mimeType": "image/webp",
+          "width": 1264,
+          "height": 2048
+        }
+      ]
     }
   ],
   "preview": {

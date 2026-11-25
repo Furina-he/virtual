@@ -1,0 +1,132 @@
+{
+  "id": "MD-13",
+  "group": "集成运放应用",
+  "title": "运算放大器基本运算电路",
+  "type": "basic",
+  "modules": [{ "instanceId": "oa1", "moduleId": "mod-opamp", "slot": "SLOT_BOX_L1" }],
+  "allowedInstruments": ["ins-func-gen", "ins-oscilloscope", "ins-multimeter"],
+  "reference": {
+    "nets": [
+      ["ins-dc-power.CH1P", "oa1.OA_VP"],
+      ["ins-dc-power.CH1N", "ins-dc-power.CH2P", "oa1.OA_GND1", "oa1.OA_GND2", "oa1.OA1_PIN", "ins-func-gen.GND"],
+      ["ins-dc-power.CH2N", "oa1.OA_VM"],
+      ["ins-func-gen.CH1", "oa1.OA1_IN1"],
+      ["oa1.OA1_FB", "oa1.OA1_OUT"]
+    ],
+    "measurePoints": [
+      { "id": "u_in1", "kind": "waveform", "quantity": "vpp", "between": ["oa1.OA1_IN1", "oa1.OA_GND1"] },
+      { "id": "u_out_vpp", "kind": "waveform", "quantity": "vpp", "between": ["oa1.OA1_OUT", "oa1.OA_GND1"] },
+      { "id": "u_out_dc", "kind": "voltage", "mode": "dcv", "between": ["oa1.OA1_OUT", "oa1.OA_GND1"] }
+    ]
+  },
+  "steps": [
+    {
+      "id": "prepare",
+      "text": "保持断电，拖放函数信号发生器与示波器；将双路直流电源 CH1 = 12 V、CH2 = 12 V 串联构成 ±12 V 双电源（CH1− 共接 CH2+ 作为公共地 GND，CH1+ 为 +12 V，CH2− 为 −12 V）；信号源 CH1 设 1 kHz、2 Vpp 正弦波。",
+      "measurePoints": [],
+      "dataTable": "opamp_ops"
+    },
+    {
+      "id": "inverting",
+      "text": "阶段 1（反相比例放大，Av = −Rf/R1 = −2）：断电接 ±12 V 双电源至 OA_VP/OA_VM/OA_GND1，反馈端 RF→UO1，同相入 PIN→GND2，信号源 CH1→IN1、GND→GND2；示波器 CH1 接 IN1、CH2 接 UO1、GND 接 GND2，点击“检查接线”。上电验证反相输出约 4.0 Vpp（误差 ≤ 1%），增大输入至 14 Vpp 观察正负轨饱和削顶。",
+      "measurePoints": ["u_in1", "u_out_vpp"],
+      "checkWiring": true,
+      "expect": { "measurePoint": "u_out_vpp", "min": 3.85, "max": 4.15 },
+      "dataTable": "opamp_ops"
+    },
+    {
+      "id": "non_inverting",
+      "text": "阶段 2（同相比例放大，Av = 1 + Rf/R1 = +3）：断电改接 IN1→GND2，信号源 CH1→同相端 IN+（oa1.OA1_P），保持 RF→UO1，点击“检查接线”。上电验证 2 Vpp 输入时同相输出约 6.0 Vpp。",
+      "referenceNets": [
+        ["ins-dc-power.CH1P", "oa1.OA_VP"],
+        ["ins-dc-power.CH1N", "ins-dc-power.CH2P", "oa1.OA_GND1", "oa1.OA_GND2", "oa1.OA1_IN1", "ins-func-gen.GND"],
+        ["ins-dc-power.CH2N", "oa1.OA_VM"],
+        ["ins-func-gen.CH1", "oa1.OA1_P"],
+        ["oa1.OA1_FB", "oa1.OA1_OUT"]
+      ],
+      "measurePoints": ["u_out_vpp"],
+      "checkWiring": true,
+      "expect": { "measurePoint": "u_out_vpp", "min": 5.8, "max": 6.2 },
+      "dataTable": "opamp_ops"
+    },
+    {
+      "id": "adder_sub",
+      "text": "阶段 3（反相加法与差分减法，双输入直流/交流验证）：保持 ±12 V 与 RF→UO1，断电将信号源 CH1（1 Vpp）接 IN1、CH2（1 Vpp 同相）接 IN2 验证反相加法 Uo = −2(U1+U2)；再改接 CH1→IN1、CH2→PIN 验证差分减法 Uo = 2(U2−U1)。",
+      "referenceNets": [
+        ["ins-dc-power.CH1P", "oa1.OA_VP"],
+        ["ins-dc-power.CH1N", "ins-dc-power.CH2P", "oa1.OA_GND1", "oa1.OA_GND2", "oa1.OA1_PIN", "ins-func-gen.GND"],
+        ["ins-dc-power.CH2N", "oa1.OA_VM"],
+        ["ins-func-gen.CH1", "oa1.OA1_IN1"],
+        ["ins-func-gen.CH2", "oa1.OA1_IN2"],
+        ["oa1.OA1_FB", "oa1.OA1_OUT"]
+      ],
+      "measurePoints": ["u_out_vpp"],
+      "checkWiring": true,
+      "dataTable": "opamp_ops"
+    },
+    {
+      "id": "analyse",
+      "text": "断电后核对实测增益与理论公式误差，并可在右栏“排故”面板演练运放典型开路/阻值漂移故障；完成后作答思考题。",
+      "measurePoints": [],
+      "recordTable": "opamp_ops",
+      "dataTable": "opamp_ops"
+    }
+  ],
+  "dataTables": [
+    {
+      "id": "opamp_ops",
+      "title": "集成运放基本运算电路（反相 / 同相 / 加法）增益实测表（R1=R2=10 kΩ, Rf=20 kΩ）",
+      "rows": 3,
+      "columns": [
+        { "id": "circuit_idx", "title": "电路编号 (1:反相 2:同相 3:加法)", "unit": "" },
+        { "id": "u_in", "title": "输入幅值 Vpp", "unit": "V", "measurePoint": "u_in1", "captureSteps": ["inverting", "adder_sub"] },
+        { "id": "u_out", "title": "输出幅值 Vpp", "unit": "V", "measurePoint": "u_out_vpp", "captureSteps": ["inverting", "non_inverting", "adder_sub"] }
+      ],
+      "sanity": [
+        { "column": "u_out", "min": 0.1, "max": 24, "message": "±12 V 供电下 LM324 线性输出峰峰值上限约 22 Vpp。" }
+      ]
+    }
+  ],
+  "charts": [
+    {
+      "id": "opamp-ops-plot",
+      "title": "运放基本运算电路各模式输出幅值对比",
+      "table": "opamp_ops",
+      "x": "circuit_idx",
+      "y": ["u_out"],
+      "kind": "line"
+    }
+  ],
+  "faults": [
+    {
+      "id": "oa1_rf_open",
+      "target": "oa1.R_f",
+      "kind": "open",
+      "symptom": "反相放大电路失去负反馈，微小输入即导致输出直接饱和在电源轨（> 18 Vpp 方波削顶）。",
+      "hint": "反馈电阻 R_f 开路使运放退化为开环比较器，检查 R_f 支路导通性。",
+      "verify": [{ "measurePoint": "u_out_vpp", "min": 3.85, "max": 4.15 }]
+    },
+    {
+      "id": "oa1_rin1_open",
+      "target": "oa1.R_in1",
+      "kind": "open",
+      "symptom": "输入端有正常 2 Vpp 正弦波，但运放输出端 UO1 几乎为 0 V（无交流输出）。",
+      "hint": "输入电阻 R_in1 开路阻断了输入信号通往反相求和节点的路径。",
+      "verify": [{ "measurePoint": "u_out_vpp", "min": 3.85, "max": 4.15 }]
+    },
+    {
+      "id": "oa1_rf_drift",
+      "target": "oa1.R_f",
+      "kind": "drift",
+      "params": { "value": "40k" },
+      "symptom": "反相比例输出幅值变为理论值的 2 倍（约 8.0 Vpp 而非 4.0 Vpp），但波形不失真。",
+      "hint": "闭环增益 |Av| = Rf / R1 翻倍，排查反馈电阻 R_f 是否发生阻值偏大漂移。",
+      "verify": [{ "measurePoint": "u_out_vpp", "min": 3.85, "max": 4.15 }]
+    }
+  ],
+  "questions": [
+    "在反相比例运算电路中，“虚短”与“虚断”两个概念各自成立的前提是什么？当反馈电阻 Rf 开路时虚短还成立吗？",
+    "为什么差分减法运算电路要求同相侧分压比与反相侧反馈比严格匹配（R_p2/R_p1 = R_f/R_in1）？",
+    "LM324 在 ±12 V 供电时，为何正半周输出峰值约 +10.5 V 而负半周可接近 −11.95 V？"
+  ]
+}

@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 740 310" width="740" height="310" font-family="sans-serif" font-size="13">
+  <rect width="740" height="310" fill="#f8fafc" stroke="#cbd5e1"/>
+  <text x="20" y="28" font-size="16" font-weight="bold" fill="#0f172a">MD-16 MQ-2 气敏传感器与 LM393 烟雾声光报警器原理图（+5 V）</text>
+  <line x1="55" y1="60" x2="680" y2="60" stroke="#dc2626" stroke-width="2.5"/>
+  <circle cx="55" cy="60" r="5" fill="#dc2626" data-jack="smk1.SMK_VCC"/>
+  <text x="64" y="54" fill="#dc2626">+5V (VCC)</text>
+  <rect x="65" y="88" width="90" height="58" rx="6" fill="#fefce8" stroke="#ca8a04" stroke-width="2"/>
+  <text x="86" y="114" font-weight="bold" fill="#854d0e">MQ-2</text>
+  <text x="76" y="134" font-size="11" fill="#713f12">0~1000 ppm</text>
+  <line x1="110" y1="60" x2="110" y2="88" stroke="#0f172a" stroke-width="2"/>
+  <line x1="110" y1="146" x2="110" y2="265" stroke="#0f172a" stroke-width="2"/>
+  <circle cx="110" cy="170" r="5" fill="#d97706" data-jack="smk1.SMK_VS"/>
+  <text x="120" y="165" font-size="11">Vs</text>
+  <rect x="180" y="160" width="80" height="55" rx="6" fill="#eff6ff" stroke="#2563eb" stroke-width="2"/>
+  <text x="194" y="190" font-weight="bold" fill="#1d4ed8">VREF</text>
+  <text x="190" y="206" font-size="11" fill="#475569">电位器</text>
+  <circle cx="220" cy="160" r="5" fill="#d97706" data-jack="smk1.SMK_VREF"/>
+  <polygon points="300,115 300,215 415,165" fill="#f0fdf4" stroke="#16a34a" stroke-width="2"/>
+  <text x="312" y="146" font-weight="bold">+</text>
+  <text x="312" y="196" font-weight="bold">−</text>
+  <text x="328" y="169" font-weight="bold" fill="#15803d">LM393</text>
+  <line x1="110" y1="170" x2="270" y2="170" stroke="#0f172a" stroke-width="1.5"/>
+  <line x1="270" y1="140" x2="270" y2="170" stroke="#0f172a" stroke-width="1.5"/>
+  <line x1="270" y1="140" x2="300" y2="140" stroke="#0f172a" stroke-width="1.5"/>
+  <line x1="220" y1="190" x2="300" y2="190" stroke="#0f172a" stroke-width="1.5"/>
+  <line x1="415" y1="165" x2="490" y2="165" stroke="#0f172a" stroke-width="2"/>
+  <circle cx="452" cy="165" r="5" fill="#d97706" data-jack="smk1.SMK_CMP"/>
+  <rect x="490" y="135" width="75" height="65" rx="6" fill="#fef2f2" stroke="#dc2626" stroke-width="2"/>
+  <text x="506" y="164" font-weight="bold" fill="#991b1b">Q_alm</text>
+  <text x="506" y="186" font-size="11" fill="#7f1d1d">S9013</text>
+  <circle cx="528" cy="135" r="5" fill="#d97706" data-jack="smk1.SMK_ALM_K"/>
+  <rect x="590" y="88" width="105" height="52" rx="6" fill="#fff7ed" stroke="#ea580c" stroke-width="2"/>
+  <text x="608" y="114" font-weight="bold" fill="#9a3412">报警 LED</text>
+  <text x="612" y="132" font-size="11" fill="#9a3412">330 Ω + 红</text>
+  <circle cx="590" cy="114" r="5" fill="#d97706" data-jack="smk1.SMK_LED_A"/>
+  <rect x="590" y="162" width="105" height="58" rx="6" fill="#fff7ed" stroke="#ea580c" stroke-width="2"/>
+  <text x="604" y="188" font-weight="bold" fill="#9a3412">有源蜂鸣器</text>
+  <text x="616" y="208" font-size="11" fill="#9a3412">2.4 kHz</text>
+  <circle cx="590" cy="190" r="5" fill="#dc2626" data-jack="smk1.SMK_SND_P"/>
+  <circle cx="642" cy="220" r="5" fill="#0f172a" data-jack="smk1.SMK_SND_N"/>
+  <line x1="45" y1="265" x2="695" y2="265" stroke="#0f172a" stroke-width="2.5"/>
+  <line x1="642" y1="220" x2="642" y2="265" stroke="#0f172a" stroke-width="2"/>
+  <circle cx="160" cy="265" r="5" fill="#0f172a" data-jack="smk1.SMK_GND1"/>
+  <circle cx="380" cy="265" r="5" fill="#0f172a" data-jack="smk1.SMK_GND2"/>
+  <text x="702" y="269">GND</text>
+</svg>

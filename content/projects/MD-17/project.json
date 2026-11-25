@@ -1,0 +1,88 @@
+{
+  "id": "MD-17",
+  "group": "波形发生与振荡",
+  "title": "方波、三角波和锯齿波发生器电路的研究与测试",
+  "type": "basic",
+  "modules": [{ "instanceId": "oa1", "moduleId": "mod-opamp", "slot": "SLOT_BOX_L1" }],
+  "allowedInstruments": ["ins-oscilloscope", "ins-multimeter"],
+  "reference": {
+    "nets": [
+      ["ins-dc-power.CH1P", "oa1.OA_VP", "oa1.FG_EN"],
+      ["ins-dc-power.CH1N", "ins-dc-power.CH2P", "oa1.OA_GND1", "oa1.OA_GND2"],
+      ["ins-dc-power.CH2N", "oa1.OA_VM"]
+    ],
+    "measurePoints": [
+      { "id": "f_sq", "kind": "waveform", "quantity": "frequency", "between": ["oa1.FG_SQ", "oa1.OA_GND1"] },
+      { "id": "u_sq_vpp", "kind": "waveform", "quantity": "vpp", "between": ["oa1.FG_SQ", "oa1.OA_GND1"] },
+      { "id": "u_tri_vpp", "kind": "waveform", "quantity": "vpp", "between": ["oa1.FG_TRI", "oa1.OA_GND1"] }
+    ]
+  },
+  "steps": [
+    {
+      "id": "prepare",
+      "text": "保持断电，从仪表柜拖出双通道数字示波器；直流电源 CH1 = 12 V、CH2 = 12 V 串联构成 ±12 V 双电源；运放挂箱“函数发生器频率电阻 R_FG_FREQ”置 15 kΩ，“波形对称性切换 SW_FG_SYM”先置“对称方波 / 三角波”。",
+      "measurePoints": [],
+      "dataTable": "wave_gen"
+    },
+    {
+      "id": "wire",
+      "text": "断电按图连接 ±12 V 供电至 OA_VP/OA_VM/OA_GND1，并由 OA_VP 短接至函数区供电入 FG_EN；示波器 CH1 接方波输出 SQ、CH2 接三角/锯齿 TRI、GND 接 GND2，点击“检查接线”。",
+      "measurePoints": ["f_sq", "u_tri_vpp"],
+      "checkWiring": true,
+      "dataTable": "wave_gen"
+    },
+    {
+      "id": "sq_tri",
+      "text": "方波与三角波频率/幅值调节：上电在示波器观察同频反相的方波（约 22 Vpp）与线性三角波（约 11 Vpp）；带电将 R_FG_FREQ 依次设为 30 kΩ（约 500 Hz）、15 kΩ（约 1000 Hz）、8 kΩ（约 1880 Hz），验证 f = 1/(2RC) 规律并记入数据表。",
+      "measurePoints": ["f_sq", "u_tri_vpp"],
+      "expect": { "measurePoint": "f_sq", "min": 420, "max": 2300 },
+      "expects": [{ "measurePoint": "u_tri_vpp", "min": 9.5, "max": 13.0 }],
+      "dataTable": "wave_gen"
+    },
+    {
+      "id": "sawtooth",
+      "text": "锯齿波变换验证：保持 R_FG_FREQ = 15 kΩ，带电将 SW_FG_SYM 切换至“不对称锯齿波”（接入 1N4148 + 2.2 kΩ 单向快充支路），观察 CH1 方波变为窄矩形脉冲、CH2 三角波变为陡降缓升锯齿波且频率明显升高。",
+      "measurePoints": ["f_sq", "u_tri_vpp"],
+      "expect": { "measurePoint": "f_sq", "min": 1450, "max": 2600 },
+      "dataTable": "wave_gen"
+    },
+    {
+      "id": "analyse",
+      "text": "断电后查看频率电阻 R 与振荡频率 f 的反比特性曲线，完成思考题。",
+      "measurePoints": [],
+      "recordTable": "wave_gen",
+      "dataTable": "wave_gen"
+    }
+  ],
+  "dataTables": [
+    {
+      "id": "wave_gen",
+      "title": "方波 / 三角波发生器频率电阻 R 与振荡频率 f、三角波幅值实测表（C = 33 nF）",
+      "rows": 3,
+      "columns": [
+        { "id": "r_kohm", "title": "积分电阻 R", "unit": "kΩ" },
+        { "id": "f_hz", "title": "实测频率 f", "unit": "Hz", "measurePoint": "f_sq", "captureSteps": ["sq_tri", "sawtooth"] },
+        { "id": "u_tri", "title": "三角波 Vpp", "unit": "V", "measurePoint": "u_tri_vpp", "captureSteps": ["sq_tri", "sawtooth"] }
+      ],
+      "sanity": [
+        { "column": "r_kohm", "min": 5, "max": 35, "message": "请在 8、15、30 kΩ 三组阻值下测试。" },
+        { "column": "f_hz", "min": 350, "max": 3500, "message": "15 kΩ 时理论频率约 1010 Hz。" }
+      ]
+    }
+  ],
+  "charts": [
+    {
+      "id": "wavegen-freq-plot",
+      "title": "方波/三角波振荡频率 f 随积分电阻 R 变化曲线",
+      "table": "wave_gen",
+      "x": "r_kohm",
+      "y": ["f_hz"],
+      "kind": "line"
+    }
+  ],
+  "questions": [
+    "在滞回比较器与积分器闭环组成的方波–三角波发生器中，三角波的峰峰值由哪些电阻比决定？调节积分电阻 R 时三角波幅值为什么基本不变？",
+    "接入单向二极管与 2.2 kΩ 旁路电阻后，正负半周期充放电时间常数分别由什么阻值决定，为何可生成不对称锯齿波？",
+    "如果将滞回比较器反馈电阻 R_h2 由 20 kΩ 增大到 40 kΩ，三角波幅值和振荡频率分别会怎样变化？"
+  ]
+}

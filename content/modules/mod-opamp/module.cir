@@ -1,0 +1,72 @@
+.subckt mod_opamp OA_VP OA_VM OA_GND1 OA_GND2 OA1_IN1 OA1_IN2 OA1_SUM OA1_PIN OA1_P OA1_FB OA1_OUT OA1_C1 OA1_C2 CMP_IN CMP_VREF CMP_P CMP_OUT FG_EN FG_SQ FG_TRI FG_SIN WIEN_EN WIEN_P WIEN_N WIEN_OUT OA_GND3 params: sw_cmp_mode=0 r_fg_freq=15 sw_fg_sym=0 r_fg_amp=40 rf_wien=17 sw_wien_c=0
+* 集成运放与波形发生综合挂箱（原型选型说明 §4.2，服务 MD-13~15 / MD-17~19）
+Rcu_gnd1 OA_GND1 OA_GND2 10m
+Rcu_gnd2 OA_GND1 OA_GND3 10m
+R_iso_gnd OA_GND1 0 100Meg
+*
+* ---- 区 1：线性运算与微积分运放区（MD-13 / MD-14）----
+X_oa1 OA1_P OA1_SUM OA_VP OA_VM OA1_OUT LM324_UNIT
+R_in1 OA1_IN1 OA1_SUM 10k
+R_in2 OA1_IN2 OA1_SUM 10k
+R_f OA1_SUM OA1_FB 20k
+R_p1 OA1_PIN OA1_P 10k
+R_p2 OA1_P OA_GND1 20k
+R_oa1_load OA1_OUT OA_GND1 100k
+* 微积分电容支路（22 nF + 470 Ω 微分稳定阻尼 + 500 kΩ 积分直流泄放）
+R_c_damp OA1_C1 n_c_mid 470
+C_rc n_c_mid OA1_C2 22n
+R_rc_leak OA1_C1 OA1_C2 500k
+R_iso_c1 OA1_C1 0 100Meg
+*
+* ---- 区 2：单限 / 过零 / 滞回电压比较器区（MD-15）----
+X_oa2 CMP_P CMP_IN OA_VP OA_VM CMP_OUT LM324_UNIT
+R_ch1 CMP_VREF CMP_P 10k
+RCMP_FB CMP_OUT CMP_P {sw_cmp_mode < 0.5 ? 100Meg : 40k}
+R_cmp_in_iso CMP_IN OA_GND1 10Meg
+R_cmp_vr_iso CMP_VREF OA_GND1 10Meg
+*
+* ---- 区 3：方波 / 三角波 / 锯齿波 / 正弦整形函数发生区（MD-17 / MD-18）----
+* 仅当 FG_EN 接至 +12V（OA_VP）时供电振荡，未接 FG_EN 时输出静默归零
+R_fg_en_iso FG_EN OA_GND1 100Meg
+X_oa3 n_fg_p OA_GND1 FG_EN OA_VM FG_SQ LM324_UNIT
+R_fg_h1 FG_TRI n_fg_p 10k
+R_fg_h2 FG_SQ n_fg_p 20k
+I_fg_kick OA_GND1 n_fg_p PULSE(0 150u 0 10u 10u 80u 100)
+X_oa4 OA_GND1 n_fg_inv FG_EN OA_VM FG_TRI LM324_UNIT
+RFG_FREQ FG_SQ n_fg_inv {max(4000, r_fg_freq * 1000)}
+D_saw FG_SQ n_saw D1N4148
+RSW_SYM n_saw n_fg_inv {sw_fg_sym < 0.5 ? 100Meg : 2200}
+C_fg n_fg_inv FG_TRI 33n
+R_fg_leak n_fg_inv FG_TRI 10Meg
+* 三角波 → 正弦波平滑非线性折线整形与幅值电位器（仅供电有效时输出）
+B_sin n_sin_raw OA_GND1 V = 3.1 * tanh(v(FG_TRI, OA_GND1) / 3.3) * 0.5 * (1 + tanh((v(FG_EN, OA_GND1) - 4.0) / 0.5))
+RAMP_T n_sin_raw n_sin_wip {max(100, 10000 - 98 * r_fg_amp)}
+RAMP_B n_sin_wip OA_GND1 {max(100, 200 + 98 * r_fg_amp)}
+E_sin_buf n_sin_buf OA_GND1 n_sin_wip OA_GND1 1.0
+R_sin_out n_sin_buf FG_SIN 100
+*
+* ---- 区 4：RC 文氏桥式正弦波振荡器区（MD-19）----
+R_wien_en_iso WIEN_EN OA_GND1 100Meg
+X_oa5 WIEN_P WIEN_N WIEN_EN OA_VM WIEN_OUT LM324_UNIT
+* 串联选频臂：10 kΩ + (7.96 nF || 可切 7.94 nF -> 1.0 kHz / 2.0 kHz)
+R_w1 WIEN_OUT n_ws 10k
+C_ws1 n_ws WIEN_P 7.96n
+C_ws2 n_ws n_ws2 7.94n
+RSW_WC1 n_ws2 WIEN_P {sw_wien_c < 0.5 ? 1 : 100Meg}
+R_ws2_bleed n_ws2 OA_GND1 100Meg
+* 并联选频臂：10 kΩ || 7.96 nF || 可切 7.94 nF
+R_w2 WIEN_P OA_GND1 10k
+C_wp1 WIEN_P OA_GND1 7.96n
+C_wp2 WIEN_P n_wp2 7.94n
+RSW_WC2 n_wp2 OA_GND1 {sw_wien_c < 0.5 ? 1 : 100Meg}
+R_wp2_bleed n_wp2 OA_GND1 100Meg
+I_wien_kick OA_GND1 WIEN_P PULSE(0 80u 0 10u 10u 100u 100)
+* 负反馈起振调节（Rf + 4.7 kΩ || 1N4148 反并联稳幅对管；R1 = 10 kΩ）
+R_w_g1 WIEN_N OA_GND1 10k
+RRF_WIEN WIEN_N n_wfb {max(10000, rf_wien * 1000)}
+R_w_lim n_wfb WIEN_OUT 8.2k
+D_w1 n_wfb WIEN_OUT D1N4148
+D_w2 WIEN_OUT n_wfb D1N4148
+.ends mod_opamp
+.include "opamp.lib"
+.include "diodes.lib"

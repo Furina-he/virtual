@@ -1,0 +1,25 @@
+.subckt mod_app_smoke SMK_VCC SMK_GND1 SMK_GND2 SMK_VS SMK_VREF SMK_CMP SMK_LED_A SMK_ALM_K SMK_SND_P SMK_SND_N params: smoke_ppm=0 vref_pct=50
+* MQ-2 气敏传感器与 LM393 烟雾声光报警实验板（原型选型说明 §4.2，服务 MD-16）
+Rcu_gnd1 SMK_GND1 SMK_GND2 10m
+Rcu_gnd2 SMK_GND1 SMK_SND_N 10m
+R_iso_gnd SMK_GND1 0 100Meg
+* ---- 1. MQ-2 气敏分压采样（0/200/500/1000 ppm -> 20k/6.9k/2.88k/1.31k）----
+RMQ2 SMK_VCC SMK_VS {smoke_ppm < 100 ? 20000 : (smoke_ppm < 350 ? 6900 : (smoke_ppm < 750 ? 2880 : 1310))}
+R_load SMK_VS SMK_GND1 4.7k
+* ---- 2. 报警参考阈值电位器（10%~90% -> 0.5 V ~ 4.5 V，默认 2.50 V）----
+RVREF_T SMK_VCC SMK_VREF {max(500, 10000 - 100 * vref_pct)}
+RVREF_B SMK_VREF SMK_GND1 {max(500, 100 * vref_pct)}
+* ---- 3. LM393 开集电极电压比较器（Vs > Vref -> 输出高电平触发报警）----
+X_cmp SMK_VS SMK_VREF SMK_VCC SMK_GND1 SMK_CMP LM393_UNIT
+R_pu SMK_VCC SMK_CMP 4.7k
+* ---- 4. 声光报警驱动级（S9013 驱动红 LED 与 2.4 kHz 有源蜂鸣器）----
+R_balm SMK_CMP n_balm 4.7k
+Q_alm SMK_ALM_K n_balm SMK_GND1 S9013
+R_led SMK_VCC SMK_LED_A 330
+D_alm SMK_LED_A SMK_ALM_K DLED_RED
+X_buz SMK_VCC SMK_ALM_K SMK_SND_P SMK_SND_N BUZZER_ACTIVE freq_hz=2400
+.ends mod_app_smoke
+.include "opamp.lib"
+.include "bjt.lib"
+.include "diodes.lib"
+.include "sensors.lib"

@@ -1,0 +1,87 @@
+{
+  "id": "MD-10",
+  "group": "综合性应用实训",
+  "title": "典型复合互补 OTL 功率放大电路调试（电子产品线路）",
+  "type": "integrated",
+  "modules": [{ "instanceId": "otl1", "moduleId": "mod-analog-otl", "slot": "SLOT_BOX_L1" }],
+  "allowedInstruments": ["ins-func-gen", "ins-oscilloscope", "ins-multimeter"],
+  "reference": {
+    "nets": [
+      ["ins-dc-power.CH1P", "otl1.OTL_VCC"],
+      ["ins-dc-power.CH1N", "otl1.OTL_GND1", "otl1.OTL_GND2", "otl1.OTL_SPK_N", "ins-func-gen.GND"],
+      ["ins-func-gen.CH1", "otl1.OTL_IN"]
+    ],
+    "measurePoints": [
+      { "id": "u_mid", "kind": "voltage", "mode": "dcv", "between": ["otl1.OTL_MID", "otl1.OTL_GND1"] },
+      { "id": "u_bias_ud", "kind": "voltage", "mode": "dcv", "between": ["otl1.OTL_BUP", "otl1.OTL_BDN"] },
+      { "id": "u_spk_vpp", "kind": "waveform", "quantity": "vpp", "between": ["otl1.OTL_SPK_P", "otl1.OTL_SPK_N"] }
+    ]
+  },
+  "steps": [
+    {
+      "id": "prepare",
+      "text": "保持断电，从仪表柜拖出双通道函数信号发生器、双通道数字示波器与数字万用表；直流电源 CH1 设 12 V，信号源 CH1 设 1 kHz 正弦波 0.4 Vpp；OTL 板中点偏置电位器 RP_MID 置 50%，交越偏置开关 SW_XOVER 置“正常三管偏置”。",
+      "measurePoints": [],
+      "dataTable": "otl_debug"
+    },
+    {
+      "id": "wire",
+      "text": "断电按图连接：直流电源 CH1+→+12V 电源，CH1−→GND 1；信号发生器 CH1→音频输入 IN、GND→GND 2；直流电压表测中点电压 K 与 GND 1，示波器 CH1 接输入 IN、CH2 接扬声器输出 +、GND 接扬声器输出 −，点击“检查接线”。",
+      "measurePoints": ["u_mid", "u_spk_vpp"],
+      "checkWiring": true,
+      "dataTable": "otl_debug"
+    },
+    {
+      "id": "midpoint_tune",
+      "text": "静态中点电压调整：上电观察直流电压表读数，带电调节 RP_MID（20%、50%、80%），实测中点电压 U_K 随偏置平滑变化，最终调回约 VCC/2 = 6.0 V（5.4~6.6 V 之间），记录各档中点电压与 8 Ω 扬声器不失真输出幅值。",
+      "measurePoints": ["u_mid"],
+      "expect": { "measurePoint": "u_mid", "min": 5.3, "max": 6.7 },
+      "dataTable": "otl_debug"
+    },
+    {
+      "id": "xover_test",
+      "text": "交越失真观测与消除：保持 U_K ≈ 6.0 V，带电将交越偏置开关 SW_XOVER 切至“短接偏置管（演示交越失真）”，在示波器观察 1 kHz 输出波形过零处出现明显台阶死区且幅值跌落；再切回“正常三管偏置”，确认过零平滑、8 Ω 扬声器清晰发声。",
+      "measurePoints": ["u_spk_vpp"],
+      "expect": { "measurePoint": "u_spk_vpp", "min": 1.2, "max": 11.5 },
+      "dataTable": "otl_debug"
+    },
+    {
+      "id": "analyse",
+      "text": "断电后查看中点偏置与输出幅值关系曲线，结合复合互补推挽级、自举电路与交越失真消除机理完成思考题。",
+      "measurePoints": [],
+      "recordTable": "otl_debug",
+      "dataTable": "otl_debug"
+    }
+  ],
+  "dataTables": [
+    {
+      "id": "otl_debug",
+      "title": "复合互补 OTL 功放中点电位器调节与 8 Ω 输出调试记录（VCC = 12 V，1 kHz）",
+      "rows": 3,
+      "columns": [
+        { "id": "rp_pct", "title": "电位器位置", "unit": "%" },
+        { "id": "u_mid", "title": "中点电压 U_K", "unit": "V", "measurePoint": "u_mid", "captureSteps": ["midpoint_tune"] },
+        { "id": "u_spk", "title": "扬声器输出 Vpp", "unit": "V", "measurePoint": "u_spk_vpp", "captureSteps": ["midpoint_tune", "xover_test"] }
+      ],
+      "sanity": [
+        { "column": "rp_pct", "min": 0, "max": 100, "message": "请在 20%、50%、80% 三个典型位置记录调试数据。" },
+        { "column": "u_mid", "min": 3.0, "max": 9.5, "message": "正常工作时应将中点电压 U_K 调整至 VCC/2 ≈ 6.0 V。" }
+      ]
+    }
+  ],
+  "charts": [
+    {
+      "id": "otl-mid-plot",
+      "title": "OTL 功放中点电位器位置与静态中点电压特性曲线",
+      "table": "otl_debug",
+      "x": "rp_pct",
+      "y": ["u_mid"],
+      "kind": "line"
+    }
+  ],
+  "questions": [
+    "为什么单电源 OTL 功率放大电路必须将输出中点直流电压调整在 VCC/2 附近？偏高或偏低会引起哪半周提前削顶失真？",
+    "互补推挽输出级产生交越失真的物理原因是什么？电路中串入三只二极管偏置链如何消除交越失真？",
+    "自举电容 C_boot 与自举电阻 R_boot 在正半周大信号输出时起什么作用？"
+  ]
+}

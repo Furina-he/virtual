@@ -65,3 +65,29 @@ D_full soc n_lim D_LI_CLAMP
 D_empty 0 soc D_LI_CLAMP
 .model D_LI_CLAMP D(IS=1e-12 N=1 RS=0.5)
 .ends LI_CELL_3V7
+
+* 5. MQ2_GAS（MQ-2 半导体二氧化锡气敏/烟雾传感器行为模型）
+*   来源：本项目按 MQ-2 数据手册典型灵敏度曲线（洁净空气 R0 ≈ 20 kΩ，随可燃气体/烟雾浓度
+*   升高阻值按幂律单调下降：0 ppm -> 20 kΩ、200 ppm -> 6.9 kΩ、500 ppm -> 2.88 kΩ、
+*   1000 ppm -> 1.31 kΩ）自行构建，未复制任何厂商 SPICE 模型文件。
+*   许可证：随本项目发布，可自由再分发（项目自有内容）。
+.subckt MQ2_GAS A B params: ppm=0
+R_gas A B {20000 / (1 + pwr(max(0, ppm) / 120, 1.25))}
+.ends MQ2_GAS
+
+* 6. BUZZER_ACTIVE（5 V 有源压电蜂鸣器行为模型，端口：POS NEG SND_P SND_N）
+*   来源：本项目按常见 5 V 有源蜂鸣器（开启阈值 ~2.2 V，典型工作电流 ~15 mA @ 5 V，
+*   内置 2.4 kHz 振荡声学输出至 SND_P/SND_N 供音频模块监听）自行构建。
+*   特点：V(POS, NEG) < 2.0 V 时静音且电流极小；V(POS, NEG) >= 2.5 V 时导通并输出
+*   平滑 2.4 kHz 蜂鸣音频信号（约 2.0 Vp）。
+*   许可证：随本项目发布，可自由再分发（项目自有内容）。
+.subckt BUZZER_ACTIVE POS NEG SND_P SND_N params: freq_hz=2400
+* 直流供电等效负载（开启阈值 ~2.2 V，5 V 时约 15 mA）
+B_dc POS NEG I = 18e-3 * 0.5 * (1 + tanh((v(POS,NEG) - 2.2) / 0.25)) * tanh(max(0, v(POS,NEG)) / 3.0)
+R_dc_leak POS NEG 100k
+* 2.4 kHz 内部音频激励（由直流端电压门控）
+V_tone n_tone 0 SIN(0 2.0 {freq_hz})
+R_tone_ref n_tone 0 1k
+B_snd SND_P SND_N V = v(n_tone) * 0.5 * (1 + tanh((v(POS,NEG) - 2.2) / 0.25))
+R_snd_ref SND_N 0 100Meg
+.ends BUZZER_ACTIVE

@@ -1,0 +1,27 @@
+.subckt mod_app_lm386 AMP_VS AMP_GND1 AMP_GND2 AMP_IN AMP_WIP AMP_G1 AMP_G8 AMP_BYP AMP_OUT AMP_SPK_P AMP_SPK_N params: vol_pct=60 sw_gain=0
+* LM386 集成音响功率放大实验板（原型选型说明 §4.2，服务 MD-12）
+Rcu_gnd1 AMP_GND1 AMP_GND2 10m
+Rcu_gnd2 AMP_GND1 AMP_SPK_N 10m
+R_iso_gnd AMP_GND1 0 100Meg
+* 输入隔直与 10 kΩ 恒阻音量电位器
+C_in AMP_IN n_vtop 10u
+R_in_bleed AMP_IN AMP_GND1 100k
+RV_TOP n_vtop AMP_WIP {max(100, 10000 - 98 * vol_pct)}
+RV_BOT AMP_WIP AMP_GND1 {max(100, 200 + 98 * vol_pct)}
+* LM386 核心功放（1=GAIN1 2=INM 3=INP 4=COM 5=OUT 6=VS 7=BYP 8=GAIN8）
+X_386 AMP_G1 AMP_GND1 AMP_WIP AMP_GND1 AMP_OUT AMP_VS AMP_BYP AMP_G8 LM386
+* 1–8 脚 10 µF 增益提升电容开关（0=20x / 1=200x）
+C_gain AMP_G1 n_cg 10u
+RSW_GAIN n_cg AMP_G8 {sw_gain < 0.5 ? 100Meg : 1}
+R_cg_bleed n_cg AMP_GND1 100Meg
+* 7 脚电源纹波旁路电容
+C_byp AMP_BYP n_cbyp 10u
+R_cbyp_esr n_cbyp AMP_GND1 0.5
+* 茹贝尔（Zobel）防自激网络与输出耦合至 8 Ω 扬声器
+R_zob AMP_OUT n_zob 10
+C_zob n_zob AMP_GND1 47n
+C_out AMP_OUT n_cout 220u
+R_cout_esr n_cout AMP_SPK_P 0.2
+R_spk AMP_SPK_P AMP_SPK_N 8
+.ends mod_app_lm386
+.include "opamp.lib"

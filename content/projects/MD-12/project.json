@@ -1,0 +1,88 @@
+{
+  "id": "MD-12",
+  "group": "综合性应用实训",
+  "title": "LM386 集成音响功率放大电路及其应用（电子产品线路）",
+  "type": "integrated",
+  "modules": [{ "instanceId": "lm1", "moduleId": "mod-app-lm386", "slot": "SLOT_BOX_L1" }],
+  "allowedInstruments": ["ins-func-gen", "ins-oscilloscope", "ins-multimeter"],
+  "reference": {
+    "nets": [
+      ["ins-dc-power.CH1P", "lm1.AMP_VS"],
+      ["ins-dc-power.CH1N", "lm1.AMP_GND1", "lm1.AMP_GND2", "lm1.AMP_SPK_N", "ins-func-gen.GND"],
+      ["ins-func-gen.CH1", "lm1.AMP_IN"]
+    ],
+    "measurePoints": [
+      { "id": "u_out_dc", "kind": "voltage", "mode": "dcv", "between": ["lm1.AMP_OUT", "lm1.AMP_GND1"] },
+      { "id": "u_wip_vpp", "kind": "waveform", "quantity": "vpp", "between": ["lm1.AMP_WIP", "lm1.AMP_GND1"] },
+      { "id": "u_spk_vpp", "kind": "waveform", "quantity": "vpp", "between": ["lm1.AMP_SPK_P", "lm1.AMP_SPK_N"] }
+    ]
+  },
+  "steps": [
+    {
+      "id": "prepare",
+      "text": "保持断电，拖放双通道函数信号发生器与双通道数字示波器；直流电源 CH1 设 9 V，信号源 CH1 设 1 kHz 正弦波 0.1 Vpp；LM386 实验板音量置 100%，增益开关 SW_GAIN 先置“20× (26 dB)”。",
+      "measurePoints": [],
+      "dataTable": "lm386_gain"
+    },
+    {
+      "id": "wire",
+      "text": "断电按图连接：直流电源 CH1+→+9V 电源、CH1−→GND 1；信号发生器 CH1→音频输入 IN、GND→GND 2；直流电压表测功放输出脚 5 对 GND 1 静态电位；示波器 CH1 接音量抽头 IN+、CH2 接扬声器输出 +、GND 接扬声器输出 −，点击“检查接线”。",
+      "measurePoints": ["u_out_dc", "u_spk_vpp"],
+      "checkWiring": true,
+      "dataTable": "lm386_gain"
+    },
+    {
+      "id": "gain_20",
+      "text": "20×（26 dB）默认增益与静态中点测试：上电核实脚 5 静态电压约 VS/2 = 4.5 V；测录 IN+ 输入幅值与 8 Ω 扬声器输出幅值（增益约 20 倍，输出约 2.0 Vpp）记入第 1 行，同时调节 VOL_POT 观察音量线性变化。",
+      "measurePoints": ["u_out_dc", "u_spk_vpp"],
+      "expect": { "measurePoint": "u_out_dc", "min": 4.2, "max": 4.8 },
+      "expects": [{ "measurePoint": "u_spk_vpp", "min": 1.6, "max": 2.4 }],
+      "dataTable": "lm386_gain"
+    },
+    {
+      "id": "gain_200",
+      "text": "200×（46 dB）高增益切换测试：将信号发生器幅值降至 0.02 Vpp（20 mVpp）避免削顶，带电将 SW_GAIN 切至“200× (46 dB，1–8 接 10 µF)”，测录扬声器输出跃升至约 4.0 Vpp（电压增益约 200 倍）并聆听 8 Ω 扬声器实时音频。",
+      "measurePoints": ["u_spk_vpp"],
+      "expect": { "measurePoint": "u_spk_vpp", "min": 3.0, "max": 4.8 },
+      "dataTable": "lm386_gain"
+    },
+    {
+      "id": "analyse",
+      "text": "断电后对比 20× 与 200× 两种增益配置及 8 Ω 负载输出功率，完成思考题。",
+      "measurePoints": [],
+      "recordTable": "lm386_gain",
+      "dataTable": "lm386_gain"
+    }
+  ],
+  "dataTables": [
+    {
+      "id": "lm386_gain",
+      "title": "LM386 集成音频功放 20× / 200× 增益档位实测记录（VS = 9 V，RL = 8 Ω，1 kHz）",
+      "rows": 2,
+      "columns": [
+        { "id": "mode_idx", "title": "档位 (20 / 200)", "unit": "" },
+        { "id": "u_in_vpp", "title": "抽头输入 Vpp", "unit": "V", "measurePoint": "u_wip_vpp", "captureSteps": ["gain_20", "gain_200"] },
+        { "id": "u_spk", "title": "扬声器输出 Vpp", "unit": "V", "measurePoint": "u_spk_vpp", "captureSteps": ["gain_20", "gain_200"] },
+        { "id": "av", "title": "实测增益 Av", "unit": "V/V", "computed": "u_spk / u_in_vpp" }
+      ],
+      "sanity": [
+        { "column": "av", "min": 15, "max": 230, "message": "1–8 开路增益约 20 倍，接 10 µF 旁路电容后约 200 倍。" }
+      ]
+    }
+  ],
+  "charts": [
+    {
+      "id": "lm386-gain-plot",
+      "title": "LM386 两档增益配置实测电压增益对比",
+      "table": "lm386_gain",
+      "x": "mode_idx",
+      "y": ["av"],
+      "kind": "line"
+    }
+  ],
+  "questions": [
+    "LM386 内部如何仅凭单电源供电就自动把第 5 脚输出静态直流电位偏置在 VS/2 附近，而无需外接复杂的分压偏置电路？",
+    "在第 1 脚与第 8 脚之间接入 10 µF 电容后，为什么交流电压增益由 20 倍跃升至 200 倍，而静态工作点却几乎不变？",
+    "输出端并联的 10 Ω 电阻与 47 nF 电容（茹贝尔 Zobel 网络）对驱动感性音圈扬声器起到什么稳定作用？"
+  ]
+}

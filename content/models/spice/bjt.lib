@@ -28,3 +28,30 @@
 *
 .model NPN_3DG6_EST NPN(IS=5e-15 BF=60 NF=1 BR=2 NR=1 TNOM=27
 + CJE=12p VJE=0.7 MJE=0.33 CJC=5p VJC=0.7 MJC=0.33 TF=2n TR=20n)
+
+* S9012（PNP，与 S9013 互补对管，TO-92，ICM = -500 mA，VCEO = -25 V，PC = 625 mW）
+*   来源：本项目按 S9012 数据手册典型值自行拟合，未复制任何厂商 SPICE 模型文件。
+*   拟合目标（25 °C）：hFE ≈ 160 @ IC = -50 mA, VCE = -1 V；VCE(sat) ≤ 0.6 V @ -500 mA。
+*   许可证：随本项目发布，可自由再分发（项目自有内容）。
+
+.model S9012 PNP(IS=3e-14 BF=175 NF=1 VAF=100 IKF=1.2 ISE=1e-14 NE=1.5 BR=8 NR=1 VAR=20
++ IKR=0.2 RB=10 RE=0.2 RC=0.5 CJE=25e-12 VJE=0.75 MJE=0.33 CJC=8e-12 VJC=0.75 MJC=0.33
++ TF=0.9e-9 TR=50e-9 XTB=1.5 EG=1.11 XTI=3)
+
+* TIP41C（NPN 中功率管，TO-220，IC = 6 A，VCEO = 100 V，PC = 65 W，服务 OTL 复合互补输出级）
+*   来源：本项目按 TIP41C 数据手册典型值自行拟合，未复制任何厂商 SPICE 模型文件。
+*   拟合目标（25 °C）：hFE ≈ 65~80 @ IC = 0.3~1 A；VBE ≈ 0.72 V @ 0.5 A；fT ≈ 3 MHz。
+*   许可证：随本项目发布，可自由再分发（项目自有内容）。
+
+.model TIP41C NPN(IS=1.2e-12 BF=85 NF=1 VAF=80 IKF=3.5 ISE=2e-12 NE=1.5 BR=5 NR=1 VAR=20
++ IKR=0.5 RB=2.5 RE=0.08 RC=0.22 CJE=220p VJE=0.75 MJE=0.33 CJC=110p VJC=0.75 MJC=0.33
++ TF=45n TR=300n XTB=1.5 EG=1.11 XTI=3)
+
+* TIP42C（PNP 中功率管，与 TIP41C 互补对管，TO-220，IC = -6 A，VCEO = -100 V）
+*   来源：本项目按 TIP42C 数据手册典型值自行拟合，未复制任何厂商 SPICE 模型文件。
+*   拟合目标（25 °C）：与 TIP41C 对称，hFE ≈ 65~80 @ IC = -0.3~-1 A；fT ≈ 3 MHz。
+*   许可证：随本项目发布，可自由再分发（项目自有内容）。
+
+.model TIP42C PNP(IS=1.2e-12 BF=85 NF=1 VAF=80 IKF=3.5 ISE=2e-12 NE=1.5 BR=5 NR=1 VAR=20
++ IKR=0.5 RB=2.5 RE=0.08 RC=0.22 CJE=220p VJE=0.75 MJE=0.33 CJC=110p VJC=0.75 MJC=0.33
++ TF=45n TR=300n XTB=1.5 EG=1.11 XTI=3)

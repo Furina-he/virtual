@@ -1,0 +1,127 @@
+{
+  "id": "MD-11",
+  "group": "功率放大与排故",
+  "title": "OTL 功率放大电路的故障排除",
+  "type": "basic",
+  "modules": [{ "instanceId": "otl1", "moduleId": "mod-analog-otl", "slot": "SLOT_BOX_L1" }],
+  "allowedInstruments": ["ins-func-gen", "ins-oscilloscope", "ins-multimeter"],
+  "reference": {
+    "nets": [
+      ["ins-dc-power.CH1P", "otl1.OTL_VCC"],
+      ["ins-dc-power.CH1N", "otl1.OTL_GND1", "otl1.OTL_GND2", "otl1.OTL_SPK_N", "ins-func-gen.GND"],
+      ["ins-func-gen.CH1", "otl1.OTL_IN"]
+    ],
+    "measurePoints": [
+      { "id": "u_mid", "kind": "voltage", "mode": "dcv", "between": ["otl1.OTL_MID", "otl1.OTL_GND1"] },
+      { "id": "u_bup_dn", "kind": "voltage", "mode": "dcv", "between": ["otl1.OTL_BUP", "otl1.OTL_BDN"] },
+      { "id": "u_spk_vpp", "kind": "waveform", "quantity": "vpp", "between": ["otl1.OTL_SPK_P", "otl1.OTL_SPK_N"] }
+    ]
+  },
+  "steps": [
+    {
+      "id": "prepare",
+      "text": "保持断电，拖放函数信号发生器、数字示波器与数字万用表；设直流电源 CH1 = 12 V、信号源 CH1 = 1 kHz 0.4 Vpp 正弦波，确认 OTL 实验板控件保持默认（RP_MID = 50%，SW_XOVER = 正常）。",
+      "measurePoints": [],
+      "dataTable": "otl_fault_log"
+    },
+    {
+      "id": "wire",
+      "text": "断电按图接好 OTL 电源、1 kHz 激励信号、直流电压表（测中点电压 K 与 GND 1）及示波器（CH1 接输入 IN、CH2 接扬声器输出 +、GND 接扬声器输出 −），点击“检查接线”。",
+      "measurePoints": ["u_mid", "u_spk_vpp"],
+      "checkWiring": true,
+      "dataTable": "otl_fault_log"
+    },
+    {
+      "id": "baseline",
+      "text": "无故障基线核对：上电核实正常静态中点 U_K ≈ 6.0 V、偏置链压差约 1.9 V、扬声器输出平滑正弦波，将正常基准记入数据表第 1 行。",
+      "measurePoints": ["u_mid", "u_spk_vpp"],
+      "expect": { "measurePoint": "u_mid", "min": 5.3, "max": 6.7 },
+      "expects": [{ "measurePoint": "u_spk_vpp", "min": 1.2, "max": 11.5 }],
+      "dataTable": "otl_fault_log"
+    },
+    {
+      "id": "troubleshoot",
+      "text": "六步排故实训：切换至右栏“排故”面板抽取或选择故障点（共 6 项典型故障），依次执行：观察异常现象 → 上电测量中点/偏置/输出节点 → 提交故障元件与类型判定 → 断电修复元件 → 上电复测验证结项。",
+      "measurePoints": ["u_mid", "u_spk_vpp"],
+      "dataTable": "otl_fault_log"
+    },
+    {
+      "id": "analyse",
+      "text": "完成至少一轮排故闭环后断电整理排故日志，回答思考题。",
+      "measurePoints": [],
+      "dataTable": "otl_fault_log"
+    }
+  ],
+  "dataTables": [
+    {
+      "id": "otl_fault_log",
+      "title": "OTL 功放正常基准与排故前后关键测试点电压对比表",
+      "rows": 2,
+      "columns": [
+        { "id": "state_idx", "title": "状态编号 (1:正常 2:故障)", "unit": "" },
+        { "id": "u_mid", "title": "中点电压 U_K", "unit": "V", "measurePoint": "u_mid", "captureSteps": ["baseline", "troubleshoot"] },
+        { "id": "u_spk", "title": "扬声器 Vpp", "unit": "V", "measurePoint": "u_spk_vpp", "captureSteps": ["baseline", "troubleshoot"] }
+      ],
+      "sanity": [
+        { "column": "u_mid", "min": 0, "max": 12.5, "message": "单电源 12 V 供电下中点电压范围应在 0 ~ 12 V 内。" }
+      ]
+    }
+  ],
+  "charts": [],
+  "faults": [
+    {
+      "id": "otl_rbias1_open",
+      "target": "otl1.R_bias1",
+      "kind": "open",
+      "symptom": "上电后中点电压 U_K 飙升至接近 +10.5 V 以上，扬声器无正常音频输出。",
+      "hint": "中点偏置反馈电阻开路导致推动管 Q_drv 失去基极偏流而截止，集电极电位被上拉接近 VCC。",
+      "verify": [{ "measurePoint": "u_mid", "min": 5.3, "max": 6.7 }]
+    },
+    {
+      "id": "otl_cout_open",
+      "target": "otl1.C_out",
+      "kind": "open",
+      "symptom": "中点电压 U_K 仍正常约 6.0 V，但扬声器输出端 Vpp 接近 0 V 且无声音。",
+      "hint": "前级与推挽中点直流工作点正常而负载端无交流信号，重点排查输出耦合隔直电容 C_out 是否开路。",
+      "verify": [{ "measurePoint": "u_spk_vpp", "min": 1.2, "max": 11.5 }]
+    },
+    {
+      "id": "otl_qn1_open",
+      "target": "otl1.Q_n1",
+      "kind": "open",
+      "symptom": "中点电压 U_K 跌落至 1.5 V 以下，输出正半周严重消失。",
+      "hint": "上复合管驱动管 Q_n1 开路使上臂无法向中点提供电流，中点电位被下臂拉低。",
+      "verify": [{ "measurePoint": "u_mid", "min": 5.3, "max": 6.7 }]
+    },
+    {
+      "id": "otl_qp1_open",
+      "target": "otl1.Q_p1",
+      "kind": "open",
+      "symptom": "中点电压明显高于 7.5 V 且输出负半周严重削顶失真。",
+      "hint": "下复合管驱动管 Q_p1 开路使下臂失去下拉吸收能力，导致中点上移且负半周无法驱动扬声器。",
+      "verify": [{ "measurePoint": "u_mid", "min": 5.3, "max": 6.7 }]
+    },
+    {
+      "id": "otl_dbias1_short",
+      "target": "otl1.D_bias1",
+      "kind": "short",
+      "symptom": "中点电压接近正常，但上下复合管基极压差由约 1.9 V 跌至约 1.3 V，小信号出现交越失真。",
+      "hint": "测量 OTL_BUP 与 OTL_BDN 两端直流压差明显少了一个 PN 结压降，排查三管偏置链中的 D_bias1 是否击穿短路。",
+      "verify": [{ "measurePoint": "u_bup_dn", "min": 1.7, "max": 2.2 }]
+    },
+    {
+      "id": "otl_rboot_drift",
+      "target": "otl1.R_boot",
+      "kind": "drift",
+      "params": { "value": "100k" },
+      "symptom": "自举节点电压大幅跌落，中点电压 U_K 跌至 3.0 V 以下，输出严重失真且幅度骤降。",
+      "hint": "检查推动级上拉自举电阻 R_boot 阻值是否发生严重漂移增大，导致上臂驱动电流不足。",
+      "verify": [{ "measurePoint": "u_mid", "min": 5.3, "max": 6.7 }]
+    }
+  ],
+  "questions": [
+    "在 OTL 功放排故中，为什么应优先用直流电压表检测中点电压 U_K，再决定查直流偏置还是查交流耦合通路？",
+    "对比“中点电压 U_K 升至 11 V”与“U_K 正常 6.0 V 但扬声器无声”两类故障，分别对应电路哪一部分异常？",
+    "怎样仅凭直流电压表测量 OTL_BUP 与 OTL_BDN 两端压差判断偏置二极管链是否存在短路或开路？"
+  ]
+}

@@ -1,0 +1,89 @@
+{
+  "id": "MD-18",
+  "group": "波形发生与振荡",
+  "title": "三角波、方波及正弦波发生器的制作竞赛",
+  "type": "basic",
+  "modules": [{ "instanceId": "oa1", "moduleId": "mod-opamp", "slot": "SLOT_BOX_L1" }],
+  "allowedInstruments": ["ins-oscilloscope", "ins-multimeter"],
+  "reference": {
+    "nets": [
+      ["ins-dc-power.CH1P", "oa1.OA_VP", "oa1.FG_EN"],
+      ["ins-dc-power.CH1N", "ins-dc-power.CH2P", "oa1.OA_GND1", "oa1.OA_GND2"],
+      ["ins-dc-power.CH2N", "oa1.OA_VM"]
+    ],
+    "measurePoints": [
+      { "id": "f_out", "kind": "waveform", "quantity": "frequency", "between": ["oa1.FG_SQ", "oa1.OA_GND1"] },
+      { "id": "u_tri_vpp", "kind": "waveform", "quantity": "vpp", "between": ["oa1.FG_TRI", "oa1.OA_GND1"] },
+      { "id": "u_sin_vpp", "kind": "waveform", "quantity": "vpp", "between": ["oa1.FG_SIN", "oa1.OA_GND1"] }
+    ]
+  },
+  "competition": {
+    "title": "三波形函数发生器设计竞赛（TSK-08）",
+    "timeLimitSec": 900,
+    "brief": "限时 15 分钟自主搭建并调校三波形发生器，使其同时输出对称方波、三角波与正弦波，并满足：频率 1500 Hz（允许 1350~1650 Hz）、正弦波幅值 4.0 Vpp（允许 3.4~4.6 Vpp）、三角波幅值 9.5~13.0 Vpp。",
+    "criteria": [
+      { "id": "freq_1500", "label": "输出频率", "measurePoint": "f_out", "unit": "Hz", "target": 1500, "min": 1350, "max": 1650 },
+      { "id": "sin_4vpp", "label": "正弦波幅值", "measurePoint": "u_sin_vpp", "unit": "V", "target": 4.0, "min": 3.4, "max": 4.6 },
+      { "id": "tri_swing", "label": "三角波幅值", "measurePoint": "u_tri_vpp", "unit": "V", "target": 11.2, "min": 9.5, "max": 13.0 }
+    ]
+  },
+  "steps": [
+    {
+      "id": "briefing",
+      "text": "阅读竞赛指标并点击“开始竞赛”启动 15 分钟倒计时：给定目标频率 f = 1500 Hz（±10%）、正弦整形输出幅值 U_sin = 4.0 Vpp（±15%）、对称三角波幅值 9.5~13.0 Vpp。默认控件（15 kΩ / 40%）不满足竞赛指标，必须自主调校。",
+      "measurePoints": [],
+      "dataTable": "comp_result"
+    },
+    {
+      "id": "build_wire",
+      "text": "断电自主搭建 ±12 V 供电与函数发生区供电跳线（OA_VP→FG_EN）；拖放双通道示波器，先将 CH1 接方波 SQ（测频）、CH2 接正弦整形 SIN（测正弦幅值）、GND 接 GND2，点击“检查接线”。",
+      "measurePoints": ["f_out", "u_sin_vpp"],
+      "checkWiring": true,
+      "dataTable": "comp_result"
+    },
+    {
+      "id": "tune_verify_sq_sin",
+      "text": "在线精调与首轮指标核验：上电保持对称模式（SW_FG_SYM = 对称），自主调节频率电阻 R_FG_FREQ（理论初值约 10 kΩ，结合 LM324 压摆率实调至约 8~9 kΩ 使 f ≈ 1500 Hz）与正弦幅值电位器 R_FG_AMP（约 70%~80% 使 U_sin ≈ 4.0 Vpp），点击“核验竞赛指标”锁定频率与正弦波达标并记入验收表。",
+      "measurePoints": ["f_out", "u_sin_vpp"],
+      "expect": { "measurePoint": "f_out", "min": 1350, "max": 1650 },
+      "expects": [{ "measurePoint": "u_sin_vpp", "min": 3.4, "max": 4.6 }],
+      "dataTable": "comp_result"
+    },
+    {
+      "id": "verify_tri",
+      "text": "三波形全检与结项：断电将示波器 CH2 改接三角波输出 TRI（CH1 仍测 SQ），上电确认三角波对称且峰峰值在 9.5~13.0 Vpp 范围内，再次点击“核验竞赛指标”实现 3/3（100%）竞赛达成度并记录数据。",
+      "measurePoints": ["f_out", "u_tri_vpp"],
+      "expect": { "measurePoint": "u_tri_vpp", "min": 9.5, "max": 13.0 },
+      "dataTable": "comp_result"
+    },
+    {
+      "id": "analyse",
+      "text": "竞赛结项后断电保存波形截图与指标报告，完成设计复盘思考题。",
+      "measurePoints": [],
+      "recordTable": "comp_result",
+      "dataTable": "comp_result"
+    }
+  ],
+  "dataTables": [
+    {
+      "id": "comp_result",
+      "title": "MD-18 三波形函数发生器竞赛最终实测指标验收记录",
+      "rows": 1,
+      "columns": [
+        { "id": "f_hz", "title": "实测频率 f", "unit": "Hz", "measurePoint": "f_out", "captureSteps": ["tune_verify_sq_sin", "verify_tri"] },
+        { "id": "u_sin", "title": "正弦波 Vpp", "unit": "V", "measurePoint": "u_sin_vpp", "captureSteps": ["tune_verify_sq_sin"] },
+        { "id": "u_tri", "title": "三角波 Vpp", "unit": "V", "measurePoint": "u_tri_vpp", "captureSteps": ["verify_tri"] }
+      ],
+      "sanity": [
+        { "column": "f_hz", "min": 1350, "max": 1650, "message": "竞赛要求输出频率在 1350 ~ 1650 Hz 范围内。" },
+        { "column": "u_sin", "min": 3.4, "max": 4.6, "message": "竞赛要求正弦波幅值在 3.4 ~ 4.6 Vpp 范围内。" }
+      ]
+    }
+  ],
+  "charts": [],
+  "questions": [
+    "在三波形函数发生器中，为什么常采用“方波 → 积分得三角波 → 非线性折线/双曲正切整形得正弦波”的级联方案，而不是单独做三套独立振荡器？",
+    "竞赛中你如何根据目标频率 1500 Hz 与 C = 33 nF 预先估算所需电阻 R_FG_FREQ 的理论初值，再通过示波器微调收敛？",
+    "如果将 R_FG_FREQ 改动以改变频率，三角波整形后的正弦波幅值是否会跟着明显变化？为什么？"
+  ]
+}
