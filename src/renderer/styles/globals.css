@@ -205,6 +205,14 @@ html[data-font-scale="1.25"] {
   max-height: 88dvh;
 }
 
+/* 关于与第三方许可证浮层（T3.4） */
+.about-license-dialog {
+  width: min(92vw, 56rem);
+  max-width: min(92vw, 56rem);
+  height: min(86dvh, 46rem);
+  max-height: 86dvh;
+}
+
 @page {
   size: A4;
   margin: 14mm;

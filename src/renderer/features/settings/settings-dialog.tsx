@@ -1,3 +1,5 @@
+import { Info } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Separator } from '@/components/ui/separator'
@@ -8,6 +10,7 @@ import type { Settings } from '../../../shared/schema/settings'
 export function SettingsDialog() {
   const open = useSettings((s) => s.settingsOpen)
   const setOpen = useSettings((s) => s.setSettingsOpen)
+  const setAboutOpen = useSettings((s) => s.setAboutOpen)
   const settings = useSettings((s) => s.settings)
   const userDataDir = useSettings((s) => s.userDataDir)
   const updateSettings = useSettings((s) => s.updateSettings)
@@ -109,6 +112,26 @@ export function SettingsDialog() {
             >
               {userDataDir || '本地用户数据目录'}
             </p>
+          </div>
+
+          <Separator />
+
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <p className="font-medium">关于与第三方许可证</p>
+              <p className="text-xs text-muted-foreground">查看 ngspice、本地字体、HDRI 与 3D 资产的完整许可归属。</p>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setOpen(false)
+                setAboutOpen(true)
+              }}
+            >
+              <Info className="size-3.5" />
+              查看关于
+            </Button>
           </div>
         </div>
       </DialogContent>

@@ -3,6 +3,11 @@ declare module '*?url' {
   export default url
 }
 
+declare module '*?raw' {
+  const raw: string
+  export default raw
+}
+
 interface ImportMeta {
   glob<T = unknown>(
     pattern: string,

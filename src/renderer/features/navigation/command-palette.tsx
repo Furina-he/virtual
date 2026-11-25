@@ -1,4 +1,4 @@
-import { BookOpen, FolderKanban, Home, Monitor, Moon, Settings as SettingsIcon, Sun } from 'lucide-react'
+import { BookOpen, FolderKanban, Home, Info, Monitor, Moon, Settings as SettingsIcon, Sun } from 'lucide-react'
 import { useEffect } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { useNavigate } from 'react-router'
@@ -14,6 +14,7 @@ import {
   CommandShortcut,
 } from '@/components/ui/command'
 import { projectCatalog } from '@/features/practice/practice-content'
+import { AboutDialog } from '@/features/settings/about-dialog'
 import { SettingsDialog } from '@/features/settings/settings-dialog'
 import { settingsStore, useSettings } from '@/stores/settings'
 import { taskStore } from '@/stores/task'
@@ -23,6 +24,7 @@ export function GlobalCommandAndSettings() {
   const open = useSettings((s) => s.commandOpen)
   const setOpen = useSettings((s) => s.setCommandOpen)
   const setSettingsOpen = useSettings((s) => s.setSettingsOpen)
+  const setAboutOpen = useSettings((s) => s.setAboutOpen)
   const settings = useSettings((s) => s.settings)
   const presentationMode = useSettings((s) => s.presentationMode)
   const togglePresentationMode = useSettings((s) => s.togglePresentationMode)
@@ -77,6 +79,13 @@ export function GlobalCommandAndSettings() {
                 <SettingsIcon />
                 <span>系统设置</span>
               </CommandItem>
+              <CommandItem
+                value="关于与第三方许可证 about licenses ngspice 字体 资产"
+                onSelect={() => run(() => setAboutOpen(true))}
+              >
+                <Info />
+                <span>关于与第三方许可证</span>
+              </CommandItem>
             </CommandGroup>
             <CommandSeparator />
             <CommandGroup heading="实训项目">
@@ -116,6 +125,7 @@ export function GlobalCommandAndSettings() {
         </Command>
       </CommandDialog>
       <SettingsDialog />
+      <AboutDialog />
     </>
   )
 }

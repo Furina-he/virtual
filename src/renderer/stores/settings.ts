@@ -8,6 +8,7 @@ export type SettingsStoreState = {
   userDataDir: string
   hydrated: boolean
   settingsOpen: boolean
+  aboutOpen: boolean
   commandOpen: boolean
   presentationMode: boolean
   hydrate: () => Promise<void>
@@ -15,6 +16,7 @@ export type SettingsStoreState = {
   setPresentationMode: (enabled: boolean) => Promise<void>
   togglePresentationMode: () => Promise<void>
   setSettingsOpen: (open: boolean) => void
+  setAboutOpen: (open: boolean) => void
   setCommandOpen: (open: boolean) => void
 }
 
@@ -33,6 +35,7 @@ export const settingsStore = createStore<SettingsStoreState>()((set, get) => ({
   userDataDir: '',
   hydrated: false,
   settingsOpen: false,
+  aboutOpen: false,
   commandOpen: false,
   presentationMode: false,
   hydrate: async () => {
@@ -79,6 +82,7 @@ export const settingsStore = createStore<SettingsStoreState>()((set, get) => ({
     await get().setPresentationMode(!get().presentationMode)
   },
   setSettingsOpen: (open) => set({ settingsOpen: open }),
+  setAboutOpen: (open) => set({ aboutOpen: open }),
   setCommandOpen: (open) => set({ commandOpen: open }),
 }))
 

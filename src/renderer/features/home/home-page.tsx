@@ -1,4 +1,4 @@
-import { BookOpen, Clock, Cpu, Monitor, Play, Search, Settings as SettingsIcon, Wrench } from 'lucide-react'
+import { BookOpen, Clock, Cpu, Info, Monitor, Play, Search, Settings as SettingsIcon, Wrench } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router'
 import { Badge } from '@/components/ui/badge'
@@ -28,6 +28,7 @@ function projectDomain(project: Project): DomainKey {
 export function HomePage() {
   const navigate = useNavigate()
   const setSettingsOpen = useSettings((s) => s.setSettingsOpen)
+  const setAboutOpen = useSettings((s) => s.setAboutOpen)
   const setCommandOpen = useSettings((s) => s.setCommandOpen)
   const presentationMode = useSettings((s) => s.presentationMode)
   const togglePresentationMode = useSettings((s) => s.togglePresentationMode)
@@ -88,6 +89,10 @@ export function HomePage() {
           <Button variant="ghost" className="justify-start" onClick={() => setSettingsOpen(true)}>
             <SettingsIcon />
             系统设置
+          </Button>
+          <Button variant="ghost" className="justify-start" onClick={() => setAboutOpen(true)}>
+            <Info />
+            关于与许可
           </Button>
         </nav>
         <div className="space-y-1.5 border-t pt-2">

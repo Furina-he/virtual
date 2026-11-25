@@ -26,9 +26,10 @@
 | `lib/ngspice/xtraevt.cm` | `src/xspice/icm/xtraevt` | public domain | |
 | `share/ngspice/scripts/spinit` | ngspice 发行脚本 | Modified BSD | 本项目已修改，见下 |
 | `COPYING` | ngspice-47 源码根目录 | CC-BY-SA 4.0（文档本身） | 含 Modified BSD、XSPICE 声明与 LGPL 2.1 全文，满足 BSD 第 2 条"二进制分发须附带声明" |
+| `THIRD-PARTY-LICENSES.txt` | 本项目汇总的第三方许可证全文 | BSD-2-Clause + Apache-2.0 WITH LLVM-exception | 补齐 libsamplerate 与 LLVM OpenMP 许可证全文，与应用内“关于与第三方许可证”弹窗同步展示 |
 | `sndfile.dll` | libsndfile 1.2.2 | LGPL-2.1-or-later | 动态库，可替换；源码 https://github.com/libsndfile/libsndfile |
 | `samplerate.dll` | libsamplerate 0.2.2 | BSD-2-Clause | 源码 https://github.com/libsndfile/libsamplerate |
-| `libomp140.x86_64.dll` | Microsoft Visual C++ 附带的 LLVM OpenMP 运行时 | Apache-2.0 WITH LLVM-exception（LLVM 上游）；作为 VS 可再分发文件随 ngspice 官方包分发 | 待安装包第三方声明页统一列出（见"遗留"） |
+| `libomp140.x86_64.dll` | Microsoft Visual C++ 附带的 LLVM OpenMP 运行时 | Apache-2.0 WITH LLVM-exception（LLVM 上游）；作为 VS 可再分发文件随 ngspice 官方包分发 | 全文已随 `THIRD-PARTY-LICENSES.txt` 分发并在应用内关于页列出 |
 
 `*.cm` 每个文件都链接 `src/xspice/icm/dlmain.c`，文件头为 ngspice team 版权，属主体 Modified BSD。
 
@@ -45,6 +46,6 @@
 - `codemodel` 路径由官方包的 `C:/Spice64/lib/ngspice/` 改为 `$SPICE_LIB_DIR/../../lib/ngspice/`。`SPICE_LIB_DIR` 由 `src/sim/ngspice.ts` 在加载 DLL 前设为 `<本目录>/share/ngspice`，ngspice 据此在 `scripts/` 下找到 spinit。
 - 只加载 spice2poly、analog、digital、xtradev、xtraevt 五个代码模型。
 
-## 遗留
+## 随包第三方声明（T3.4 已落实）
 
-- 安装包需要一个第三方声明页，列出上述各项并附 `COPYING`、libsndfile（LGPL 2.1，全文已在 `COPYING` 内）、libsamplerate（BSD-2）、LLVM OpenMP（Apache-2.0 WITH LLVM-exception）的许可证文本。
+- 应用内“关于与第三方许可证”窗口（首页左侧导航、系统设置、命令面板 `Ctrl+K` 均可打开）直接解析本文件、`COPYING`、`THIRD-PARTY-LICENSES.txt`、`content/ASSET-LICENSES.csv` 与 `content/ASSET-NOTICES.md`，列出实际随包分发的全部第三方软件、字体、HDRI 与 3D 素材许可证及源码地址。
