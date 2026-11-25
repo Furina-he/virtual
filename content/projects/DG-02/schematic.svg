@@ -1,0 +1,84 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 460" role="img" aria-labelledby="title desc">
+  <title id="title">DG-02 电路元件伏安特性测绘原理图</title>
+  <desc id="desc">CH1 直流源经限流电阻 RLIM（非线性器件必接）与电流插座 IM 接入待测二端元件（RA、EL1、1N4007 或 2CW51），电压表并联在待测元件两端，毫安表串入电流插座。</desc>
+  <style>
+    text { font-family: "Noto Sans SC Variable", sans-serif; fill: #18181b; font-size: 14px; }
+    .wire { fill: none; stroke: #18181b; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    .box { fill: #ffffff; stroke: #18181b; stroke-width: 2; }
+    .jack { fill: #ffffff; stroke: #18181b; stroke-width: 2; cursor: pointer; }
+    .opt { fill: none; stroke: #2563eb; stroke-width: 1.6; stroke-dasharray: 5 4; }
+    .small { font-size: 12.5px; fill: #52525b; }
+    .center { text-anchor: middle; }
+  </style>
+  <rect width="820" height="460" fill="#ffffff"/>
+  <text x="410" y="32" class="center" style="font-size: 20px; font-weight: 600">DG-02 线性与非线性电路元件伏安特性测绘</text>
+  <text x="410" y="56" class="center small">mod-dc-components · 四类待测件：RA (1 kΩ) / EL1 (12 V/0.1 A) / VD1 (1N4007) / VZ1 (2CW51)</text>
+
+  <g class="wire">
+    <path d="M100 120 H185 M255 120 H320 M360 120 H440 V310 H100 V250 M100 175 V120"/>
+    <path d="M320 120 H360" stroke-dasharray="3 3"/>
+  </g>
+  <circle cx="100" cy="212" r="26" class="box"/>
+  <text x="100" y="207" class="center">+</text>
+  <text x="100" y="228" class="center">−</text>
+  <text x="52" y="212" class="center">CH1</text>
+
+  <rect x="185" y="110" width="70" height="20" class="box"/>
+  <text x="220" y="98" class="center">Rlim 220Ω</text>
+  <text x="220" y="146" class="center small">测二极管/稳压管必串</text>
+
+  <rect x="424" y="175" width="32" height="70" class="box" style="stroke: #2563eb"/>
+  <text x="440" y="215" class="center" style="fill: #2563eb; font-weight: 600">DUT</text>
+
+  <rect x="520" y="88" width="268" height="278" rx="6" class="opt"/>
+  <text x="654" y="112" class="center" style="fill: #2563eb; font-weight: 600">可替换待测元件（四选一接入 DUT）</text>
+
+  <line x1="560" y1="150" x2="740" y2="150" class="wire"/>
+  <rect x="615" y="140" width="70" height="20" class="box"/>
+  <text x="650" y="132" class="center small">RA · 1 kΩ</text>
+
+  <line x1="560" y1="208" x2="740" y2="208" class="wire"/>
+  <circle cx="650" cy="208" r="14" class="box"/>
+  <path d="M641 199 L659 217 M659 199 L641 217" class="wire"/>
+  <text x="650" y="187" class="center small">EL1 · 白炽灯 12V/0.1A</text>
+
+  <line x1="560" y1="268" x2="740" y2="268" class="wire"/>
+  <path d="M636 256 L662 268 L636 280 Z M662 256 V280" class="box"/>
+  <text x="650" y="248" class="center small">VD1 · 1N4007（正向）</text>
+
+  <line x1="560" y1="328" x2="740" y2="328" class="wire"/>
+  <path d="M664 316 L638 328 L664 340 Z M638 316 V340 L632 344 M638 316 L644 312" class="box"/>
+  <text x="650" y="308" class="center small">VZ1 · 2CW51 3.3V（反向击穿）</text>
+
+  <circle id="JACK_CH1P" data-jack="ins-dc-power.CH1P" cx="100" cy="155" r="4.5" class="jack"/>
+  <circle id="JACK_CH1N" data-jack="ins-dc-power.CH1N" cx="100" cy="272" r="4.5" class="jack"/>
+  <circle id="JACK_RLIM_1" data-jack="comp1.RLIM_1" cx="170" cy="120" r="4.5" class="jack"/>
+  <circle id="JACK_RLIM_2" data-jack="comp1.RLIM_2" cx="270" cy="120" r="4.5" class="jack"/>
+  <circle id="JACK_IM_IN" data-jack="comp1.IM_IN" cx="298" cy="120" r="4.5" class="jack"/>
+  <circle id="JACK_IM_A" data-jack="comp1.IM_A" cx="320" cy="120" r="4.5" class="jack"/>
+  <circle id="JACK_IM_B" data-jack="comp1.IM_B" cx="360" cy="120" r="4.5" class="jack"/>
+  <circle id="JACK_IM_OUT" data-jack="comp1.IM_OUT" cx="382" cy="120" r="4.5" class="jack"/>
+  <circle id="JACK_RA_1" data-jack="comp1.RA_1" cx="560" cy="150" r="4.5" class="jack"/>
+  <circle id="JACK_RA_2" data-jack="comp1.RA_2" cx="740" cy="150" r="4.5" class="jack"/>
+  <circle id="JACK_EL_1" data-jack="comp1.EL_1" cx="560" cy="208" r="4.5" class="jack"/>
+  <circle id="JACK_EL_2" data-jack="comp1.EL_2" cx="740" cy="208" r="4.5" class="jack"/>
+  <circle id="JACK_VD_A" data-jack="comp1.VD_A" cx="560" cy="268" r="4.5" class="jack"/>
+  <circle id="JACK_VD_K" data-jack="comp1.VD_K" cx="740" cy="268" r="4.5" class="jack"/>
+  <circle id="JACK_VZ_K" data-jack="comp1.VZ_K" cx="560" cy="328" r="4.5" class="jack"/>
+  <circle id="JACK_VZ_A" data-jack="comp1.VZ_A" cx="740" cy="328" r="4.5" class="jack"/>
+
+  <text x="128" y="159" class="small">CH1+</text>
+  <text x="128" y="276" class="small">CH1−</text>
+  <text x="340" y="144" class="center small">I+ / I−</text>
+  <text x="546" y="154" class="small" text-anchor="end">RA1</text>
+  <text x="752" y="154" class="small">RA2</text>
+  <text x="546" y="212" class="small" text-anchor="end">EL1</text>
+  <text x="752" y="212" class="small">EL2</text>
+  <text x="546" y="272" class="small" text-anchor="end">VD+</text>
+  <text x="752" y="272" class="small">VD−</text>
+  <text x="546" y="332" class="small" text-anchor="end">VZ−</text>
+  <text x="752" y="332" class="small">VZ+</text>
+
+  <text x="410" y="406" class="center small">电压表并联于待测件两端（20 V 档 / 10 MΩ），毫安表串入电流插座 I+ / I−。</text>
+  <text x="410" y="432" class="center small">本项目自绘离线原理图 · 悬停或点击插孔与 3D 台面双向联动</text>
+</svg>

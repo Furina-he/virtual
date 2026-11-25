@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 440" role="img" aria-labelledby="title desc">
+  <title id="title">DG-06 最大功率传输条件研究原理图</title>
+  <desc id="desc">CH1 10 V 直流电源串联可选内阻 R0（100 Ω）与电流插座 IM，驱动可变负载电阻箱 Rbox；电压表测负载端电压 U_L，毫安表测负载电流 I_L。</desc>
+  <style>
+    text { font-family: "Noto Sans SC Variable", sans-serif; fill: #18181b; font-size: 15px; }
+    .wire { fill: none; stroke: #18181b; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    .meter { fill: none; stroke: #2563eb; stroke-width: 1.8; stroke-dasharray: 5 4; }
+    .box { fill: #ffffff; stroke: #18181b; stroke-width: 2; }
+    .jack { fill: #ffffff; stroke: #18181b; stroke-width: 2; cursor: pointer; }
+    .small { font-size: 13px; fill: #52525b; }
+    .center { text-anchor: middle; }
+  </style>
+  <rect width="760" height="440" fill="#ffffff"/>
+  <text x="380" y="34" class="center" style="font-size: 20px; font-weight: 600">DG-06 含内阻电源外特性与最大功率传输研究</text>
+  <text x="380" y="58" class="center small">mod-dc-components · E = 10 V · R0 = 100 Ω · RL = Rbox (20 ~ 400 Ω)</text>
+
+  <g class="wire">
+    <path d="M110 120 H205 M275 120 H355 M395 120 H495 V170 M495 250 V320 H110 V260 M110 180 V120"/>
+    <path d="M355 120 H395" stroke-dasharray="3 3"/>
+    <path d="M476 238 L516 182"/>
+    <path d="M510 184 L516 182 L515 189"/>
+  </g>
+  <g class="meter">
+    <path d="M495 150 H630 V190 M630 230 V270 H495"/>
+  </g>
+
+  <circle cx="110" cy="220" r="28" class="box"/>
+  <text x="110" y="214" class="center">+</text>
+  <text x="110" y="238" class="center">−</text>
+  <text x="56" y="216" class="center">CH1</text>
+  <text x="56" y="236" class="center small">10 V</text>
+
+  <rect x="205" y="110" width="70" height="20" class="box"/>
+  <text x="240" y="98" class="center">R0 · 100 Ω</text>
+
+  <rect x="485" y="170" width="20" height="80" class="box"/>
+  <text x="444" y="212" class="center">Rbox</text>
+  <text x="444" y="232" class="center small">可变负载</text>
+
+  <circle cx="630" cy="210" r="22" class="box" style="stroke: #2563eb"/>
+  <text x="630" y="216" class="center" style="fill: #2563eb; font-weight: 600">V</text>
+  <text x="630" y="254" class="center small">测负载电压 U_L</text>
+
+  <circle id="JACK_CH1P" data-jack="ins-dc-power.CH1P" cx="110" cy="155" r="4.5" class="jack"/>
+  <circle id="JACK_CH1N" data-jack="ins-dc-power.CH1N" cx="110" cy="285" r="4.5" class="jack"/>
+  <circle id="JACK_R0_1" data-jack="comp1.R0_1" cx="185" cy="120" r="4.5" class="jack"/>
+  <circle id="JACK_R0_2" data-jack="comp1.R0_2" cx="295" cy="120" r="4.5" class="jack"/>
+  <circle id="JACK_IM_IN" data-jack="comp1.IM_IN" cx="333" cy="120" r="4.5" class="jack"/>
+  <circle id="JACK_IM_A" data-jack="comp1.IM_A" cx="355" cy="120" r="4.5" class="jack"/>
+  <circle id="JACK_IM_B" data-jack="comp1.IM_B" cx="395" cy="120" r="4.5" class="jack"/>
+  <circle id="JACK_IM_OUT" data-jack="comp1.IM_OUT" cx="417" cy="120" r="4.5" class="jack"/>
+  <circle id="JACK_RBOX_1" data-jack="comp1.RBOX_1" cx="495" cy="150" r="4.5" class="jack"/>
+  <circle id="JACK_RBOX_2" data-jack="comp1.RBOX_2" cx="495" cy="270" r="4.5" class="jack"/>
+
+  <text x="138" y="159" class="small">CH1+</text>
+  <text x="138" y="289" class="small">CH1−</text>
+  <text x="185" y="144" class="center small">R01</text>
+  <text x="295" y="144" class="center small">R02</text>
+  <text x="375" y="144" class="center small">I+ / I−</text>
+  <text x="524" y="146" class="small">Rbox1</text>
+  <text x="524" y="284" class="small">Rbox2</text>
+
+  <text x="380" y="376" class="center small">最大功率匹配点：RL = R0 = 100 Ω 时，U_L ≈ 4.98 V、I_L ≈ 49.8 mA、P_max ≈ 0.248 W。</text>
+  <text x="380" y="402" class="center small">本项目自绘离线原理图 · 悬停或点击插孔与 3D 台面双向联动</text>
+</svg>

@@ -113,7 +113,7 @@ test('T1.9B B1/B2 空间减法、阶段预设、动态有效构图、免切镜�
   // 2. 默认操作视角按活跃设备动态构图（data-camera-view-mode="active"），密集挂箱插孔仍不可直接拾取（单击进特写）
   await expect(viewport()).toHaveAttribute('data-camera-preset', 'work')
   await expect(viewport()).toHaveAttribute('data-camera-view-mode', 'active')
-  const dcOverview = (await projectedJacks(page)).find((jack) => jack.id === 'dc1.KH_U1P')
+  const dcOverview = (await projectedJacks(page)).find((jack) => jack.id === 'comp1.RA_1')
   expect(dcOverview?.pickable).toBe(false)
 
   // 拖拽台式表时相机自动切换至 drag-slots 显露全部 5 个桌面安装位，松手回到 active
@@ -192,8 +192,8 @@ test('T1.9B B1/B2 空间减法、阶段预设、动态有效构图、免切镜�
   await expect(viewport()).toHaveAttribute('data-wire-count', '1')
   await expect(viewport()).toHaveAttribute('data-pending-jack', 'ins-dc-power.CH1P')
 
-  await quickSearch.fill('KH_U1P')
-  await quickDock.locator('[data-quick-target-jack="dc1.KH_U1P"]').click()
+  await quickSearch.fill('RA_1')
+  await quickDock.locator('[data-quick-target-jack="comp1.RA_1"]').click()
   await expect(viewport()).toHaveAttribute('data-wire-count', '2')
   await expect(viewport()).toHaveAttribute('data-pending-jack', 'ins-dc-power.CH1P')
   await page.keyboard.press('Escape')

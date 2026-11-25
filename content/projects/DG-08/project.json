@@ -1,0 +1,143 @@
+{
+  "id": "DG-08",
+  "group": "直流电路",
+  "title": "叠加定理的验证与应用——多信号叠加控制电路的研究（综合）",
+  "type": "integrated",
+  "modules": [{ "instanceId": "dc1", "moduleId": "mod-dc-circuit", "slot": "SLOT_BOX_L1" }],
+  "allowedInstruments": ["ins-multimeter"],
+  "reference": {
+    "nets": [
+      ["ins-dc-power.CH1P", "dc1.KH_U1P"],
+      ["ins-dc-power.CH1N", "dc1.KH_U1N"],
+      ["ins-dc-power.CH2P", "dc1.KH_U2P"],
+      ["ins-dc-power.CH2N", "dc1.KH_U2N"]
+    ],
+    "measurePoints": [
+      { "id": "i1", "kind": "current", "mode": "dca", "branch": ["dc1.KH_I1A", "dc1.KH_I1B"] },
+      { "id": "i2", "kind": "current", "mode": "dca", "branch": ["dc1.KH_I2A", "dc1.KH_I2B"] },
+      { "id": "i3", "kind": "current", "mode": "dca", "branch": ["dc1.KH_I3A", "dc1.KH_I3B"] },
+      { "id": "u_ad", "kind": "voltage", "mode": "dcv", "between": ["dc1.KH_A", "dc1.KH_D"] }
+    ]
+  },
+  "steps": [
+    {
+      "id": "prepare",
+      "text": "保持断电，阅读指导书了解 K1（U1 接入/短路）、K2（U2 接入/短路）与 K3（线性电阻 R5 / 非线性二极管 VD1）的作用；将 CH1 设 6 V、CH2 设 12 V，电压表 20 V 档，毫安表 20 mA 档。",
+      "measurePoints": [],
+      "dataTable": "superposition_linear"
+    },
+    {
+      "id": "wire",
+      "text": "断电连接双电源至挂箱上半部：CH1+ → U1+，CH1− → U1−，CH2+ → U2+，CH2− → U2−（禁止短接 CH1− 与 CH2−），点击“检查接线”。",
+      "measurePoints": [],
+      "checkWiring": true,
+      "dataTable": "superposition_linear"
+    },
+    {
+      "id": "linear_u1",
+      "text": "线性工况 1（U1 单独作用）：设 K1=1、K2=0（U2 支路短路置零）、K3=0（选 R5）。分次测量 I1'、I2'、I3' 与 U_AD' 并记入 superposition_linear 第 1 行（序号填 1）。",
+      "measurePoints": ["u_ad"],
+      "expect": { "measurePoint": "u_ad", "min": 1.1, "max": 1.4 },
+      "dataTable": "superposition_linear"
+    },
+    {
+      "id": "linear_u2",
+      "text": "线性工况 2（U2 单独作用）：设 K1=0（U1 支路短路置零）、K2=1、K3=0。分次测量 I1''、I2''、I3'' 与 U_AD'' 并记入 superposition_linear 第 2 行（序号填 2）。",
+      "measurePoints": ["u_ad"],
+      "expect": { "measurePoint": "u_ad", "min": 2.6, "max": 2.95 },
+      "dataTable": "superposition_linear"
+    },
+    {
+      "id": "linear_both",
+      "text": "线性工况 3（U1 与 U2 共同作用）：设 K1=1、K2=1、K3=0。分次测量 I1、I2、I3 与 U_AD 并记入 superposition_linear 第 3 行（序号填 3），验证 I_k = I_k' + I_k'' 及 U_AD = U_AD' + U_AD''。",
+      "measurePoints": ["u_ad"],
+      "expect": { "measurePoint": "u_ad", "min": 3.85, "max": 4.25 },
+      "dataTable": "superposition_linear"
+    },
+    {
+      "id": "nonlinear_vd1",
+      "text": "非线性对比（K3=1 切入二极管 VD1）：依次在（K1=1,K2=0）、（K1=0,K2=1）、（K1=1,K2=1）三种状态下测量 I1、I2、I3 与 U_AD 并记入 superposition_nonlinear 表，验证含二极管非线性支路时叠加定理不再成立。",
+      "measurePoints": ["u_ad"],
+      "expect": { "measurePoint": "u_ad", "min": 0.5, "max": 4.5 },
+      "dataTable": "superposition_nonlinear"
+    },
+    {
+      "id": "analyse",
+      "text": "断电对比线性与非线性两表数据，验证电流/电压叠加成立而功率不可直接叠加的结论，完成思考题（可在右栏“排故”练习 3 项故障排查）。",
+      "measurePoints": [],
+      "recordTable": "superposition_linear",
+      "dataTable": "superposition_linear"
+    }
+  ],
+  "dataTables": [
+    {
+      "id": "superposition_linear",
+      "title": "线性双电源网络（K3=0 接 R5）叠加定理验证记录",
+      "rows": 3,
+      "columns": [
+        { "id": "case_no", "title": "工况 (1:U1 / 2:U2 / 3:双源)", "unit": "" },
+        { "id": "i1", "title": "I1", "unit": "A", "measurePoint": "i1", "captureSteps": ["linear_u1", "linear_u2", "linear_both"] },
+        { "id": "i2", "title": "I2", "unit": "A", "measurePoint": "i2", "captureSteps": ["linear_u1", "linear_u2", "linear_both"] },
+        { "id": "i3", "title": "I3", "unit": "A", "measurePoint": "i3", "captureSteps": ["linear_u1", "linear_u2", "linear_both"] },
+        { "id": "u_ad", "title": "U_AD", "unit": "V", "measurePoint": "u_ad", "captureSteps": ["linear_u1", "linear_u2", "linear_both"] }
+      ],
+      "sanity": [
+        { "column": "case_no", "min": 1, "max": 3, "message": "行 1~3 依次对应 U1 单独、U2 单独、U1+U2 共同作用。" },
+        { "column": "i1", "min": -0.02, "max": 0.02, "message": "支路电流范围 ±20 mA（本列单位为 A，保留正负号）。" },
+        { "column": "i2", "min": -0.02, "max": 0.02, "message": "支路电流范围 ±20 mA（本列单位为 A，保留正负号）。" },
+        { "column": "i3", "min": -0.02, "max": 0.02, "message": "支路电流范围 ±20 mA（本列单位为 A，保留正负号）。" },
+        { "column": "u_ad", "min": -1, "max": 6, "message": "线性工况下 U_AD 依次约为 1.25 V、2.79 V、4.04 V。" }
+      ]
+    },
+    {
+      "id": "superposition_nonlinear",
+      "title": "含二极管非线性网络（K3=1 接 VD1）叠加反例记录",
+      "rows": 3,
+      "columns": [
+        { "id": "case_no", "title": "工况 (1:U1 / 2:U2 / 3:双源)", "unit": "" },
+        { "id": "i1", "title": "I1", "unit": "A", "measurePoint": "i1", "captureSteps": ["nonlinear_vd1"] },
+        { "id": "i2", "title": "I2", "unit": "A", "measurePoint": "i2", "captureSteps": ["nonlinear_vd1"] },
+        { "id": "i3", "title": "I3", "unit": "A", "measurePoint": "i3", "captureSteps": ["nonlinear_vd1"] },
+        { "id": "u_ad", "title": "U_AD", "unit": "V", "measurePoint": "u_ad", "captureSteps": ["nonlinear_vd1"] }
+      ],
+      "sanity": [
+        { "column": "case_no", "min": 1, "max": 3, "message": "行 1~3 依次对应 K3=1 下的 U1、U2、双源工况。" },
+        { "column": "u_ad", "min": -1, "max": 6, "message": "接入 1N4007 后因单向导电特性，U_AD' + U_AD'' 与双源共同作用读数明显不等。" }
+      ]
+    }
+  ],
+  "charts": [],
+  "faults": [
+    {
+      "id": "dg08-r2-open",
+      "target": "dc1.R2",
+      "kind": "open",
+      "symptom": "K1=1、K2=1、K3=0 共同作用时右侧电源 U2 无法向节点 A 供流，U_AD 跌至约 1.5 V 以下。",
+      "hint": "检查 R2（1 kΩ）支路是否开路。",
+      "verify": [{ "measurePoint": "u_ad", "min": 3.85, "max": 4.25 }]
+    },
+    {
+      "id": "dg08-r5-short",
+      "target": "dc1.R5",
+      "kind": "short",
+      "symptom": "D 与 C 间电阻 R5 被短接，右回路电流增大导致 U_AD 明显高于正常值 4.04 V。",
+      "hint": "排查 K3 支路中的 R5（330 Ω）是否发生短路。",
+      "verify": [{ "measurePoint": "u_ad", "min": 3.85, "max": 4.25 }]
+    },
+    {
+      "id": "dg08-r3-drift",
+      "target": "dc1.R3",
+      "kind": "drift",
+      "params": { "value": 1500 },
+      "symptom": "中支路电阻漂移增大，导致节点 A 对 D 电压 U_AD 显著升高（超过 5 V）。",
+      "hint": "重点核对公共支路电阻 R3 阻值是否由 510 Ω 漂移至 1.5 kΩ。",
+      "verify": [{ "measurePoint": "u_ad", "min": 3.85, "max": 4.25 }]
+    }
+  ],
+  "questions": [
+    "验证叠加定理使不作用的独立电压源置零时，为什么要将电源支路“短路”（保留内阻）而不是“开路”？",
+    "根据线性表中的两组单独作用电流与共同作用电流，计算 R3 消耗的功率 P3，验证功率为什么不能直接叠加？",
+    "当 K3 切至二极管 VD1（K3=1）时，为什么 U1 单独作用、U2 单独作用与双源共同作用不再满足叠加关系？",
+    "若电路中含有独立电流源，令该电流源单独置零时应对其作何处理？"
+  ]
+}

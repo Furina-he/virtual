@@ -1,0 +1,125 @@
+{
+  "id": "DG-04",
+  "group": "直流电路",
+  "title": "电位、电压的测定及电路电位图的绘制",
+  "type": "basic",
+  "modules": [{ "instanceId": "dc1", "moduleId": "mod-dc-circuit", "slot": "SLOT_BOX_L1" }],
+  "allowedInstruments": ["ins-multimeter"],
+  "reference": {
+    "nets": [
+      ["ins-dc-power.CH1P", "dc1.KH_U1P"],
+      ["ins-dc-power.CH1N", "dc1.KH_U1N"],
+      ["ins-dc-power.CH2P", "dc1.KH_U2P"],
+      ["ins-dc-power.CH2N", "dc1.KH_U2N"]
+    ],
+    "measurePoints": [
+      { "id": "phi_fd", "kind": "voltage", "mode": "dcv", "between": ["dc1.KH_F", "dc1.KH_D"] },
+      { "id": "phi_ad", "kind": "voltage", "mode": "dcv", "between": ["dc1.KH_A", "dc1.KH_D"] },
+      { "id": "phi_bd", "kind": "voltage", "mode": "dcv", "between": ["dc1.KH_B", "dc1.KH_D"] },
+      { "id": "phi_cd", "kind": "voltage", "mode": "dcv", "between": ["dc1.KH_C", "dc1.KH_D"] },
+      { "id": "phi_ed", "kind": "voltage", "mode": "dcv", "between": ["dc1.KH_E", "dc1.KH_D"] },
+      { "id": "phi_fe", "kind": "voltage", "mode": "dcv", "between": ["dc1.KH_F", "dc1.KH_E"] },
+      { "id": "phi_ae", "kind": "voltage", "mode": "dcv", "between": ["dc1.KH_A", "dc1.KH_E"] },
+      { "id": "phi_be", "kind": "voltage", "mode": "dcv", "between": ["dc1.KH_B", "dc1.KH_E"] },
+      { "id": "phi_ce", "kind": "voltage", "mode": "dcv", "between": ["dc1.KH_C", "dc1.KH_E"] },
+      { "id": "phi_de", "kind": "voltage", "mode": "dcv", "between": ["dc1.KH_D", "dc1.KH_E"] }
+    ]
+  },
+  "steps": [
+    {
+      "id": "prepare",
+      "text": "保持断电，阅读指导书与原理图；确认挂箱上半部开关 K1=1、K2=1、K3=0（接入 R5），直流稳压电源 CH1=6 V、CH2=12 V，直流数字电压表选 20 V 档（10 MΩ）。",
+      "measurePoints": [],
+      "dataTable": "potentials"
+    },
+    {
+      "id": "wire",
+      "text": "断电连接双电源网络：CH1+ → U1+，CH1− → U1−，CH2+ → U2+，CH2− → U2−（严禁外部短接 CH1− 与 CH2−），点击“检查接线”。",
+      "measurePoints": [],
+      "checkWiring": true,
+      "dataTable": "potentials"
+    },
+    {
+      "id": "ref_d",
+      "text": "以节点 D 为零电位参考点（φ_D = 0 V）：固定电压表负端接 D，正端依次点测 F、A、B、C、E 五个节点，上电将 6 点电位（第 5 行 D 点填 0）记入 potentials 表的“以 D 为参考”列。",
+      "measurePoints": ["phi_ad"],
+      "expect": { "measurePoint": "phi_ad", "min": 3.85, "max": 4.25 },
+      "dataTable": "potentials"
+    },
+    {
+      "id": "ref_e",
+      "text": "切换节点 E 为零电位参考点（φ_E = 0 V）：断电将电压表负端改接 E，正端依次点测 F、A、B、C、D 五个节点，上电将 6 点电位（第 6 行 E 点填 0）记入 potentials 表的“以 E 为参考”列。",
+      "measurePoints": ["phi_fe"],
+      "expect": { "measurePoint": "phi_fe", "min": 5.85, "max": 6.15 },
+      "dataTable": "potentials"
+    },
+    {
+      "id": "analyse",
+      "text": "断电后核对差值列 Δφ = φ(E) − φ(D) 是否各点恒定（约 +0.98 V），打开“曲线”页签查看两组平行平移的电路电位图，并完成思考题。",
+      "measurePoints": [],
+      "recordTable": "potentials",
+      "dataTable": "potentials"
+    }
+  ],
+  "dataTables": [
+    {
+      "id": "potentials",
+      "title": "六节点电位测量与参考点平移验证（行 1~6 对应 F、A、B、C、D、E）",
+      "rows": 6,
+      "columns": [
+        { "id": "node_idx", "title": "节点序号 (1F~6E)", "unit": "" },
+        { "id": "phi_d", "title": "以 D 为参考 φ(D)", "unit": "V" },
+        { "id": "phi_e", "title": "以 E 为参考 φ(E)", "unit": "V" },
+        { "id": "delta_phi", "title": "电位平移量 Δφ", "unit": "V", "computed": "phi_e-phi_d" }
+      ],
+      "sanity": [
+        { "column": "node_idx", "min": 1, "max": 6, "message": "节点序号 1~6 依次对应 F、A、B、C、D、E。" },
+        { "column": "phi_d", "min": -5, "max": 12, "message": "以 D 为参考点时，各点电位应位于 −2.5 V ~ +10.5 V。" },
+        { "column": "phi_e", "min": -5, "max": 13, "message": "以 E 为参考点时，各点电位应相对 φ(D) 统一上移约 +0.98 V。" }
+      ]
+    }
+  ],
+  "charts": [
+    {
+      "id": "potential-diagram",
+      "title": "电路电位图（不同参考点下的节点电位对比）",
+      "table": "potentials",
+      "x": "node_idx",
+      "y": ["phi_d", "phi_e"],
+      "kind": "line"
+    }
+  ],
+  "faults": [
+    {
+      "id": "dg04-r1-open",
+      "target": "dc1.R1",
+      "kind": "open",
+      "symptom": "节点 A 对 D 电位显著偏离正常值 4.04 V，左支路 F–A 压降异常增大。",
+      "hint": "检查 R1（510 Ω）所在支路是否开路断线。",
+      "verify": [{ "measurePoint": "phi_ad", "min": 3.85, "max": 4.25 }]
+    },
+    {
+      "id": "dg04-r3-open",
+      "target": "dc1.R3",
+      "kind": "open",
+      "symptom": "公共支路电流消失，节点 A 对 D 电位大幅升高（超过 6 V）。",
+      "hint": "重点测量 A–D 公共支路电阻 R3（510 Ω）是否开路。",
+      "verify": [{ "measurePoint": "phi_ad", "min": 3.85, "max": 4.25 }]
+    },
+    {
+      "id": "dg04-r4-drift",
+      "target": "dc1.R4",
+      "kind": "drift",
+      "params": { "value": 2000 },
+      "symptom": "以 D 为参考时节点 E 电位绝对值明显增大，左回路分压失衡。",
+      "hint": "核查底部支路电阻 R4 是否由标称 510 Ω 严重漂移增大。",
+      "verify": [{ "measurePoint": "phi_ed", "min": -1.1, "max": -0.85 }]
+    }
+  ],
+  "questions": [
+    "将零电位参考点从节点 D 改为节点 E 后，各节点电位和任意两点间的电压分别发生了怎样的变化？",
+    "为什么在电位图上，以 D 为参考和以 E 为参考绘制出的两条折线呈严格的竖直平行平移关系？",
+    "电位图上从一点沿支路走向另一点时，经过电阻和直流电源正负极时电位分别如何升降？",
+    "若实训中测得 U_AD 异常飙升至 7 V 以上而 U_FE 仍为 6 V，最可能发生了哪类元件故障？"
+  ]
+}

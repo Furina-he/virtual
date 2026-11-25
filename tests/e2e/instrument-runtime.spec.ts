@@ -17,10 +17,12 @@ async function addWire(a: string, b: string) {
 }
 
 async function wireDg01VoltagePoint() {
-  await addWire('ins-dc-power.CH1P', 'dc1.TH_USP')
-  await addWire('ins-dc-power.CH1N', 'dc1.TH_USN')
-  await addWire('ins-dc-voltmeter.POS', 'dc1.TH_A')
-  await addWire('ins-dc-voltmeter.NEG', 'dc1.TH_B')
+  await addWire('ins-dc-power.CH1P', 'comp1.IM_IN')
+  await addWire('comp1.IM_OUT', 'comp1.RB_1')
+  await addWire('comp1.RB_2', 'comp1.RC_1')
+  await addWire('comp1.RC_2', 'ins-dc-power.CH1N')
+  await addWire('ins-dc-voltmeter.POS', 'comp1.RC_1')
+  await addWire('ins-dc-voltmeter.NEG', 'comp1.RC_2')
 }
 
 async function reading(panelName: string) {
@@ -59,19 +61,19 @@ test('DG-01 实际接线读数随电压表内阻变化，且 2 V 档显示 OL.',
   await page.getByRole('button', { name: '上电', exact: true }).click()
   const panel = await openInstrumentPanel(page, '直流数字电压表')
   const output = await reading('直流数字电压表')
-  await expect(output).toHaveAttribute('data-reading', '3.64')
+  await expect(output).toHaveAttribute('data-reading', '5.00')
   await expect(output).toHaveAttribute('data-unit', 'V')
-  await expect.poll(() => threeScreenReading('ins-dc-voltmeter')).toBe('ok:3.64')
+  await expect.poll(() => threeScreenReading('ins-dc-voltmeter')).toBe('ok:5.00')
 
   const resistance = panel.getByRole('combobox', { name: '输入内阻', exact: true })
   await resistance.click()
   await page.getByRole('option', { name: '10 kΩ', exact: true }).click()
   await expect(panel.locator('[data-panel-id="ins-dc-voltmeter"]')).toHaveAttribute('data-internal-resistance', '10000')
   await expect.poll(async () => output.getAttribute('data-status')).toBe('ok')
-  await expect.poll(async () => output.getAttribute('data-reading')).not.toBe('3.64')
+  await expect.poll(async () => output.getAttribute('data-reading')).not.toBe('5.00')
   const lowResistanceReading = Number(await output.getAttribute('data-reading'))
   expect(lowResistanceReading).toBeGreaterThan(0)
-  expect(lowResistanceReading).toBeLessThan(3.64)
+  expect(lowResistanceReading).toBeLessThan(5.0)
   await expect
     .poll(async () => {
       const screen = await threeScreenReading('ins-dc-voltmeter')

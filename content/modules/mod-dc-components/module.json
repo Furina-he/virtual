@@ -1,0 +1,99 @@
+{
+  "id": "mod-dc-components",
+  "name": "电路基础实验挂箱（二）/元件箱",
+  "form": "box",
+  "model": "module.glb",
+  "netlist": "module.cir",
+  "jacks": [
+    { "id": "RA_1", "label": "RA 左 (1kΩ)", "kind": "banana4" },
+    { "id": "RA_2", "label": "RA 右 (1kΩ)", "kind": "banana4" },
+    { "id": "RB_1", "label": "RB 左 (2kΩ)", "kind": "banana4" },
+    { "id": "RB_2", "label": "RB 右 (2kΩ)", "kind": "banana4" },
+    { "id": "RC_1", "label": "RC 左 (10kΩ)", "kind": "banana4" },
+    { "id": "RC_2", "label": "RC 右 (10kΩ)", "kind": "banana4" },
+    { "id": "RLIM_1", "label": "限流电阻左 (220Ω)", "kind": "banana4" },
+    { "id": "RLIM_2", "label": "限流电阻右 (220Ω)", "kind": "banana4" },
+    { "id": "R0_1", "label": "内阻 R0 左", "kind": "banana4" },
+    { "id": "R0_2", "label": "内阻 R0 右", "kind": "banana4" },
+    { "id": "IM_IN", "label": "电流支路入口", "kind": "banana4" },
+    { "id": "IM_A", "label": "电流插座 I+", "kind": "banana4" },
+    { "id": "IM_B", "label": "电流插座 I−", "kind": "banana4" },
+    { "id": "IM_OUT", "label": "电流支路出口", "kind": "banana4" },
+    { "id": "EL_1", "label": "白炽灯左 (12V/0.1A)", "kind": "banana4" },
+    { "id": "EL_2", "label": "白炽灯右 (12V/0.1A)", "kind": "banana4" },
+    { "id": "VD_A", "label": "1N4007 阳极 (+)", "kind": "banana4", "polarityHint": "+" },
+    { "id": "VD_K", "label": "1N4007 阴极 (−)", "kind": "banana4", "polarityHint": "-" },
+    { "id": "VZ_A", "label": "2CW51 阳极 (+)", "kind": "banana4", "polarityHint": "+" },
+    { "id": "VZ_K", "label": "2CW51 阴极 (−)", "kind": "banana4", "polarityHint": "-" },
+    { "id": "RP1_1", "label": "电位器左端 1", "kind": "banana4" },
+    { "id": "RP1_W", "label": "电位器滑动端 W", "kind": "banana4" },
+    { "id": "RP1_2", "label": "电位器右端 2", "kind": "banana4" },
+    { "id": "RBOX_1", "label": "电阻箱左端", "kind": "banana4" },
+    { "id": "RBOX_2", "label": "电阻箱右端", "kind": "banana4" },
+    { "id": "BR_P", "label": "电桥上端 A (+)", "kind": "banana4", "polarityHint": "+" },
+    { "id": "BR_L", "label": "电桥左端 B", "kind": "banana4" },
+    { "id": "BR_R", "label": "电桥右端 C", "kind": "banana4" },
+    { "id": "BR_N", "label": "电桥下端 D (−)", "kind": "banana4", "polarityHint": "-" },
+    { "id": "RX_1", "label": "待测电阻 Rx 左", "kind": "banana4" },
+    { "id": "RX_2", "label": "待测电阻 Rx 右", "kind": "banana4" },
+    { "id": "CU_1", "label": "Cu50 热电阻端 1", "kind": "banana4" },
+    { "id": "CU_2", "label": "Cu50 热电阻端 2", "kind": "banana4" }
+  ],
+  "controls": [
+    {
+      "id": "SW_R0",
+      "label": "可选电源内阻 R0",
+      "kind": "rotary",
+      "param": "r0",
+      "steps": [51, 100, 200],
+      "stepLabels": ["51 Ω", "100 Ω", "200 Ω"],
+      "targets": [{ "element": "RR0", "values": [51, 100, 200] }],
+      "unit": "Ω",
+      "default": 100
+    },
+    {
+      "id": "RP1",
+      "label": "线绕电位器 RP1 (1 kΩ)",
+      "kind": "pot",
+      "param": "rp1",
+      "range": [10, 990],
+      "step": 10,
+      "targets": [
+        { "element": "RRP1A", "scale": 1, "offset": 0, "min": 1 },
+        { "element": "RRP1B", "scale": -1, "offset": 1000, "min": 1 }
+      ],
+      "unit": "Ω",
+      "default": 500
+    },
+    {
+      "id": "RBOX",
+      "label": "十进制电阻箱 Rbox",
+      "kind": "resistorBox",
+      "param": "rbox",
+      "range": [1, 10000],
+      "step": 0.1,
+      "targets": [{ "element": "RRBOX", "scale": 1, "offset": 0, "min": 1 }],
+      "unit": "Ω",
+      "default": 100
+    },
+    {
+      "id": "T_CU50",
+      "label": "Cu50 环境温度",
+      "kind": "rotary",
+      "param": "t_cu50",
+      "range": [0, 100],
+      "step": 1,
+      "targets": [{ "element": "RCU50", "scale": 0.214, "offset": 50 }],
+      "unit": "℃",
+      "default": 20
+    }
+  ],
+  "indicators": [],
+  "commonNets": [
+    ["IM_IN", "IM_A"],
+    ["IM_B", "IM_OUT"]
+  ],
+  "internalJumpers": [
+    { "id": "IM", "kind": "currentSocket", "a": "IM_A", "b": "IM_B" }
+  ]
+}

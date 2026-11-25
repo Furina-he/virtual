@@ -1,38 +1,109 @@
 {
   "id": "DG-01",
   "group": "直流电路",
-  "title": "常用电工仪表使用与测量误差（仪表功能验证）",
+  "title": "电气仪表的使用和测量误差的计算",
   "type": "basic",
-  "validation": {
-    "purpose": "T0.11 仪表功能验证，复用现有挂箱的戴维南电阻网络。",
-    "limitations": [
-      "正式 DG-01 所需的 mod-dc-components 元件箱尚未交付；本场景不替代该项目完整教学内容验收。",
-      "仪表内阻和精度采用原型说明中的估计值，仍待实物参数确认。",
-      "GTX 1650 级或核显目标机性能及冷启动验收尚未完成。"
-    ]
-  },
-  "modules": [{ "instanceId": "dc1", "moduleId": "mod-dc-circuit", "slot": "SLOT_BOX_L1" }],
+  "modules": [{ "instanceId": "comp1", "moduleId": "mod-dc-components", "slot": "SLOT_BOX_L1" }],
   "allowedInstruments": ["ins-multimeter"],
   "reference": {
     "nets": [
-      ["ins-dc-power.CH1P", "dc1.TH_USP"],
-      ["ins-dc-power.CH1N", "dc1.TH_USN"]
+      ["ins-dc-power.CH1P", "comp1.IM_IN"],
+      ["comp1.IM_OUT", "comp1.RB_1"],
+      ["comp1.RB_2", "comp1.RC_1"],
+      ["comp1.RC_2", "ins-dc-power.CH1N"]
     ],
-    "measurePoints": [{ "id": "u-ab", "kind": "voltage", "between": ["dc1.TH_A", "dc1.TH_B"] }]
+    "measurePoints": [
+      { "id": "u_rc", "kind": "voltage", "mode": "dcv", "between": ["comp1.RC_1", "comp1.RC_2"] },
+      { "id": "i_loop", "kind": "current", "mode": "dca", "branch": ["comp1.IM_A", "comp1.IM_B"] }
+    ]
   },
   "steps": [
-    { "id": "choose", "text": "从仪表柜选取数字万用表，拖到空闲台面位置。固定电压表和毫安表保留在控制屏上。" },
-    { "id": "wire", "text": "断电时，将 CH1+ 接 Us+、CH1− 接 Us−。将电压表正端接挂箱下半部 A、负端接 B；不要连接上半部电路。" },
-    { "id": "measure", "text": "CH1 设置 6 V，选择 20 V 档，上电读取 U_AB。每次只接一块电压表，比较 10 MΩ、10 kΩ 和 1 kΩ 输入电阻的读数。", "expect": { "measurePoint": "u-ab", "min": 2.1, "max": 3.65 } },
-    { "id": "overload", "text": "保持接线，改为 2 V 档，观察 OL.。恢复 20 V 档，断电后反接测量线，再上电观察负值。" },
-    { "id": "multimeter", "text": "断电并拆除固定表外线，自行把万用表 COM、VΩ 接 B、A；用 DCV 测量。选择 DCA 但保留 VΩ 表线，确认错档提示。" },
-    { "id": "passive", "text": "断电后，使用电阻、二极管或通断档测量无源支路。外部回路带电时这些档位禁止注入测试电流。" }
+    {
+      "id": "prepare",
+      "text": "保持断电，阅读实训指导书与原理图；将直流稳压电源 CH1 设为 12 V、限流 1 A，并从仪表柜选取数字万用表放至台面空闲位。",
+      "measurePoints": [],
+      "dataTable": "meter_error"
+    },
+    {
+      "id": "wire",
+      "text": "断电按图连接高阻串联分压电路：CH1+ → I进，I出 → RB1，RB2 → RC1，RC2 → CH1−；点击“检查接线”确认回路拓扑正确。",
+      "measurePoints": [],
+      "checkWiring": true,
+      "dataTable": "meter_error"
+    },
+    {
+      "id": "volt_loading",
+      "text": "将固定直流电压表（20 V 档）并联至 RC1（+）与 RC2（−）。上电依次切换输入内阻 10 MΩ、10 kΩ、1 kΩ，在 meter_error 表中填入对应内阻、记录实测 U_RC 并填入理论开路电压 10 V 计算相对误差。",
+      "measurePoints": ["u_rc"],
+      "expect": { "measurePoint": "u_rc", "min": 3.6, "max": 10.1 },
+      "dataTable": "meter_error"
+    },
+    {
+      "id": "range_polarity",
+      "text": "保持电压表 10 MΩ，切至 2 V 档观察超量程溢出提示 OL.；恢复 20 V 档后断电反接表笔，再上电观察负值读数并恢复正确极性。",
+      "measurePoints": ["u_rc"],
+      "dataTable": "meter_error"
+    },
+    {
+      "id": "current_error",
+      "text": "先断电并拆除电压表表线，将固定直流毫安表串入电流插座 I+ / I−，分别在 2 mA 档（内阻 100 Ω）与 20 mA 档（内阻 10 Ω）下上电记录回路电流 I 至 current_range 表，比较量程内阻与分辨率权衡。",
+      "measurePoints": ["i_loop"],
+      "expect": { "measurePoint": "i_loop", "min": 0.00095, "max": 0.00105 },
+      "dataTable": "current_range"
+    },
+    {
+      "id": "multimeter_passive",
+      "text": "断电并拆除固定表外线，用数字万用表 VΩ / COM 测 RC 两端直流电压并验证错档（DCA 保留 VΩ 表线）保护提示；随后断电切至 20 kΩ 档测无源 RC 阻值（约 10.00 kΩ）。",
+      "measurePoints": [],
+      "recordTable": "meter_error",
+      "dataTable": "meter_error"
+    }
   ],
-  "dataTables": [],
-  "charts": [],
+  "dataTables": [
+    {
+      "id": "meter_error",
+      "title": "电压表输入内阻引起的加载测量误差",
+      "rows": 3,
+      "columns": [
+        { "id": "r_in", "title": "电压表内阻 Rv", "unit": "Ω" },
+        { "id": "u_meas", "title": "实测电压 U_RC", "unit": "V", "measurePoint": "u_rc" },
+        { "id": "u_ideal", "title": "理想开路电压 U0", "unit": "V" },
+        { "id": "rel_err", "title": "相对误差 γ", "unit": "%", "computed": "(u_meas-u_ideal)/u_ideal*100" }
+      ],
+      "sanity": [
+        { "column": "r_in", "min": 1000, "max": 10000000, "message": "直流电压表可选输入内阻为 1000 Ω、10000 Ω 或 10000000 Ω。" },
+        { "column": "u_meas", "min": 3.0, "max": 10.5, "message": "CH1=12 V 经 2 kΩ 与 10 kΩ 分压时，RC 端电压应位于 3.7 V ~ 10.0 V。" },
+        { "column": "u_ideal", "min": 9.8, "max": 10.2, "message": "理论无加载开路分压 U0 = 12 × 10/(2+10) = 10.00 V。" }
+      ]
+    },
+    {
+      "id": "current_range",
+      "title": "直流毫安表不同量程内阻误差对比",
+      "rows": 2,
+      "columns": [
+        { "id": "range_ma", "title": "电流量程", "unit": "mA" },
+        { "id": "i_meas", "title": "实测回路电流 I", "unit": "A", "measurePoint": "i_loop" }
+      ],
+      "sanity": [
+        { "column": "range_ma", "min": 2, "max": 200, "message": "请记录 2 mA 与 20 mA 两个量程档位。" },
+        { "column": "i_meas", "min": 0.0009, "max": 0.0011, "message": "本列单位为 A，约 1.00 mA 应记录为 0.00100 A 左右。" }
+      ]
+    }
+  ],
+  "charts": [
+    {
+      "id": "meter-loading",
+      "title": "电压表输入内阻与实测分压 U_RC 关系",
+      "table": "meter_error",
+      "x": "r_in",
+      "y": ["u_meas"],
+      "kind": "line"
+    }
+  ],
   "questions": [
-    "为什么降低电压表输入电阻会降低端电压读数？",
-    "若两块电压表同时并联接入，等效输入电阻如何计算？",
-    "为什么不能用电流档并联测量电源电压？"
+    "为什么在 2 kΩ / 10 kΩ 高阻分压回路中，电压表内阻从 10 MΩ 降为 1 kΩ 时读数大幅偏低？",
+    "已知电源等效内阻 R_th 与电压表内阻 R_v，如何定量计算接入电压表引入的方法相对误差？",
+    "在测量约 1 mA 的微弱直流电流时，2 mA 档与 20 mA 档在分辨率和分流电阻压降误差上应如何权衡？",
+    "为什么严禁用电流档并联测量电源或元件两端电压，且电阻档必须在断电条件下使用？"
   ]
 }

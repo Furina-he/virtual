@@ -453,13 +453,12 @@ test('跨项目切换清除上电、接线、表格与历史，返回 DG-05 重�
   await expect(editor()).toHaveAttribute('data-redo-count', '0')
   await expect(page.getByRole('button', { name: '上电', exact: true })).toBeVisible()
   await expect(page.getByRole('button', { name: '断电', exact: true })).toHaveCount(0)
-  await expect(page.getByRole('button', { name: '记录读数', exact: true })).toBeDisabled()
+  await expect(page.getByRole('button', { name: '记录读数', exact: true })).toBeEnabled()
   await showSteps()
-  await expectStep('choose', 0)
+  await expectStep('prepare', 0)
   await page.getByRole('tab', { name: '数据记录', exact: true }).click()
   await expect(data()).toHaveAttribute('data-task-project', 'DG-01')
-  await expect(data()).toHaveAttribute('data-task-table', '')
-  await expect(data()).toContainText('本项目尚未配置数据记录表')
+  await expect(data()).toHaveAttribute('data-task-table', 'meter_error')
   await expect(data().locator('input[data-table-id="kirchhoff"]')).toHaveCount(0)
 
   await page.evaluate(() => {

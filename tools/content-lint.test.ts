@@ -211,16 +211,16 @@ describe('T1.10 NFR-07 项目 guide.md 六项结构、原理图与学习资源 M
   it('NFR-07 T1.10 标准脚手架模板可直接生成项目、五类学习资源与模块并通过 content:lint', () => {
     const root = copyContentFixture('virtual-scaffold-')
 
-    // 1. 生成新项目
+    // 1. 生成新项目（使用不与 61 个正式项目冲突的合成编号 DG-99）
     const projectFiles = scaffoldProject({
-      id: 'DG-12',
+      id: 'DG-99',
       title: '交流电路功率及功率因数的测量',
       group: '交流电路',
       type: 'basic',
       outRoot: root,
     })
     expect(projectFiles).toHaveLength(3)
-    expect(() => scaffoldProject({ id: 'DG-12', title: '重复不覆盖', outRoot: root })).toThrow('目标目录已存在')
+    expect(() => scaffoldProject({ id: 'DG-99', title: '重复不覆盖', outRoot: root })).toThrow('目标目录已存在')
 
     // 2. 生成五类学习资源（元器件、芯片、仪表工具、概念、理论）
     scaffoldLearnResource({

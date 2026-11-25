@@ -22,16 +22,28 @@ declare global {
 }
 
 const catalog: { assets: CatalogAsset[] } = JSON.parse(readFileSync('assets/layouts/catalog.json', 'utf8'))
-const scene: { placements: { assetId: string }[] } = JSON.parse(readFileSync('content/bench/scene.json', 'utf8'))
-// Practice mode mounts fixed console instruments and modules at boot. Desktop
-// instruments remain cabinet inventory until the learner places them.
-const placedAssets = scene.placements
-  .map((placement) => {
-    const asset = catalog.assets.find((item) => item.id === placement.assetId)
-    if (!asset) throw new Error(`Missing scene asset ${placement.assetId}`)
+const scene: { placements: { assetId: string; slot?: string }[] } = JSON.parse(
+  readFileSync('content/bench/scene.json', 'utf8'),
+)
+const defaultProject: { modules: { moduleId: string; slot: string }[] } = JSON.parse(
+  readFileSync('content/projects/DG-01/project.json', 'utf8'),
+)
+// Practice mode boots into projectCatalog[0] (DG-01): fixed bench + instruments from scene.json,
+// with module slots populated from DG-01's project.json. Desktop instruments stay in the cabinet.
+const placedAssets = [
+  ...scene.placements
+    .map((placement) => {
+      const asset = catalog.assets.find((item) => item.id === placement.assetId)
+      if (!asset) throw new Error(`Missing scene asset ${placement.assetId}`)
+      return asset
+    })
+    .filter((asset) => asset.mounting !== 'desktop' && asset.kind !== 'module'),
+  ...defaultProject.modules.map((mod) => {
+    const asset = catalog.assets.find((item) => item.id === mod.moduleId)
+    if (!asset) throw new Error(`Missing project module asset ${mod.moduleId}`)
     return asset
-  })
-  .filter((asset) => asset.mounting !== 'desktop')
+  }),
+]
 const expectedAnchors = placedAssets.reduce(
   (total, asset) =>
     total +
@@ -92,7 +104,7 @@ test('本地 GLB 与 HDRI 加载、锚点识别、三种视角可用，且无外
   await expect(viewport).toHaveAttribute('data-assets-loaded', String(placedAssets.length))
   await expect(viewport).toHaveAttribute('data-anchor-count', String(expectedAnchors))
   await expect(viewport).toHaveAttribute('data-jack-count', String(expectedJacks))
-  await expect(viewport.getByText('仪表选取与接线编辑')).toBeVisible()
+  await expect(viewport.getByRole('button', { name: '参考接线', exact: true })).toBeVisible()
   await expect(viewport.locator('canvas')).toBeVisible()
   await expect.poll(async () => Number(await viewport.getAttribute('data-triangles'))).toBeGreaterThan(0)
   await expect.poll(async () => Number(await viewport.getAttribute('data-draw-calls'))).toBeGreaterThan(0)

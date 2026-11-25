@@ -283,7 +283,7 @@ function ActiveWireOverlay({
         <meshBasicMaterial color={highlight} toneMapped={false} />
       </mesh>
       {selected && !wireMenuOpen && (
-        <Html center position={positions.midpoint} style={{ pointerEvents: 'none' }}>
+        <Html center zIndexRange={[10, 0]} position={positions.midpoint} style={{ pointerEvents: 'none' }}>
           <div
             role="toolbar"
             aria-label="导线快捷操作"

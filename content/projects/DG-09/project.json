@@ -1,0 +1,144 @@
+{
+  "id": "DG-09",
+  "group": "直流电路",
+  "title": "戴维南定理和电桥电路的应用——铜电阻温度计电路的研究（综合）",
+  "type": "integrated",
+  "modules": [
+    { "instanceId": "dc1", "moduleId": "mod-dc-circuit", "slot": "SLOT_BOX_L1" },
+    { "instanceId": "comp1", "moduleId": "mod-dc-components", "slot": "SLOT_BOX_L2" }
+  ],
+  "allowedInstruments": ["ins-multimeter", "ins-galvanometer"],
+  "reference": {
+    "nets": [
+      ["ins-dc-power.CH1P", "dc1.TH_USP"],
+      ["ins-dc-power.CH1N", "dc1.TH_USN"],
+      ["ins-dc-power.ISP", "dc1.TH_ISP"],
+      ["ins-dc-power.ISN", "dc1.TH_ISN"]
+    ],
+    "measurePoints": [
+      { "id": "u_th", "kind": "voltage", "mode": "dcv", "between": ["dc1.TH_A", "dc1.TH_B"] },
+      { "id": "i_th", "kind": "current", "mode": "dca", "branch": ["dc1.TH_IA", "dc1.TH_IB"] },
+      { "id": "u_bridge", "kind": "voltage", "mode": "dcv", "between": ["comp1.BR_L", "comp1.BR_R"] }
+    ]
+  },
+  "steps": [
+    {
+      "id": "prepare",
+      "text": "保持断电，阅读指导书了解本实训的双挂箱配置：左挂箱 dc1 下半部为有源二端网络，右挂箱 comp1 提供十进制负载电阻箱 Rbox、单臂电桥上臂与 Cu50 铜热电阻。",
+      "measurePoints": [],
+      "dataTable": "thevenin_load"
+    },
+    {
+      "id": "thevenin_oc",
+      "text": "阶段 1a（测开路电压 U_oc 与短路电流 I_sc）：设 CH1=12 V、恒流源 20 mA 档设 Is=10 mA；连接 CH1+→Us+、CH1−→Us−、Is+→Is+、Is−→Is−，点击“检查接线”。上电用直流电压表（20 V 档）测 A/B 开路电压 U_oc（约 9.39 V）；断电改用毫安表（20 mA 档）直连 A/B 测短路电流 I_sc（约 13.03 mA），求得 R_eq = U_oc / I_sc ≈ 720.4 Ω。",
+      "checkWiring": true,
+      "measurePoints": ["u_th"],
+      "expect": { "measurePoint": "u_th", "min": 9.15, "max": 9.6 },
+      "dataTable": "thevenin_load"
+    },
+    {
+      "id": "thevenin_load",
+      "text": "阶段 1b（有源二端网络带载外特性验证）：断电在 dc1.TH_A / TH_B 间接入 comp1.RBOX_1 / RBOX_2；电压表并 A/B，毫安表串入 dc1.TH_IA / TH_IB，检查接线。上电依次调 Rbox = 200、500、720、1000、2000 Ω，记录 U、I 至 thevenin_load 表，验证满足 U = U_oc − I·R_eq。",
+      "referenceNets": [
+        ["ins-dc-power.CH1P", "dc1.TH_USP"],
+        ["ins-dc-power.CH1N", "dc1.TH_USN"],
+        ["ins-dc-power.ISP", "dc1.TH_ISP"],
+        ["ins-dc-power.ISN", "dc1.TH_ISN"],
+        ["dc1.TH_A", "comp1.RBOX_1"],
+        ["dc1.TH_B", "comp1.RBOX_2"]
+      ],
+      "checkWiring": true,
+      "measurePoints": ["u_th", "i_th"],
+      "expect": { "measurePoint": "u_th", "min": 1.8, "max": 7.2 },
+      "dataTable": "thevenin_load"
+    },
+    {
+      "id": "cu50_bridge",
+      "text": "阶段 2（Cu50 铜电阻温度计电桥标定）：断电清空 dc1 接线，改在 comp1 搭建非平衡电桥：CH1 设 6 V 接 A+/D−，Cu50（Cu1/Cu2）接 B/D−，Rbox 设为 50.0 Ω 接 C/D−；直流电压表切至 200 mV 档跨接 B（+）与 C（−），检查接线。上电依次调 Cu50 温度旋钮为 0、20、40、60、80、100 ℃，记录桥压 U_BC 至 cu50_temp 表。",
+      "referenceNets": [
+        ["ins-dc-power.CH1P", "comp1.BR_P"],
+        ["comp1.BR_L", "comp1.CU_1"],
+        ["comp1.BR_R", "comp1.RBOX_1"],
+        ["comp1.CU_2", "comp1.RBOX_2", "comp1.BR_N", "ins-dc-power.CH1N"]
+      ],
+      "checkWiring": true,
+      "measurePoints": ["u_bridge"],
+      "expect": { "measurePoint": "u_bridge", "min": -0.002, "max": 0.12 },
+      "dataTable": "cu50_temp"
+    },
+    {
+      "id": "analyse",
+      "text": "断电后打开底栏“曲线”页签查看戴维南外特性直线与 Cu50 温度–桥压标定曲线，结合戴维南等效电路推导桥路灵敏度并完成思考题。",
+      "measurePoints": [],
+      "recordTable": "cu50_temp",
+      "dataTable": "cu50_temp"
+    }
+  ],
+  "dataTables": [
+    {
+      "id": "thevenin_load",
+      "title": "有源二端网络带载外特性测量记录（U_oc ≈ 9.39 V, R_eq ≈ 720.4 Ω）",
+      "rows": 5,
+      "columns": [
+        { "id": "r_load", "title": "负载电阻 RL", "unit": "Ω" },
+        { "id": "u_th", "title": "端电压 U_AB", "unit": "V", "measurePoint": "u_th", "captureSteps": ["thevenin_load"] },
+        { "id": "i_th", "title": "负载电流 I_L", "unit": "A", "measurePoint": "i_th", "captureSteps": ["thevenin_load"] }
+      ],
+      "sanity": [
+        { "column": "r_load", "min": 100, "max": 5000, "message": "请依次记录 200、500、720、1000、2000 Ω 负载点。" },
+        { "column": "u_th", "min": 1.5, "max": 8.0, "message": "带载端电压应低于开路电压 9.39 V 并随 RL 增大而上升。" },
+        { "column": "i_th", "min": 0.002, "max": 0.015, "message": "带载电流应低于短路电流 0.0130 A（本列单位为 A）。" }
+      ]
+    },
+    {
+      "id": "cu50_temp",
+      "title": "Cu50 铜电阻温度计非平衡电桥标定记录（CH1=6 V, Rbox=50.0 Ω）",
+      "rows": 6,
+      "columns": [
+        { "id": "temp_c", "title": "设定温度 t", "unit": "℃" },
+        { "id": "u_bridge", "title": "电桥输出 U_BC", "unit": "V", "measurePoint": "u_bridge", "captureSteps": ["cu50_bridge"] }
+      ],
+      "sanity": [
+        { "column": "temp_c", "min": 0, "max": 100, "message": "Cu50 温度旋钮范围为 0 ~ 100 ℃。" },
+        { "column": "u_bridge", "min": -0.005, "max": 0.13, "message": "0 ~ 100 ℃ 时电桥输出电压由 0.000 V 线性增至约 0.114 V（本列单位为 V）。" }
+      ]
+    }
+  ],
+  "charts": [
+    { "id": "chart_thevenin", "title": "有源二端网络戴维南外特性曲线（U_AB–I_L）", "table": "thevenin_load", "x": "i_th", "y": ["u_th"], "kind": "line" },
+    { "id": "chart_cu50", "title": "Cu50 铜电阻温度计标定曲线（U_BC–t）", "table": "cu50_temp", "x": "temp_c", "y": ["u_bridge"], "kind": "line" }
+  ],
+  "faults": [
+    {
+      "id": "dg09-r6-open",
+      "target": "dc1.R6",
+      "kind": "open",
+      "symptom": "电压源 Us 无法馈入有源二端网络，A/B 端开路电压 U_oc 骤降至约 5.2 V（仅剩 Is 贡献）。",
+      "hint": "排查 dc1 下半部串联电阻 R6（330 Ω）是否开路。",
+      "verify": [{ "measurePoint": "u_th", "min": 9.15, "max": 9.6 }]
+    },
+    {
+      "id": "dg09-r7-short",
+      "target": "dc1.R7",
+      "kind": "short",
+      "symptom": "内部节点 N1 对公共端短路，开路电压 U_oc 骤降至约 0.1 V，等效内阻也明显偏低。",
+      "hint": "重点检查 dc1 下半部接地分压电阻 R7（510 Ω）是否发生短路。",
+      "verify": [{ "measurePoint": "u_th", "min": 9.15, "max": 9.6 }]
+    },
+    {
+      "id": "dg09-rbr1-drift",
+      "target": "comp1.RBR1",
+      "kind": "drift",
+      "params": { "value": 1200 },
+      "symptom": "电桥在 0 ℃ 且 Rbox = 50.0 Ω 时零点严重漂移，输出电压 U_BC 明显变为负值（约 −46 mV）。",
+      "hint": "检查元件箱电桥左上臂电阻 RBR1 是否由 1 kΩ 漂移增大。",
+      "verify": [{ "measurePoint": "u_bridge", "min": -0.002, "max": 0.002 }]
+    }
+  ],
+  "questions": [
+    "如何仅用一次开路电压测量与一次带载电压测量（半电压法）求出有源二端网络的戴维南等效内阻 R_eq？",
+    "将非平衡电桥从对角线 B、C 处断开，用戴维南定理求该测温电桥在 t=50 ℃ 时的等效电动势与等效内阻。",
+    "为什么 Cu50 测温电桥在 0 ~ 100 ℃ 区间输出电压 U_BC 与温度 t 近似呈线性关系？增大上臂电阻 R1、R2 对非线性误差与灵敏度各有何影响？",
+    "如果将电桥输出接至输入内阻仅 10 kΩ 的电压表（而非 10 MΩ），测得的温度计灵敏度会怎样变化？"
+  ]
+}

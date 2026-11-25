@@ -1,0 +1,84 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 460" role="img" aria-labelledby="title desc">
+  <title id="title">DG-03 单臂电桥与白炽灯热态测温原理图</title>
+  <desc id="desc">左侧为单臂惠斯通电桥，上臂为 1 kΩ 比例电阻 R1 与 R2，下臂接未知电阻 Rx（或冷态白炽灯 EL1）与十进制电阻箱 Rbox，对角线 B-C 跨接指针式检流计；右侧为伏安法测白炽灯热态电阻电路。</desc>
+  <style>
+    text { font-family: "Noto Sans SC Variable", sans-serif; fill: #18181b; font-size: 14px; }
+    .wire { fill: none; stroke: #18181b; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    .box { fill: #ffffff; stroke: #18181b; stroke-width: 2; }
+    .jack { fill: #ffffff; stroke: #18181b; stroke-width: 2; cursor: pointer; }
+    .meter { fill: none; stroke: #2563eb; stroke-width: 1.8; stroke-dasharray: 5 4; }
+    .small { font-size: 12.5px; fill: #52525b; }
+    .center { text-anchor: middle; }
+  </style>
+  <rect width="820" height="460" fill="#ffffff"/>
+  <text x="410" y="32" class="center" style="font-size: 20px; font-weight: 600">DG-03 单臂电桥测未知电阻与白炽灯灯丝测温</text>
+  <text x="410" y="56" class="center small">mod-dc-components · 左：1:1 单臂电桥测 Rx / 冷态 EL1 · 右：伏安法测热态 EL1</text>
+
+  <!-- 左侧：单臂惠斯通电桥 -->
+  <text x="235" y="88" class="center" style="font-weight: 600">阶段 1/2：单臂惠斯通电桥</text>
+  <g class="wire">
+    <path d="M68 120 H235 L130 225 L235 330 L340 225 L235 120"/>
+    <path d="M68 120 V195 M68 255 V330 H235"/>
+  </g>
+  <g class="meter">
+    <path d="M130 225 H208 M262 225 H340"/>
+  </g>
+  <circle cx="68" cy="225" r="24" class="box"/>
+  <text x="68" y="220" class="center">+</text>
+  <text x="68" y="240" class="center">−</text>
+  <text x="28" y="225" class="center small">CH1</text>
+
+  <circle cx="235" cy="225" r="22" class="box" style="stroke: #2563eb"/>
+  <text x="235" y="230" class="center" style="fill: #2563eb; font-weight: 600">G</text>
+  <text x="235" y="264" class="center small">检流计 ±100µA</text>
+
+  <text x="158" y="160" class="center small">R1 1kΩ</text>
+  <text x="312" y="160" class="center small">R2 1kΩ</text>
+  <text x="148" y="296" class="center small">Rx / EL1(冷)</text>
+  <text x="322" y="296" class="center small">Rbox 调零</text>
+
+  <circle id="JACK_CH1P" data-jack="ins-dc-power.CH1P" cx="68" cy="155" r="4.5" class="jack"/>
+  <circle id="JACK_CH1N" data-jack="ins-dc-power.CH1N" cx="68" cy="295" r="4.5" class="jack"/>
+  <circle id="JACK_BR_P" data-jack="comp1.BR_P" cx="235" cy="120" r="4.5" class="jack"/>
+  <circle id="JACK_BR_L" data-jack="comp1.BR_L" cx="130" cy="225" r="4.5" class="jack"/>
+  <circle id="JACK_BR_R" data-jack="comp1.BR_R" cx="340" cy="225" r="4.5" class="jack"/>
+  <circle id="JACK_BR_N" data-jack="comp1.BR_N" cx="235" cy="330" r="4.5" class="jack"/>
+  <circle id="JACK_RX_1" data-jack="comp1.RX_1" cx="160" cy="255" r="4" class="jack"/>
+  <circle id="JACK_RX_2" data-jack="comp1.RX_2" cx="205" cy="300" r="4" class="jack"/>
+  <circle id="JACK_RBOX_1" data-jack="comp1.RBOX_1" cx="310" cy="255" r="4" class="jack"/>
+  <circle id="JACK_RBOX_2" data-jack="comp1.RBOX_2" cx="265" cy="300" r="4" class="jack"/>
+
+  <text x="235" y="108" class="center small">A+</text>
+  <text x="114" y="229" class="small" text-anchor="end">B</text>
+  <text x="354" y="229" class="small">C</text>
+  <text x="235" y="352" class="center small">D−</text>
+
+  <!-- 右侧：伏安法热态测温 -->
+  <line x1="430" y1="84" x2="430" y2="365" stroke="#d4d4d8" stroke-width="1.5" stroke-dasharray="4 4"/>
+  <text x="625" y="88" class="center" style="font-weight: 600">阶段 3：白炽灯热态伏安测温</text>
+  <g class="wire">
+    <path d="M510 130 H585 M625 130 H700 V190 M700 250 V320 H510 V250 M510 190 V130"/>
+    <path d="M585 130 H625" stroke-dasharray="3 3"/>
+  </g>
+  <circle cx="510" cy="220" r="24" class="box"/>
+  <text x="510" y="215" class="center">+</text>
+  <text x="510" y="235" class="center">−</text>
+  <text x="470" y="220" class="center small">2~12V</text>
+
+  <circle cx="700" cy="220" r="22" class="box"/>
+  <path d="M685 205 L715 235 M715 205 L685 235" class="wire"/>
+  <text x="748" y="224" class="center small">EL1</text>
+
+  <circle id="JACK_IM_IN" data-jack="comp1.IM_IN" cx="563" cy="130" r="4.5" class="jack"/>
+  <circle id="JACK_IM_A" data-jack="comp1.IM_A" cx="585" cy="130" r="4.5" class="jack"/>
+  <circle id="JACK_IM_B" data-jack="comp1.IM_B" cx="625" cy="130" r="4.5" class="jack"/>
+  <circle id="JACK_IM_OUT" data-jack="comp1.IM_OUT" cx="647" cy="130" r="4.5" class="jack"/>
+  <circle id="JACK_EL_1" data-jack="comp1.EL_1" cx="700" cy="170" r="4.5" class="jack"/>
+  <circle id="JACK_EL_2" data-jack="comp1.EL_2" cx="700" cy="270" r="4.5" class="jack"/>
+  <text x="605" y="154" class="center small">电流插座 I</text>
+  <text x="722" y="174" class="small">EL1</text>
+  <text x="722" y="274" class="small">EL2</text>
+
+  <text x="410" y="406" class="center small">电桥平衡条件：Rx = (R1/R2)·Rbox = Rbox；测冷态白炽灯时请先将 CH1 降至 2 V。</text>
+  <text x="410" y="432" class="center small">本项目自绘离线原理图 · 悬停或点击插孔与 3D 台面双向联动</text>
+</svg>

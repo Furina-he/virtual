@@ -75,6 +75,8 @@ export function circuitPartition(input: CheckInput, skipSeries?: { instanceId: s
   for (const { instanceId, instrument } of input.instruments) {
     for (const j of instrument.jacks) uf.add(ref(instanceId, j.id))
     instrument.measure?.series.forEach(([a, b], i) => {
+      // 桥路检流计（1 kΩ 高内阻零位检测）跨接在两个独立节点间，不按低阻短路合并拓扑节点
+      if (instrument.kind === 'galvanometer') return
       const skip = skipSeries?.instanceId === instanceId && skipSeries.pair === i
       // 串入端两头都接了线才算串入
       const ra = ref(instanceId, a)

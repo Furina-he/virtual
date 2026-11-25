@@ -1,0 +1,93 @@
+{
+  "id": "DG-06",
+  "group": "直流电路",
+  "title": "常用供电电路特点和电子电路最大功率输出条件的研究",
+  "type": "basic",
+  "modules": [{ "instanceId": "comp1", "moduleId": "mod-dc-components", "slot": "SLOT_BOX_L1" }],
+  "allowedInstruments": ["ins-multimeter"],
+  "reference": {
+    "nets": [
+      ["ins-dc-power.CH1P", "comp1.R0_1"],
+      ["comp1.R0_2", "comp1.IM_IN"],
+      ["comp1.IM_OUT", "comp1.RBOX_1"],
+      ["comp1.RBOX_2", "ins-dc-power.CH1N"]
+    ],
+    "measurePoints": [
+      { "id": "u_load", "kind": "voltage", "mode": "dcv", "between": ["comp1.RBOX_1", "comp1.RBOX_2"] },
+      { "id": "i_load", "kind": "current", "mode": "dca", "branch": ["comp1.IM_A", "comp1.IM_B"] }
+    ]
+  },
+  "steps": [
+    {
+      "id": "prepare",
+      "text": "保持断电，阅读指导书与原理图；直流稳压电源 CH1 设 10 V、限流 1 A，将元件箱可选电源内阻 SW_R0 设为 100 Ω，电阻箱 Rbox 初值设为 20 Ω；电压表置 20 V 档，毫安表置 200 mA 档。",
+      "measurePoints": [],
+      "dataTable": "max_power"
+    },
+    {
+      "id": "wire",
+      "text": "断电搭建有内阻电源供电回路：CH1+ → R01，R02 → I进，I出 → Rbox1，Rbox2 → CH1−；电压表并联 Rbox1/Rbox2，毫安表串入 I+/I−，点击“检查接线”。",
+      "measurePoints": [],
+      "checkWiring": true,
+      "dataTable": "max_power"
+    },
+    {
+      "id": "sweep_low",
+      "text": "上电后依次调节负载电阻箱 Rbox 为 20 Ω、50 Ω、80 Ω，待读数稳定后分别将 RL、U_L、I_L 记入 max_power 表第 1~3 行，观察负载功率 P_L = U_L·I_L 随 RL 增大而上升。",
+      "measurePoints": ["u_load", "i_load"],
+      "expect": { "measurePoint": "u_load", "min": 1.5, "max": 4.6 },
+      "dataTable": "max_power"
+    },
+    {
+      "id": "match_point",
+      "text": "将 Rbox 调至阻抗匹配点 100 Ω（RL = R0），记录第 4 行数据：此时负载电压约为电源电动势一半（约 4.98 V），输出功率达极大值 P_max ≈ 0.248 W，传输效率 η ≈ 50%。",
+      "measurePoints": ["u_load", "i_load"],
+      "expect": { "measurePoint": "u_load", "min": 4.85, "max": 5.1 },
+      "expects": [{ "measurePoint": "i_load", "min": 0.048, "max": 0.052 }],
+      "dataTable": "max_power"
+    },
+    {
+      "id": "sweep_high",
+      "text": "继续增大 Rbox 至 150 Ω、200 Ω、400 Ω，依次记录第 5~7 行数据，观察负载功率回落但供电效率 η 持续上升的规律。",
+      "measurePoints": ["u_load", "i_load"],
+      "expect": { "measurePoint": "u_load", "min": 5.8, "max": 8.2 },
+      "dataTable": "max_power"
+    },
+    {
+      "id": "analyse",
+      "text": "断电后打开底栏“曲线”页签查看 P–RL 最大功率传输曲线与 U–I 外特性曲线，对比电子电路匹配与电力供电高效率两类工况，完成思考题。",
+      "measurePoints": [],
+      "recordTable": "max_power",
+      "dataTable": "max_power"
+    }
+  ],
+  "dataTables": [
+    {
+      "id": "max_power",
+      "title": "有内阻电源（E=10 V, R0=100 Ω）最大功率传输测量记录",
+      "rows": 7,
+      "columns": [
+        { "id": "r_load", "title": "负载电阻 RL", "unit": "Ω" },
+        { "id": "u_load", "title": "负载电压 U_L", "unit": "V", "measurePoint": "u_load" },
+        { "id": "i_load", "title": "负载电流 I_L", "unit": "A", "measurePoint": "i_load" },
+        { "id": "p_load", "title": "负载功率 P_L", "unit": "W", "computed": "u_load*i_load" },
+        { "id": "efficiency", "title": "传输效率 η", "unit": "%", "computed": "u_load/10*100" }
+      ],
+      "sanity": [
+        { "column": "r_load", "min": 10, "max": 1000, "message": "本实验推荐扫测负载电阻 20 ~ 400 Ω。" },
+        { "column": "u_load", "min": 1, "max": 9.5, "message": "10 V 电源串联 100 Ω 内阻，负载电压应位于 1.6 V ~ 8.1 V。" },
+        { "column": "i_load", "min": 0.01, "max": 0.1, "message": "回路电流不超过短路电流 0.100 A（注意本列单位为 A）。" }
+      ]
+    }
+  ],
+  "charts": [
+    { "id": "p-rl-curve", "title": "负载功率 P_L 随负载电阻 RL 变化曲线（P–RL）", "table": "max_power", "x": "r_load", "y": ["p_load"], "kind": "line" },
+    { "id": "u-i-curve", "title": "有内阻供电电路外特性曲线（U_L–I_L）", "table": "max_power", "x": "i_load", "y": ["u_load"], "kind": "line" }
+  ],
+  "questions": [
+    "为什么负载电阻 RL 等于电源等效内阻 R0 时输出功率最大？此时电源内阻消耗了多少比例的总功率？",
+    "电力系统供电为什么希望 RL >> R0（高效率），而弱信号电子放大/射频匹配电路往往追求 RL = R0（最大功率传输）？",
+    "本实验中串入的 200 mA 档毫安表内阻（1 Ω）会使实际最大功率点对应的 RL 发生怎样的微小偏移？",
+    "如果将 SW_R0 切换至 200 Ω，最大输出功率 P_max 会变为原来的几倍？"
+  ]
+}

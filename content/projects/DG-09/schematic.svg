@@ -1,0 +1,97 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 860 470" role="img" aria-labelledby="title desc">
+  <title id="title">DG-09 戴维南有源二端网络与 Cu50 测温电桥原理图</title>
+  <desc id="desc">左侧为 dc1 下半部戴维南有源二端网络（Us 12 V, Is 10 mA, R6~R9）接 comp1 电阻箱负载；右侧为 comp1 的 1:1 比例上臂与 Cu50 铜热电阻非平衡测温电桥。</desc>
+  <style>
+    text { font-family: "Noto Sans SC Variable", sans-serif; fill: #18181b; font-size: 13.5px; }
+    .wire { fill: none; stroke: #18181b; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    .box { fill: #ffffff; stroke: #18181b; stroke-width: 2; }
+    .jack { fill: #ffffff; stroke: #18181b; stroke-width: 2; cursor: pointer; }
+    .meter { fill: none; stroke: #2563eb; stroke-width: 1.8; stroke-dasharray: 5 4; }
+    .small { font-size: 12px; fill: #52525b; }
+    .center { text-anchor: middle; }
+  </style>
+  <rect width="860" height="470" fill="#ffffff"/>
+  <text x="430" y="32" class="center" style="font-size: 19px; font-weight: 600">DG-09 戴维南定理（左）与 Cu50 铜电阻温度计电桥（右）</text>
+  <text x="430" y="56" class="center small">双挂箱协同：dc1 (mod-dc-circuit) + comp1 (mod-dc-components)</text>
+
+  <!-- 左半：dc1 戴维南有源二端网络 + comp1.RBOX -->
+  <text x="225" y="88" class="center" style="font-weight: 600">阶段 1：有源二端网络戴维南等效（dc1 + Rbox）</text>
+  <g class="wire">
+    <path d="M55 135 H100 M150 135 H190 H210 M245 135 H275 M325 135 H355 M380 135 H415 V190 M415 260 V330 H55 V255 M55 195 V135"/>
+    <path d="M170 135 V195 M170 260 V330"/>
+    <path d="M258 135 V195 M258 255 V330"/>
+    <path d="M355 135 H380" stroke-dasharray="3 3"/>
+  </g>
+  <circle cx="55" cy="225" r="22" class="box"/>
+  <text x="55" y="220" class="center">+</text>
+  <text x="55" y="238" class="center">−</text>
+  <text x="24" y="225" class="center small">12V</text>
+
+  <rect x="100" y="126" width="50" height="18" class="box"/>
+  <text x="125" y="116" class="center small">R6 330Ω</text>
+  <rect x="161" y="195" width="18" height="65" class="box"/>
+  <text x="132" y="232" class="center small">R7 510Ω</text>
+  <rect x="210" y="126" width="35" height="18" class="box"/>
+  <text x="228" y="116" class="center small">R8 10Ω</text>
+  <circle cx="258" cy="225" r="20" class="box"/>
+  <path d="M258 237 V213 M253 219 L258 213 L263 219" class="wire"/>
+  <text x="298" y="228" class="center small">Is 10mA</text>
+  <rect x="275" y="126" width="50" height="18" class="box"/>
+  <text x="300" y="116" class="center small">R9 510Ω</text>
+  <rect x="406" y="190" width="18" height="70" class="box"/>
+  <text x="378" y="230" class="center small">Rbox</text>
+
+  <circle id="JACK_TH_USP" data-jack="dc1.TH_USP" cx="55" cy="162" r="4" class="jack"/>
+  <circle id="JACK_TH_USN" data-jack="dc1.TH_USN" cx="55" cy="292" r="4" class="jack"/>
+  <circle id="JACK_TH_ISP" data-jack="dc1.TH_ISP" cx="258" cy="168" r="4" class="jack"/>
+  <circle id="JACK_TH_ISN" data-jack="dc1.TH_ISN" cx="258" cy="292" r="4" class="jack"/>
+  <circle id="JACK_TH_IA" data-jack="dc1.TH_IA" cx="355" cy="135" r="4" class="jack"/>
+  <circle id="JACK_TH_IB" data-jack="dc1.TH_IB" cx="380" cy="135" r="4" class="jack"/>
+  <circle id="JACK_TH_A" data-jack="dc1.TH_A" cx="415" cy="155" r="4.5" class="jack"/>
+  <circle id="JACK_TH_B" data-jack="dc1.TH_B" cx="415" cy="295" r="4.5" class="jack"/>
+  <text x="80" y="166" class="small">Us+</text>
+  <text x="80" y="296" class="small">Us−</text>
+  <text x="430" y="159" class="small">A</text>
+  <text x="430" y="299" class="small">B</text>
+
+  <line x1="460" y1="84" x2="460" y2="365" stroke="#d4d4d8" stroke-width="1.5" stroke-dasharray="4 4"/>
+
+  <!-- 右半：comp1 Cu50 测温电桥 -->
+  <text x="660" y="88" class="center" style="font-weight: 600">阶段 2：Cu50 非平衡测温电桥（comp1）</text>
+  <g class="wire">
+    <path d="M510 130 H665 L565 230 L665 330 L765 230 L665 130"/>
+    <path d="M510 130 V200 M510 260 V330 H665"/>
+  </g>
+  <g class="meter">
+    <path d="M565 230 H642 M688 230 H765"/>
+  </g>
+  <circle cx="510" cy="230" r="22" class="box"/>
+  <text x="510" y="225" class="center">+</text>
+  <text x="510" y="243" class="center">−</text>
+  <text x="480" y="232" class="center small">6V</text>
+
+  <circle cx="665" cy="230" r="20" class="box" style="stroke: #2563eb"/>
+  <text x="665" y="235" class="center" style="fill: #2563eb; font-weight: 600">mV</text>
+  <text x="665" y="266" class="center small">200 mV 档 U_BC</text>
+
+  <text x="595" y="166" class="center small">R1 1kΩ</text>
+  <text x="735" y="166" class="center small">R2 1kΩ</text>
+  <text x="582" y="302" class="center small">Cu50 (0~100℃)</text>
+  <text x="748" y="302" class="center small">Rbox 50.0Ω</text>
+
+  <circle id="JACK_BR_P" data-jack="comp1.BR_P" cx="665" cy="130" r="4.5" class="jack"/>
+  <circle id="JACK_BR_L" data-jack="comp1.BR_L" cx="565" cy="230" r="4.5" class="jack"/>
+  <circle id="JACK_BR_R" data-jack="comp1.BR_R" cx="765" cy="230" r="4.5" class="jack"/>
+  <circle id="JACK_BR_N" data-jack="comp1.BR_N" cx="665" cy="330" r="4.5" class="jack"/>
+  <circle id="JACK_CU_1" data-jack="comp1.CU_1" cx="595" cy="260" r="4" class="jack"/>
+  <circle id="JACK_CU_2" data-jack="comp1.CU_2" cx="635" cy="300" r="4" class="jack"/>
+  <circle id="JACK_RBOX_1" data-jack="comp1.RBOX_1" cx="735" cy="260" r="4" class="jack"/>
+  <circle id="JACK_RBOX_2" data-jack="comp1.RBOX_2" cx="695" cy="300" r="4" class="jack"/>
+  <text x="665" y="118" class="center small">A+</text>
+  <text x="550" y="234" class="small" text-anchor="end">B</text>
+  <text x="778" y="234" class="small">C</text>
+  <text x="665" y="350" class="center small">D−</text>
+
+  <text x="430" y="405" class="center small">U_oc ≈ 9.39 V, R_eq ≈ 720.4 Ω；Cu50 测温电桥 0 ℃ 平衡于 0.0 mV，100 ℃ 输出约 114.1 mV。</text>
+  <text x="430" y="432" class="center small">本项目自绘离线原理图 · 悬停或点击插孔与 3D 台面双向联动</text>
+</svg>

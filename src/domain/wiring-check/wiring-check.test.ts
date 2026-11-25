@@ -139,6 +139,43 @@ describe('接线检查', () => {
     const r = checkWiring(input([...supplyWires, { a: 'ins-dc-ammeter.POS', b: 'dc1.KH_I1A' }]), reference)
     expect(codes(r.issues)).toContain('measure-missing')
   })
+
+  it('桥路检流计跨接在两个独立节点间时不误判为多余短接', () => {
+    const comp = Module.parse(load('content/modules/mod-dc-components/module.json'))
+    const galv = Instrument.parse(load('content/instruments/ins-galvanometer/instrument.json'))
+    const bridgeRef: Project['reference'] = {
+      nets: [
+        ['ins-dc-power.CH1P', 'comp1.BR_P'],
+        ['comp1.BR_L', 'comp1.RX_1'],
+        ['comp1.BR_R', 'comp1.RBOX_1'],
+        ['comp1.RX_2', 'comp1.RBOX_2', 'comp1.BR_N', 'ins-dc-power.CH1N'],
+      ],
+      measurePoints: [{ id: 'i_g', kind: 'current', mode: 'dca', branch: ['comp1.BR_L', 'comp1.BR_R'] }],
+    }
+    const r = checkWiring(
+      {
+        modules: [{ instanceId: 'comp1', module: comp }],
+        instruments: [
+          { instanceId: 'ins-dc-power', instrument: psu },
+          { instanceId: 'g1', instrument: galv },
+        ],
+        wires: [
+          { a: 'ins-dc-power.CH1P', b: 'comp1.BR_P' },
+          { a: 'comp1.BR_L', b: 'comp1.RX_1' },
+          { a: 'comp1.BR_R', b: 'comp1.RBOX_1' },
+          { a: 'comp1.RX_2', b: 'comp1.BR_N' },
+          { a: 'comp1.RBOX_2', b: 'comp1.BR_N' },
+          { a: 'comp1.BR_N', b: 'ins-dc-power.CH1N' },
+          { a: 'g1.POS', b: 'comp1.BR_L' },
+          { a: 'g1.NEG', b: 'comp1.BR_R' },
+        ],
+      },
+      bridgeRef,
+    )
+    expect(r.circuitOk).toBe(true)
+    expect(r.measurementsOk).toBe(true)
+    expect(r.issues).toEqual([])
+  })
 })
 
 describe('危险接法', () => {

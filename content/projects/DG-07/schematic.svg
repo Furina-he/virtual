@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 450" role="img" aria-labelledby="title desc">
+  <title id="title">DG-07 实际电压源与实际电流源等效变换原理图</title>
+  <desc id="desc">左侧为实际电压源模型（CH1 10 V 串联 R0 100 Ω 驱动负载 Rbox）；右侧为诺顿等效实际电流源模型（Is 100 mA 并联 R0 100 Ω 驱动相同负载 Rbox）。</desc>
+  <style>
+    text { font-family: "Noto Sans SC Variable", sans-serif; fill: #18181b; font-size: 14px; }
+    .wire { fill: none; stroke: #18181b; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    .box { fill: #ffffff; stroke: #18181b; stroke-width: 2; }
+    .jack { fill: #ffffff; stroke: #18181b; stroke-width: 2; cursor: pointer; }
+    .small { font-size: 12.5px; fill: #52525b; }
+    .center { text-anchor: middle; }
+  </style>
+  <rect width="820" height="450" fill="#ffffff"/>
+  <text x="410" y="32" class="center" style="font-size: 20px; font-weight: 600">DG-07 实际电压源与实际电流源外特性及等效变换</text>
+  <text x="410" y="56" class="center small">mod-dc-components · 阶段 1：E=10 V 串联 R0=100 Ω  ⟺  阶段 2：Is=100 mA 并联 R0=100 Ω</text>
+
+  <!-- 左：实际电压源 -->
+  <text x="200" y="90" class="center" style="font-weight: 600">阶段 1：实际直流电压源</text>
+  <g class="wire">
+    <path d="M70 130 H140 M205 130 H245 M280 130 H335 V180 M335 250 V320 H70 V250 M70 190 V130"/>
+    <path d="M245 130 H280" stroke-dasharray="3 3"/>
+  </g>
+  <circle cx="70" cy="220" r="24" class="box"/>
+  <text x="70" y="215" class="center">+</text>
+  <text x="70" y="235" class="center">−</text>
+  <text x="28" y="220" class="center small">10 V</text>
+  <rect x="140" y="120" width="65" height="20" class="box"/>
+  <text x="172" y="108" class="center small">R0 100Ω</text>
+  <rect x="325" y="180" width="20" height="70" class="box"/>
+  <text x="366" y="220" class="center small">Rbox</text>
+
+  <circle id="JACK_CH1P" data-jack="ins-dc-power.CH1P" cx="70" cy="160" r="4.5" class="jack"/>
+  <circle id="JACK_CH1N" data-jack="ins-dc-power.CH1N" cx="70" cy="285" r="4.5" class="jack"/>
+  <circle id="JACK_R0_1" data-jack="comp1.R0_1" cx="122" cy="130" r="4.5" class="jack"/>
+  <circle id="JACK_R0_2" data-jack="comp1.R0_2" cx="220" cy="130" r="4.5" class="jack"/>
+  <circle id="JACK_IM_IN" data-jack="comp1.IM_IN" cx="232" cy="130" r="4.5" class="jack"/>
+  <circle id="JACK_IM_A" data-jack="comp1.IM_A" cx="248" cy="130" r="4.5" class="jack"/>
+  <circle id="JACK_IM_B" data-jack="comp1.IM_B" cx="277" cy="130" r="4.5" class="jack"/>
+  <circle id="JACK_IM_OUT" data-jack="comp1.IM_OUT" cx="293" cy="130" r="4.5" class="jack"/>
+  <circle id="JACK_RBOX_1" data-jack="comp1.RBOX_1" cx="335" cy="155" r="4.5" class="jack"/>
+  <circle id="JACK_RBOX_2" data-jack="comp1.RBOX_2" cx="335" cy="285" r="4.5" class="jack"/>
+  <text x="98" y="164" class="small">CH1+</text>
+  <text x="98" y="289" class="small">CH1−</text>
+  <text x="262" y="152" class="center small">I+/I−</text>
+
+  <line x1="410" y1="84" x2="410" y2="355" stroke="#d4d4d8" stroke-width="1.5" stroke-dasharray="4 4"/>
+  <text x="410" y="226" class="center" style="font-size: 20px; fill: #2563eb; font-weight: 700">⟺</text>
+
+  <!-- 右：实际电流源 -->
+  <text x="615" y="90" class="center" style="font-weight: 600">阶段 2：诺顿等效实际电流源</text>
+  <g class="wire">
+    <path d="M475 130 H640 M675 130 H745 V180 M745 250 V320 H475 V250 M475 190 V130"/>
+    <path d="M580 130 V180 M580 250 V320"/>
+    <path d="M640 130 H675" stroke-dasharray="3 3"/>
+  </g>
+  <circle cx="475" cy="220" r="24" class="box"/>
+  <path d="M475 234 V206 M469 213 L475 206 L481 213" class="wire"/>
+  <text x="440" y="216" class="center small">Is</text>
+  <text x="440" y="234" class="center small">100mA</text>
+  <rect x="570" y="180" width="20" height="70" class="box"/>
+  <text x="536" y="220" class="center small">R0 100Ω</text>
+  <rect x="735" y="180" width="20" height="70" class="box"/>
+  <text x="778" y="220" class="center small">Rbox</text>
+
+  <circle id="JACK_ISP" data-jack="ins-dc-power.ISP" cx="475" cy="160" r="4.5" class="jack"/>
+  <circle id="JACK_ISN" data-jack="ins-dc-power.ISN" cx="475" cy="285" r="4.5" class="jack"/>
+  <text x="502" y="164" class="small">Is+</text>
+  <text x="502" y="289" class="small">Is−</text>
+  <text x="658" y="152" class="center small">I+/I−</text>
+
+  <text x="410" y="392" class="center small">两阶段均用同一只 R0=100 Ω 与 Rbox（50~2000 Ω），验证 U = 10 − 100·I 外特性重合。</text>
+  <text x="410" y="420" class="center small">本项目自绘离线原理图 · 悬停或点击插孔与 3D 台面双向联动</text>
+</svg>

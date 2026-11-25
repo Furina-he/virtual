@@ -1,0 +1,34 @@
+.subckt mod_dc_components RA_1 RA_2 RB_1 RB_2 RC_1 RC_2 RLIM_1 RLIM_2 R0_1 R0_2 IM_IN IM_A IM_B IM_OUT EL_1 EL_2 VD_A VD_K VZ_A VZ_K RP1_1 RP1_W RP1_2 RBOX_1 RBOX_2 BR_P BR_L BR_R BR_N RX_1 RX_2 CU_1 CU_2 params: r0=100 rp1=500 rbox=100 t_cu50=20
+* 电路基础实验挂箱（二）/元件箱（原型选型说明 §3.1 #2，服务 DG-01/02/03/06/07/09、MD-01）
+* 所有可调控件按 ADR-009 声明直接电阻目标，支持运行中无重置连续调参。
+*
+* ---- 区 1：线性电阻组、限流保护电阻、可选电源内阻 R0 与常闭电流插座 ----
+RA RA_1 RA_2 1000
+RB RB_1 RB_2 2000
+RC RC_1 RC_2 10000
+RLIM RLIM_1 RLIM_2 220
+RR0 R0_1 R0_2 {r0}
+Rcu_imin IM_IN IM_A 10m
+Rcu_imout IM_B IM_OUT 10m
+RIM_LEAK IM_A IM_B 1T
+*
+* ---- 区 2：非线性器件（12 V/0.1 A 白炽灯、1N4007 整流二极管、2CW51 稳压二极管） ----
+XEL1 EL_1 EL_2 LAMP_12V_100MA
+DVD1 VD_A VD_K D1N4007
+DVZ1 VZ_A VZ_K D2CW51
+*
+* ---- 区 3：1 kΩ 电位器与十进制电阻箱（1 ~ 10000 Ω） ----
+RRP1A RP1_1 RP1_W {rp1}
+RRP1B RP1_W RP1_2 {1000 - rp1}
+RRBOX RBOX_1 RBOX_2 {rbox}
+*
+* ---- 区 4：单臂惠斯通电桥精密比例上臂（1 kΩ : 1 kΩ）、未知电阻 Rx（470 Ω）与 Cu50 热电阻 ----
+RBR1 BR_P BR_L 1000
+RBR2 BR_P BR_R 1000
+RBR_REF BR_N BR_P 1T
+RRX RX_1 RX_2 470
+* Cu50 分度公式 R(t) = 50 * (1 + 4.28e-3 * t) = 50 + 0.214 * t（与 sensors.lib CU50 一致）
+RCU50 CU_1 CU_2 {50 + 0.214 * t_cu50}
+.ends mod_dc_components
+.include diodes.lib
+.include sensors.lib

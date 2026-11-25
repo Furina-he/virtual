@@ -3183,8 +3183,8 @@
     {
       "id": "mod-ac-fluorescent",
       "model": "content/modules/mod-ac-fluorescent/module.glb",
-      "bytes": 439676,
-      "sha256": "d2aad2b07361bc5a8bc030232abf3b5d2d75be521e596edb9ff2e24f9a3b23ac",
+      "bytes": 439856,
+      "sha256": "4b771357dda8875f9e7487e845aef09875915c2864f34d0f085ce8427f888382",
       "triangles": 3074,
       "drawCalls": 6,
       "bounds": {
@@ -3420,8 +3420,8 @@
     {
       "id": "mod-digital-logic",
       "model": "content/modules/mod-digital-logic/module.glb",
-      "bytes": 736096,
-      "sha256": "588011f97477a04a30b68839651d341affc3864b84f9e190c1f3515596c3596e",
+      "bytes": 736244,
+      "sha256": "f4b25fc7e0fb54646148a30fe49c8a30cd1469dcf5b3cceeb14ad99ae9bc6202",
       "triangles": 5254,
       "drawCalls": 7,
       "bounds": {
@@ -3820,6 +3820,516 @@
             0.049,
             0.402,
             0.030899999999999997
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "textures": [
+        {
+          "mimeType": "image/webp",
+          "width": 1264,
+          "height": 2048
+        }
+      ]
+    },
+    {
+      "id": "mod-dc-components",
+      "model": "content/modules/mod-dc-components/module.glb",
+      "bytes": 1000356,
+      "sha256": "6175b969dd84984f6879921f06b2b7727bb0f5babcd1863e4760721c71dff3b4",
+      "triangles": 7150,
+      "drawCalls": 7,
+      "bounds": {
+        "min": [
+          -0.14499999582767487,
+          5.9604643443123e-10,
+          -0.030500000342726707
+        ],
+        "max": [
+          0.14499999582767487,
+          0.4699999988079071,
+          0.03827499961107969
+        ]
+      },
+      "anchors": [
+        {
+          "name": "JACK_RA_1",
+          "position": [
+            -0.121,
+            0.416,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_RA_2",
+          "position": [
+            -0.069,
+            0.416,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_RB_1",
+          "position": [
+            -0.027,
+            0.416,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_RB_2",
+          "position": [
+            0.025,
+            0.416,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_RC_1",
+          "position": [
+            0.067,
+            0.416,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_RC_2",
+          "position": [
+            0.119,
+            0.416,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_RLIM_1",
+          "position": [
+            -0.121,
+            0.364,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_RLIM_2",
+          "position": [
+            -0.069,
+            0.364,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_R0_1",
+          "position": [
+            -0.033,
+            0.364,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_R0_2",
+          "position": [
+            0.019,
+            0.364,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_IM_IN",
+          "position": [
+            0.051,
+            0.364,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_IM_A",
+          "position": [
+            0.077,
+            0.364,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_IM_B",
+          "position": [
+            0.099,
+            0.364,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_IM_OUT",
+          "position": [
+            0.125,
+            0.364,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_EL_1",
+          "position": [
+            -0.121,
+            0.258,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_EL_2",
+          "position": [
+            -0.069,
+            0.258,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_VD_A",
+          "position": [
+            -0.027,
+            0.258,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_VD_K",
+          "position": [
+            0.025,
+            0.258,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_VZ_A",
+          "position": [
+            0.067,
+            0.258,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_VZ_K",
+          "position": [
+            0.119,
+            0.258,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_RP1_1",
+          "position": [
+            -0.121,
+            0.174,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_RP1_W",
+          "position": [
+            -0.085,
+            0.174,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_RP1_2",
+          "position": [
+            -0.049,
+            0.174,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_RBOX_1",
+          "position": [
+            0.007,
+            0.174,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_RBOX_2",
+          "position": [
+            0.117,
+            0.174,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_BR_P",
+          "position": [
+            -0.077,
+            0.086,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_BR_L",
+          "position": [
+            -0.119,
+            0.048,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_BR_R",
+          "position": [
+            -0.035,
+            0.048,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_BR_N",
+          "position": [
+            -0.077,
+            0.024,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_RX_1",
+          "position": [
+            -0.001,
+            0.078,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_RX_2",
+          "position": [
+            0.047,
+            0.078,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_CU_1",
+          "position": [
+            0.079,
+            0.078,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_CU_2",
+          "position": [
+            0.121,
+            0.078,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "KNOB_SW_R0",
+          "position": [
+            -0.001,
+            0.336,
+            0.029
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "KNOB_RP1",
+          "position": [
+            -0.085,
+            0.144,
+            0.029
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "KNOB_RBOX",
+          "position": [
+            0.062,
+            0.152,
+            0.029
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "KNOB_T_CU50",
+          "position": [
+            0.1,
+            0.042,
+            0.029
           ],
           "normal": [
             0,

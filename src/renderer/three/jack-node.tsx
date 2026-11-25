@@ -49,7 +49,7 @@ export function JackNode3D({
   return (
     <group position={anchor.position} quaternion={anchor.quaternion}>
       {showJackLabels && persistent && !hovered && !pulsing && (
-        <Html center position={[0, 0, 0.012]} style={{ pointerEvents: 'none' }}>
+        <Html center zIndexRange={[10, 0]} position={[0, 0, 0.012]} style={{ pointerEvents: 'none' }}>
           <span
             data-persistent-jack-label={globalId}
             style={{ transform: `translate(${persistent.offsetX}px, ${persistent.offsetY}px)` }}
@@ -60,7 +60,7 @@ export function JackNode3D({
         </Html>
       )}
       {showJackLabels && !persistent && nearby && !hovered && !pulsing && (
-        <Html center position={[0, 0.016, 0.012]} style={{ pointerEvents: 'none' }}>
+        <Html center zIndexRange={[10, 0]} position={[0, 0.016, 0.012]} style={{ pointerEvents: 'none' }}>
           <span
             data-jack-label={globalId}
             className="pointer-events-none rounded-sm border bg-background/90 px-1 text-xs whitespace-nowrap text-foreground shadow-xs"
@@ -81,7 +81,7 @@ export function JackNode3D({
                 <ringGeometry args={[0.01, 0.013, 24]} />
                 <meshBasicMaterial color={color} transparent opacity={0.85} toneMapped={false} />
               </mesh>
-              <Html center position={[0, 0.022, 0.014]} style={{ pointerEvents: 'none' }}>
+              <Html center zIndexRange={[10, 0]} position={[0, 0.022, 0.014]} style={{ pointerEvents: 'none' }}>
                 <span
                   data-pulsing-jack-badge={globalId}
                   className="pointer-events-none rounded-sm border border-primary bg-primary px-1.5 py-0.5 text-xs font-medium whitespace-nowrap text-primary-foreground shadow-sm"
@@ -92,7 +92,7 @@ export function JackNode3D({
             </>
           )}
           {hovered && (
-            <Html center position={[0, 0.025, 0.012]} style={{ pointerEvents: 'none' }}>
+            <Html center zIndexRange={[10, 0]} position={[0, 0.025, 0.012]} style={{ pointerEvents: 'none' }}>
               <TooltipProvider>
                 <Tooltip open>
                   <TooltipTrigger asChild>

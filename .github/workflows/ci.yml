@@ -74,6 +74,8 @@ jobs:
           cache: 'pnpm'
       - name: 安装锁定依赖（含 Electron）
         run: pnpm install --frozen-lockfile
+      - name: 安装 Playwright ffmpeg（供录屏 E2E 使用）
+        run: pnpm exec playwright install ffmpeg
       - name: 编译 Electron 应用
         run: pnpm build:app
       - name: 运行功能端到端测试
@@ -82,10 +84,11 @@ jobs:
           if ('${{ inputs.include_realtime_e2e }}' -eq 'true') {
             pnpm exec playwright test
           } else {
-            # 云端共享虚机无物理独显（WebGL 走软件光栅化），默认跳过强依赖物理 GPU 帧率与硬实时声卡时钟的基准项
+            # 云端共享虚机无物理独显与声卡（WebGL 走软件光栅化），默认跳过强依赖物理 GPU 帧率与硬实时音频录制/时钟的基准项
             $hardwareBound = @(
               'scene-performance.spec.ts',
               'sd22-realtime.spec.ts',
+              'sd22-workflow.spec.ts',
               'sim-audio.spec.ts',
               'long-window.spec.ts'
             )

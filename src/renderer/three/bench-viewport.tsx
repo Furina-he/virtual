@@ -508,6 +508,7 @@ function InstrumentSlotTargets({ targets }: { targets: SlotTarget[] }) {
           {dragging && (
             <Html
               center
+              zIndexRange={[10, 0]}
               position={target.position.clone().add(new Vector3(0, 0.02, 0))}
               style={{ pointerEvents: 'none' }}
             >

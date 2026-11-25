@@ -1,0 +1,98 @@
+{
+  "id": "DG-07",
+  "group": "直流电路",
+  "title": "实际直流稳压电源和直流稳流电源的研究（综合）",
+  "type": "integrated",
+  "modules": [{ "instanceId": "comp1", "moduleId": "mod-dc-components", "slot": "SLOT_BOX_L1" }],
+  "allowedInstruments": ["ins-multimeter"],
+  "reference": {
+    "nets": [
+      ["ins-dc-power.CH1P", "comp1.R0_1"],
+      ["comp1.R0_2", "comp1.IM_IN"],
+      ["comp1.IM_OUT", "comp1.RBOX_1"],
+      ["comp1.RBOX_2", "ins-dc-power.CH1N"]
+    ],
+    "measurePoints": [
+      { "id": "u_load", "kind": "voltage", "mode": "dcv", "between": ["comp1.RBOX_1", "comp1.RBOX_2"] },
+      { "id": "i_load", "kind": "current", "mode": "dca", "branch": ["comp1.IM_A", "comp1.IM_B"] }
+    ]
+  },
+  "steps": [
+    {
+      "id": "prepare",
+      "text": "保持断电，阅读指导书了解电压源（E=10 V 串联 R0=100 Ω）与等效电流源（Is=100 mA 并联 R0=100 Ω）的戴维南–诺顿等效关系；确认 SW_R0=100 Ω、电压表 20 V 档、毫安表 200 mA 档。",
+      "measurePoints": [],
+      "dataTable": "vs_char"
+    },
+    {
+      "id": "voltage_source",
+      "text": "阶段 1（实际电压源外特性）：CH1 设 10 V；连接 CH1+ → R01，R02 → I进，I出 → Rbox1，Rbox2 → CH1−；电压表并 Rbox1/Rbox2，毫安表串 I+/I−，点击“检查接线”。上电依次调 Rbox = 50、100、200、500、2000 Ω，记录 U、I 至 vs_char 表。",
+      "checkWiring": true,
+      "measurePoints": ["u_load", "i_load"],
+      "expect": { "measurePoint": "u_load", "min": 3.0, "max": 9.8 },
+      "dataTable": "vs_char"
+    },
+    {
+      "id": "current_source",
+      "text": "阶段 2（实际电流源外特性与电源等效变换）：断电拆除 CH1 连线，改用恒流源输出（设 500 mA 档、Is = 100 mA）：连接 Is+ → R01 → I进，I出 → Rbox1，R02 / Rbox2 接 Is−，检查接线。上电按相同 5 个 Rbox 阻值（50、100、200、500、2000 Ω）记录 U、I 至 cs_char 表。",
+      "referenceNets": [
+        ["ins-dc-power.ISP", "comp1.R0_1", "comp1.IM_IN"],
+        ["comp1.IM_OUT", "comp1.RBOX_1"],
+        ["comp1.R0_2", "comp1.RBOX_2", "ins-dc-power.ISN"]
+      ],
+      "checkWiring": true,
+      "measurePoints": ["u_load", "i_load"],
+      "expect": { "measurePoint": "u_load", "min": 3.0, "max": 9.8 },
+      "dataTable": "cs_char"
+    },
+    {
+      "id": "analyse",
+      "text": "断电后对比 vs_char 与 cs_char 两表相同负载 RL 下的端电压与电流（应高度重合，验证 E = Is·R0 等效变换），查看底栏两条外特性曲线并完成思考题。",
+      "measurePoints": [],
+      "recordTable": "cs_char",
+      "dataTable": "cs_char"
+    }
+  ],
+  "dataTables": [
+    {
+      "id": "vs_char",
+      "title": "实际电压源（E=10 V, R0=100 Ω）外特性记录",
+      "rows": 5,
+      "columns": [
+        { "id": "r_load", "title": "负载电阻 RL", "unit": "Ω" },
+        { "id": "u_vs", "title": "端电压 U", "unit": "V", "measurePoint": "u_load", "captureSteps": ["voltage_source"] },
+        { "id": "i_vs", "title": "输出电流 I", "unit": "A", "measurePoint": "i_load", "captureSteps": ["voltage_source"] }
+      ],
+      "sanity": [
+        { "column": "r_load", "min": 20, "max": 5000, "message": "请按 50、100、200、500、2000 Ω 依次记录。" },
+        { "column": "u_vs", "min": 2, "max": 10.2, "message": "实际电压源端电压应随负载增大而趋近开路电压 10 V。" },
+        { "column": "i_vs", "min": 0.002, "max": 0.1, "message": "输出电流应不超过短路电流 0.100 A（单位 A）。" }
+      ]
+    },
+    {
+      "id": "cs_char",
+      "title": "实际电流源（Is=100 mA, R0=100 Ω）外特性记录",
+      "rows": 5,
+      "columns": [
+        { "id": "r_load", "title": "负载电阻 RL", "unit": "Ω" },
+        { "id": "u_cs", "title": "端电压 U", "unit": "V", "measurePoint": "u_load", "captureSteps": ["current_source"] },
+        { "id": "i_cs", "title": "输出电流 I", "unit": "A", "measurePoint": "i_load", "captureSteps": ["current_source"] }
+      ],
+      "sanity": [
+        { "column": "r_load", "min": 20, "max": 5000, "message": "请使用与阶段 1 相同的 50、100、200、500、2000 Ω 负载阻值以验证等效性。" },
+        { "column": "u_cs", "min": 2, "max": 10.2, "message": "诺顿等效开路电压 Is·R0 = 10.0 V，端电压应与阶段 1 保持一致。" },
+        { "column": "i_cs", "min": 0.002, "max": 0.1, "message": "负载电流应与阶段 1 同阻值点误差 ≤1%。" }
+      ]
+    }
+  ],
+  "charts": [
+    { "id": "chart_vs", "title": "实际直流电压源外特性曲线（U–I）", "table": "vs_char", "x": "i_vs", "y": ["u_vs"], "kind": "line" },
+    { "id": "chart_cs", "title": "实际直流电流源外特性曲线（U–I）", "table": "cs_char", "x": "i_cs", "y": ["u_cs"], "kind": "line" }
+  ],
+  "questions": [
+    "对比实际电压源与实际电流源的 U–I 外特性曲线，两者满足什么参数关系时对外电路完全等效？",
+    "电源等效变换是对外部电路等效还是对电源内部也等效？分别计算开路状态下两种模型内部的功耗。",
+    "若把本实验中实际电流源的并联电阻 R0 拆去（变为理想恒流源），开路时恒流源两端电压会出现什么保护现象？",
+    "实验室直流稳压电源面板上的 CV（恒压）与 CC（恒流）指示灯在什么负载条件下发生自动切换？"
+  ]
+}

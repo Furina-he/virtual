@@ -1,0 +1,154 @@
+{
+  "id": "DG-02",
+  "group": "直流电路",
+  "title": "电路元件伏安特性的测绘",
+  "type": "basic",
+  "modules": [{ "instanceId": "comp1", "moduleId": "mod-dc-components", "slot": "SLOT_BOX_L1" }],
+  "allowedInstruments": ["ins-multimeter"],
+  "reference": {
+    "nets": [
+      ["ins-dc-power.CH1P", "comp1.IM_IN"],
+      ["comp1.IM_OUT", "comp1.RA_1"],
+      ["comp1.RA_2", "ins-dc-power.CH1N"]
+    ],
+    "measurePoints": [
+      { "id": "u_ra", "kind": "voltage", "mode": "dcv", "between": ["comp1.RA_1", "comp1.RA_2"] },
+      { "id": "u_el", "kind": "voltage", "mode": "dcv", "between": ["comp1.EL_1", "comp1.EL_2"] },
+      { "id": "u_vd", "kind": "voltage", "mode": "dcv", "between": ["comp1.VD_A", "comp1.VD_K"] },
+      { "id": "u_vz", "kind": "voltage", "mode": "dcv", "between": ["comp1.VZ_K", "comp1.VZ_A"] },
+      { "id": "i_dut", "kind": "current", "mode": "dca", "branch": ["comp1.IM_A", "comp1.IM_B"] }
+    ]
+  },
+  "steps": [
+    {
+      "id": "prepare",
+      "text": "保持断电，阅读指导书与原理图；将固定直流电压表置 20 V 档（10 MΩ），固定直流毫安表置 200 mA 档。",
+      "measurePoints": [],
+      "dataTable": "vi_resistor"
+    },
+    {
+      "id": "resistor",
+      "text": "阶段 1（线性电阻 RA=1 kΩ）：连接 CH1+ → I进，I出 → RA1，RA2 → CH1−；电压表并联 RA1/RA2，毫安表串入 I+/I− 并检查接线。上电依次设 CH1 = 2、4、6、8、10 V，逐点记录 U、I 至 vi_resistor 表。",
+      "checkWiring": true,
+      "measurePoints": ["u_ra", "i_dut"],
+      "expect": { "measurePoint": "i_dut", "min": 0.0018, "max": 0.011 },
+      "dataTable": "vi_resistor"
+    },
+    {
+      "id": "lamp",
+      "text": "阶段 2（白炽灯 EL1 12 V/0.1 A）：断电改接 I出 → EL1，EL2 → CH1−，电压表改并 EL1/EL2，检查接线。上电依次设 CH1 = 2、4、6、8、10、12 V，逐点记录至 vi_lamp 表，观察冷热态斜率变缓的非线性特性。",
+      "referenceNets": [
+        ["ins-dc-power.CH1P", "comp1.IM_IN"],
+        ["comp1.IM_OUT", "comp1.EL_1"],
+        ["comp1.EL_2", "ins-dc-power.CH1N"]
+      ],
+      "checkWiring": true,
+      "measurePoints": ["u_el", "i_dut"],
+      "expect": { "measurePoint": "i_dut", "min": 0.025, "max": 0.11 },
+      "dataTable": "vi_lamp"
+    },
+    {
+      "id": "diode",
+      "text": "阶段 3（1N4007 正向特性）：断电串入 220 Ω 限流电阻连接 CH1+ → RL1，RL2 → I进，I出 → VD+，VD− → CH1−，电压表并 VD+/VD−，检查接线。上电依次设 CH1 = 0.5、0.7、1.0、2.0、5.0、10.0 V，记录至 vi_diode 表。",
+      "referenceNets": [
+        ["ins-dc-power.CH1P", "comp1.RLIM_1"],
+        ["comp1.RLIM_2", "comp1.IM_IN"],
+        ["comp1.IM_OUT", "comp1.VD_A"],
+        ["comp1.VD_K", "ins-dc-power.CH1N"]
+      ],
+      "checkWiring": true,
+      "measurePoints": ["u_vd", "i_dut"],
+      "expect": { "measurePoint": "u_vd", "min": 0.45, "max": 0.9 },
+      "dataTable": "vi_diode"
+    },
+    {
+      "id": "zener",
+      "text": "阶段 4（2CW51 稳压管反向击穿特性）：断电改为反偏接法 CH1+ → RL1，RL2 → I进，I出 → VZ−，VZ+ → CH1−，电压表正端接 VZ−、负端接 VZ+，检查接线。上电依次设 CH1 = 1、2、3、4、5、6 V，记录至 vi_zener 表，观察约 3.3 V 稳压拐点。",
+      "referenceNets": [
+        ["ins-dc-power.CH1P", "comp1.RLIM_1"],
+        ["comp1.RLIM_2", "comp1.IM_IN"],
+        ["comp1.IM_OUT", "comp1.VZ_K"],
+        ["comp1.VZ_A", "ins-dc-power.CH1N"]
+      ],
+      "checkWiring": true,
+      "measurePoints": ["u_vz", "i_dut"],
+      "expect": { "measurePoint": "u_vz", "min": 2.9, "max": 3.7 },
+      "dataTable": "vi_zener"
+    },
+    {
+      "id": "analyse",
+      "text": "断电后切换至“曲线”页签查看四类元件的伏安特性曲线，对比线性元件与非线性元件的 I–U 形态并完成思考题。",
+      "measurePoints": [],
+      "recordTable": "vi_zener",
+      "dataTable": "vi_zener"
+    }
+  ],
+  "dataTables": [
+    {
+      "id": "vi_resistor",
+      "title": "线性电阻 RA（1 kΩ）伏安特性",
+      "rows": 5,
+      "columns": [
+        { "id": "u", "title": "端电压 U", "unit": "V", "measurePoint": "u_ra", "captureSteps": ["resistor"] },
+        { "id": "i", "title": "电流 I", "unit": "A", "measurePoint": "i_dut", "captureSteps": ["resistor"] },
+        { "id": "r_calc", "title": "等效电阻 U/I", "unit": "Ω", "computed": "u/i" }
+      ],
+      "sanity": [
+        { "column": "u", "min": 0, "max": 12, "message": "线性电阻测试电压范围为 2 ~ 10 V。" },
+        { "column": "i", "min": 0, "max": 0.015, "message": "1 kΩ 电阻在 10 V 下电流为 0.010 A（10 mA），注意本列单位为 A。" }
+      ]
+    },
+    {
+      "id": "vi_lamp",
+      "title": "白炽灯 EL1（12 V/0.1 A）伏安特性",
+      "rows": 6,
+      "columns": [
+        { "id": "u", "title": "灯电压 U", "unit": "V", "measurePoint": "u_el", "captureSteps": ["lamp"] },
+        { "id": "i", "title": "灯电流 I", "unit": "A", "measurePoint": "i_dut", "captureSteps": ["lamp"] },
+        { "id": "r_hot", "title": "热态电阻 U/I", "unit": "Ω", "computed": "u/i" }
+      ],
+      "sanity": [
+        { "column": "u", "min": 0, "max": 12.5, "message": "白炽灯额定电压 12 V，请勿超过 12 V。" },
+        { "column": "i", "min": 0, "max": 0.12, "message": "额定 12 V 时灯电流约 0.100 A（100 mA）。" }
+      ]
+    },
+    {
+      "id": "vi_diode",
+      "title": "整流二极管 1N4007 正向伏安特性",
+      "rows": 6,
+      "columns": [
+        { "id": "u", "title": "正向压降 U_F", "unit": "V", "measurePoint": "u_vd", "captureSteps": ["diode"] },
+        { "id": "i", "title": "正向电流 I_F", "unit": "A", "measurePoint": "i_dut", "captureSteps": ["diode"] }
+      ],
+      "sanity": [
+        { "column": "u", "min": 0, "max": 1.1, "message": "硅二极管正向导通压降约 0.5 ~ 0.85 V。" },
+        { "column": "i", "min": 0, "max": 0.06, "message": "串入 220 Ω 限流电阻后，CH1=10 V 时正向电流约 0.042 A。" }
+      ]
+    },
+    {
+      "id": "vi_zener",
+      "title": "稳压管 2CW51 反向击穿特性",
+      "rows": 6,
+      "columns": [
+        { "id": "u", "title": "反向电压 U_R", "unit": "V", "measurePoint": "u_vz", "captureSteps": ["zener"] },
+        { "id": "i", "title": "反向电流 I_R", "unit": "A", "measurePoint": "i_dut", "captureSteps": ["zener"] }
+      ],
+      "sanity": [
+        { "column": "u", "min": 0, "max": 4.2, "message": "2CW51 反向稳压值约 3.3 V，请确认稳压管反偏且已串入 220 Ω 限流电阻。" },
+        { "column": "i", "min": 0, "max": 0.03, "message": "CH1=6 V 经 220 Ω 限流时，稳压电流约 0.012 A。" }
+      ]
+    }
+  ],
+  "charts": [
+    { "id": "chart_resistor", "title": "线性电阻 RA 伏安特性曲线", "table": "vi_resistor", "x": "u", "y": ["i"], "kind": "line" },
+    { "id": "chart_lamp", "title": "白炽灯 EL1 伏安特性曲线", "table": "vi_lamp", "x": "u", "y": ["i"], "kind": "line" },
+    { "id": "chart_diode", "title": "1N4007 二极管正向伏安特性曲线", "table": "vi_diode", "x": "u", "y": ["i"], "kind": "line" },
+    { "id": "chart_zener", "title": "2CW51 稳压管反向击穿特性曲线", "table": "vi_zener", "x": "u", "y": ["i"], "kind": "line" }
+  ],
+  "questions": [
+    "比较线性电阻与白炽灯的伏安特性曲线，为什么白炽灯曲线随电压升高逐渐向电压轴弯曲？",
+    "1N4007 二极管与 2CW51 稳压管的导通拐点分别出现在哪个工作象限？为什么测绘时必须串入 220 Ω 限流电阻？",
+    "稳压管工作在反向击穿区时，动态电阻 r_z = ΔU_Z / ΔI_Z 越小说明其稳压性能越好还是越差？",
+    "在伏安特性测绘中，电压表应采用内接法还是外接法？对 1 kΩ 电阻与 12 V 白炽灯分别如何选择？"
+  ]
+}

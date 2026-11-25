@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 440" role="img" aria-labelledby="title desc">
+  <title id="title">DG-01 电气仪表使用与测量误差原理图</title>
+  <desc id="desc">CH1 12 V 直流电源经电流插座 IM 与 RB 2 kΩ、RC 10 kΩ 串联分压；直流电压表并联在 RC 两端测试不同输入内阻加载误差，毫安表串入电流插座测试量程内阻误差。</desc>
+  <style>
+    text { font-family: "Noto Sans SC Variable", sans-serif; fill: #18181b; font-size: 15px; }
+    .wire { fill: none; stroke: #18181b; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    .meter { fill: none; stroke: #2563eb; stroke-width: 1.8; stroke-dasharray: 5 4; }
+    .box { fill: #ffffff; stroke: #18181b; stroke-width: 2; }
+    .jack { fill: #ffffff; stroke: #18181b; stroke-width: 2; cursor: pointer; }
+    .small { font-size: 13px; fill: #52525b; }
+    .center { text-anchor: middle; }
+  </style>
+  <rect width="760" height="440" fill="#ffffff"/>
+  <text x="380" y="34" class="center" style="font-size: 20px; font-weight: 600">DG-01 高阻分压与仪表内阻加载误差测量电路</text>
+  <text x="380" y="58" class="center small">mod-dc-components · CH1 = 12 V · RB = 2 kΩ · RC = 10 kΩ · U0 = 10.00 V</text>
+
+  <g class="wire">
+    <path d="M120 120 H220 M260 120 H340 M410 120 H500 V170 M500 250 V320 H120 V260 M120 180 V120"/>
+    <path d="M220 120 H260" stroke-dasharray="3 3"/>
+  </g>
+  <g class="meter">
+    <path d="M500 150 H630 V190 M630 230 V270 H500"/>
+  </g>
+
+  <circle cx="120" cy="220" r="28" class="box"/>
+  <text x="120" y="214" class="center">+</text>
+  <text x="120" y="238" class="center">−</text>
+  <text x="64" y="216" class="center">CH1</text>
+  <text x="64" y="236" class="center small">12 V</text>
+
+  <rect x="340" y="110" width="70" height="20" class="box"/>
+  <text x="375" y="98" class="center">RB · 2 kΩ</text>
+
+  <rect x="490" y="170" width="20" height="80" class="box"/>
+  <text x="452" y="214" class="center">RC</text>
+  <text x="452" y="234" class="center small">10 kΩ</text>
+
+  <circle cx="630" cy="210" r="22" class="box" style="stroke: #2563eb"/>
+  <text x="630" y="216" class="center" style="fill: #2563eb; font-weight: 600">V</text>
+  <text x="630" y="256" class="center small">Rv = 10M / 10k / 1k</text>
+
+  <circle id="JACK_CH1P" data-jack="ins-dc-power.CH1P" cx="120" cy="160" r="4.5" class="jack"/>
+  <circle id="JACK_CH1N" data-jack="ins-dc-power.CH1N" cx="120" cy="280" r="4.5" class="jack"/>
+  <circle id="JACK_IM_IN" data-jack="comp1.IM_IN" cx="195" cy="120" r="4.5" class="jack"/>
+  <circle id="JACK_IM_A" data-jack="comp1.IM_A" cx="220" cy="120" r="4.5" class="jack"/>
+  <circle id="JACK_IM_B" data-jack="comp1.IM_B" cx="260" cy="120" r="4.5" class="jack"/>
+  <circle id="JACK_IM_OUT" data-jack="comp1.IM_OUT" cx="285" cy="120" r="4.5" class="jack"/>
+  <circle id="JACK_RB_1" data-jack="comp1.RB_1" cx="320" cy="120" r="4.5" class="jack"/>
+  <circle id="JACK_RB_2" data-jack="comp1.RB_2" cx="430" cy="120" r="4.5" class="jack"/>
+  <circle id="JACK_RC_1" data-jack="comp1.RC_1" cx="500" cy="150" r="4.5" class="jack"/>
+  <circle id="JACK_RC_2" data-jack="comp1.RC_2" cx="500" cy="270" r="4.5" class="jack"/>
+
+  <text x="148" y="164" class="small">CH1+</text>
+  <text x="148" y="284" class="small">CH1−</text>
+  <text x="240" y="144" class="center small">电流插座 I（常闭）</text>
+  <text x="320" y="144" class="center small">RB1</text>
+  <text x="430" y="144" class="center small">RB2</text>
+  <text x="526" y="146" class="small">RC1</text>
+  <text x="526" y="286" class="small">RC2</text>
+
+  <text x="380" y="376" class="center small">蓝虚线为直流电压表测 U_RC 接法；测回路电流时断电拆电压表，将毫安表串入 I+ / I−。</text>
+  <text x="380" y="402" class="center small">本项目自绘离线原理图 · 悬停或点击插孔与 3D 台面双向联动</text>
+</svg>

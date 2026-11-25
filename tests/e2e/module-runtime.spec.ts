@@ -14,6 +14,10 @@ test('模块开关经公共 alter 更新真实读数，且不重新载入仿真�
     const errors: string[] = []
     page.on('pageerror', (error) => errors.push(error.message))
     const region = page.getByRole('region', { name: '3D 实训台', exact: true })
+    await page.evaluate(() => {
+      window.location.hash = '#/practice/DG-05'
+    })
+    await expect(page.getByRole('banner').getByRole('heading')).toContainText('DG-05', { timeout: 20_000 })
     await expect(region).toHaveAttribute('data-assets-state', 'ready', { timeout: 30000 })
     for (const [a, b] of [
       ['ins-dc-power.CH1P', 'dc1.KH_U1P'],

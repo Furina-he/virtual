@@ -675,7 +675,7 @@ function InstrumentControlTarget({
             <meshBasicMaterial color={highlight} toneMapped={false} />
           </mesh>
           {hovered && !popoverActive && (
-            <Html center position={[0, 0.024, 0.014]} style={{ pointerEvents: 'none' }}>
+            <Html center zIndexRange={[10, 0]} position={[0, 0.024, 0.014]} style={{ pointerEvents: 'none' }}>
               <span
                 data-instrument-control-tip={key}
                 className="pointer-events-none whitespace-nowrap rounded-sm border bg-popover px-1.5 py-0.5 font-mono text-xs text-popover-foreground shadow-xs"

@@ -19,6 +19,17 @@ test.beforeEach(async () => {
   page = await app.firstWindow()
   errors = []
   page.on('pageerror', (error) => errors.push(error.message))
+  await app.evaluate(({ BrowserWindow }) => {
+    const window = BrowserWindow.getAllWindows()[0]
+    window?.setMinimumSize(320, 240)
+    window?.setContentSize(1366, 768)
+    window?.webContents.setZoomFactor(1)
+  })
+  await page.waitForFunction(() => Math.abs(window.innerWidth - 1366) <= 2 && Math.abs(window.innerHeight - 768) <= 2)
+  await page.evaluate(() => {
+    window.location.hash = '#/practice/DG-05'
+  })
+  await expect(page.getByRole('banner').getByRole('heading')).toContainText('DG-05', { timeout: 20_000 })
   await expect(viewport()).toHaveAttribute('data-assets-state', 'ready', { timeout: 30_000 })
 })
 
@@ -332,17 +343,20 @@ test('T0.16 相机与拾取：单击设备特写、24 px 吸附、待接线可�
 })
 
 test('T0.16 P1：参考接线虚线、导线右键菜单、仪表特写高亮 2D 面板、特写附近插孔标签', async () => {
-  // DG-01 reference: CH1+ → TH_US+, CH1− → TH_US−; dashed only until the student wires them.
+  // DG-05 reference: CH1± → KH_U1±, CH2± → KH_U2±; dashed only until the student wires them.
   const guide = viewport().getByRole('button', { name: '参考接线', exact: true })
   await guide.click()
   await expect(guide).toHaveAttribute('aria-pressed', 'true')
   await expect(viewport()).toHaveAttribute(
     'data-guide-links',
-    'ins-dc-power.CH1P:dc1.TH_USP ins-dc-power.CH1N:dc1.TH_USN',
+    'ins-dc-power.CH1P:dc1.KH_U1P ins-dc-power.CH1N:dc1.KH_U1N ins-dc-power.CH2P:dc1.KH_U2P ins-dc-power.CH2N:dc1.KH_U2N',
   )
   await page.screenshot({ path: test.info().outputPath('guide-cords.png') })
-  await addFromList(/直流稳压电源.*CH1P/, /电路基础.*TH_USP/)
-  await expect(viewport()).toHaveAttribute('data-guide-links', 'ins-dc-power.CH1N:dc1.TH_USN')
+  await addFromList(/直流稳压电源.*CH1P/, /电路基础.*KH_U1P/)
+  await expect(viewport()).toHaveAttribute(
+    'data-guide-links',
+    'ins-dc-power.CH1N:dc1.KH_U1N ins-dc-power.CH2P:dc1.KH_U2P ins-dc-power.CH2N:dc1.KH_U2N',
+  )
 
   // Right click on the cord (no drag) opens its menu; recolouring goes through the normal wire update.
   const [wire] = JSON.parse((await viewport().getAttribute('data-wire-targets')) ?? '[]') as { x: number; y: number }[]

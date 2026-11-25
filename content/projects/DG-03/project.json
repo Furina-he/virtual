@@ -1,0 +1,118 @@
+{
+  "id": "DG-03",
+  "group": "直流电路",
+  "title": "未知电阻的测定—非线性电路的研究、白炽灯灯丝温度的测定及单臂电桥电路的应用",
+  "type": "basic",
+  "modules": [{ "instanceId": "comp1", "moduleId": "mod-dc-components", "slot": "SLOT_BOX_L1" }],
+  "allowedInstruments": ["ins-galvanometer", "ins-multimeter"],
+  "reference": {
+    "nets": [
+      ["ins-dc-power.CH1P", "comp1.BR_P"],
+      ["comp1.BR_L", "comp1.RX_1"],
+      ["comp1.BR_R", "comp1.RBOX_1"],
+      ["comp1.RX_2", "comp1.RBOX_2", "comp1.BR_N", "ins-dc-power.CH1N"]
+    ],
+    "measurePoints": [
+      { "id": "i_g", "kind": "current", "mode": "dca", "branch": ["comp1.BR_L", "comp1.BR_R"] },
+      { "id": "u_el", "kind": "voltage", "mode": "dcv", "between": ["comp1.EL_1", "comp1.EL_2"] },
+      { "id": "i_el", "kind": "current", "mode": "dca", "branch": ["comp1.IM_A", "comp1.IM_B"] }
+    ]
+  },
+  "steps": [
+    {
+      "id": "prepare",
+      "text": "保持断电，从仪表柜选取指针式检流计（±100 µA）放至桌面空闲位；阅读指导书了解 1:1 比例上臂（R1=R2=1 kΩ）单臂电桥平衡原理。",
+      "measurePoints": [],
+      "dataTable": "bridge_balance"
+    },
+    {
+      "id": "bridge_rx",
+      "text": "阶段 1（单臂电桥测未知电阻 Rx）：CH1 设 6 V；连接 CH1+ → A+，B → Rx1，C → Rbox1，Rx2 / Rbox2 / D− 均连至 CH1−；将检流计接在 B 与 C 之间并检查接线。上电微调电阻箱 Rbox 使检流计指零，将平衡 Rbox 与 Ig 记入 bridge_balance 第 1 行。",
+      "checkWiring": true,
+      "measurePoints": ["i_g"],
+      "expect": { "measurePoint": "i_g", "min": -0.000002, "max": 0.000002 },
+      "dataTable": "bridge_balance"
+    },
+    {
+      "id": "bridge_cold",
+      "text": "阶段 2（单臂电桥测白炽灯冷态电阻 R20）：断电将 CH1 降至 2 V（避免自热），把左臂待测件由 Rx 换为白炽灯 EL1（B → EL1，EL2 → D−/CH1−），检查接线。上电调 Rbox 使检流计指零（约 12.0 Ω），记录至 bridge_balance 第 2 行。",
+      "referenceNets": [
+        ["ins-dc-power.CH1P", "comp1.BR_P"],
+        ["comp1.BR_L", "comp1.EL_1"],
+        ["comp1.BR_R", "comp1.RBOX_1"],
+        ["comp1.EL_2", "comp1.RBOX_2", "comp1.BR_N", "ins-dc-power.CH1N"]
+      ],
+      "checkWiring": true,
+      "measurePoints": ["i_g"],
+      "expect": { "measurePoint": "i_g", "min": -0.000002, "max": 0.000002 },
+      "dataTable": "bridge_balance"
+    },
+    {
+      "id": "hot_lamp",
+      "text": "阶段 3（白炽灯热态电阻与灯丝温度测定）：断电拆去电桥与检流计连线，改接伏安法回路 CH1+ → I进，I出 → EL1，EL2 → CH1−；电压表（20 V 档）并 EL1/EL2，毫安表（200 mA 档）串 I+/I−，检查接线。上电依次设 CH1 = 2、4、6、8、10、12 V，逐点记录 U、I 至 filament_temp 表并按 R/R20 换算灯丝温度。",
+      "referenceNets": [
+        ["ins-dc-power.CH1P", "comp1.IM_IN"],
+        ["comp1.IM_OUT", "comp1.EL_1"],
+        ["comp1.EL_2", "ins-dc-power.CH1N"]
+      ],
+      "checkWiring": true,
+      "measurePoints": ["u_el", "i_el"],
+      "expect": { "measurePoint": "i_el", "min": 0.025, "max": 0.11 },
+      "dataTable": "filament_temp"
+    },
+    {
+      "id": "analyse",
+      "text": "断电检查冷热态电阻比（12 V 下约 10 倍）及热态电阻–电压曲线，对比实测温度与钨丝工作温区并完成思考题。",
+      "measurePoints": [],
+      "recordTable": "filament_temp",
+      "dataTable": "filament_temp"
+    }
+  ],
+  "dataTables": [
+    {
+      "id": "bridge_balance",
+      "title": "单臂惠斯通电桥平衡测量记录（R1=R2=1 kΩ）",
+      "rows": 2,
+      "columns": [
+        { "id": "r_box", "title": "平衡电阻箱 Rbox", "unit": "Ω" },
+        { "id": "i_g", "title": "检流计电流 Ig", "unit": "A", "measurePoint": "i_g" }
+      ],
+      "sanity": [
+        { "column": "r_box", "min": 10, "max": 1000, "message": "未知电阻 Rx 与白炽灯冷阻分别约为 470 Ω 与 12 Ω。" },
+        { "column": "i_g", "min": -0.000005, "max": 0.000005, "message": "电桥平衡时检流计电流应接近 0 A（|Ig| ≤ 2 µA）。" }
+      ]
+    },
+    {
+      "id": "filament_temp",
+      "title": "白炽灯热态电阻与灯丝温度测定记录",
+      "rows": 6,
+      "columns": [
+        { "id": "u_el", "title": "灯电压 U", "unit": "V", "measurePoint": "u_el", "captureSteps": ["hot_lamp"] },
+        { "id": "i_el", "title": "灯电流 I", "unit": "A", "measurePoint": "i_el", "captureSteps": ["hot_lamp"] },
+        { "id": "r_hot", "title": "热态电阻 R=U/I", "unit": "Ω", "computed": "u_el/i_el" },
+        { "id": "temp_c", "title": "换算灯丝温度 t", "unit": "℃" }
+      ],
+      "sanity": [
+        { "column": "u_el", "min": 1.5, "max": 12.5, "message": "测试电压范围为 2 ~ 12 V。" },
+        { "column": "i_el", "min": 0.02, "max": 0.11, "message": "额定 12 V 时灯电流约 0.100 A（注意单位为 A）。" },
+        { "column": "temp_c", "min": 20, "max": 2200, "message": "2 ~ 12 V 下钨丝温度约 800 ~ 1750 ℃。" }
+      ]
+    }
+  ],
+  "charts": [
+    {
+      "id": "chart_r_u",
+      "title": "白炽灯热态电阻 R 随电压 U 变化曲线",
+      "table": "filament_temp",
+      "x": "u_el",
+      "y": ["r_hot"],
+      "kind": "line"
+    }
+  ],
+  "questions": [
+    "为什么用单臂电桥测白炽灯冷态电阻 R20 时需要将桥电源降至 2 V（或更小电流），而不能直接加 12 V？",
+    "在 1:1 比例臂（R1=R2=1 kΩ）惠斯通电桥中，检流计内阻大小会影响平衡条件吗？会影响平衡检测灵敏度吗？",
+    "由 12 V 额定点测得的热冷态阻值比 R_hot / R20 ≈ 10，按钨丝幂律公式推算灯丝绝对温度与摄氏温度各为多少？",
+    "单臂电桥测小电阻（如 1 Ω 以下）为什么会引入显著误差？工程上应改用什么电桥？"
+  ]
+}
