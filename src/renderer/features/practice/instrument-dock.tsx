@@ -37,7 +37,7 @@ function DockPanelCard({
   const showLearnLink = Boolean(learnResource?.relatedInstruments.includes(panel.instrument.id))
   return (
     <section
-      className={cn('flex h-full min-w-0 flex-col', isFocused && 'ring-2 ring-primary ring-inset')}
+      className={cn('flex h-full min-w-0 flex-col overflow-clip', isFocused && 'ring-2 ring-primary ring-inset')}
       aria-label={panel.title}
       data-panel-instance={panel.id}
       data-dock-slot={slotRole}

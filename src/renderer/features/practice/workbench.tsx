@@ -704,7 +704,7 @@ export function Workbench() {
         <ResizablePanelGroup orientation="horizontal" className="min-h-0 flex-1" {...main}>
           <ResizablePanel
             id="left"
-            className="overflow-hidden"
+            className="overflow-clip"
             panelRef={leftRef}
             defaultSize="18"
             minSize={220}
@@ -745,7 +745,7 @@ export function Workbench() {
           </ResizablePanel>
           <ResizableHandle />
           <ResizablePanel id="center" minSize="30" className="min-h-0">
-            <ResizablePanelGroup orientation="vertical" className="min-h-0 overflow-hidden" {...center}>
+            <ResizablePanelGroup orientation="vertical" className="min-h-0 overflow-clip" {...center}>
               <ResizablePanel id="viewport" minSize={200}>
                 <BenchViewport3D
                   onReadyChange={setSceneReady}
@@ -760,7 +760,7 @@ export function Workbench() {
               <ResizableHandle />
               <ResizablePanel
                 id="bottom"
-                className="relative overflow-hidden"
+                className="relative overflow-clip"
                 panelRef={bottomRef}
                 defaultSize="34"
                 minSize={160}
@@ -789,7 +789,7 @@ export function Workbench() {
                     </TabsList>
                     <LiveReadingsBar project={project} />
                   </div>
-                  <TabsContent value="instruments" className="flex min-h-0 flex-1 overflow-hidden">
+                  <TabsContent value="instruments" className="flex min-h-0 flex-1 overflow-clip">
                     <InstrumentDock project={project} />
                   </TabsContent>
                   <TabsContent value="data" className="min-h-0 flex-1 overflow-auto">
@@ -808,14 +808,14 @@ export function Workbench() {
           <ResizableHandle />
           <ResizablePanel
             id="right"
-            className="relative overflow-hidden"
+            className="relative overflow-clip"
             panelRef={rightRef}
             defaultSize="20"
             minSize={220}
             collapsible
             collapsedSize={0}
           >
-            <ResizablePanelGroup orientation="vertical" className="min-h-0 overflow-hidden" {...right}>
+            <ResizablePanelGroup orientation="vertical" className="min-h-0 overflow-clip" {...right}>
               <ResizablePanel
                 id="cabinet"
                 panelRef={cabinetRef}
@@ -823,7 +823,7 @@ export function Workbench() {
                 minSize={140}
                 collapsible
                 collapsedSize={33}
-                className="flex flex-col overflow-hidden"
+                className="flex flex-col overflow-clip"
                 onResize={(panelSize) => {
                   setCabinetCollapsed(panelSize.inPixels <= 48)
                 }}

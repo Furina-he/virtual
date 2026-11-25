@@ -144,7 +144,7 @@
   body,
   #root {
     height: 100%;
-    overflow: hidden;
+    overflow: clip;
   }
 
   * {
@@ -159,6 +159,7 @@
    units keep the workbench chrome inside the actual content area. */
 .workbench-shell {
   height: 100%;
+  overflow: clip;
 }
 
 /* 演示模式字号放大 1.25 倍（PRD 15.2） */
