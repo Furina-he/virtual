@@ -1,0 +1,86 @@
+{
+  "id": "SD-02",
+  "group": "数字逻辑基础",
+  "title": "优先编码器功能测试",
+  "type": "basic",
+  "modules": [{ "instanceId": "msi1", "moduleId": "mod-dig-msi", "slot": "SLOT_BOX_L1" }],
+  "allowedInstruments": ["ins-multimeter", "ins-oscilloscope"],
+  "reference": {
+    "nets": [
+      ["ins-dc-power.V5P", "msi1.VCC"],
+      ["ins-dc-power.V5N", "msi1.GND"],
+      ["msi1.K0", "msi1.E_I1"],
+      ["msi1.K1", "msi1.E_I4"],
+      ["msi1.K2", "msi1.E_I7"],
+      ["msi1.K3", "msi1.E_EI"]
+    ],
+    "measurePoints": [
+      { "id": "u_a2", "kind": "voltage", "mode": "dcv", "between": ["msi1.E_A2", "msi1.GND"] },
+      { "id": "u_a1", "kind": "voltage", "mode": "dcv", "between": ["msi1.E_A1", "msi1.GND"] },
+      { "id": "u_a0", "kind": "voltage", "mode": "dcv", "between": ["msi1.E_A0", "msi1.GND"] },
+      { "id": "u_gs", "kind": "voltage", "mode": "dcv", "between": ["msi1.E_GS", "msi1.GND"] },
+      { "id": "u_eo", "kind": "voltage", "mode": "dcv", "between": ["msi1.E_EO", "msi1.GND"] }
+    ]
+  },
+  "steps": [
+    {
+      "id": "prepare",
+      "text": "保持断电，阅读 74LS148 8-3 线优先编码器真值表：输入 /I0~/I7、使能 /EI、编码输出 /A2~/A0、有效标志 /GS 与扩展输出 /EO 均为低电平有效。",
+      "measurePoints": [],
+      "dataTable": "enc_truth"
+    },
+    {
+      "id": "wire",
+      "text": "断电连接 +5V/GND，并将 K0→E_I1、K1→E_I4、K2→E_I7、K3→E_EI，点击“检查接线”。",
+      "measurePoints": [],
+      "checkWiring": true,
+      "dataTable": "enc_truth"
+    },
+    {
+      "id": "disabled",
+      "text": "保持 SW_K3=1（/EI=1 禁能），上电观察 /A2~/A0、/GS、/EO 全部为高电平（≈3.4 V），记录第 1 行。",
+      "measurePoints": ["u_a2", "u_a1", "u_a0", "u_gs", "u_eo"],
+      "expect": { "measurePoint": "u_eo", "min": 2.7, "max": 4.2 },
+      "dataTable": "enc_truth"
+    },
+    {
+      "id": "idle_and_single",
+      "text": "置 SW_K0=1、SW_K1=1、SW_K2=1、SW_K3=0（/EI=0 且无输入请求），确认 /EO=L、/GS=H；随后利用 ENC_EXT 旋钮与 SW_K0/K1 分别单路拉低 /I0~/I6，核对反码输出。",
+      "measurePoints": ["u_a2", "u_a1", "u_a0", "u_gs", "u_eo"],
+      "expect": { "measurePoint": "u_eo", "min": -0.2, "max": 0.5 },
+      "dataTable": "enc_truth"
+    },
+    {
+      "id": "priority",
+      "text": "保持 SW_K3=0，同时将 SW_K0=0（/I1=0）、SW_K1=0（/I4=0）与 SW_K2=0（/I7=0），验证最高优先级 /I7 屏蔽低位请求，/A2/A1/A0 输出全低（000）、/GS=0、/EO=1；断电记录并完成思考题。",
+      "measurePoints": ["u_a2", "u_a1", "u_a0", "u_gs", "u_eo"],
+      "expect": { "measurePoint": "u_gs", "min": -0.2, "max": 0.5 },
+      "recordTable": "enc_truth",
+      "dataTable": "enc_truth"
+    }
+  ],
+  "dataTables": [
+    {
+      "id": "enc_truth",
+      "title": "74LS148 优先编码器使能、空闲与优先级测试",
+      "rows": 4,
+      "columns": [
+        { "id": "u_a2", "title": "编码 /A2", "unit": "V", "measurePoint": "u_a2", "captureSteps": ["disabled", "idle_and_single", "priority"] },
+        { "id": "u_a1", "title": "编码 /A1", "unit": "V", "measurePoint": "u_a1", "captureSteps": ["disabled", "idle_and_single", "priority"] },
+        { "id": "u_a0", "title": "编码 /A0", "unit": "V", "measurePoint": "u_a0", "captureSteps": ["disabled", "idle_and_single", "priority"] },
+        { "id": "u_gs", "title": "有效标志 /GS", "unit": "V", "measurePoint": "u_gs", "captureSteps": ["disabled", "idle_and_single", "priority"] },
+        { "id": "u_eo", "title": "扩展使能 /EO", "unit": "V", "measurePoint": "u_eo", "captureSteps": ["disabled", "idle_and_single", "priority"] }
+      ],
+      "sanity": [
+        { "column": "u_gs", "min": -0.2, "max": 5.2, "message": "TTL 输出电压应在 0~5 V 范围内。" },
+        { "column": "u_eo", "min": -0.2, "max": 5.2, "message": "TTL 输出电压应在 0~5 V 范围内。" }
+      ]
+    }
+  ],
+  "charts": [],
+  "questions": [
+    "74LS148 输出 /A2/A1/A0 均为高电平（111）时，如何区分“无任何编码请求”与“仅 /I0=0 有效”两种情况？",
+    "当两片 74LS148 级联构成 16-4 线优先编码器时，高位片的 /EO 端应接到低位片的哪个引脚？",
+    "同时将 /I1、/I4、/I7 拉低时，为何编码结果只反映 /I7（反码 000）而不受 /I1 与 /I4 影响？"
+  ]
+}

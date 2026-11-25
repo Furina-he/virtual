@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 740 315" width="740" height="315" font-family="sans-serif" font-size="13">
+  <rect width="740" height="315" fill="#f8fafc" stroke="#cbd5e1"/>
+  <text x="20" y="28" font-size="16" font-weight="bold" fill="#0f172a">SD-11 74LS192 可逆十进制同步计数器（加/减计数 + /CO /BO）原理图</text>
+  <circle cx="52" cy="58" r="5" fill="#dc2626" data-jack="cnt1.VCC"/><text x="64" y="62" fill="#dc2626">+5V</text>
+  <circle cx="145" cy="58" r="5" fill="#0f172a" data-jack="cnt1.GND"/><text x="157" y="62">GND</text>
+  <rect x="36" y="88" width="122" height="196" rx="6" fill="#eff6ff" stroke="#2563eb" stroke-width="2"/>
+  <text x="48" y="112" font-weight="bold" fill="#1d4ed8">脉冲与控制</text>
+  <circle cx="148" cy="140" r="5" fill="#2563eb" data-jack="cnt1.CLK_OUT"/><text x="46" y="144">CLK_OUT</text>
+  <circle cx="148" cy="178" r="5" fill="#2563eb" data-jack="cnt1.CP_MAN"/><text x="46" y="182">CP_MAN</text>
+  <circle cx="148" cy="216" r="5" fill="#d97706" data-jack="cnt1.K0"/><text x="46" y="220">K0 (CLR)</text>
+  <circle cx="148" cy="254" r="5" fill="#d97706" data-jack="cnt1.K1"/><text x="46" y="258">K1 (/LD)</text>
+  <rect x="225" y="78" width="248" height="215" rx="6" fill="#f0fdf4" stroke="#16a34a" stroke-width="2"/>
+  <text x="275" y="102" font-weight="bold" fill="#15803d">SN74LS192 (DIP-16)</text>
+  <text x="242" y="122" font-size="11" fill="#475569">内部预置数 A~D 由 LD_VAL (0~9) 设定</text>
+  <circle cx="225" cy="144" r="5" fill="#2563eb" data-jack="cnt1.C192_UP"/><text x="238" y="148">UP ↑ (加)</text>
+  <circle cx="225" cy="180" r="5" fill="#dc2626" data-jack="cnt1.C192_DN"/><text x="238" y="184">DN ↑ (减)</text>
+  <circle cx="225" cy="216" r="5" fill="#d97706" data-jack="cnt1.C192_CLR"/><text x="238" y="220">CLR (高清零)</text>
+  <circle cx="225" cy="252" r="5" fill="#d97706" data-jack="cnt1.C192_LD"/><text x="238" y="256">/LOAD (低置数)</text>
+  <circle cx="473" cy="134" r="5" fill="#dc2626" data-jack="cnt1.C192_Q0"/><text x="444" y="138">Q0</text>
+  <circle cx="473" cy="162" r="5" fill="#dc2626" data-jack="cnt1.C192_Q1"/><text x="444" y="166">Q1</text>
+  <circle cx="473" cy="190" r="5" fill="#dc2626" data-jack="cnt1.C192_Q2"/><text x="444" y="194">Q2</text>
+  <circle cx="473" cy="218" r="5" fill="#dc2626" data-jack="cnt1.C192_Q3"/><text x="444" y="222">Q3</text>
+  <circle cx="473" cy="250" r="5" fill="#2563eb" data-jack="cnt1.C192_CO"/><text x="438" y="254">/CO</text>
+  <circle cx="473" cy="278" r="5" fill="#2563eb" data-jack="cnt1.C192_BO"/><text x="438" y="282">/BO</text>
+  <rect x="552" y="106" width="154" height="162" rx="6" fill="#fefce8" stroke="#ca8a04" stroke-width="2"/>
+  <text x="572" y="128" font-weight="bold" fill="#854d0e">CD4511 数码管</text>
+  <circle cx="552" cy="148" r="5" fill="#d97706" data-jack="cnt1.DISP_A"/><text x="566" y="152">DISP_A</text>
+  <circle cx="552" cy="178" r="5" fill="#d97706" data-jack="cnt1.DISP_B"/><text x="566" y="182">DISP_B</text>
+  <circle cx="552" cy="208" r="5" fill="#d97706" data-jack="cnt1.DISP_C"/><text x="566" y="212">DISP_C</text>
+  <circle cx="552" cy="238" r="5" fill="#d97706" data-jack="cnt1.DISP_D"/><text x="566" y="242">DISP_D</text>
+</svg>

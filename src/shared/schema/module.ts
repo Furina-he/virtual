@@ -60,7 +60,10 @@ export const ModuleIndicator = z.discriminatedUnion('kind', [
   z.object({
     id: z.string().min(1),
     kind: z.enum(['led', 'lamp', 'motor']),
+    label: z.string().min(1).optional(),
     probe: z.string().min(1),
+    common: JackId.optional(),
+    threshold: z.number().positive().default(1.8),
   }),
   z.object({
     id: z.string().min(1),
@@ -133,6 +136,15 @@ export const Module = z
       }
     })
     m.indicators.forEach((indicator, index) => {
+      if (indicator.kind === 'led' || indicator.kind === 'lamp' || indicator.kind === 'motor') {
+        if (indicator.common && !ids.has(indicator.common))
+          ctx.addIssue({
+            code: 'custom',
+            message: `指示器公共端插孔 ${indicator.common} 不存在`,
+            path: ['indicators', index, 'common'],
+          })
+        return
+      }
       if (indicator.kind === 'segment7') {
         if (!indicator.segments && !indicator.probe)
           ctx.addIssue({

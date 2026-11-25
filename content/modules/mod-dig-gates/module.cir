@@ -1,0 +1,81 @@
+.subckt mod_dig_gates VCC GND K0 K1 K2 K3 K4 K5 G_A G_B Y_NAND Y_NOR Y_NOT Y_AND Y_OR Y_XOR CD_A CD_B CD_C CD_D CD_LT CD_BI CD_LE CD_SEGA LED0 LED1 params: sw_k0=0 sw_k1=0 sw_k2=0 sw_k3=0 sw_k4=1 sw_k5=1
+* 基本逻辑门与译码显示实验箱（SD-01 74LS00/02/04/08/32/86、SD-06 CD4511 与数码管排故）
+Rgnd GND 0 1G
+Rvcc_bleed VCC GND 100k
+Cdec VCC GND 100n
+
+* ---- 1. 六路逻辑电平开关 K0~K5（依赖 +5V 供电，ADR-009 实时切换）----
+RK0_HI VCC k0_sw {sw_k0 > 0.5 ? 100 : 1G}
+RK0_LO k0_sw GND {sw_k0 > 0.5 ? 1G : 100}
+Bk0 k0_buf GND V=V(k0_sw,GND)
+Rk0_out k0_buf K0 50
+
+RK1_HI VCC k1_sw {sw_k1 > 0.5 ? 100 : 1G}
+RK1_LO k1_sw GND {sw_k1 > 0.5 ? 1G : 100}
+Bk1 k1_buf GND V=V(k1_sw,GND)
+Rk1_out k1_buf K1 50
+
+RK2_HI VCC k2_sw {sw_k2 > 0.5 ? 100 : 1G}
+RK2_LO k2_sw GND {sw_k2 > 0.5 ? 1G : 100}
+Bk2 k2_buf GND V=V(k2_sw,GND)
+Rk2_out k2_buf K2 50
+
+RK3_HI VCC k3_sw {sw_k3 > 0.5 ? 100 : 1G}
+RK3_LO k3_sw GND {sw_k3 > 0.5 ? 1G : 100}
+Bk3 k3_buf GND V=V(k3_sw,GND)
+Rk3_out k3_buf K3 50
+
+RK4_HI VCC k4_sw {sw_k4 > 0.5 ? 100 : 1G}
+RK4_LO k4_sw GND {sw_k4 > 0.5 ? 1G : 100}
+Bk4 k4_buf GND V=V(k4_sw,GND)
+Rk4_out k4_buf K4 50
+
+RK5_HI VCC k5_sw {sw_k5 > 0.5 ? 100 : 1G}
+RK5_LO k5_sw GND {sw_k5 > 0.5 ? 1G : 100}
+Bk5 k5_buf GND V=V(k5_sw,GND)
+Rk5_out k5_buf K5 50
+
+* ---- 2. 六款基本 TTL 逻辑门（共享输入 G_A/G_B，各自独立真实 74LS 芯片输出）----
+X00 G_A G_B Y_NAND GND GND u00_2 GND u00_3 GND GND u00_4 GND GND VCC SN74LS00
+X02 Y_NOR G_A G_B u02_2 GND GND GND GND GND u02_3 GND GND u02_4 VCC SN74LS02
+X04 G_A Y_NOT GND u04_2 GND u04_3 GND u04_4 GND u04_5 GND u04_6 GND VCC SN74LS04
+X08 G_A G_B Y_AND GND GND u08_2 GND u08_3 GND GND u08_4 GND GND VCC SN74LS08
+X32 G_A G_B Y_OR GND GND u32_2 GND u32_3 GND GND u32_4 GND GND VCC SN74LS32
+X86 G_A G_B Y_XOR GND GND u86_2 GND u86_3 GND GND u86_4 GND GND VCC SN74LS86
+Ry00 Y_NAND GND 10k
+Ry02 Y_NOR GND 10k
+Ry04 Y_NOT GND 10k
+Ry08 Y_AND GND 10k
+Ry32 Y_OR GND 10k
+Ry86 Y_XOR GND 10k
+
+* ---- 3. CD4511 锁存/译码/驱动器与共阴极数码管（含 3 处预设故障元件）----
+Rcd_lt_pu CD_LT VCC 100k
+Rcd_bi_pu CD_BI VCC 100k
+Rcd_le_pd CD_LE GND 100k
+Rcd_bi_f CD_BI GND 10Meg
+Rcd_lt_f CD_LT GND 10Meg
+Xcd CD_B CD_C CD_LT CD_BI CD_LE CD_D CD_A GND ucd_e ucd_d ucd_c ucd_b ucd_a ucd_g ucd_f VCC CD4511
+Rcd_sega ucd_a seg_a 330
+Rcd_segb ucd_b seg_b 330
+Rcd_segc ucd_c seg_c 330
+Rcd_segd ucd_d seg_d 330
+Rcd_sege ucd_e seg_e 330
+Rcd_segf ucd_f seg_f 330
+Rcd_segg ucd_g seg_g 330
+Rsega_tp seg_a CD_SEGA 1
+Rla seg_a GND 1k
+Rlb seg_b GND 1k
+Rlc seg_c GND 1k
+Rld seg_d GND 1k
+Rle seg_e GND 1k
+Rlf seg_f GND 1k
+Rlg seg_g GND 1k
+
+* ---- 4. 两路通用逻辑电平指示输入 ----
+Rled0 LED0 GND 10k
+Rled1 LED1 GND 10k
+.ends mod_dig_gates
+
+.include "ttl.lib"
+.include "cmos.lib"

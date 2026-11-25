@@ -1,0 +1,90 @@
+.subckt mod_dig_cnt_ud VCC GND CP_MAN CLK_OUT K0 K1 DISP_A DISP_B DISP_C DISP_D C90_CP0 C90_CP1 C90_R0 C90_R9 C90_Q0 C90_Q1 C90_Q2 C90_Q3 C192_UP C192_DN C192_CLR C192_LD C192_CO C192_BO C192_Q0 C192_Q1 C192_Q2 C192_Q3 params: clk_rate=5 cp_btn=0 sw_k0=0 sw_k1=1 ld_val=5
+* 二五十进制与可逆计数器实验箱（SD-09 74LS90、SD-11 74LS192）
+Rgnd GND 0 1G
+Rvcc_bleed VCC GND 100k
+Cdec VCC GND 100n
+
+* ---- 1. 连续脉冲 CLK_OUT、手动单次脉冲 CP_MAN 与开关 K0/K1 ----
+Vclk1 clk1_raw GND PULSE(0 1 0.475 10u 10u 0.5 1.0)
+Vclk2 clk2_raw GND PULSE(0 1 0.225 10u 10u 0.25 0.5)
+Vclk5 clk5_raw GND PULSE(0 1 0.075 10u 10u 0.1 0.2)
+Vclk10 clk10_raw GND PULSE(0 1 0.025 10u 10u 0.05 0.1)
+RCLK1 clk1_raw clk_mix {clk_rate < 1.5 ? 10 : 1G}
+RCLK2 clk2_raw clk_mix {clk_rate >= 1.5 && clk_rate < 3.5 ? 10 : 1G}
+RCLK5 clk5_raw clk_mix {clk_rate >= 3.5 && clk_rate < 7.5 ? 10 : 1G}
+RCLK10 clk10_raw clk_mix {clk_rate >= 7.5 ? 10 : 1G}
+Rclk_load clk_mix GND 100k
+Bclk_buf clk_buf GND V=V(clk_mix,GND)*max(V(VCC,GND),0)
+Rclk_out clk_buf CLK_OUT 50
+
+RCP_HI VCC cp_sw {cp_btn > 0.5 ? 100 : 1G}
+RCP_LO cp_sw GND {cp_btn > 0.5 ? 1G : 100}
+Bcp cp_buf GND V=V(cp_sw,GND)
+Rcp_out cp_buf CP_MAN 50
+
+RK0_HI VCC k0_sw {sw_k0 > 0.5 ? 100 : 1G}
+RK0_LO k0_sw GND {sw_k0 > 0.5 ? 1G : 100}
+Bk0 k0_buf GND V=V(k0_sw,GND)
+Rk0_out k0_buf K0 50
+
+RK1_HI VCC k1_sw {sw_k1 > 0.5 ? 100 : 1G}
+RK1_LO k1_sw GND {sw_k1 > 0.5 ? 1G : 100}
+Bk1 k1_buf GND V=V(k1_sw,GND)
+Rk1_out k1_buf K1 50
+
+* ---- 2. 上电 1 ms 复位脉冲（保证计数器初始状态为 0，1 ms 后由外部插孔完全控制）----
+Vpor por_raw GND PULSE(1 0 1m 10u 10u 1e6 2e6)
+Rpor por_raw GND 100k
+
+* ---- 3. 74LS90 二-五-十进制计数器（R0/R9 均独立引出）----
+R90r0_pd C90_R0 GND 100k
+R90r9_pd C90_R9 GND 100k
+B90r0 c90_r0_int GND V=max(V(C90_R0,GND),V(por_raw,GND)*max(V(VCC,GND),0))
+X90 C90_CP1 c90_r0_int c90_r0_int c90_nc4 VCC C90_R9 C90_R9 C90_Q2 C90_Q1 GND C90_Q3 C90_Q0 c90_nc13 C90_CP0 SN74LS90
+R90q0 C90_Q0 GND 10k
+R90q1 C90_Q1 GND 10k
+R90q2 C90_Q2 GND 10k
+R90q3 C90_Q3 GND 10k
+
+* ---- 4. 74LS192 可逆十进制计数器（加/减计数 + 预置数 LD_VAL + /CO /BO）----
+RLA_HI VCC lda {(floor(ld_val + 0.5) - 2*floor((floor(ld_val + 0.5))/2)) > 0.5 ? 100 : 1G}
+RLA_LO lda GND {(floor(ld_val + 0.5) - 2*floor((floor(ld_val + 0.5))/2)) > 0.5 ? 1G : 100}
+RLB_HI VCC ldb {(floor(floor(ld_val + 0.5)/2) - 2*floor(floor(ld_val + 0.5)/4)) > 0.5 ? 100 : 1G}
+RLB_LO ldb GND {(floor(floor(ld_val + 0.5)/2) - 2*floor(floor(ld_val + 0.5)/4)) > 0.5 ? 1G : 100}
+RLC_HI VCC ldc {(floor(floor(ld_val + 0.5)/4) - 2*floor(floor(ld_val + 0.5)/8)) > 0.5 ? 100 : 1G}
+RLC_LO ldc GND {(floor(floor(ld_val + 0.5)/4) - 2*floor(floor(ld_val + 0.5)/8)) > 0.5 ? 1G : 100}
+RLD_HI VCC ldd {floor(ld_val + 0.5) >= 8 ? 100 : 1G}
+RLD_LO ldd GND {floor(ld_val + 0.5) >= 8 ? 1G : 100}
+R192clr_pd C192_CLR GND 100k
+B192clr c192_clr_int GND V=max(V(C192_CLR,GND),V(por_raw,GND)*max(V(VCC,GND),0))
+X192 ldb C192_Q1 C192_Q0 C192_DN C192_UP C192_Q2 C192_Q3 GND ldd ldc C192_LD C192_CO C192_BO c192_clr_int lda VCC SN74LS192
+R192q0 C192_Q0 GND 10k
+R192q1 C192_Q1 GND 10k
+R192q2 C192_Q2 GND 10k
+R192q3 C192_Q3 GND 10k
+R192co C192_CO GND 10k
+R192bo C192_BO GND 10k
+
+* ---- 5. 共享 CD4511 译码与共阴数码管 ----
+Rlt d_lt VCC 10k
+Rbi d_bi VCC 10k
+Rle d_le GND 10k
+Xcd DISP_B DISP_C d_lt d_bi d_le DISP_D DISP_A GND ue ud uc ub ua ug uf VCC CD4511
+Rsa ua seg_a 330
+Rsb ub seg_b 330
+Rsc uc seg_c 330
+Rsd ud seg_d 330
+Rse ue seg_e 330
+Rsf uf seg_f 330
+Rsg ug seg_g 330
+Rla seg_a GND 1k
+Rlb seg_b GND 1k
+Rlc seg_c GND 1k
+Rld seg_d GND 1k
+Rle_led seg_e GND 1k
+Rlf seg_f GND 1k
+Rlg seg_g GND 1k
+.ends mod_dig_cnt_ud
+
+.include "ttl.lib"
+.include "cmos.lib"

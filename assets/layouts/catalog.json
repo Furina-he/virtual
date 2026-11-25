@@ -8811,27 +8811,142 @@
       "name": "复合互补 OTL 功放实验板",
       "kind": "module",
       "bodyStyle": "board",
-      "dimensionsMm": [264, 184, 40],
+      "dimensionsMm": [
+        264,
+        184,
+        40
+      ],
       "model": "content/modules/mod-analog-otl/module.glb",
-      "textureSize": [1536, 1070],
+      "textureSize": [
+        1536,
+        1070
+      ],
       "estimatedDimensions": true,
       "dimensionNote": "Estimated 264 x 184 x 40 mm compound complementary OTL amplifier board (MD-10 / MD-11).",
       "jacks": [
-        { "id": "OTL_VCC", "label": "+12V 电源", "silkLabel": "+12V", "x": 26, "y": 78, "color": "red", "kind": "banana4" },
-        { "id": "OTL_GND1", "label": "GND 1", "silkLabel": "GND1", "x": 26, "y": 136, "color": "black", "kind": "banana4" },
-        { "id": "OTL_GND2", "label": "GND 2", "silkLabel": "GND2", "x": 64, "y": 136, "color": "black", "kind": "banana4" },
-        { "id": "OTL_IN", "label": "音频输入 IN", "silkLabel": "IN", "x": 64, "y": 78, "color": "yellow", "kind": "banana4" },
-        { "id": "OTL_BDRV", "label": "推动级基极 B", "silkLabel": "B_DRV", "x": 104, "y": 78, "color": "yellow", "kind": "banana4" },
-        { "id": "OTL_BUP", "label": "上复合管基极", "silkLabel": "B_UP", "x": 146, "y": 78, "color": "yellow", "kind": "banana4" },
-        { "id": "OTL_BDN", "label": "下复合管基极", "silkLabel": "B_DN", "x": 126, "y": 136, "color": "yellow", "kind": "banana4" },
-        { "id": "OTL_MID", "label": "中点电压 K", "silkLabel": "MID K", "x": 190, "y": 78, "color": "yellow", "kind": "banana4" },
-        { "id": "OTL_BOOT", "label": "自举节点", "silkLabel": "BOOT", "x": 180, "y": 136, "color": "yellow", "kind": "banana4" },
-        { "id": "OTL_SPK_P", "label": "扬声器输出 +", "silkLabel": "SPK+", "x": 236, "y": 78, "color": "red", "kind": "banana4" },
-        { "id": "OTL_SPK_N", "label": "扬声器输出 −", "silkLabel": "SPK−", "x": 236, "y": 136, "color": "black", "kind": "banana4" }
+        {
+          "id": "OTL_VCC",
+          "label": "+12V 电源",
+          "silkLabel": "+12V",
+          "x": 26,
+          "y": 78,
+          "color": "red",
+          "kind": "banana4"
+        },
+        {
+          "id": "OTL_GND1",
+          "label": "GND 1",
+          "silkLabel": "GND1",
+          "x": 26,
+          "y": 136,
+          "color": "black",
+          "kind": "banana4"
+        },
+        {
+          "id": "OTL_GND2",
+          "label": "GND 2",
+          "silkLabel": "GND2",
+          "x": 64,
+          "y": 136,
+          "color": "black",
+          "kind": "banana4"
+        },
+        {
+          "id": "OTL_IN",
+          "label": "音频输入 IN",
+          "silkLabel": "IN",
+          "x": 64,
+          "y": 78,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "OTL_BDRV",
+          "label": "推动级基极 B",
+          "silkLabel": "B_DRV",
+          "x": 104,
+          "y": 78,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "OTL_BUP",
+          "label": "上复合管基极",
+          "silkLabel": "B_UP",
+          "x": 146,
+          "y": 78,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "OTL_BDN",
+          "label": "下复合管基极",
+          "silkLabel": "B_DN",
+          "x": 126,
+          "y": 136,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "OTL_MID",
+          "label": "中点电压 K",
+          "silkLabel": "MID K",
+          "x": 190,
+          "y": 78,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "OTL_BOOT",
+          "label": "自举节点",
+          "silkLabel": "BOOT",
+          "x": 180,
+          "y": 136,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "OTL_SPK_P",
+          "label": "扬声器输出 +",
+          "silkLabel": "SPK+",
+          "x": 236,
+          "y": 78,
+          "color": "red",
+          "kind": "banana4"
+        },
+        {
+          "id": "OTL_SPK_N",
+          "label": "扬声器输出 −",
+          "silkLabel": "SPK−",
+          "x": 236,
+          "y": 136,
+          "color": "black",
+          "kind": "banana4"
+        }
       ],
       "controls": [
-        { "id": "RP_MID", "label": "中点偏置", "kind": "knob", "x": 86, "y": 32, "radiusMm": 7, "param": "rp_mid", "labelX": 50, "labelY": 34 },
-        { "id": "SW_XOVER", "label": "交越偏置", "kind": "knob", "x": 192, "y": 32, "radiusMm": 7, "param": "sw_xover", "labelX": 154, "labelY": 34 }
+        {
+          "id": "RP_MID",
+          "label": "中点偏置",
+          "kind": "knob",
+          "x": 86,
+          "y": 32,
+          "radiusMm": 7,
+          "param": "rp_mid",
+          "labelX": 50,
+          "labelY": 34
+        },
+        {
+          "id": "SW_XOVER",
+          "label": "交越偏置",
+          "kind": "knob",
+          "x": 192,
+          "y": 32,
+          "radiusMm": 7,
+          "param": "sw_xover",
+          "labelX": 154,
+          "labelY": 34
+        }
       ],
       "screens": [],
       "panel": {
@@ -8839,15 +8954,63 @@
         "titleSize": 4.3,
         "footer": "+12V 单电源 / 复合互补输出级 / 中点偏置 / 8 Ω 扬声器",
         "lines": [
-          { "points": [[84, 54], [84, 158]] },
-          { "points": [[212, 54], [212, 158]] },
-          { "points": [[22, 164], [242, 164]] }
+          {
+            "points": [
+              [
+                84,
+                54
+              ],
+              [
+                84,
+                158
+              ]
+            ]
+          },
+          {
+            "points": [
+              [
+                212,
+                54
+              ],
+              [
+                212,
+                158
+              ]
+            ]
+          },
+          {
+            "points": [
+              [
+                22,
+                164
+              ],
+              [
+                242,
+                164
+              ]
+            ]
+          }
         ],
         "symbols": [],
         "texts": [
-          { "text": "输入与推动", "x": 54, "y": 58, "size": 3.1 },
-          { "text": "复合互补推挽级", "x": 148, "y": 58, "size": 3.1 },
-          { "text": "8 Ω 扬声器", "x": 236, "y": 108, "size": 3 }
+          {
+            "text": "输入与推动",
+            "x": 54,
+            "y": 58,
+            "size": 3.1
+          },
+          {
+            "text": "复合互补推挽级",
+            "x": 148,
+            "y": 58,
+            "size": 3.1
+          },
+          {
+            "text": "8 Ω 扬声器",
+            "x": 236,
+            "y": 108,
+            "size": 3
+          }
         ]
       }
     },
@@ -8856,27 +9019,142 @@
       "name": "LM386 集成音响功放实验板",
       "kind": "module",
       "bodyStyle": "board",
-      "dimensionsMm": [264, 184, 40],
+      "dimensionsMm": [
+        264,
+        184,
+        40
+      ],
       "model": "content/modules/mod-app-lm386/module.glb",
-      "textureSize": [1536, 1070],
+      "textureSize": [
+        1536,
+        1070
+      ],
       "estimatedDimensions": true,
       "dimensionNote": "Estimated 264 x 184 x 40 mm LM386 integrated audio power amplifier board (MD-12).",
       "jacks": [
-        { "id": "AMP_VS", "label": "+9V 电源", "silkLabel": "+9V", "x": 26, "y": 78, "color": "red", "kind": "banana4" },
-        { "id": "AMP_GND1", "label": "GND 1", "silkLabel": "GND1", "x": 26, "y": 136, "color": "black", "kind": "banana4" },
-        { "id": "AMP_GND2", "label": "GND 2", "silkLabel": "GND2", "x": 66, "y": 136, "color": "black", "kind": "banana4" },
-        { "id": "AMP_IN", "label": "音频输入 IN", "silkLabel": "IN", "x": 66, "y": 78, "color": "yellow", "kind": "banana4" },
-        { "id": "AMP_WIP", "label": "音量抽头 IN+", "silkLabel": "IN+", "x": 106, "y": 78, "color": "yellow", "kind": "banana4" },
-        { "id": "AMP_G1", "label": "增益脚 1", "silkLabel": "PIN1", "x": 148, "y": 78, "color": "yellow", "kind": "banana4" },
-        { "id": "AMP_G8", "label": "增益脚 8", "silkLabel": "PIN8", "x": 148, "y": 136, "color": "yellow", "kind": "banana4" },
-        { "id": "AMP_BYP", "label": "旁路脚 7", "silkLabel": "BYP7", "x": 106, "y": 136, "color": "yellow", "kind": "banana4" },
-        { "id": "AMP_OUT", "label": "功放输出脚 5", "silkLabel": "OUT5", "x": 192, "y": 78, "color": "yellow", "kind": "banana4" },
-        { "id": "AMP_SPK_P", "label": "扬声器输出 +", "silkLabel": "SPK+", "x": 236, "y": 78, "color": "red", "kind": "banana4" },
-        { "id": "AMP_SPK_N", "label": "扬声器输出 −", "silkLabel": "SPK−", "x": 236, "y": 136, "color": "black", "kind": "banana4" }
+        {
+          "id": "AMP_VS",
+          "label": "+9V 电源",
+          "silkLabel": "+9V",
+          "x": 26,
+          "y": 78,
+          "color": "red",
+          "kind": "banana4"
+        },
+        {
+          "id": "AMP_GND1",
+          "label": "GND 1",
+          "silkLabel": "GND1",
+          "x": 26,
+          "y": 136,
+          "color": "black",
+          "kind": "banana4"
+        },
+        {
+          "id": "AMP_GND2",
+          "label": "GND 2",
+          "silkLabel": "GND2",
+          "x": 66,
+          "y": 136,
+          "color": "black",
+          "kind": "banana4"
+        },
+        {
+          "id": "AMP_IN",
+          "label": "音频输入 IN",
+          "silkLabel": "IN",
+          "x": 66,
+          "y": 78,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "AMP_WIP",
+          "label": "音量抽头 IN+",
+          "silkLabel": "IN+",
+          "x": 106,
+          "y": 78,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "AMP_G1",
+          "label": "增益脚 1",
+          "silkLabel": "PIN1",
+          "x": 148,
+          "y": 78,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "AMP_G8",
+          "label": "增益脚 8",
+          "silkLabel": "PIN8",
+          "x": 148,
+          "y": 136,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "AMP_BYP",
+          "label": "旁路脚 7",
+          "silkLabel": "BYP7",
+          "x": 106,
+          "y": 136,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "AMP_OUT",
+          "label": "功放输出脚 5",
+          "silkLabel": "OUT5",
+          "x": 192,
+          "y": 78,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "AMP_SPK_P",
+          "label": "扬声器输出 +",
+          "silkLabel": "SPK+",
+          "x": 236,
+          "y": 78,
+          "color": "red",
+          "kind": "banana4"
+        },
+        {
+          "id": "AMP_SPK_N",
+          "label": "扬声器输出 −",
+          "silkLabel": "SPK−",
+          "x": 236,
+          "y": 136,
+          "color": "black",
+          "kind": "banana4"
+        }
       ],
       "controls": [
-        { "id": "VOL_POT", "label": "音量调节", "kind": "knob", "x": 86, "y": 32, "radiusMm": 7, "param": "vol_pct", "labelX": 50, "labelY": 34 },
-        { "id": "SW_GAIN", "label": "20/200×", "kind": "knob", "x": 192, "y": 32, "radiusMm": 7, "param": "sw_gain", "labelX": 154, "labelY": 34 }
+        {
+          "id": "VOL_POT",
+          "label": "音量调节",
+          "kind": "knob",
+          "x": 86,
+          "y": 32,
+          "radiusMm": 7,
+          "param": "vol_pct",
+          "labelX": 50,
+          "labelY": 34
+        },
+        {
+          "id": "SW_GAIN",
+          "label": "20/200×",
+          "kind": "knob",
+          "x": 192,
+          "y": 32,
+          "radiusMm": 7,
+          "param": "sw_gain",
+          "labelX": 154,
+          "labelY": 34
+        }
       ],
       "screens": [],
       "panel": {
@@ -8884,15 +9162,63 @@
         "titleSize": 4.3,
         "footer": "+9V 单电源 / 20×·200× 增益切换 / 茹贝尔网络 / 8 Ω 扬声器",
         "lines": [
-          { "points": [[86, 54], [86, 158]] },
-          { "points": [[212, 54], [212, 158]] },
-          { "points": [[22, 164], [242, 164]] }
+          {
+            "points": [
+              [
+                86,
+                54
+              ],
+              [
+                86,
+                158
+              ]
+            ]
+          },
+          {
+            "points": [
+              [
+                212,
+                54
+              ],
+              [
+                212,
+                158
+              ]
+            ]
+          },
+          {
+            "points": [
+              [
+                22,
+                164
+              ],
+              [
+                242,
+                164
+              ]
+            ]
+          }
         ],
         "symbols": [],
         "texts": [
-          { "text": "输入与音量", "x": 54, "y": 58, "size": 3.1 },
-          { "text": "LM386 核心功放", "x": 150, "y": 58, "size": 3.1 },
-          { "text": "8 Ω 扬声器", "x": 236, "y": 108, "size": 3 }
+          {
+            "text": "输入与音量",
+            "x": 54,
+            "y": 58,
+            "size": 3.1
+          },
+          {
+            "text": "LM386 核心功放",
+            "x": 150,
+            "y": 58,
+            "size": 3.1
+          },
+          {
+            "text": "8 Ω 扬声器",
+            "x": 236,
+            "y": 108,
+            "size": 3
+          }
         ]
       }
     },
@@ -8901,26 +9227,133 @@
       "name": "气敏烟雾报警器实验板",
       "kind": "module",
       "bodyStyle": "board",
-      "dimensionsMm": [264, 184, 40],
+      "dimensionsMm": [
+        264,
+        184,
+        40
+      ],
       "model": "content/modules/mod-app-smoke/module.glb",
-      "textureSize": [1536, 1070],
+      "textureSize": [
+        1536,
+        1070
+      ],
       "estimatedDimensions": true,
       "dimensionNote": "Estimated 264 x 184 x 40 mm MQ-2 gas sensor + LM393 smoke alarm board (MD-16).",
       "jacks": [
-        { "id": "SMK_VCC", "label": "+5V 电源", "silkLabel": "+5V", "x": 26, "y": 78, "color": "red", "kind": "banana4" },
-        { "id": "SMK_GND1", "label": "GND 1", "silkLabel": "GND1", "x": 26, "y": 136, "color": "black", "kind": "banana4" },
-        { "id": "SMK_GND2", "label": "GND 2", "silkLabel": "GND2", "x": 126, "y": 136, "color": "black", "kind": "banana4" },
-        { "id": "SMK_VS", "label": "气敏采样 Vs", "silkLabel": "Vs", "x": 74, "y": 78, "color": "yellow", "kind": "banana4" },
-        { "id": "SMK_VREF", "label": "比较阈值 Vref", "silkLabel": "Vref", "x": 74, "y": 136, "color": "yellow", "kind": "banana4" },
-        { "id": "SMK_CMP", "label": "比较器输出 Vo", "silkLabel": "CMP", "x": 126, "y": 78, "color": "yellow", "kind": "banana4" },
-        { "id": "SMK_LED_A", "label": "报警灯阳极", "silkLabel": "LED+", "x": 180, "y": 78, "color": "yellow", "kind": "banana4" },
-        { "id": "SMK_ALM_K", "label": "报警驱动端 K", "silkLabel": "ALM_K", "x": 180, "y": 136, "color": "yellow", "kind": "banana4" },
-        { "id": "SMK_SND_P", "label": "蜂鸣声输出 +", "silkLabel": "BUZ+", "x": 236, "y": 78, "color": "red", "kind": "banana4" },
-        { "id": "SMK_SND_N", "label": "蜂鸣声输出 −", "silkLabel": "BUZ−", "x": 236, "y": 136, "color": "black", "kind": "banana4" }
+        {
+          "id": "SMK_VCC",
+          "label": "+5V 电源",
+          "silkLabel": "+5V",
+          "x": 26,
+          "y": 78,
+          "color": "red",
+          "kind": "banana4"
+        },
+        {
+          "id": "SMK_GND1",
+          "label": "GND 1",
+          "silkLabel": "GND1",
+          "x": 26,
+          "y": 136,
+          "color": "black",
+          "kind": "banana4"
+        },
+        {
+          "id": "SMK_GND2",
+          "label": "GND 2",
+          "silkLabel": "GND2",
+          "x": 126,
+          "y": 136,
+          "color": "black",
+          "kind": "banana4"
+        },
+        {
+          "id": "SMK_VS",
+          "label": "气敏采样 Vs",
+          "silkLabel": "Vs",
+          "x": 74,
+          "y": 78,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "SMK_VREF",
+          "label": "比较阈值 Vref",
+          "silkLabel": "Vref",
+          "x": 74,
+          "y": 136,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "SMK_CMP",
+          "label": "比较器输出 Vo",
+          "silkLabel": "CMP",
+          "x": 126,
+          "y": 78,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "SMK_LED_A",
+          "label": "报警灯阳极",
+          "silkLabel": "LED+",
+          "x": 180,
+          "y": 78,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "SMK_ALM_K",
+          "label": "报警驱动端 K",
+          "silkLabel": "ALM_K",
+          "x": 180,
+          "y": 136,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "SMK_SND_P",
+          "label": "蜂鸣声输出 +",
+          "silkLabel": "BUZ+",
+          "x": 236,
+          "y": 78,
+          "color": "red",
+          "kind": "banana4"
+        },
+        {
+          "id": "SMK_SND_N",
+          "label": "蜂鸣声输出 −",
+          "silkLabel": "BUZ−",
+          "x": 236,
+          "y": 136,
+          "color": "black",
+          "kind": "banana4"
+        }
       ],
       "controls": [
-        { "id": "SMOKE_PPM", "label": "烟雾浓度", "kind": "knob", "x": 86, "y": 32, "radiusMm": 7, "param": "smoke_ppm", "labelX": 50, "labelY": 34 },
-        { "id": "VREF_POT", "label": "报警阈值", "kind": "knob", "x": 192, "y": 32, "radiusMm": 7, "param": "vref_pct", "labelX": 154, "labelY": 34 }
+        {
+          "id": "SMOKE_PPM",
+          "label": "烟雾浓度",
+          "kind": "knob",
+          "x": 86,
+          "y": 32,
+          "radiusMm": 7,
+          "param": "smoke_ppm",
+          "labelX": 50,
+          "labelY": 34
+        },
+        {
+          "id": "VREF_POT",
+          "label": "报警阈值",
+          "kind": "knob",
+          "x": 192,
+          "y": 32,
+          "radiusMm": 7,
+          "param": "vref_pct",
+          "labelX": 154,
+          "labelY": 34
+        }
       ],
       "screens": [],
       "panel": {
@@ -8928,15 +9361,63 @@
         "titleSize": 4.3,
         "footer": "+5V 供电 / MQ-2 气敏采样 / LM393 比较器 / LED·2.4 kHz 蜂鸣器",
         "lines": [
-          { "points": [[100, 54], [100, 158]] },
-          { "points": [[154, 54], [154, 158]] },
-          { "points": [[22, 164], [242, 164]] }
+          {
+            "points": [
+              [
+                100,
+                54
+              ],
+              [
+                100,
+                158
+              ]
+            ]
+          },
+          {
+            "points": [
+              [
+                154,
+                54
+              ],
+              [
+                154,
+                158
+              ]
+            ]
+          },
+          {
+            "points": [
+              [
+                22,
+                164
+              ],
+              [
+                242,
+                164
+              ]
+            ]
+          }
         ],
         "symbols": [],
         "texts": [
-          { "text": "MQ-2 与阈值", "x": 58, "y": 58, "size": 3.1 },
-          { "text": "LM393", "x": 126, "y": 58, "size": 3.1 },
-          { "text": "LED / 蜂鸣器", "x": 208, "y": 58, "size": 3.1 }
+          {
+            "text": "MQ-2 与阈值",
+            "x": 58,
+            "y": 58,
+            "size": 3.1
+          },
+          {
+            "text": "LM393",
+            "x": 126,
+            "y": 58,
+            "size": 3.1
+          },
+          {
+            "text": "LED / 蜂鸣器",
+            "x": 208,
+            "y": 58,
+            "size": 3.1
+          }
         ]
       }
     },
@@ -8945,46 +9426,321 @@
       "name": "集成运放与波形发生综合挂箱",
       "kind": "module",
       "bodyStyle": "box",
-      "dimensionsMm": [290, 470, 55],
+      "dimensionsMm": [
+        290,
+        470,
+        55
+      ],
       "model": "content/modules/mod-opamp/module.glb",
-      "textureSize": [1264, 2048],
+      "textureSize": [
+        1264,
+        2048
+      ],
       "estimatedDimensions": true,
       "dimensionNote": "Estimated 290 x 470 x 55 mm integrated op-amp and waveform generator box (MD-13~15, MD-17~19).",
       "jacks": [
-        { "id": "OA_VP", "label": "+12V 电源", "silkLabel": "+12V", "x": 32, "y": 54, "color": "red", "kind": "banana4" },
-        { "id": "OA_VM", "label": "−12V 电源", "silkLabel": "−12V", "x": 92, "y": 54, "color": "blue", "kind": "banana4" },
-        { "id": "OA_GND1", "label": "公共地 1", "silkLabel": "GND1", "x": 156, "y": 54, "color": "black", "kind": "banana4" },
-        { "id": "OA_GND2", "label": "公共地 2", "silkLabel": "GND2", "x": 212, "y": 54, "color": "black", "kind": "banana4" },
-        { "id": "OA1_IN1", "label": "运放1 输入1 (10k)", "silkLabel": "IN1", "x": 32, "y": 112, "color": "yellow", "kind": "banana4" },
-        { "id": "OA1_IN2", "label": "运放1 输入2 (10k)", "silkLabel": "IN2", "x": 32, "y": 160, "color": "yellow", "kind": "banana4" },
-        { "id": "OA1_SUM", "label": "运放1 反相端 (−)", "silkLabel": "SUM−", "x": 84, "y": 112, "color": "yellow", "kind": "banana4" },
-        { "id": "OA1_PIN", "label": "运放1 同相入 (10k)", "silkLabel": "PIN", "x": 84, "y": 160, "color": "yellow", "kind": "banana4" },
-        { "id": "OA1_P", "label": "运放1 同相端 (+)", "silkLabel": "IN+", "x": 138, "y": 160, "color": "yellow", "kind": "banana4" },
-        { "id": "OA1_FB", "label": "反馈电阻端 (20k)", "silkLabel": "RF", "x": 138, "y": 112, "color": "yellow", "kind": "banana4" },
-        { "id": "OA1_OUT", "label": "运放1 输出 Uo1", "silkLabel": "UO1", "x": 196, "y": 112, "color": "red", "kind": "banana4" },
-        { "id": "OA1_C1", "label": "微积分电容端 1", "silkLabel": "C1", "x": 254, "y": 112, "color": "yellow", "kind": "banana4" },
-        { "id": "OA1_C2", "label": "微积分电容端 2", "silkLabel": "C2", "x": 254, "y": 160, "color": "yellow", "kind": "banana4" },
-        { "id": "CMP_IN", "label": "比较器输入 Ui", "silkLabel": "UI", "x": 32, "y": 224, "color": "yellow", "kind": "banana4" },
-        { "id": "CMP_VREF", "label": "比较器参考 Vr", "silkLabel": "VR", "x": 84, "y": 224, "color": "yellow", "kind": "banana4" },
-        { "id": "CMP_P", "label": "比较器同相端", "silkLabel": "CMP+", "x": 136, "y": 224, "color": "yellow", "kind": "banana4" },
-        { "id": "CMP_OUT", "label": "比较器输出 Uo", "silkLabel": "UO2", "x": 188, "y": 224, "color": "red", "kind": "banana4" },
-        { "id": "FG_EN", "label": "函数区供电入", "silkLabel": "FG+V", "x": 36, "y": 336, "color": "red", "kind": "banana4" },
-        { "id": "FG_SQ", "label": "方波输出 SQ", "silkLabel": "SQ", "x": 104, "y": 336, "color": "yellow", "kind": "banana4" },
-        { "id": "FG_TRI", "label": "三角/锯齿 TRI", "silkLabel": "TRI", "x": 174, "y": 336, "color": "yellow", "kind": "banana4" },
-        { "id": "FG_SIN", "label": "正弦整形 SIN", "silkLabel": "SIN", "x": 246, "y": 336, "color": "red", "kind": "banana4" },
-        { "id": "WIEN_EN", "label": "文氏桥供电入", "silkLabel": "WB+V", "x": 36, "y": 434, "color": "red", "kind": "banana4" },
-        { "id": "WIEN_P", "label": "文氏桥选频 P", "silkLabel": "WB_P", "x": 104, "y": 434, "color": "yellow", "kind": "banana4" },
-        { "id": "WIEN_N", "label": "文氏桥反馈 N", "silkLabel": "WB_N", "x": 174, "y": 434, "color": "yellow", "kind": "banana4" },
-        { "id": "WIEN_OUT", "label": "文氏桥输出 Uo", "silkLabel": "WB_O", "x": 246, "y": 434, "color": "red", "kind": "banana4" },
-        { "id": "OA_GND3", "label": "公共地 3", "silkLabel": "GND3", "x": 260, "y": 54, "color": "black", "kind": "banana4" }
+        {
+          "id": "OA_VP",
+          "label": "+12V 电源",
+          "silkLabel": "+12V",
+          "x": 32,
+          "y": 54,
+          "color": "red",
+          "kind": "banana4"
+        },
+        {
+          "id": "OA_VM",
+          "label": "−12V 电源",
+          "silkLabel": "−12V",
+          "x": 92,
+          "y": 54,
+          "color": "blue",
+          "kind": "banana4"
+        },
+        {
+          "id": "OA_GND1",
+          "label": "公共地 1",
+          "silkLabel": "GND1",
+          "x": 156,
+          "y": 54,
+          "color": "black",
+          "kind": "banana4"
+        },
+        {
+          "id": "OA_GND2",
+          "label": "公共地 2",
+          "silkLabel": "GND2",
+          "x": 212,
+          "y": 54,
+          "color": "black",
+          "kind": "banana4"
+        },
+        {
+          "id": "OA1_IN1",
+          "label": "运放1 输入1 (10k)",
+          "silkLabel": "IN1",
+          "x": 32,
+          "y": 112,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "OA1_IN2",
+          "label": "运放1 输入2 (10k)",
+          "silkLabel": "IN2",
+          "x": 32,
+          "y": 160,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "OA1_SUM",
+          "label": "运放1 反相端 (−)",
+          "silkLabel": "SUM−",
+          "x": 84,
+          "y": 112,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "OA1_PIN",
+          "label": "运放1 同相入 (10k)",
+          "silkLabel": "PIN",
+          "x": 84,
+          "y": 160,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "OA1_P",
+          "label": "运放1 同相端 (+)",
+          "silkLabel": "IN+",
+          "x": 138,
+          "y": 160,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "OA1_FB",
+          "label": "反馈电阻端 (20k)",
+          "silkLabel": "RF",
+          "x": 138,
+          "y": 112,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "OA1_OUT",
+          "label": "运放1 输出 Uo1",
+          "silkLabel": "UO1",
+          "x": 196,
+          "y": 112,
+          "color": "red",
+          "kind": "banana4"
+        },
+        {
+          "id": "OA1_C1",
+          "label": "微积分电容端 1",
+          "silkLabel": "C1",
+          "x": 254,
+          "y": 112,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "OA1_C2",
+          "label": "微积分电容端 2",
+          "silkLabel": "C2",
+          "x": 254,
+          "y": 160,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "CMP_IN",
+          "label": "比较器输入 Ui",
+          "silkLabel": "UI",
+          "x": 32,
+          "y": 224,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "CMP_VREF",
+          "label": "比较器参考 Vr",
+          "silkLabel": "VR",
+          "x": 84,
+          "y": 224,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "CMP_P",
+          "label": "比较器同相端",
+          "silkLabel": "CMP+",
+          "x": 136,
+          "y": 224,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "CMP_OUT",
+          "label": "比较器输出 Uo",
+          "silkLabel": "UO2",
+          "x": 188,
+          "y": 224,
+          "color": "red",
+          "kind": "banana4"
+        },
+        {
+          "id": "FG_EN",
+          "label": "函数区供电入",
+          "silkLabel": "FG+V",
+          "x": 36,
+          "y": 336,
+          "color": "red",
+          "kind": "banana4"
+        },
+        {
+          "id": "FG_SQ",
+          "label": "方波输出 SQ",
+          "silkLabel": "SQ",
+          "x": 104,
+          "y": 336,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "FG_TRI",
+          "label": "三角/锯齿 TRI",
+          "silkLabel": "TRI",
+          "x": 174,
+          "y": 336,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "FG_SIN",
+          "label": "正弦整形 SIN",
+          "silkLabel": "SIN",
+          "x": 246,
+          "y": 336,
+          "color": "red",
+          "kind": "banana4"
+        },
+        {
+          "id": "WIEN_EN",
+          "label": "文氏桥供电入",
+          "silkLabel": "WB+V",
+          "x": 36,
+          "y": 434,
+          "color": "red",
+          "kind": "banana4"
+        },
+        {
+          "id": "WIEN_P",
+          "label": "文氏桥选频 P",
+          "silkLabel": "WB_P",
+          "x": 104,
+          "y": 434,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "WIEN_N",
+          "label": "文氏桥反馈 N",
+          "silkLabel": "WB_N",
+          "x": 174,
+          "y": 434,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "WIEN_OUT",
+          "label": "文氏桥输出 Uo",
+          "silkLabel": "WB_O",
+          "x": 246,
+          "y": 434,
+          "color": "red",
+          "kind": "banana4"
+        },
+        {
+          "id": "OA_GND3",
+          "label": "公共地 3",
+          "silkLabel": "GND3",
+          "x": 260,
+          "y": 54,
+          "color": "black",
+          "kind": "banana4"
+        }
       ],
       "controls": [
-        { "id": "SW_CMP_MODE", "label": "滞回切换", "kind": "knob", "x": 244, "y": 224, "radiusMm": 7, "param": "sw_cmp_mode", "labelX": 244, "labelY": 206 },
-        { "id": "R_FG_FREQ", "label": "频率电阻", "kind": "knob", "x": 66, "y": 294, "radiusMm": 7, "param": "r_fg_freq", "labelX": 32, "labelY": 296 },
-        { "id": "SW_FG_SYM", "label": "对称/锯齿", "kind": "knob", "x": 156, "y": 294, "radiusMm": 7, "param": "sw_fg_sym", "labelX": 120, "labelY": 296 },
-        { "id": "R_FG_AMP", "label": "正弦幅值", "kind": "knob", "x": 244, "y": 294, "radiusMm": 7, "param": "r_fg_amp", "labelX": 208, "labelY": 296 },
-        { "id": "RF_WIEN", "label": "起振 Rf", "kind": "knob", "x": 96, "y": 394, "radiusMm": 7, "param": "rf_wien", "labelX": 58, "labelY": 396 },
-        { "id": "SW_WIEN_C", "label": "1k/2kHz", "kind": "knob", "x": 222, "y": 394, "radiusMm": 7, "param": "sw_wien_c", "labelX": 182, "labelY": 396 }
+        {
+          "id": "SW_CMP_MODE",
+          "label": "滞回切换",
+          "kind": "knob",
+          "x": 244,
+          "y": 224,
+          "radiusMm": 7,
+          "param": "sw_cmp_mode",
+          "labelX": 244,
+          "labelY": 206
+        },
+        {
+          "id": "R_FG_FREQ",
+          "label": "频率电阻",
+          "kind": "knob",
+          "x": 66,
+          "y": 294,
+          "radiusMm": 7,
+          "param": "r_fg_freq",
+          "labelX": 32,
+          "labelY": 296
+        },
+        {
+          "id": "SW_FG_SYM",
+          "label": "对称/锯齿",
+          "kind": "knob",
+          "x": 156,
+          "y": 294,
+          "radiusMm": 7,
+          "param": "sw_fg_sym",
+          "labelX": 120,
+          "labelY": 296
+        },
+        {
+          "id": "R_FG_AMP",
+          "label": "正弦幅值",
+          "kind": "knob",
+          "x": 244,
+          "y": 294,
+          "radiusMm": 7,
+          "param": "r_fg_amp",
+          "labelX": 208,
+          "labelY": 296
+        },
+        {
+          "id": "RF_WIEN",
+          "label": "起振 Rf",
+          "kind": "knob",
+          "x": 96,
+          "y": 394,
+          "radiusMm": 7,
+          "param": "rf_wien",
+          "labelX": 58,
+          "labelY": 396
+        },
+        {
+          "id": "SW_WIEN_C",
+          "label": "1k/2kHz",
+          "kind": "knob",
+          "x": 222,
+          "y": 394,
+          "radiusMm": 7,
+          "param": "sw_wien_c",
+          "labelX": 182,
+          "labelY": 396
+        }
       ],
       "screens": [],
       "panel": {
@@ -8992,19 +9748,2260 @@
         "titleSize": 4.8,
         "footer": "±12V 双电源 / 基本运算·微积分 / 滞回比较器 / 方·三角·锯齿·正弦 / 文氏桥",
         "lines": [
-          { "points": [[16, 78], [274, 78]] },
-          { "points": [[16, 184], [274, 184]] },
-          { "points": [[16, 256], [274, 256]] },
-          { "points": [[16, 362], [274, 362]] }
+          {
+            "points": [
+              [
+                16,
+                78
+              ],
+              [
+                274,
+                78
+              ]
+            ]
+          },
+          {
+            "points": [
+              [
+                16,
+                184
+              ],
+              [
+                274,
+                184
+              ]
+            ]
+          },
+          {
+            "points": [
+              [
+                16,
+                256
+              ],
+              [
+                274,
+                256
+              ]
+            ]
+          },
+          {
+            "points": [
+              [
+                16,
+                362
+              ],
+              [
+                274,
+                362
+              ]
+            ]
+          }
         ],
         "symbols": [],
         "texts": [
-          { "text": "区 1：线性比例 / 加减 / 积分·微分 (OA1)", "x": 145, "y": 90, "size": 3.4 },
-          { "text": "区 2：单限 / 过零 / 滞回比较器 (OA2)", "x": 145, "y": 196, "size": 3.4 },
-          { "text": "区 3：方波 / 三角波 / 锯齿波 / 正弦波函数发生 (OA3·OA4)", "x": 145, "y": 268, "size": 3.2 },
-          { "text": "区 4：RC 文氏桥正弦波振荡器 (OA5)", "x": 145, "y": 374, "size": 3.4 }
+          {
+            "text": "区 1：线性比例 / 加减 / 积分·微分 (OA1)",
+            "x": 145,
+            "y": 90,
+            "size": 3.4
+          },
+          {
+            "text": "区 2：单限 / 过零 / 滞回比较器 (OA2)",
+            "x": 145,
+            "y": 196,
+            "size": 3.4
+          },
+          {
+            "text": "区 3：方波 / 三角波 / 锯齿波 / 正弦波函数发生 (OA3·OA4)",
+            "x": 145,
+            "y": 268,
+            "size": 3.2
+          },
+          {
+            "text": "区 4：RC 文氏桥正弦波振荡器 (OA5)",
+            "x": 145,
+            "y": 374,
+            "size": 3.4
+          }
         ]
       }
+    },
+    {
+      "id": "mod-dig-gates",
+      "name": "基本逻辑门与译码显示实验箱",
+      "kind": "module",
+      "model": "content/modules/mod-dig-gates/module.glb",
+      "panelSvg": "content/modules/mod-dig-gates/panel.svg",
+      "panelWebp": "content/modules/mod-dig-gates/panel.webp",
+      "dimensionsMm": [
+        290,
+        470,
+        55
+      ],
+      "jacks": [
+        {
+          "id": "VCC",
+          "label": "+5V 电源",
+          "silkLabel": "VCC",
+          "x": 42,
+          "y": 185,
+          "color": "red",
+          "kind": "banana4"
+        },
+        {
+          "id": "GND",
+          "label": "公共地 GND",
+          "silkLabel": "GND",
+          "x": 108,
+          "y": 185,
+          "color": "black",
+          "kind": "banana4"
+        },
+        {
+          "id": "K0",
+          "label": "逻辑开关 K0",
+          "silkLabel": "K0",
+          "x": 174,
+          "y": 185,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "K1",
+          "label": "逻辑开关 K1",
+          "silkLabel": "K1",
+          "x": 240,
+          "y": 185,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "K2",
+          "label": "逻辑开关 K2",
+          "silkLabel": "K2",
+          "x": 42,
+          "y": 223,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "K3",
+          "label": "逻辑开关 K3",
+          "silkLabel": "K3",
+          "x": 108,
+          "y": 223,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "K4",
+          "label": "逻辑开关 K4",
+          "silkLabel": "K4",
+          "x": 174,
+          "y": 223,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "K5",
+          "label": "逻辑开关 K5",
+          "silkLabel": "K5",
+          "x": 240,
+          "y": 223,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "G_A",
+          "label": "门输入 A",
+          "silkLabel": "G_A",
+          "x": 42,
+          "y": 261,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "G_B",
+          "label": "门输入 B",
+          "silkLabel": "G_B",
+          "x": 108,
+          "y": 261,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "Y_NAND",
+          "label": "74LS00 与非",
+          "silkLabel": "Y_NAND",
+          "x": 174,
+          "y": 261,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "Y_NOR",
+          "label": "74LS02 或非",
+          "silkLabel": "Y_NOR",
+          "x": 240,
+          "y": 261,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "Y_NOT",
+          "label": "74LS04 非",
+          "silkLabel": "Y_NOT",
+          "x": 42,
+          "y": 299,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "Y_AND",
+          "label": "74LS08 与",
+          "silkLabel": "Y_AND",
+          "x": 108,
+          "y": 299,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "Y_OR",
+          "label": "74LS32 或",
+          "silkLabel": "Y_OR",
+          "x": 174,
+          "y": 299,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "Y_XOR",
+          "label": "74LS86 异或",
+          "silkLabel": "Y_XOR",
+          "x": 240,
+          "y": 299,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "CD_A",
+          "label": "4511 输入 A",
+          "silkLabel": "CD_A",
+          "x": 42,
+          "y": 337,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "CD_B",
+          "label": "4511 输入 B",
+          "silkLabel": "CD_B",
+          "x": 108,
+          "y": 337,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "CD_C",
+          "label": "4511 输入 C",
+          "silkLabel": "CD_C",
+          "x": 174,
+          "y": 337,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "CD_D",
+          "label": "4511 输入 D",
+          "silkLabel": "CD_D",
+          "x": 240,
+          "y": 337,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "CD_LT",
+          "label": "4511 灯测 /LT",
+          "silkLabel": "CD_LT",
+          "x": 42,
+          "y": 375,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "CD_BI",
+          "label": "4511 消隐 /BI",
+          "silkLabel": "CD_BI",
+          "x": 108,
+          "y": 375,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "CD_LE",
+          "label": "4511 锁存 LE",
+          "silkLabel": "CD_LE",
+          "x": 174,
+          "y": 375,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "CD_SEGA",
+          "label": "数码管 a 段测点",
+          "silkLabel": "CD_SEGA",
+          "x": 240,
+          "y": 375,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "LED0",
+          "label": "电平指示 L0",
+          "silkLabel": "LED0",
+          "x": 42,
+          "y": 413,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "LED1",
+          "label": "电平指示 L1",
+          "silkLabel": "LED1",
+          "x": 108,
+          "y": 413,
+          "color": "yellow",
+          "kind": "banana4"
+        }
+      ],
+      "controls": [
+        {
+          "id": "SW_K0",
+          "label": "K0",
+          "kind": "switch",
+          "x": 38,
+          "y": 136,
+          "param": "sw_k0",
+          "labelY": 156
+        },
+        {
+          "id": "SW_K1",
+          "label": "K1",
+          "kind": "switch",
+          "x": 81,
+          "y": 136,
+          "param": "sw_k1",
+          "labelY": 156
+        },
+        {
+          "id": "SW_K2",
+          "label": "K2",
+          "kind": "switch",
+          "x": 124,
+          "y": 136,
+          "param": "sw_k2",
+          "labelY": 156
+        },
+        {
+          "id": "SW_K3",
+          "label": "K3",
+          "kind": "switch",
+          "x": 166,
+          "y": 136,
+          "param": "sw_k3",
+          "labelY": 156
+        },
+        {
+          "id": "SW_K4",
+          "label": "K4",
+          "kind": "switch",
+          "x": 209,
+          "y": 136,
+          "param": "sw_k4",
+          "labelY": 156
+        },
+        {
+          "id": "SW_K5",
+          "label": "K5",
+          "kind": "switch",
+          "x": 252,
+          "y": 136,
+          "param": "sw_k5",
+          "labelY": 156
+        }
+      ],
+      "screens": [
+        {
+          "id": "DISP1",
+          "x": 145,
+          "y": 72,
+          "width": 42,
+          "height": 52
+        }
+      ],
+      "panel": {
+        "title": "基本逻辑门与译码显示实验箱",
+        "subtitle": "数字逻辑实训模块 · +5V TTL/CMOS",
+        "background": "#eef2f6",
+        "border": "#334155",
+        "groups": [],
+        "traces": [],
+        "symbols": [],
+        "labels": []
+      },
+      "parts": [],
+      "slots": [],
+      "notes": []
+    },
+    {
+      "id": "mod-dig-msi",
+      "name": "编码译码与数据选择实验箱",
+      "kind": "module",
+      "model": "content/modules/mod-dig-msi/module.glb",
+      "panelSvg": "content/modules/mod-dig-msi/panel.svg",
+      "panelWebp": "content/modules/mod-dig-msi/panel.webp",
+      "dimensionsMm": [
+        290,
+        470,
+        55
+      ],
+      "jacks": [
+        {
+          "id": "VCC",
+          "label": "+5V 电源",
+          "silkLabel": "VCC",
+          "x": 42,
+          "y": 185,
+          "color": "red",
+          "kind": "banana4"
+        },
+        {
+          "id": "GND",
+          "label": "公共地 GND",
+          "silkLabel": "GND",
+          "x": 108,
+          "y": 185,
+          "color": "black",
+          "kind": "banana4"
+        },
+        {
+          "id": "K0",
+          "label": "逻辑开关 K0",
+          "silkLabel": "K0",
+          "x": 174,
+          "y": 185,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "K1",
+          "label": "逻辑开关 K1",
+          "silkLabel": "K1",
+          "x": 240,
+          "y": 185,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "K2",
+          "label": "逻辑开关 K2",
+          "silkLabel": "K2",
+          "x": 42,
+          "y": 223,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "K3",
+          "label": "逻辑开关 K3",
+          "silkLabel": "K3",
+          "x": 108,
+          "y": 223,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "E_EI",
+          "label": "148 使能 /EI",
+          "silkLabel": "E_EI",
+          "x": 174,
+          "y": 223,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "E_I1",
+          "label": "148 输入 /I1",
+          "silkLabel": "E_I1",
+          "x": 240,
+          "y": 223,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "E_I4",
+          "label": "148 输入 /I4",
+          "silkLabel": "E_I4",
+          "x": 42,
+          "y": 261,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "E_I7",
+          "label": "148 输入 /I7",
+          "silkLabel": "E_I7",
+          "x": 108,
+          "y": 261,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "E_A2",
+          "label": "148 编码 /A2",
+          "silkLabel": "E_A2",
+          "x": 174,
+          "y": 261,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "E_A1",
+          "label": "148 编码 /A1",
+          "silkLabel": "E_A1",
+          "x": 240,
+          "y": 261,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "E_A0",
+          "label": "148 编码 /A0",
+          "silkLabel": "E_A0",
+          "x": 42,
+          "y": 299,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "E_GS",
+          "label": "148 有效 /GS",
+          "silkLabel": "E_GS",
+          "x": 108,
+          "y": 299,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "E_EO",
+          "label": "148 扩展 /EO",
+          "silkLabel": "E_EO",
+          "x": 174,
+          "y": 299,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "SEL_A",
+          "label": "地址输入 A",
+          "silkLabel": "SEL_A",
+          "x": 240,
+          "y": 299,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "SEL_B",
+          "label": "地址输入 B",
+          "silkLabel": "SEL_B",
+          "x": 42,
+          "y": 337,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "SEL_C",
+          "label": "地址输入 C",
+          "silkLabel": "SEL_C",
+          "x": 108,
+          "y": 337,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "DEC_G1",
+          "label": "138 使能 G1",
+          "silkLabel": "DEC_G1",
+          "x": 174,
+          "y": 337,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "DEC_Y0",
+          "label": "138 译码 /Y0",
+          "silkLabel": "DEC_Y0",
+          "x": 240,
+          "y": 337,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "DEC_Y3",
+          "label": "138 译码 /Y3",
+          "silkLabel": "DEC_Y3",
+          "x": 42,
+          "y": 375,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "DEC_Y5",
+          "label": "138 译码 /Y5",
+          "silkLabel": "DEC_Y5",
+          "x": 108,
+          "y": 375,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "DEC_Y7",
+          "label": "138 译码 /Y7",
+          "silkLabel": "DEC_Y7",
+          "x": 174,
+          "y": 375,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "MUX151_Y",
+          "label": "151 输出 Y",
+          "silkLabel": "MUX151_Y",
+          "x": 240,
+          "y": 375,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "MUX151_W",
+          "label": "151 反相 W",
+          "silkLabel": "MUX151_W",
+          "x": 42,
+          "y": 413,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "MUX153_1Y",
+          "label": "153 输出 1Y",
+          "silkLabel": "153_1Y",
+          "x": 108,
+          "y": 413,
+          "color": "yellow",
+          "kind": "banana4"
+        }
+      ],
+      "controls": [
+        {
+          "id": "SW_K0",
+          "label": "K0",
+          "kind": "switch",
+          "x": 38,
+          "y": 136,
+          "param": "sw_k0",
+          "labelY": 156
+        },
+        {
+          "id": "SW_K1",
+          "label": "K1",
+          "kind": "switch",
+          "x": 92,
+          "y": 136,
+          "param": "sw_k1",
+          "labelY": 156
+        },
+        {
+          "id": "SW_K2",
+          "label": "K2",
+          "kind": "switch",
+          "x": 145,
+          "y": 136,
+          "param": "sw_k2",
+          "labelY": 156
+        },
+        {
+          "id": "SW_K3",
+          "label": "K3",
+          "kind": "switch",
+          "x": 199,
+          "y": 136,
+          "param": "sw_k3",
+          "labelY": 156
+        },
+        {
+          "id": "ENC_EXT",
+          "label": "ENC_EXT",
+          "kind": "knob",
+          "x": 252,
+          "y": 136,
+          "radiusMm": 8,
+          "param": "enc_ext",
+          "labelY": 156
+        }
+      ],
+      "panel": {
+        "title": "编码译码与数据选择实验箱",
+        "subtitle": "数字逻辑实训模块 · +5V TTL/CMOS",
+        "background": "#eef2f6",
+        "border": "#334155",
+        "groups": [],
+        "traces": [],
+        "symbols": [],
+        "labels": []
+      },
+      "screens": [],
+      "parts": [],
+      "slots": [],
+      "notes": []
+    },
+    {
+      "id": "mod-dig-arith",
+      "name": "全加器与数值比较器实验箱",
+      "kind": "module",
+      "model": "content/modules/mod-dig-arith/module.glb",
+      "panelSvg": "content/modules/mod-dig-arith/panel.svg",
+      "panelWebp": "content/modules/mod-dig-arith/panel.webp",
+      "dimensionsMm": [
+        290,
+        470,
+        55
+      ],
+      "jacks": [
+        {
+          "id": "VCC",
+          "label": "+5V 电源",
+          "silkLabel": "VCC",
+          "x": 42,
+          "y": 185,
+          "color": "red",
+          "kind": "banana4"
+        },
+        {
+          "id": "GND",
+          "label": "公共地 GND",
+          "silkLabel": "GND",
+          "x": 108,
+          "y": 185,
+          "color": "black",
+          "kind": "banana4"
+        },
+        {
+          "id": "K0",
+          "label": "逻辑开关 K0",
+          "silkLabel": "K0",
+          "x": 174,
+          "y": 185,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "K1",
+          "label": "逻辑开关 K1",
+          "silkLabel": "K1",
+          "x": 240,
+          "y": 185,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "K2",
+          "label": "逻辑开关 K2",
+          "silkLabel": "K2",
+          "x": 42,
+          "y": 223,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "K3",
+          "label": "逻辑开关 K3",
+          "silkLabel": "K3",
+          "x": 108,
+          "y": 223,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "FA_A",
+          "label": "183 加数 A",
+          "silkLabel": "FA_A",
+          "x": 174,
+          "y": 223,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "FA_B",
+          "label": "183 加数 B",
+          "silkLabel": "FA_B",
+          "x": 240,
+          "y": 223,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "FA_CI",
+          "label": "183 进位入 Ci",
+          "silkLabel": "FA_CI",
+          "x": 42,
+          "y": 261,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "FA_S",
+          "label": "183 本位和 S",
+          "silkLabel": "FA_S",
+          "x": 108,
+          "y": 261,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "FA_CO",
+          "label": "183 进位出 Co",
+          "silkLabel": "FA_CO",
+          "x": 174,
+          "y": 261,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "AD4_C0",
+          "label": "283 低位进位 C0",
+          "silkLabel": "AD4_C0",
+          "x": 240,
+          "y": 261,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "AD4_S0",
+          "label": "283 和输出 S0",
+          "silkLabel": "AD4_S0",
+          "x": 42,
+          "y": 299,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "AD4_S1",
+          "label": "283 和输出 S1",
+          "silkLabel": "AD4_S1",
+          "x": 108,
+          "y": 299,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "AD4_S2",
+          "label": "283 和输出 S2",
+          "silkLabel": "AD4_S2",
+          "x": 174,
+          "y": 299,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "AD4_S3",
+          "label": "283 和输出 S3",
+          "silkLabel": "AD4_S3",
+          "x": 240,
+          "y": 299,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "AD4_C4",
+          "label": "283 进位出 C4",
+          "silkLabel": "AD4_C4",
+          "x": 42,
+          "y": 337,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "CMP_IGT",
+          "label": "85 级联 I(A>B)",
+          "silkLabel": "CMP_IGT",
+          "x": 108,
+          "y": 337,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "CMP_IEQ",
+          "label": "85 级联 I(A=B)",
+          "silkLabel": "CMP_IEQ",
+          "x": 174,
+          "y": 337,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "CMP_ILT",
+          "label": "85 级联 I(A<B)",
+          "silkLabel": "CMP_ILT",
+          "x": 240,
+          "y": 337,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "CMP_OGT",
+          "label": "85 输出 O(A>B)",
+          "silkLabel": "CMP_OGT",
+          "x": 42,
+          "y": 375,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "CMP_OEQ",
+          "label": "85 输出 O(A=B)",
+          "silkLabel": "CMP_OEQ",
+          "x": 108,
+          "y": 375,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "CMP_OLT",
+          "label": "85 输出 O(A<B)",
+          "silkLabel": "CMP_OLT",
+          "x": 174,
+          "y": 375,
+          "color": "yellow",
+          "kind": "banana4"
+        }
+      ],
+      "controls": [
+        {
+          "id": "SW_K0",
+          "label": "K0",
+          "kind": "switch",
+          "x": 38,
+          "y": 136,
+          "param": "sw_k0",
+          "labelY": 156
+        },
+        {
+          "id": "SW_K1",
+          "label": "K1",
+          "kind": "switch",
+          "x": 81,
+          "y": 136,
+          "param": "sw_k1",
+          "labelY": 156
+        },
+        {
+          "id": "SW_K2",
+          "label": "K2",
+          "kind": "switch",
+          "x": 124,
+          "y": 136,
+          "param": "sw_k2",
+          "labelY": 156
+        },
+        {
+          "id": "SW_K3",
+          "label": "K3",
+          "kind": "switch",
+          "x": 166,
+          "y": 136,
+          "param": "sw_k3",
+          "labelY": 156
+        },
+        {
+          "id": "OP_A",
+          "label": "OP_A",
+          "kind": "knob",
+          "x": 209,
+          "y": 136,
+          "radiusMm": 8,
+          "param": "op_a",
+          "labelY": 156
+        },
+        {
+          "id": "OP_B",
+          "label": "OP_B",
+          "kind": "knob",
+          "x": 252,
+          "y": 136,
+          "radiusMm": 8,
+          "param": "op_b",
+          "labelY": 156
+        }
+      ],
+      "panel": {
+        "title": "全加器与数值比较器实验箱",
+        "subtitle": "数字逻辑实训模块 · +5V TTL/CMOS",
+        "background": "#eef2f6",
+        "border": "#334155",
+        "groups": [],
+        "traces": [],
+        "symbols": [],
+        "labels": []
+      },
+      "screens": [],
+      "parts": [],
+      "slots": [],
+      "notes": []
+    },
+    {
+      "id": "mod-dig-ff",
+      "name": "触发器功能实验箱",
+      "kind": "module",
+      "model": "content/modules/mod-dig-ff/module.glb",
+      "panelSvg": "content/modules/mod-dig-ff/panel.svg",
+      "panelWebp": "content/modules/mod-dig-ff/panel.webp",
+      "dimensionsMm": [
+        290,
+        470,
+        55
+      ],
+      "jacks": [
+        {
+          "id": "VCC",
+          "label": "+5V 电源",
+          "silkLabel": "VCC",
+          "x": 42,
+          "y": 185,
+          "color": "red",
+          "kind": "banana4"
+        },
+        {
+          "id": "GND",
+          "label": "公共地 GND",
+          "silkLabel": "GND",
+          "x": 108,
+          "y": 185,
+          "color": "black",
+          "kind": "banana4"
+        },
+        {
+          "id": "K0",
+          "label": "逻辑开关 K0",
+          "silkLabel": "K0",
+          "x": 174,
+          "y": 185,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "K1",
+          "label": "逻辑开关 K1",
+          "silkLabel": "K1",
+          "x": 240,
+          "y": 185,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "K2",
+          "label": "逻辑开关 K2",
+          "silkLabel": "K2",
+          "x": 42,
+          "y": 223,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "K3",
+          "label": "逻辑开关 K3",
+          "silkLabel": "K3",
+          "x": 108,
+          "y": 223,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "CP_MAN",
+          "label": "单次脉冲 CP",
+          "silkLabel": "CP_MAN",
+          "x": 174,
+          "y": 223,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "CLK_OUT",
+          "label": "连续脉冲 CLK",
+          "silkLabel": "CLK_OUT",
+          "x": 240,
+          "y": 223,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "RS_S",
+          "label": "RS 置位 /S",
+          "silkLabel": "RS_S",
+          "x": 42,
+          "y": 261,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "RS_R",
+          "label": "RS 复位 /R",
+          "silkLabel": "RS_R",
+          "x": 108,
+          "y": 261,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "RS_Q",
+          "label": "RS 输出 Q",
+          "silkLabel": "RS_Q",
+          "x": 174,
+          "y": 261,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "RS_NQ",
+          "label": "RS 输出 /Q",
+          "silkLabel": "RS_NQ",
+          "x": 240,
+          "y": 261,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "D_PRE",
+          "label": "74 置位 /PRE",
+          "silkLabel": "D_PRE",
+          "x": 42,
+          "y": 299,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "D_CLR",
+          "label": "74 复位 /CLR",
+          "silkLabel": "D_CLR",
+          "x": 108,
+          "y": 299,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "D_D",
+          "label": "74 数据 D",
+          "silkLabel": "D_D",
+          "x": 174,
+          "y": 299,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "D_CP",
+          "label": "74 时钟 CP",
+          "silkLabel": "D_CP",
+          "x": 240,
+          "y": 299,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "D_Q",
+          "label": "74 输出 Q",
+          "silkLabel": "D_Q",
+          "x": 42,
+          "y": 337,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "D_NQ",
+          "label": "74 输出 /Q",
+          "silkLabel": "D_NQ",
+          "x": 108,
+          "y": 337,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "JK_PRE",
+          "label": "112 置位 /PRE",
+          "silkLabel": "JK_PRE",
+          "x": 174,
+          "y": 337,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "JK_CLR",
+          "label": "112 复位 /CLR",
+          "silkLabel": "JK_CLR",
+          "x": 240,
+          "y": 337,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "JK_J",
+          "label": "112 输入 J",
+          "silkLabel": "JK_J",
+          "x": 42,
+          "y": 375,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "JK_K",
+          "label": "112 输入 K",
+          "silkLabel": "JK_K",
+          "x": 108,
+          "y": 375,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "JK_CP",
+          "label": "112 时钟 /CP",
+          "silkLabel": "JK_CP",
+          "x": 174,
+          "y": 375,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "JK_Q",
+          "label": "112 输出 Q",
+          "silkLabel": "JK_Q",
+          "x": 240,
+          "y": 375,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "JK_NQ",
+          "label": "112 输出 /Q",
+          "silkLabel": "JK_NQ",
+          "x": 42,
+          "y": 413,
+          "color": "yellow",
+          "kind": "banana4"
+        }
+      ],
+      "controls": [
+        {
+          "id": "SW_K0",
+          "label": "K0",
+          "kind": "switch",
+          "x": 38,
+          "y": 136,
+          "param": "sw_k0",
+          "labelY": 156
+        },
+        {
+          "id": "SW_K1",
+          "label": "K1",
+          "kind": "switch",
+          "x": 81,
+          "y": 136,
+          "param": "sw_k1",
+          "labelY": 156
+        },
+        {
+          "id": "SW_K2",
+          "label": "K2",
+          "kind": "switch",
+          "x": 124,
+          "y": 136,
+          "param": "sw_k2",
+          "labelY": 156
+        },
+        {
+          "id": "SW_K3",
+          "label": "K3",
+          "kind": "switch",
+          "x": 166,
+          "y": 136,
+          "param": "sw_k3",
+          "labelY": 156
+        },
+        {
+          "id": "CP_BTN",
+          "label": "CP_BTN",
+          "kind": "switch",
+          "x": 209,
+          "y": 136,
+          "param": "cp_btn",
+          "labelY": 156
+        },
+        {
+          "id": "CLK_RATE",
+          "label": "CLK_RATE",
+          "kind": "knob",
+          "x": 252,
+          "y": 136,
+          "radiusMm": 8,
+          "param": "clk_rate",
+          "labelY": 156
+        }
+      ],
+      "panel": {
+        "title": "触发器功能实验箱",
+        "subtitle": "数字逻辑实训模块 · +5V TTL/CMOS",
+        "background": "#eef2f6",
+        "border": "#334155",
+        "groups": [],
+        "traces": [],
+        "symbols": [],
+        "labels": []
+      },
+      "screens": [],
+      "parts": [],
+      "slots": [],
+      "notes": []
+    },
+    {
+      "id": "mod-dig-shift",
+      "name": "双向移位寄存器实验箱",
+      "kind": "module",
+      "model": "content/modules/mod-dig-shift/module.glb",
+      "panelSvg": "content/modules/mod-dig-shift/panel.svg",
+      "panelWebp": "content/modules/mod-dig-shift/panel.webp",
+      "dimensionsMm": [
+        290,
+        470,
+        55
+      ],
+      "jacks": [
+        {
+          "id": "VCC",
+          "label": "+5V 电源",
+          "silkLabel": "VCC",
+          "x": 42,
+          "y": 185,
+          "color": "red",
+          "kind": "banana4"
+        },
+        {
+          "id": "GND",
+          "label": "公共地 GND",
+          "silkLabel": "GND",
+          "x": 108,
+          "y": 185,
+          "color": "black",
+          "kind": "banana4"
+        },
+        {
+          "id": "K0",
+          "label": "逻辑开关 K0",
+          "silkLabel": "K0",
+          "x": 174,
+          "y": 185,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "K1",
+          "label": "逻辑开关 K1",
+          "silkLabel": "K1",
+          "x": 240,
+          "y": 185,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "CP_MAN",
+          "label": "单次脉冲 CP",
+          "silkLabel": "CP_MAN",
+          "x": 42,
+          "y": 223,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "CLK_OUT",
+          "label": "连续脉冲 CLK",
+          "silkLabel": "CLK_OUT",
+          "x": 108,
+          "y": 223,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "SH_CLR",
+          "label": "194 清零 /CLR",
+          "silkLabel": "SH_CLR",
+          "x": 174,
+          "y": 223,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "SH_S0",
+          "label": "194 模式 S0",
+          "silkLabel": "SH_S0",
+          "x": 240,
+          "y": 223,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "SH_S1",
+          "label": "194 模式 S1",
+          "silkLabel": "SH_S1",
+          "x": 42,
+          "y": 261,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "SH_CP",
+          "label": "194 时钟 CP",
+          "silkLabel": "SH_CP",
+          "x": 108,
+          "y": 261,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "SH_SR",
+          "label": "右移串入 SR",
+          "silkLabel": "SH_SR",
+          "x": 174,
+          "y": 261,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "SH_SL",
+          "label": "左移串入 SL",
+          "silkLabel": "SH_SL",
+          "x": 240,
+          "y": 261,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "SH_A",
+          "label": "并行输入 A",
+          "silkLabel": "SH_A",
+          "x": 42,
+          "y": 299,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "SH_B",
+          "label": "并行输入 B",
+          "silkLabel": "SH_B",
+          "x": 108,
+          "y": 299,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "SH_C",
+          "label": "并行输入 C",
+          "silkLabel": "SH_C",
+          "x": 174,
+          "y": 299,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "SH_D",
+          "label": "并行输入 D",
+          "silkLabel": "SH_D",
+          "x": 240,
+          "y": 299,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "SH_QA",
+          "label": "输出 QA",
+          "silkLabel": "SH_QA",
+          "x": 42,
+          "y": 337,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "SH_QB",
+          "label": "输出 QB",
+          "silkLabel": "SH_QB",
+          "x": 108,
+          "y": 337,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "SH_QC",
+          "label": "输出 QC",
+          "silkLabel": "SH_QC",
+          "x": 174,
+          "y": 337,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "SH_QD",
+          "label": "输出 QD",
+          "silkLabel": "SH_QD",
+          "x": 240,
+          "y": 337,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "SH_RING_FB",
+          "label": "环形自启动反馈",
+          "silkLabel": "RING_FB",
+          "x": 42,
+          "y": 375,
+          "color": "yellow",
+          "kind": "banana4"
+        }
+      ],
+      "controls": [
+        {
+          "id": "SW_K0",
+          "label": "K0",
+          "kind": "switch",
+          "x": 38,
+          "y": 136,
+          "param": "sw_k0",
+          "labelY": 156
+        },
+        {
+          "id": "SW_K1",
+          "label": "K1",
+          "kind": "switch",
+          "x": 92,
+          "y": 136,
+          "param": "sw_k1",
+          "labelY": 156
+        },
+        {
+          "id": "CP_BTN",
+          "label": "CP_BTN",
+          "kind": "switch",
+          "x": 145,
+          "y": 136,
+          "param": "cp_btn",
+          "labelY": 156
+        },
+        {
+          "id": "CLK_RATE",
+          "label": "CLK_RATE",
+          "kind": "knob",
+          "x": 199,
+          "y": 136,
+          "radiusMm": 8,
+          "param": "clk_rate",
+          "labelY": 156
+        },
+        {
+          "id": "PAR_DATA",
+          "label": "PAR_DATA",
+          "kind": "knob",
+          "x": 252,
+          "y": 136,
+          "radiusMm": 8,
+          "param": "par_data",
+          "labelY": 156
+        }
+      ],
+      "panel": {
+        "title": "双向移位寄存器实验箱",
+        "subtitle": "数字逻辑实训模块 · +5V TTL/CMOS",
+        "background": "#eef2f6",
+        "border": "#334155",
+        "groups": [],
+        "traces": [],
+        "symbols": [],
+        "labels": []
+      },
+      "screens": [],
+      "parts": [],
+      "slots": [],
+      "notes": []
+    },
+    {
+      "id": "mod-dig-cnt-ud",
+      "name": "二五十进制与可逆计数器实验箱",
+      "kind": "module",
+      "model": "content/modules/mod-dig-cnt-ud/module.glb",
+      "panelSvg": "content/modules/mod-dig-cnt-ud/panel.svg",
+      "panelWebp": "content/modules/mod-dig-cnt-ud/panel.webp",
+      "dimensionsMm": [
+        290,
+        470,
+        55
+      ],
+      "jacks": [
+        {
+          "id": "VCC",
+          "label": "+5V 电源",
+          "silkLabel": "VCC",
+          "x": 42,
+          "y": 185,
+          "color": "red",
+          "kind": "banana4"
+        },
+        {
+          "id": "GND",
+          "label": "公共地 GND",
+          "silkLabel": "GND",
+          "x": 108,
+          "y": 185,
+          "color": "black",
+          "kind": "banana4"
+        },
+        {
+          "id": "CP_MAN",
+          "label": "单次脉冲 CP",
+          "silkLabel": "CP_MAN",
+          "x": 174,
+          "y": 185,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "CLK_OUT",
+          "label": "连续脉冲 CLK",
+          "silkLabel": "CLK_OUT",
+          "x": 240,
+          "y": 185,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "K0",
+          "label": "逻辑开关 K0",
+          "silkLabel": "K0",
+          "x": 42,
+          "y": 223,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "K1",
+          "label": "逻辑开关 K1",
+          "silkLabel": "K1",
+          "x": 108,
+          "y": 223,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "DISP_A",
+          "label": "译码输入 A",
+          "silkLabel": "DISP_A",
+          "x": 174,
+          "y": 223,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "DISP_B",
+          "label": "译码输入 B",
+          "silkLabel": "DISP_B",
+          "x": 240,
+          "y": 223,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "DISP_C",
+          "label": "译码输入 C",
+          "silkLabel": "DISP_C",
+          "x": 42,
+          "y": 261,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "DISP_D",
+          "label": "译码输入 D",
+          "silkLabel": "DISP_D",
+          "x": 108,
+          "y": 261,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "C90_CP0",
+          "label": "90 时钟 CP0",
+          "silkLabel": "C90_CP0",
+          "x": 174,
+          "y": 261,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "C90_CP1",
+          "label": "90 时钟 CP1",
+          "silkLabel": "C90_CP1",
+          "x": 240,
+          "y": 261,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "C90_R0",
+          "label": "90 清零 R0",
+          "silkLabel": "C90_R0",
+          "x": 42,
+          "y": 299,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "C90_R9",
+          "label": "90 置九 R9",
+          "silkLabel": "C90_R9",
+          "x": 108,
+          "y": 299,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "C90_Q0",
+          "label": "90 输出 Q0",
+          "silkLabel": "C90_Q0",
+          "x": 174,
+          "y": 299,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "C90_Q1",
+          "label": "90 输出 Q1",
+          "silkLabel": "C90_Q1",
+          "x": 240,
+          "y": 299,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "C90_Q2",
+          "label": "90 输出 Q2",
+          "silkLabel": "C90_Q2",
+          "x": 42,
+          "y": 337,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "C90_Q3",
+          "label": "90 输出 Q3",
+          "silkLabel": "C90_Q3",
+          "x": 108,
+          "y": 337,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "C192_UP",
+          "label": "192 加计数 UP",
+          "silkLabel": "C192_UP",
+          "x": 174,
+          "y": 337,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "C192_DN",
+          "label": "192 减计数 DN",
+          "silkLabel": "C192_DN",
+          "x": 240,
+          "y": 337,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "C192_CLR",
+          "label": "192 清零 CLR",
+          "silkLabel": "C192_CLR",
+          "x": 42,
+          "y": 375,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "C192_LD",
+          "label": "192 置数 /LOAD",
+          "silkLabel": "C192_LD",
+          "x": 108,
+          "y": 375,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "C192_CO",
+          "label": "192 进位 /CO",
+          "silkLabel": "C192_CO",
+          "x": 174,
+          "y": 375,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "C192_BO",
+          "label": "192 借位 /BO",
+          "silkLabel": "C192_BO",
+          "x": 240,
+          "y": 375,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "C192_Q0",
+          "label": "192 输出 Q0",
+          "silkLabel": "C192_Q0",
+          "x": 42,
+          "y": 413,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "C192_Q1",
+          "label": "192 输出 Q1",
+          "silkLabel": "C192_Q1",
+          "x": 108,
+          "y": 413,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "C192_Q2",
+          "label": "192 输出 Q2",
+          "silkLabel": "C192_Q2",
+          "x": 174,
+          "y": 413,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "C192_Q3",
+          "label": "192 输出 Q3",
+          "silkLabel": "C192_Q3",
+          "x": 240,
+          "y": 413,
+          "color": "yellow",
+          "kind": "banana4"
+        }
+      ],
+      "controls": [
+        {
+          "id": "CLK_RATE",
+          "label": "CLK_RATE",
+          "kind": "knob",
+          "x": 38,
+          "y": 136,
+          "radiusMm": 8,
+          "param": "clk_rate",
+          "labelY": 156
+        },
+        {
+          "id": "CP_BTN",
+          "label": "CP_BTN",
+          "kind": "switch",
+          "x": 92,
+          "y": 136,
+          "param": "cp_btn",
+          "labelY": 156
+        },
+        {
+          "id": "SW_K0",
+          "label": "K0",
+          "kind": "switch",
+          "x": 145,
+          "y": 136,
+          "param": "sw_k0",
+          "labelY": 156
+        },
+        {
+          "id": "SW_K1",
+          "label": "K1",
+          "kind": "switch",
+          "x": 199,
+          "y": 136,
+          "param": "sw_k1",
+          "labelY": 156
+        },
+        {
+          "id": "LD_VAL",
+          "label": "LD_VAL",
+          "kind": "knob",
+          "x": 252,
+          "y": 136,
+          "radiusMm": 8,
+          "param": "ld_val",
+          "labelY": 156
+        }
+      ],
+      "screens": [
+        {
+          "id": "DISP_CNT",
+          "x": 145,
+          "y": 72,
+          "width": 42,
+          "height": 52
+        }
+      ],
+      "panel": {
+        "title": "二五十进制与可逆计数器实验箱",
+        "subtitle": "数字逻辑实训模块 · +5V TTL/CMOS",
+        "background": "#eef2f6",
+        "border": "#334155",
+        "groups": [],
+        "traces": [],
+        "symbols": [],
+        "labels": []
+      },
+      "parts": [],
+      "slots": [],
+      "notes": []
+    },
+    {
+      "id": "mod-dig-cnt-n",
+      "name": "N 进制同步计数器实验箱",
+      "kind": "module",
+      "model": "content/modules/mod-dig-cnt-n/module.glb",
+      "panelSvg": "content/modules/mod-dig-cnt-n/panel.svg",
+      "panelWebp": "content/modules/mod-dig-cnt-n/panel.webp",
+      "dimensionsMm": [
+        290,
+        470,
+        55
+      ],
+      "jacks": [
+        {
+          "id": "VCC",
+          "label": "+5V 电源",
+          "silkLabel": "VCC",
+          "x": 42,
+          "y": 185,
+          "color": "red",
+          "kind": "banana4"
+        },
+        {
+          "id": "GND",
+          "label": "公共地 GND",
+          "silkLabel": "GND",
+          "x": 108,
+          "y": 185,
+          "color": "black",
+          "kind": "banana4"
+        },
+        {
+          "id": "CP_MAN",
+          "label": "单次脉冲 CP",
+          "silkLabel": "CP_MAN",
+          "x": 174,
+          "y": 185,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "CLK_OUT",
+          "label": "连续脉冲 CLK",
+          "silkLabel": "CLK_OUT",
+          "x": 240,
+          "y": 185,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "K0",
+          "label": "逻辑开关 K0",
+          "silkLabel": "K0",
+          "x": 42,
+          "y": 223,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "K1",
+          "label": "逻辑开关 K1",
+          "silkLabel": "K1",
+          "x": 108,
+          "y": 223,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "DISP_A",
+          "label": "译码输入 A",
+          "silkLabel": "DISP_A",
+          "x": 174,
+          "y": 223,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "DISP_B",
+          "label": "译码输入 B",
+          "silkLabel": "DISP_B",
+          "x": 240,
+          "y": 223,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "DISP_C",
+          "label": "译码输入 C",
+          "silkLabel": "DISP_C",
+          "x": 42,
+          "y": 261,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "DISP_D",
+          "label": "译码输入 D",
+          "silkLabel": "DISP_D",
+          "x": 108,
+          "y": 261,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "C161_CP",
+          "label": "161 时钟 CP",
+          "silkLabel": "C161_CP",
+          "x": 174,
+          "y": 261,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "C161_CLR",
+          "label": "161 清零 /CLR",
+          "silkLabel": "C161_CLR",
+          "x": 240,
+          "y": 261,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "C161_LD",
+          "label": "161 置数 /LOAD",
+          "silkLabel": "C161_LD",
+          "x": 42,
+          "y": 299,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "C161_RCO",
+          "label": "161 进位 RCO",
+          "silkLabel": "C161_RCO",
+          "x": 108,
+          "y": 299,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "C161_Q0",
+          "label": "161 输出 Q0",
+          "silkLabel": "C161_Q0",
+          "x": 174,
+          "y": 299,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "C161_Q1",
+          "label": "161 输出 Q1",
+          "silkLabel": "C161_Q1",
+          "x": 240,
+          "y": 299,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "C161_Q2",
+          "label": "161 输出 Q2",
+          "silkLabel": "C161_Q2",
+          "x": 42,
+          "y": 337,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "C161_Q3",
+          "label": "161 输出 Q3",
+          "silkLabel": "C161_Q3",
+          "x": 108,
+          "y": 337,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "FB_A",
+          "label": "反馈与非 A",
+          "silkLabel": "FB_A",
+          "x": 174,
+          "y": 337,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "FB_B",
+          "label": "反馈与非 B",
+          "silkLabel": "FB_B",
+          "x": 240,
+          "y": 337,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "FB_Y",
+          "label": "反馈与非 Y",
+          "silkLabel": "FB_Y",
+          "x": 42,
+          "y": 375,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "C160_CP",
+          "label": "160 时钟 CP",
+          "silkLabel": "C160_CP",
+          "x": 108,
+          "y": 375,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "C160_CLR",
+          "label": "160 清零 /CLR",
+          "silkLabel": "C160_CLR",
+          "x": 174,
+          "y": 375,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "C160_Q0",
+          "label": "160 输出 Q0",
+          "silkLabel": "C160_Q0",
+          "x": 240,
+          "y": 375,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "C160_Q1",
+          "label": "160 输出 Q1",
+          "silkLabel": "C160_Q1",
+          "x": 42,
+          "y": 413,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "C160_Q2",
+          "label": "160 输出 Q2",
+          "silkLabel": "C160_Q2",
+          "x": 108,
+          "y": 413,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "C160_Q3",
+          "label": "160 输出 Q3",
+          "silkLabel": "C160_Q3",
+          "x": 174,
+          "y": 413,
+          "color": "yellow",
+          "kind": "banana4"
+        }
+      ],
+      "controls": [
+        {
+          "id": "CLK_RATE",
+          "label": "CLK_RATE",
+          "kind": "knob",
+          "x": 38,
+          "y": 136,
+          "radiusMm": 8,
+          "param": "clk_rate",
+          "labelY": 156
+        },
+        {
+          "id": "CP_BTN",
+          "label": "CP_BTN",
+          "kind": "switch",
+          "x": 92,
+          "y": 136,
+          "param": "cp_btn",
+          "labelY": 156
+        },
+        {
+          "id": "SW_K0",
+          "label": "K0",
+          "kind": "switch",
+          "x": 145,
+          "y": 136,
+          "param": "sw_k0",
+          "labelY": 156
+        },
+        {
+          "id": "SW_K1",
+          "label": "K1",
+          "kind": "switch",
+          "x": 199,
+          "y": 136,
+          "param": "sw_k1",
+          "labelY": 156
+        },
+        {
+          "id": "LD_VAL",
+          "label": "LD_VAL",
+          "kind": "knob",
+          "x": 252,
+          "y": 136,
+          "radiusMm": 8,
+          "param": "ld_val",
+          "labelY": 156
+        }
+      ],
+      "screens": [
+        {
+          "id": "DISP_N",
+          "x": 145,
+          "y": 72,
+          "width": 42,
+          "height": 52
+        }
+      ],
+      "panel": {
+        "title": "N 进制同步计数器实验箱",
+        "subtitle": "数字逻辑实训模块 · +5V TTL/CMOS",
+        "background": "#eef2f6",
+        "border": "#334155",
+        "groups": [],
+        "traces": [],
+        "symbols": [],
+        "labels": []
+      },
+      "parts": [],
+      "slots": [],
+      "notes": []
     }
   ],
   "preview": {

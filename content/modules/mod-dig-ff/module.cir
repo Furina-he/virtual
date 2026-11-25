@@ -1,0 +1,70 @@
+.subckt mod_dig_ff VCC GND K0 K1 K2 K3 CP_MAN CLK_OUT RS_S RS_R RS_Q RS_NQ D_PRE D_CLR D_D D_CP D_Q D_NQ JK_PRE JK_CLR JK_J JK_K JK_CP JK_Q JK_NQ params: sw_k0=1 sw_k1=1 sw_k2=0 sw_k3=0 cp_btn=0 clk_rate=2
+* 触发器功能实验箱（SD-07：74LS00 基本 RS、74LS74 上升沿 D、74LS112 下降沿 JK）
+Rgnd GND 0 1G
+Rvcc_bleed VCC GND 100k
+Cdec VCC GND 100n
+
+* ---- 1. 逻辑开关 K0~K3 与手动单次脉冲 CP_MAN ----
+RK0_HI VCC k0_sw {sw_k0 > 0.5 ? 100 : 1G}
+RK0_LO k0_sw GND {sw_k0 > 0.5 ? 1G : 100}
+Bk0 k0_buf GND V=V(k0_sw,GND)
+Rk0_out k0_buf K0 50
+
+RK1_HI VCC k1_sw {sw_k1 > 0.5 ? 100 : 1G}
+RK1_LO k1_sw GND {sw_k1 > 0.5 ? 1G : 100}
+Bk1 k1_buf GND V=V(k1_sw,GND)
+Rk1_out k1_buf K1 50
+
+RK2_HI VCC k2_sw {sw_k2 > 0.5 ? 100 : 1G}
+RK2_LO k2_sw GND {sw_k2 > 0.5 ? 1G : 100}
+Bk2 k2_buf GND V=V(k2_sw,GND)
+Rk2_out k2_buf K2 50
+
+RK3_HI VCC k3_sw {sw_k3 > 0.5 ? 100 : 1G}
+RK3_LO k3_sw GND {sw_k3 > 0.5 ? 1G : 100}
+Bk3 k3_buf GND V=V(k3_sw,GND)
+Rk3_out k3_buf K3 50
+
+RCP_HI VCC cp_sw {cp_btn > 0.5 ? 100 : 1G}
+RCP_LO cp_sw GND {cp_btn > 0.5 ? 1G : 100}
+Bcp cp_buf GND V=V(cp_sw,GND)
+Rcp_out cp_buf CP_MAN 50
+
+* ---- 2. 连续脉冲源 CLK_OUT（1 / 2 / 5 / 10 Hz）----
+Vclk1 clk1_raw GND PULSE(0 1 0.475 10u 10u 0.5 1.0)
+Vclk2 clk2_raw GND PULSE(0 1 0.225 10u 10u 0.25 0.5)
+Vclk5 clk5_raw GND PULSE(0 1 0.075 10u 10u 0.1 0.2)
+Vclk10 clk10_raw GND PULSE(0 1 0.025 10u 10u 0.05 0.1)
+RCLK1 clk1_raw clk_mix {clk_rate < 1.5 ? 10 : 1G}
+RCLK2 clk2_raw clk_mix {clk_rate >= 1.5 && clk_rate < 3.5 ? 10 : 1G}
+RCLK5 clk5_raw clk_mix {clk_rate >= 3.5 && clk_rate < 7.5 ? 10 : 1G}
+RCLK10 clk10_raw clk_mix {clk_rate >= 7.5 ? 10 : 1G}
+Rclk_load clk_mix GND 100k
+Bclk_buf clk_buf GND V=V(clk_mix,GND)*max(V(VCC,GND),0)
+Rclk_out clk_buf CLK_OUT 50
+
+* ---- 3. 1 ms 上电复位脉冲 + 74LS00 交叉耦合基本 RS 触发器（低有效 /S、/R，上电破环置 Q=0）----
+Vpor por_n GND PULSE(0 1 1m 10u 10u 1e6 2e6)
+Rpor por_n GND 100k
+Rrsr_pu RS_R VCC 20k
+Brsr rs_r_int GND V=min(V(RS_R,GND),V(por_n,GND)*max(V(VCC,GND),0))
+Xrs RS_S RS_NQ RS_Q rs_r_int RS_Q RS_NQ GND u00_3 GND GND u00_4 GND GND VCC SN74LS00
+Rrsq RS_Q GND 10k
+Rrsnq RS_NQ GND 10k
+
+* ---- 4. 74LS74 上升沿 D 触发器（含 1 ms 上电清零确保初态确定）----
+Rdclr_pu D_CLR VCC 20k
+Bdclr d_clr_int GND V=min(V(D_CLR,GND),V(por_n,GND)*max(V(VCC,GND),0))
+X74 d_clr_int D_D D_CP D_PRE D_Q D_NQ GND u74_nq2 u74_q2 VCC GND GND VCC VCC SN74LS74
+Rdq D_Q GND 10k
+Rdnq D_NQ GND 10k
+
+* ---- 5. 74LS112 下降沿 JK 触发器（含 1 ms 上电清零）----
+Rjkclr_pu JK_CLR VCC 20k
+Bjkclr jk_clr_int GND V=min(V(JK_CLR,GND),V(por_n,GND)*max(V(VCC,GND),0))
+X112 JK_CP JK_K JK_J JK_PRE JK_Q JK_NQ u112_nq2 GND u112_q2 VCC GND GND VCC VCC jk_clr_int VCC SN74LS112
+Rjkq JK_Q GND 10k
+Rjknq JK_NQ GND 10k
+.ends mod_dig_ff
+
+.include "ttl.lib"

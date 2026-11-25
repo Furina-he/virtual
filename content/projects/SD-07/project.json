@@ -1,0 +1,96 @@
+{
+  "id": "SD-07",
+  "group": "数字逻辑基础",
+  "title": "各类触发器功能测试",
+  "type": "basic",
+  "modules": [{ "instanceId": "ff1", "moduleId": "mod-dig-ff", "slot": "SLOT_BOX_L1" }],
+  "allowedInstruments": ["ins-multimeter", "ins-oscilloscope"],
+  "reference": {
+    "nets": [
+      ["ins-dc-power.V5P", "ff1.VCC"],
+      ["ins-dc-power.V5N", "ff1.GND"],
+      ["ff1.K0", "ff1.RS_S", "ff1.D_PRE", "ff1.JK_PRE"],
+      ["ff1.K1", "ff1.RS_R", "ff1.D_CLR", "ff1.JK_CLR"],
+      ["ff1.K2", "ff1.D_D", "ff1.JK_J"],
+      ["ff1.K3", "ff1.JK_K"],
+      ["ff1.CP_MAN", "ff1.D_CP", "ff1.JK_CP"]
+    ],
+    "measurePoints": [
+      { "id": "u_rs_q", "kind": "voltage", "mode": "dcv", "between": ["ff1.RS_Q", "ff1.GND"] },
+      { "id": "u_d_q", "kind": "voltage", "mode": "dcv", "between": ["ff1.D_Q", "ff1.GND"] },
+      { "id": "u_jk_q", "kind": "voltage", "mode": "dcv", "between": ["ff1.JK_Q", "ff1.GND"] },
+      { "id": "f_clk", "kind": "waveform", "quantity": "frequency", "minCycles": 2, "between": ["ff1.CLK_OUT", "ff1.GND"] },
+      { "id": "f_jk_q", "kind": "waveform", "quantity": "frequency", "minCycles": 2, "between": ["ff1.JK_Q", "ff1.GND"] }
+    ]
+  },
+  "steps": [
+    {
+      "id": "prepare",
+      "text": "保持断电，对比 74LS00 基本 RS 触发器（低有效 /S、/R）、74LS74 上升沿 D 触发器与 74LS112 下降沿 JK 触发器的逻辑特性表。",
+      "measurePoints": [],
+      "dataTable": "ff_test"
+    },
+    {
+      "id": "wire",
+      "text": "断电连接 +5V/GND，按原理图将 K0 接各置位端（RS_S/D_PRE/JK_PRE）、K1 接各复位端（RS_R/D_CLR/JK_CLR）、K2 接 D_D/JK_J、K3 接 JK_K、CP_MAN 接 D_CP/JK_CP，点击“检查接线”。",
+      "measurePoints": [],
+      "checkWiring": true,
+      "dataTable": "ff_test"
+    },
+    {
+      "id": "test_rs_async",
+      "text": "上电，先拨 SW_K0=0 再回 1（/S 负脉冲）确认 RS_Q=H、D_Q=H、JK_Q=H；再拨 SW_K1=0 再回 1（/R 负脉冲）确认三者全部复位为 L，记录电压。",
+      "measurePoints": ["u_rs_q", "u_d_q", "u_jk_q"],
+      "expect": { "measurePoint": "u_d_q", "min": -0.2, "max": 0.5 },
+      "dataTable": "ff_test"
+    },
+    {
+      "id": "test_edge",
+      "text": "保持 SW_K0=1、SW_K1=1，置 SW_K2=1、SW_K3=1（D=1, J=K=1）：将单次脉冲 CP_BTN 从 0 拨至 1，观察 74LS74 在上升沿立即置 1（D_Q=H），而 74LS112 尚未翻转；再将 CP_BTN 从 1 拨回 0，观察 74LS112 在下降沿翻转（JK_Q=H）。",
+      "measurePoints": ["u_d_q", "u_jk_q"],
+      "expect": { "measurePoint": "u_jk_q", "min": 2.7, "max": 4.2 },
+      "dataTable": "ff_test"
+    },
+    {
+      "id": "test_div2",
+      "text": "断电将 JK_CP 改接连续脉冲 CLK_OUT（设 CLK_RATE=10 Hz），接示波器 CH1→CLK_OUT、CH2→JK_Q、GND→GND（时基 0.2 s/div），保持 J=K=1 上电验证 T' 二分频（f_JK ≈ 5 Hz）；断电完成思考题。",
+      "measurePoints": ["f_clk", "f_jk_q"],
+      "referenceNets": [
+        ["ins-dc-power.V5P", "ff1.VCC"],
+        ["ins-dc-power.V5N", "ff1.GND"],
+        ["ff1.K0", "ff1.RS_S", "ff1.D_PRE", "ff1.JK_PRE"],
+        ["ff1.K1", "ff1.RS_R", "ff1.D_CLR", "ff1.JK_CLR"],
+        ["ff1.K2", "ff1.D_D", "ff1.JK_J"],
+        ["ff1.K3", "ff1.JK_K"],
+        ["ff1.CP_MAN", "ff1.D_CP"],
+        ["ff1.CLK_OUT", "ff1.JK_CP"]
+      ],
+      "expect": { "measurePoint": "f_jk_q", "min": 4.5, "max": 5.5 },
+      "recordTable": "ff_test",
+      "dataTable": "ff_test"
+    }
+  ],
+  "dataTables": [
+    {
+      "id": "ff_test",
+      "title": "RS / D / JK 触发器逻辑状态与二分频测试",
+      "rows": 2,
+      "columns": [
+        { "id": "u_rs_q", "title": "RS 输出 Q", "unit": "V", "measurePoint": "u_rs_q", "captureSteps": ["test_rs_async"] },
+        { "id": "u_d_q", "title": "74LS74 Q", "unit": "V", "measurePoint": "u_d_q", "captureSteps": ["test_rs_async", "test_edge"] },
+        { "id": "u_jk_q", "title": "74LS112 Q", "unit": "V", "measurePoint": "u_jk_q", "captureSteps": ["test_rs_async", "test_edge"] },
+        { "id": "f_clk", "title": "时钟频率 f_CLK", "unit": "Hz", "measurePoint": "f_clk", "captureSteps": ["test_div2"] },
+        { "id": "f_jk_q", "title": "二分频 f_Q", "unit": "Hz", "measurePoint": "f_jk_q", "captureSteps": ["test_div2"] }
+      ],
+      "sanity": [
+        { "column": "f_jk_q", "min": 0.4, "max": 6, "message": "J=K=1 时 74LS112 输出频率应为输入时钟的一半。" }
+      ]
+    }
+  ],
+  "charts": [],
+  "questions": [
+    "基本 RS 触发器为何禁止同时输入 /S=0、/R=0？两者同时撤回到 11 后输出状态为什么不确定？",
+    "本实验中同样给 74LS74 和 74LS112 输入一个从 0→1→0 的单次正脉冲，两者输出分别在脉冲的哪个边沿跳变？",
+    "如何仅用导线将一片 D 触发器（74LS74）转换为 T' 二分频触发器？如何将一片 JK 触发器（74LS112）转换为 D 触发器？"
+  ]
+}

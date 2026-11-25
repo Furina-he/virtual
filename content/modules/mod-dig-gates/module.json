@@ -1,0 +1,140 @@
+{
+  "id": "mod-dig-gates",
+  "name": "基本逻辑门与译码显示实验箱",
+  "form": "box",
+  "model": "module.glb",
+  "netlist": "module.cir",
+  "jacks": [
+    { "id": "VCC", "label": "+5V 电源", "kind": "banana4", "polarityHint": "+" },
+    { "id": "GND", "label": "公共地 GND", "kind": "banana4", "polarityHint": "-" },
+    { "id": "K0", "label": "逻辑开关 K0", "kind": "banana4" },
+    { "id": "K1", "label": "逻辑开关 K1", "kind": "banana4" },
+    { "id": "K2", "label": "逻辑开关 K2", "kind": "banana4" },
+    { "id": "K3", "label": "逻辑开关 K3", "kind": "banana4" },
+    { "id": "K4", "label": "逻辑开关 K4", "kind": "banana4" },
+    { "id": "K5", "label": "逻辑开关 K5", "kind": "banana4" },
+    { "id": "G_A", "label": "门输入 A", "kind": "banana4" },
+    { "id": "G_B", "label": "门输入 B", "kind": "banana4" },
+    { "id": "Y_NAND", "label": "74LS00 与非", "kind": "banana4" },
+    { "id": "Y_NOR", "label": "74LS02 或非", "kind": "banana4" },
+    { "id": "Y_NOT", "label": "74LS04 非", "kind": "banana4" },
+    { "id": "Y_AND", "label": "74LS08 与", "kind": "banana4" },
+    { "id": "Y_OR", "label": "74LS32 或", "kind": "banana4" },
+    { "id": "Y_XOR", "label": "74LS86 异或", "kind": "banana4" },
+    { "id": "CD_A", "label": "4511 输入 A", "kind": "banana4" },
+    { "id": "CD_B", "label": "4511 输入 B", "kind": "banana4" },
+    { "id": "CD_C", "label": "4511 输入 C", "kind": "banana4" },
+    { "id": "CD_D", "label": "4511 输入 D", "kind": "banana4" },
+    { "id": "CD_LT", "label": "4511 灯测 /LT", "kind": "banana4" },
+    { "id": "CD_BI", "label": "4511 消隐 /BI", "kind": "banana4" },
+    { "id": "CD_LE", "label": "4511 锁存 LE", "kind": "banana4" },
+    { "id": "CD_SEGA", "label": "数码管 a 段测点", "kind": "banana4" },
+    { "id": "LED0", "label": "电平指示 L0", "kind": "banana4" },
+    { "id": "LED1", "label": "电平指示 L1", "kind": "banana4" }
+  ],
+  "controls": [
+    {
+      "id": "SW_K0",
+      "label": "逻辑开关 K0",
+      "kind": "switch",
+      "param": "sw_k0",
+      "steps": [0, 1],
+      "stepLabels": ["低电平 L (0)", "高电平 H (1)"],
+      "targets": [
+        { "element": "RK0_HI", "values": [1000000000, 100] },
+        { "element": "RK0_LO", "values": [100, 1000000000] }
+      ],
+      "unit": "",
+      "default": 0
+    },
+    {
+      "id": "SW_K1",
+      "label": "逻辑开关 K1",
+      "kind": "switch",
+      "param": "sw_k1",
+      "steps": [0, 1],
+      "stepLabels": ["低电平 L (0)", "高电平 H (1)"],
+      "targets": [
+        { "element": "RK1_HI", "values": [1000000000, 100] },
+        { "element": "RK1_LO", "values": [100, 1000000000] }
+      ],
+      "unit": "",
+      "default": 0
+    },
+    {
+      "id": "SW_K2",
+      "label": "逻辑开关 K2",
+      "kind": "switch",
+      "param": "sw_k2",
+      "steps": [0, 1],
+      "stepLabels": ["低电平 L (0)", "高电平 H (1)"],
+      "targets": [
+        { "element": "RK2_HI", "values": [1000000000, 100] },
+        { "element": "RK2_LO", "values": [100, 1000000000] }
+      ],
+      "unit": "",
+      "default": 0
+    },
+    {
+      "id": "SW_K3",
+      "label": "逻辑开关 K3",
+      "kind": "switch",
+      "param": "sw_k3",
+      "steps": [0, 1],
+      "stepLabels": ["低电平 L (0)", "高电平 H (1)"],
+      "targets": [
+        { "element": "RK3_HI", "values": [1000000000, 100] },
+        { "element": "RK3_LO", "values": [100, 1000000000] }
+      ],
+      "unit": "",
+      "default": 0
+    },
+    {
+      "id": "SW_K4",
+      "label": "逻辑开关 K4 (/LT)",
+      "kind": "switch",
+      "param": "sw_k4",
+      "steps": [0, 1],
+      "stepLabels": ["低电平 L (0)", "高电平 H (1)"],
+      "targets": [
+        { "element": "RK4_HI", "values": [1000000000, 100] },
+        { "element": "RK4_LO", "values": [100, 1000000000] }
+      ],
+      "unit": "",
+      "default": 1
+    },
+    {
+      "id": "SW_K5",
+      "label": "逻辑开关 K5 (/BI)",
+      "kind": "switch",
+      "param": "sw_k5",
+      "steps": [0, 1],
+      "stepLabels": ["低电平 L (0)", "高电平 H (1)"],
+      "targets": [
+        { "element": "RK5_HI", "values": [1000000000, 100] },
+        { "element": "RK5_LO", "values": [100, 1000000000] }
+      ],
+      "unit": "",
+      "default": 1
+    }
+  ],
+  "indicators": [
+    {
+      "id": "DISP1",
+      "kind": "segment7",
+      "label": "CD4511 数码管",
+      "segments": ["seg_a", "seg_b", "seg_c", "seg_d", "seg_e", "seg_f", "seg_g"],
+      "common": "GND",
+      "threshold": 1.8
+    },
+    { "id": "L_NAND", "kind": "led", "label": "与非 Y00", "probe": "Y_NAND", "common": "GND" },
+    { "id": "L_NOR", "kind": "led", "label": "或非 Y02", "probe": "Y_NOR", "common": "GND" },
+    { "id": "L_NOT", "kind": "led", "label": "非门 Y04", "probe": "Y_NOT", "common": "GND" },
+    { "id": "L_AND", "kind": "led", "label": "与门 Y08", "probe": "Y_AND", "common": "GND" },
+    { "id": "L_OR", "kind": "led", "label": "或门 Y32", "probe": "Y_OR", "common": "GND" },
+    { "id": "L_XOR", "kind": "led", "label": "异或 Y86", "probe": "Y_XOR", "common": "GND" },
+    { "id": "L_LED0", "kind": "led", "label": "探针 L0", "probe": "LED0", "common": "GND" },
+    { "id": "L_LED1", "kind": "led", "label": "探针 L1", "probe": "LED1", "common": "GND" }
+  ],
+  "simulation": { "analysis": "tran", "maxStep": 0.0005, "pacing": "realtime" }
+}

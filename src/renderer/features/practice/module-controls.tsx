@@ -90,6 +90,54 @@ function ModuleSegment7Strip({ instanceId, module }: { instanceId: string; modul
   )
 }
 
+function ModuleLedStrip({ instanceId, module }: { instanceId: string; module: Module }) {
+  const leds = module.indicators.filter(
+    (entry): entry is Extract<Module['indicators'][number], { probe: string }> => entry.kind === 'led',
+  )
+  const [, setTick] = useState(0)
+  useEffect(() => {
+    if (!leds.length) return
+    return subscribeInstrumentReadings(instanceId, () => setTick((n) => n + 1))
+  }, [instanceId, leds.length])
+  if (!leds.length) return null
+  return (
+    <div data-module-led-group={instanceId} className="space-y-2 rounded-sm border bg-muted/40 p-2.5">
+      <div className="flex items-center justify-between text-xs text-muted-foreground">
+        <span>板载逻辑电平指示（H/L）</span>
+        <span className="font-mono text-foreground">{leds.length} 路</span>
+      </div>
+      <div className="grid grid-cols-2 gap-1.5">
+        {leds.map((led) => {
+          const reading = getInstrumentReading(instanceId, led.id)
+          const level = reading.status === 'ok' ? reading.text : '-'
+          const isHigh = level === 'H'
+          return (
+            <div
+              key={led.id}
+              data-module-led={`${instanceId}.${led.id}`}
+              data-led-level={level}
+              className="flex items-center justify-between gap-1.5 rounded-sm border bg-background px-2 py-1 text-xs"
+            >
+              <span className="truncate text-muted-foreground">{led.label ?? led.id}</span>
+              <span className="flex shrink-0 items-center gap-1 font-mono font-semibold">
+                <span
+                  aria-hidden="true"
+                  className={
+                    isHigh
+                      ? 'size-2 rounded-full bg-destructive'
+                      : 'size-2 rounded-full border border-muted-foreground bg-muted'
+                  }
+                />
+                <span className={isHigh ? 'text-destructive' : 'text-muted-foreground'}>{level}</span>
+              </span>
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
 export function ModuleProperties({ project }: { project?: Project }) {
   const navigate = useNavigate()
   const location = useLocation()
@@ -100,7 +148,9 @@ export function ModuleProperties({ project }: { project?: Project }) {
   const modules = placements.flatMap((placement) => {
     const module = moduleCatalog.find((entry) => entry.id === placement.assetId)
     const hasInteractive = Boolean(
-      module && (module.controls.length || module.indicators.some((entry) => entry.kind === 'segment7')),
+      module &&
+        (module.controls.length ||
+          module.indicators.some((entry) => entry.kind === 'segment7' || entry.kind === 'led')),
     )
     return hasInteractive && module ? [{ instanceId: placement.instanceId, module }] : []
   })
@@ -160,6 +210,7 @@ export function ModuleProperties({ project }: { project?: Project }) {
             </Button>
           )}
           {active && <ModuleSegment7Strip instanceId={active.instanceId} module={active.module} />}
+          {active && <ModuleLedStrip instanceId={active.instanceId} module={active.module} />}
           {active?.module.controls.map((control) => {
             const steps = control.steps
             const actual = values[`${active.instanceId}.${control.id}`] ?? control.default

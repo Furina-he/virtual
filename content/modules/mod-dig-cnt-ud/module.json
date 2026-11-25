@@ -1,0 +1,137 @@
+{
+  "id": "mod-dig-cnt-ud",
+  "name": "二五十进制与可逆计数器实验箱",
+  "form": "box",
+  "model": "module.glb",
+  "netlist": "module.cir",
+  "jacks": [
+    { "id": "VCC", "label": "+5V 电源", "kind": "banana4", "polarityHint": "+" },
+    { "id": "GND", "label": "公共地 GND", "kind": "banana4", "polarityHint": "-" },
+    { "id": "CP_MAN", "label": "单次脉冲 CP", "kind": "banana4" },
+    { "id": "CLK_OUT", "label": "连续脉冲 CLK", "kind": "banana4" },
+    { "id": "K0", "label": "逻辑开关 K0", "kind": "banana4" },
+    { "id": "K1", "label": "逻辑开关 K1", "kind": "banana4" },
+    { "id": "DISP_A", "label": "译码输入 A", "kind": "banana4" },
+    { "id": "DISP_B", "label": "译码输入 B", "kind": "banana4" },
+    { "id": "DISP_C", "label": "译码输入 C", "kind": "banana4" },
+    { "id": "DISP_D", "label": "译码输入 D", "kind": "banana4" },
+    { "id": "C90_CP0", "label": "90 时钟 CP0", "kind": "banana4" },
+    { "id": "C90_CP1", "label": "90 时钟 CP1", "kind": "banana4" },
+    { "id": "C90_R0", "label": "90 清零 R0", "kind": "banana4" },
+    { "id": "C90_R9", "label": "90 置九 R9", "kind": "banana4" },
+    { "id": "C90_Q0", "label": "90 输出 Q0", "kind": "banana4" },
+    { "id": "C90_Q1", "label": "90 输出 Q1", "kind": "banana4" },
+    { "id": "C90_Q2", "label": "90 输出 Q2", "kind": "banana4" },
+    { "id": "C90_Q3", "label": "90 输出 Q3", "kind": "banana4" },
+    { "id": "C192_UP", "label": "192 加计数 UP", "kind": "banana4" },
+    { "id": "C192_DN", "label": "192 减计数 DN", "kind": "banana4" },
+    { "id": "C192_CLR", "label": "192 清零 CLR", "kind": "banana4" },
+    { "id": "C192_LD", "label": "192 置数 /LOAD", "kind": "banana4" },
+    { "id": "C192_CO", "label": "192 进位 /CO", "kind": "banana4" },
+    { "id": "C192_BO", "label": "192 借位 /BO", "kind": "banana4" },
+    { "id": "C192_Q0", "label": "192 输出 Q0", "kind": "banana4" },
+    { "id": "C192_Q1", "label": "192 输出 Q1", "kind": "banana4" },
+    { "id": "C192_Q2", "label": "192 输出 Q2", "kind": "banana4" },
+    { "id": "C192_Q3", "label": "192 输出 Q3", "kind": "banana4" }
+  ],
+  "controls": [
+    {
+      "id": "CLK_RATE",
+      "label": "连续脉冲频率",
+      "kind": "rotary",
+      "param": "clk_rate",
+      "steps": [1, 2, 5, 10],
+      "stepLabels": ["1 Hz", "2 Hz", "5 Hz", "10 Hz"],
+      "targets": [
+        { "element": "RCLK1", "values": [10, 1000000000, 1000000000, 1000000000] },
+        { "element": "RCLK2", "values": [1000000000, 10, 1000000000, 1000000000] },
+        { "element": "RCLK5", "values": [1000000000, 1000000000, 10, 1000000000] },
+        { "element": "RCLK10", "values": [1000000000, 1000000000, 1000000000, 10] }
+      ],
+      "unit": "Hz",
+      "default": 5
+    },
+    {
+      "id": "CP_BTN",
+      "label": "单次脉冲按键 CP",
+      "kind": "switch",
+      "param": "cp_btn",
+      "steps": [0, 1],
+      "stepLabels": ["低电平 (0)", "高电平 (1)"],
+      "targets": [
+        { "element": "RCP_HI", "values": [1000000000, 100] },
+        { "element": "RCP_LO", "values": [100, 1000000000] }
+      ],
+      "unit": "",
+      "default": 0
+    },
+    {
+      "id": "SW_K0",
+      "label": "逻辑开关 K0 (清零)",
+      "kind": "switch",
+      "param": "sw_k0",
+      "steps": [0, 1],
+      "stepLabels": ["低电平 L (0)", "高电平 H (1)"],
+      "targets": [
+        { "element": "RK0_HI", "values": [1000000000, 100] },
+        { "element": "RK0_LO", "values": [100, 1000000000] }
+      ],
+      "unit": "",
+      "default": 0
+    },
+    {
+      "id": "SW_K1",
+      "label": "逻辑开关 K1 (置九/置数)",
+      "kind": "switch",
+      "param": "sw_k1",
+      "steps": [0, 1],
+      "stepLabels": ["低电平 L (0)", "高电平 H (1)"],
+      "targets": [
+        { "element": "RK1_HI", "values": [1000000000, 100] },
+        { "element": "RK1_LO", "values": [100, 1000000000] }
+      ],
+      "unit": "",
+      "default": 1
+    },
+    {
+      "id": "LD_VAL",
+      "label": "192 置数预置值 (0~9)",
+      "kind": "rotary",
+      "param": "ld_val",
+      "steps": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+      "stepLabels": [
+        "0 (0000)", "1 (0001)", "2 (0010)", "3 (0011)", "4 (0100)",
+        "5 (0101)", "6 (0110)", "7 (0111)", "8 (1000)", "9 (1001)"
+      ],
+      "targets": [
+        { "element": "RLA_HI", "values": [1000000000, 100, 1000000000, 100, 1000000000, 100, 1000000000, 100, 1000000000, 100] },
+        { "element": "RLA_LO", "values": [100, 1000000000, 100, 1000000000, 100, 1000000000, 100, 1000000000, 100, 1000000000] },
+        { "element": "RLB_HI", "values": [1000000000, 1000000000, 100, 100, 1000000000, 1000000000, 100, 100, 1000000000, 1000000000] },
+        { "element": "RLB_LO", "values": [100, 100, 1000000000, 1000000000, 100, 100, 1000000000, 1000000000, 100, 100] },
+        { "element": "RLC_HI", "values": [1000000000, 1000000000, 1000000000, 1000000000, 100, 100, 100, 100, 1000000000, 1000000000] },
+        { "element": "RLC_LO", "values": [100, 100, 100, 100, 1000000000, 1000000000, 1000000000, 1000000000, 100, 100] },
+        { "element": "RLD_HI", "values": [1000000000, 1000000000, 1000000000, 1000000000, 1000000000, 1000000000, 1000000000, 1000000000, 100, 100] },
+        { "element": "RLD_LO", "values": [100, 100, 100, 100, 100, 100, 100, 100, 1000000000, 1000000000] }
+      ],
+      "unit": "",
+      "default": 5
+    }
+  ],
+  "indicators": [
+    {
+      "id": "DISP_CNT",
+      "kind": "segment7",
+      "label": "计数译码数码管",
+      "segments": ["seg_a", "seg_b", "seg_c", "seg_d", "seg_e", "seg_f", "seg_g"],
+      "common": "GND",
+      "threshold": 1.8
+    },
+    { "id": "L_D0", "kind": "led", "label": "译码 A (Q0)", "probe": "DISP_A", "common": "GND" },
+    { "id": "L_D1", "kind": "led", "label": "译码 B (Q1)", "probe": "DISP_B", "common": "GND" },
+    { "id": "L_D2", "kind": "led", "label": "译码 C (Q2)", "probe": "DISP_C", "common": "GND" },
+    { "id": "L_D3", "kind": "led", "label": "译码 D (Q3)", "probe": "DISP_D", "common": "GND" },
+    { "id": "L_CO", "kind": "led", "label": "192 进位 /CO", "probe": "C192_CO", "common": "GND" },
+    { "id": "L_BO", "kind": "led", "label": "192 借位 /BO", "probe": "C192_BO", "common": "GND" }
+  ],
+  "simulation": { "analysis": "tran", "maxStep": 0.0005, "pacing": "realtime" }
+}

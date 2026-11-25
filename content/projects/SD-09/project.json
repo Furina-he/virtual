@@ -1,0 +1,94 @@
+{
+  "id": "SD-09",
+  "group": "数字逻辑基础",
+  "title": "二-五-十进制计数器功能测试",
+  "type": "basic",
+  "modules": [{ "instanceId": "cnt1", "moduleId": "mod-dig-cnt-ud", "slot": "SLOT_BOX_L1" }],
+  "allowedInstruments": ["ins-oscilloscope", "ins-multimeter"],
+  "reference": {
+    "nets": [
+      ["ins-dc-power.V5P", "cnt1.VCC"],
+      ["ins-dc-power.V5N", "cnt1.GND", "cnt1.C90_R9"],
+      ["cnt1.CLK_OUT", "cnt1.C90_CP0"],
+      ["cnt1.C90_Q0", "cnt1.C90_CP1", "cnt1.DISP_A"],
+      ["cnt1.C90_Q1", "cnt1.DISP_B"],
+      ["cnt1.C90_Q2", "cnt1.DISP_C"],
+      ["cnt1.C90_Q3", "cnt1.DISP_D"],
+      ["cnt1.K0", "cnt1.C90_R0"]
+    ],
+    "measurePoints": [
+      { "id": "f_clk", "kind": "waveform", "quantity": "frequency", "minCycles": 2, "between": ["cnt1.C90_CP0", "cnt1.GND"] },
+      { "id": "f_q0", "kind": "waveform", "quantity": "frequency", "minCycles": 2, "between": ["cnt1.C90_Q0", "cnt1.GND"] },
+      { "id": "f_q3", "kind": "waveform", "quantity": "frequency", "minCycles": 2, "between": ["cnt1.C90_Q3", "cnt1.GND"] }
+    ]
+  },
+  "steps": [
+    {
+      "id": "prepare",
+      "text": "保持断电，查阅 74LS90 内部结构（独立 ÷2 计数器 CP0→Q0 与 ÷5 计数器 CP1→Q1Q2Q3）以及 8421 BCD（Q0→CP1）和 5421 对称十进制（Q3→CP0）两种级联接法。",
+      "measurePoints": [],
+      "dataTable": "cnt90_div"
+    },
+    {
+      "id": "wire",
+      "text": "断电连接 +5V/GND，将 CLK_OUT→C90_CP0、C90_Q0→C90_CP1、K0→C90_R0、GND→C90_R9，再将 Q0~Q3 接至 DISP_A~DISP_D，点击“检查接线”。",
+      "measurePoints": [],
+      "checkWiring": true,
+      "dataTable": "cnt90_div"
+    },
+    {
+      "id": "bcd8421",
+      "text": "保持 SW_K0=0、CLK_RATE=10 Hz，接示波器 CH1→C90_CP0、CH2→C90_Q3、GND→GND（时基 0.5 s/div）；上电观察数码管按 0→1→…→9→0 循环计数，测记 f_clk（约 10 Hz）与 f_q3（约 1 Hz），验证 8421 十分频。",
+      "measurePoints": ["f_clk", "f_q3"],
+      "expect": { "measurePoint": "f_q3", "min": 0.9, "max": 1.1 },
+      "dataTable": "cnt90_div"
+    },
+    {
+      "id": "div2_and_reset",
+      "text": "断电将示波器 CH2 改接 C90_Q0（时基 0.2 s/div），上电验证 ÷2 关系 f_q0 ≈ 5 Hz；运行中拨动 SW_K0=1 确认清零回 0、拨回 0 恢复计数。",
+      "measurePoints": ["f_clk", "f_q0"],
+      "expect": { "measurePoint": "f_q0", "min": 4.5, "max": 5.5 },
+      "dataTable": "cnt90_div"
+    },
+    {
+      "id": "mode5421",
+      "text": "断电改接 5421 对称十进制接法（CLK_OUT→C90_CP1、C90_Q3→C90_CP0），接 CH2→C90_Q0，上电实测 f_q0 ≈ 1 Hz 且占空比为对称 50%；断电核对数据并完成思考题。",
+      "measurePoints": ["f_q0"],
+      "referenceNets": [
+        ["ins-dc-power.V5P", "cnt1.VCC"],
+        ["ins-dc-power.V5N", "cnt1.GND", "cnt1.C90_R9"],
+        ["cnt1.CLK_OUT", "cnt1.C90_CP1"],
+        ["cnt1.C90_Q3", "cnt1.C90_CP0", "cnt1.DISP_D"],
+        ["cnt1.C90_Q0", "cnt1.DISP_A"],
+        ["cnt1.C90_Q1", "cnt1.DISP_B"],
+        ["cnt1.C90_Q2", "cnt1.DISP_C"],
+        ["cnt1.K0", "cnt1.C90_R0"]
+      ],
+      "expect": { "measurePoint": "f_q0", "min": 0.9, "max": 1.1 },
+      "recordTable": "cnt90_div",
+      "dataTable": "cnt90_div"
+    }
+  ],
+  "dataTables": [
+    {
+      "id": "cnt90_div",
+      "title": "74LS90 二分频、8421 与 5421 十分频测试",
+      "rows": 2,
+      "columns": [
+        { "id": "f_clk", "title": "时钟频率 f_CLK", "unit": "Hz", "measurePoint": "f_clk", "captureSteps": ["bcd8421", "div2_and_reset"] },
+        { "id": "f_q0", "title": "Q0 频率", "unit": "Hz", "measurePoint": "f_q0", "captureSteps": ["div2_and_reset", "mode5421"] },
+        { "id": "f_q3", "title": "Q3 频率", "unit": "Hz", "measurePoint": "f_q3", "captureSteps": ["bcd8421"] },
+        { "id": "ratio", "title": "分频比 f_CLK/f_Q3", "unit": "", "computed": "f_clk/f_q3" }
+      ],
+      "sanity": [
+        { "column": "f_q3", "min": 0.08, "max": 2.5, "message": "8421 十分频下 Q3 频率应为时钟的 1/10。" }
+      ]
+    }
+  ],
+  "charts": [],
+  "questions": [
+    "74LS90 的 8421 BCD 接法（Q0→CP1）与 5421 接法（Q3→CP0）都能实现十分频，两者输出最高位波形的占空比有何区别？",
+    "当 74LS90 的异步清零端 R0 与异步置九端 R9 同时为高电平时，计数器输出什么码值？哪个控制端优先级更高？",
+    "若仅利用 74LS90 内部的 ÷5 单元构成五进制计数器，输入时钟和输出应分别接哪些引脚？"
+  ]
+}

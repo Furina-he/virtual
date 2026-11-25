@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 740 320" width="740" height="320" font-family="sans-serif" font-size="13">
+  <rect width="740" height="320" fill="#f8fafc" stroke="#cbd5e1"/>
+  <text x="20" y="28" font-size="16" font-weight="bold" fill="#0f172a">SD-01 六种基本 TTL 逻辑门功能测试原理图（74LS00/02/04/08/32/86）</text>
+  <circle cx="52" cy="64" r="5" fill="#dc2626" data-jack="dg1.VCC"/>
+  <text x="64" y="68" fill="#dc2626">+5V (VCC)</text>
+  <circle cx="190" cy="64" r="5" fill="#0f172a" data-jack="dg1.GND"/>
+  <text x="202" y="68" fill="#0f172a">GND</text>
+  <rect x="40" y="100" width="115" height="110" rx="6" fill="#eff6ff" stroke="#2563eb" stroke-width="2"/>
+  <text x="58" y="126" font-weight="bold" fill="#1d4ed8">逻辑开关</text>
+  <circle cx="145" cy="152" r="5" fill="#d97706" data-jack="dg1.K0"/>
+  <text x="72" y="156">K0 (A)</text>
+  <circle cx="145" cy="188" r="5" fill="#d97706" data-jack="dg1.K1"/>
+  <text x="72" y="192">K1 (B)</text>
+  <line x1="150" y1="152" x2="230" y2="152" stroke="#0f172a" stroke-width="2"/>
+  <line x1="150" y1="188" x2="230" y2="188" stroke="#0f172a" stroke-width="2"/>
+  <circle cx="230" cy="152" r="5" fill="#d97706" data-jack="dg1.G_A"/>
+  <text x="220" y="140" font-size="11">G_A</text>
+  <circle cx="230" cy="188" r="5" fill="#d97706" data-jack="dg1.G_B"/>
+  <text x="220" y="208" font-size="11">G_B</text>
+  <rect x="275" y="72" width="230" height="218" rx="6" fill="#f0fdf4" stroke="#16a34a" stroke-width="2"/>
+  <text x="312" y="96" font-weight="bold" fill="#15803d">74LS 六门阵列 (A, B 共入)</text>
+  <text x="295" y="124">74LS00 与非  Y = (A·B)'</text>
+  <circle cx="505" cy="120" r="5" fill="#d97706" data-jack="dg1.Y_NAND"/>
+  <text x="295" y="154">74LS02 或非  Y = (A+B)'</text>
+  <circle cx="505" cy="150" r="5" fill="#d97706" data-jack="dg1.Y_NOR"/>
+  <text x="295" y="184">74LS04 非门  Y = A'</text>
+  <circle cx="505" cy="180" r="5" fill="#d97706" data-jack="dg1.Y_NOT"/>
+  <text x="295" y="214">74LS08 与门  Y = A·B</text>
+  <circle cx="505" cy="210" r="5" fill="#d97706" data-jack="dg1.Y_AND"/>
+  <text x="295" y="244">74LS32 或门  Y = A+B</text>
+  <circle cx="505" cy="240" r="5" fill="#d97706" data-jack="dg1.Y_OR"/>
+  <text x="295" y="274">74LS86 异或  Y = A⊕B</text>
+  <circle cx="505" cy="270" r="5" fill="#d97706" data-jack="dg1.Y_XOR"/>
+  <line x1="235" y1="152" x2="275" y2="152" stroke="#0f172a" stroke-width="2"/>
+  <line x1="235" y1="188" x2="275" y2="188" stroke="#0f172a" stroke-width="2"/>
+  <rect x="575" y="102" width="135" height="184" rx="6" fill="#fefce8" stroke="#ca8a04" stroke-width="2"/>
+  <text x="595" y="126" font-weight="bold" fill="#854d0e">H/L 电平指示</text>
+  <circle cx="575" cy="148" r="5" fill="#d97706" data-jack="dg1.LED0"/>
+  <text x="592" y="152">LED0 (接与非)</text>
+  <circle cx="575" cy="262" r="5" fill="#d97706" data-jack="dg1.LED1"/>
+  <text x="592" y="266">LED1 (接异或)</text>
+  <line x1="510" y1="120" x2="570" y2="148" stroke="#ca8a04" stroke-width="1.8" stroke-dasharray="4 3"/>
+  <line x1="510" y1="270" x2="570" y2="262" stroke="#ca8a04" stroke-width="1.8" stroke-dasharray="4 3"/>
+</svg>

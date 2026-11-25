@@ -1,0 +1,80 @@
+{
+  "id": "SD-05",
+  "group": "数字逻辑基础",
+  "title": "数值比较器功能测试",
+  "type": "basic",
+  "modules": [{ "instanceId": "ar1", "moduleId": "mod-dig-arith", "slot": "SLOT_BOX_L1" }],
+  "allowedInstruments": ["ins-multimeter", "ins-oscilloscope"],
+  "reference": {
+    "nets": [
+      ["ins-dc-power.V5P", "ar1.VCC"],
+      ["ins-dc-power.V5N", "ar1.GND"],
+      ["ar1.K0", "ar1.CMP_IGT"],
+      ["ar1.K3", "ar1.CMP_IEQ"],
+      ["ar1.K1", "ar1.CMP_ILT"]
+    ],
+    "measurePoints": [
+      { "id": "u_ogt", "kind": "voltage", "mode": "dcv", "between": ["ar1.CMP_OGT", "ar1.GND"] },
+      { "id": "u_oeq", "kind": "voltage", "mode": "dcv", "between": ["ar1.CMP_OEQ", "ar1.GND"] },
+      { "id": "u_olt", "kind": "voltage", "mode": "dcv", "between": ["ar1.CMP_OLT", "ar1.GND"] }
+    ]
+  },
+  "steps": [
+    {
+      "id": "prepare",
+      "text": "保持断电，查阅 74LS85 四位数值比较器由高位向低位逐位比较及低位级联输入 I(A>B)、I(A=B)、I(A<B) 的真值表。",
+      "measurePoints": [],
+      "dataTable": "cmp_truth"
+    },
+    {
+      "id": "wire",
+      "text": "断电连接 +5V/GND，并将 K0→CMP_IGT、K3→CMP_IEQ、K1→CMP_ILT（默认 K0=0、K3=1、K1=0 对应单片比较模式），点击“检查接线”。",
+      "measurePoints": [],
+      "checkWiring": true,
+      "dataTable": "cmp_truth"
+    },
+    {
+      "id": "gt_lt",
+      "text": "上电，在默认 OP_A=5、OP_B=3 下确认 O(A>B)=H（≈3.4 V）、O(A=B)=L、O(A<B)=L；随后将 OP_A 调至 3、OP_B 调至 11，确认 O(A<B)=H。",
+      "measurePoints": ["u_ogt", "u_oeq", "u_olt"],
+      "expect": { "measurePoint": "u_ogt", "min": 2.7, "max": 4.2 },
+      "dataTable": "cmp_truth"
+    },
+    {
+      "id": "eq_single",
+      "text": "将 OP_A=9、OP_B=9（A=B），保持级联输入 I(>,=,<)=(0,1,0)，确认 O(A=B)=H、其余为 L。",
+      "measurePoints": ["u_ogt", "u_oeq", "u_olt"],
+      "expect": { "measurePoint": "u_oeq", "min": 2.7, "max": 4.2 },
+      "dataTable": "cmp_truth"
+    },
+    {
+      "id": "cascade",
+      "text": "保持 OP_A=9、OP_B=9，切换级联开关 SW_K3=0、SW_K0=1（模拟低位片 A>B），验证 O(A>B) 立即翻高；再置 SW_K0=0、SW_K1=1 验证 O(A<B)=H；断电完成思考题。",
+      "measurePoints": ["u_ogt", "u_oeq", "u_olt"],
+      "recordTable": "cmp_truth",
+      "dataTable": "cmp_truth"
+    }
+  ],
+  "dataTables": [
+    {
+      "id": "cmp_truth",
+      "title": "74LS85 四位数值比较与级联扩展测试",
+      "rows": 4,
+      "columns": [
+        { "id": "u_ogt", "title": "O(A>B)", "unit": "V", "measurePoint": "u_ogt", "captureSteps": ["gt_lt", "eq_single", "cascade"] },
+        { "id": "u_oeq", "title": "O(A=B)", "unit": "V", "measurePoint": "u_oeq", "captureSteps": ["gt_lt", "eq_single", "cascade"] },
+        { "id": "u_olt", "title": "O(A<B)", "unit": "V", "measurePoint": "u_olt", "captureSteps": ["gt_lt", "eq_single", "cascade"] }
+      ],
+      "sanity": [
+        { "column": "u_ogt", "min": -0.2, "max": 5.2, "message": "TTL 输出电压应在 0~5 V 之间。" },
+        { "column": "u_oeq", "min": -0.2, "max": 5.2, "message": "TTL 输出电压应在 0~5 V 之间。" }
+      ]
+    }
+  ],
+  "charts": [],
+  "questions": [
+    "单片使用 74LS85 比较两个 4 位无符号二进制数时，级联输入端 I(A>B)、I(A=B)、I(A<B) 应分别接何种电平？",
+    "两片 74LS85 串联级联比较 8 位二进制数时，低 4 位片的三个输出端应如何连接到高 4 位片？",
+    "当高 4 位片测得 A3..A0 > B3..B0 时，低 4 位片的比较结果是否会影响高 4 位片的最终输出？为什么？"
+  ]
+}

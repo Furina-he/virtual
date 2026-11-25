@@ -1,0 +1,97 @@
+.subckt mod_dig_cnt_n VCC GND CP_MAN CLK_OUT K0 K1 DISP_A DISP_B DISP_C DISP_D C161_CP C161_CLR C161_LD C161_RCO C161_Q0 C161_Q1 C161_Q2 C161_Q3 FB_A FB_B FB_Y C160_CP C160_CLR C160_Q0 C160_Q1 C160_Q2 C160_Q3 params: clk_rate=5 cp_btn=0 sw_k0=1 sw_k1=1 ld_val=10
+* N 进制同步计数器实验箱（SD-12：74LS161 + 74LS160 + 74LS00 反馈与非门，含 3 项故障元件）
+Rgnd GND 0 1G
+Rvcc_bleed VCC GND 100k
+Cdec VCC GND 100n
+
+* ---- 1. 连续脉冲 CLK_OUT、手动单次脉冲 CP_MAN 与开关 K0/K1 ----
+Vclk1 clk1_raw GND PULSE(0 1 0.475 10u 10u 0.5 1.0)
+Vclk2 clk2_raw GND PULSE(0 1 0.225 10u 10u 0.25 0.5)
+Vclk5 clk5_raw GND PULSE(0 1 0.075 10u 10u 0.1 0.2)
+Vclk10 clk10_raw GND PULSE(0 1 0.025 10u 10u 0.05 0.1)
+RCLK1 clk1_raw clk_mix {clk_rate < 1.5 ? 10 : 1G}
+RCLK2 clk2_raw clk_mix {clk_rate >= 1.5 && clk_rate < 3.5 ? 10 : 1G}
+RCLK5 clk5_raw clk_mix {clk_rate >= 3.5 && clk_rate < 7.5 ? 10 : 1G}
+RCLK10 clk10_raw clk_mix {clk_rate >= 7.5 ? 10 : 1G}
+Rclk_load clk_mix GND 100k
+Bclk_buf clk_buf GND V=V(clk_mix,GND)*max(V(VCC,GND),0)
+Rclk_out clk_buf CLK_OUT 50
+
+RCP_HI VCC cp_sw {cp_btn > 0.5 ? 100 : 1G}
+RCP_LO cp_sw GND {cp_btn > 0.5 ? 1G : 100}
+Bcp cp_buf GND V=V(cp_sw,GND)
+Rcp_out cp_buf CP_MAN 50
+
+RK0_HI VCC k0_sw {sw_k0 > 0.5 ? 100 : 1G}
+RK0_LO k0_sw GND {sw_k0 > 0.5 ? 1G : 100}
+Bk0 k0_buf GND V=V(k0_sw,GND)
+Rk0_out k0_buf K0 50
+
+RK1_HI VCC k1_sw {sw_k1 > 0.5 ? 100 : 1G}
+RK1_LO k1_sw GND {sw_k1 > 0.5 ? 1G : 100}
+Bk1 k1_buf GND V=V(k1_sw,GND)
+Rk1_out k1_buf K1 50
+
+* ---- 2. 1 ms 低有效上电复位（保证 74LS161/160 初始状态为 0）----
+Vpor por_n GND PULSE(0 1 1m 10u 10u 1e6 2e6)
+Rpor por_n GND 100k
+
+* ---- 3. 74LS161 同步二进制计数器（含 3 处排故元件）----
+RLA_HI VCC lda {(floor(ld_val + 0.5) - 2*floor((floor(ld_val + 0.5))/2)) > 0.5 ? 100 : 1G}
+RLA_LO lda GND {(floor(ld_val + 0.5) - 2*floor((floor(ld_val + 0.5))/2)) > 0.5 ? 1G : 100}
+RLB_HI VCC ldb {(floor(floor(ld_val + 0.5)/2) - 2*floor(floor(ld_val + 0.5)/4)) > 0.5 ? 100 : 1G}
+RLB_LO ldb GND {(floor(floor(ld_val + 0.5)/2) - 2*floor(floor(ld_val + 0.5)/4)) > 0.5 ? 1G : 100}
+RLC_HI VCC ldc {(floor(floor(ld_val + 0.5)/4) - 2*floor(floor(ld_val + 0.5)/8)) > 0.5 ? 100 : 1G}
+RLC_LO ldc GND {(floor(floor(ld_val + 0.5)/4) - 2*floor(floor(ld_val + 0.5)/8)) > 0.5 ? 1G : 100}
+RLD_HI VCC ldd {floor(ld_val + 0.5) >= 8 ? 100 : 1G}
+RLD_LO ldd GND {floor(ld_val + 0.5) >= 8 ? 1G : 100}
+
+Rc161_clr_pu C161_CLR VCC 20k
+Rc161_clr_f C161_CLR GND 10Meg
+Rc161_enp c161_enp VCC 100
+Rc161_enp_pd c161_enp GND 10k
+B161clr c161_clr_int GND V=min(V(C161_CLR,GND),V(por_n,GND)*max(V(VCC,GND),0))
+X161 c161_clr_int C161_CP lda ldb ldc ldd c161_enp GND C161_LD VCC C161_Q3 C161_Q2 C161_Q1 C161_Q0 C161_RCO VCC SN74LS161
+R161q0 C161_Q0 GND 10k
+R161q1 C161_Q1 GND 10k
+R161q2 C161_Q2 GND 10k
+R161q3 C161_Q3 GND 10k
+R161rco C161_RCO GND 10k
+
+* ---- 4. 74LS00 反馈与非门（含排故串联电阻 Rfb_y_ser）----
+Xfb FB_A FB_B fb_y_int GND GND u00_2 GND u00_3 GND GND u00_4 GND GND VCC SN74LS00
+Rfb_y_ser fb_y_int FB_Y 10
+Rfb_y_pu FB_Y VCC 100k
+
+* ---- 5. 74LS160 同步十进制计数器 ----
+Rc160_clr_pu C160_CLR VCC 20k
+B160clr c160_clr_int GND V=min(V(C160_CLR,GND),V(por_n,GND)*max(V(VCC,GND),0))
+X160 c160_clr_int C160_CP GND GND GND GND VCC GND VCC VCC C160_Q3 C160_Q2 C160_Q1 C160_Q0 c160_rco VCC SN74LS160
+R160q0 C160_Q0 GND 10k
+R160q1 C160_Q1 GND 10k
+R160q2 C160_Q2 GND 10k
+R160q3 C160_Q3 GND 10k
+
+* ---- 6. 共享 CD4511 译码与共阴数码管 ----
+Rlt d_lt VCC 10k
+Rbi d_bi VCC 10k
+Rle d_le GND 10k
+Xcd DISP_B DISP_C d_lt d_bi d_le DISP_D DISP_A GND ue ud uc ub ua ug uf VCC CD4511
+Rsa ua seg_a 330
+Rsb ub seg_b 330
+Rsc uc seg_c 330
+Rsd ud seg_d 330
+Rse ue seg_e 330
+Rsf uf seg_f 330
+Rsg ug seg_g 330
+Rla seg_a GND 1k
+Rlb seg_b GND 1k
+Rlc seg_c GND 1k
+Rld seg_d GND 1k
+Rle_led seg_e GND 1k
+Rlf seg_f GND 1k
+Rlg seg_g GND 1k
+.ends mod_dig_cnt_n
+
+.include "ttl.lib"
+.include "cmos.lib"

@@ -1,0 +1,67 @@
+.subckt mod_dig_arith VCC GND K0 K1 K2 K3 FA_A FA_B FA_CI FA_S FA_CO AD4_C0 AD4_S0 AD4_S1 AD4_S2 AD4_S3 AD4_C4 CMP_IGT CMP_IEQ CMP_ILT CMP_OGT CMP_OEQ CMP_OLT params: sw_k0=0 sw_k1=0 sw_k2=0 sw_k3=1 op_a=5 op_b=3
+* 全加器与数值比较器实验箱（SD-04 74LS183/74LS283、SD-05 74LS85）
+Rgnd GND 0 1G
+Rvcc_bleed VCC GND 100k
+Cdec VCC GND 100n
+
+* ---- 1. 四路逻辑开关 K0~K3 ----
+RK0_HI VCC k0_sw {sw_k0 > 0.5 ? 100 : 1G}
+RK0_LO k0_sw GND {sw_k0 > 0.5 ? 1G : 100}
+Bk0 k0_buf GND V=V(k0_sw,GND)
+Rk0_out k0_buf K0 50
+
+RK1_HI VCC k1_sw {sw_k1 > 0.5 ? 100 : 1G}
+RK1_LO k1_sw GND {sw_k1 > 0.5 ? 1G : 100}
+Bk1 k1_buf GND V=V(k1_sw,GND)
+Rk1_out k1_buf K1 50
+
+RK2_HI VCC k2_sw {sw_k2 > 0.5 ? 100 : 1G}
+RK2_LO k2_sw GND {sw_k2 > 0.5 ? 1G : 100}
+Bk2 k2_buf GND V=V(k2_sw,GND)
+Rk2_out k2_buf K2 50
+
+RK3_HI VCC k3_sw {sw_k3 > 0.5 ? 100 : 1G}
+RK3_LO k3_sw GND {sw_k3 > 0.5 ? 1G : 100}
+Bk3 k3_buf GND V=V(k3_sw,GND)
+Rk3_out k3_buf K3 50
+
+* ---- 2. 四位并行操作数 A / B（ADR-009 实时驱动 74LS283 与 74LS85）----
+RA0_HI VCC oa0 {(floor(op_a + 0.5) - 2*floor((floor(op_a + 0.5))/2)) > 0.5 ? 100 : 1G}
+RA0_LO oa0 GND {(floor(op_a + 0.5) - 2*floor((floor(op_a + 0.5))/2)) > 0.5 ? 1G : 100}
+RA1_HI VCC oa1 {(floor(floor(op_a + 0.5)/2) - 2*floor(floor(op_a + 0.5)/4)) > 0.5 ? 100 : 1G}
+RA1_LO oa1 GND {(floor(floor(op_a + 0.5)/2) - 2*floor(floor(op_a + 0.5)/4)) > 0.5 ? 1G : 100}
+RA2_HI VCC oa2 {(floor(floor(op_a + 0.5)/4) - 2*floor(floor(op_a + 0.5)/8)) > 0.5 ? 100 : 1G}
+RA2_LO oa2 GND {(floor(floor(op_a + 0.5)/4) - 2*floor(floor(op_a + 0.5)/8)) > 0.5 ? 1G : 100}
+RA3_HI VCC oa3 {floor(op_a + 0.5) >= 8 ? 100 : 1G}
+RA3_LO oa3 GND {floor(op_a + 0.5) >= 8 ? 1G : 100}
+
+RB0_HI VCC ob0 {(floor(op_b + 0.5) - 2*floor((floor(op_b + 0.5))/2)) > 0.5 ? 100 : 1G}
+RB0_LO ob0 GND {(floor(op_b + 0.5) - 2*floor((floor(op_b + 0.5))/2)) > 0.5 ? 1G : 100}
+RB1_HI VCC ob1 {(floor(floor(op_b + 0.5)/2) - 2*floor(floor(op_b + 0.5)/4)) > 0.5 ? 100 : 1G}
+RB1_LO ob1 GND {(floor(floor(op_b + 0.5)/2) - 2*floor(floor(op_b + 0.5)/4)) > 0.5 ? 1G : 100}
+RB2_HI VCC ob2 {(floor(floor(op_b + 0.5)/4) - 2*floor(floor(op_b + 0.5)/8)) > 0.5 ? 100 : 1G}
+RB2_LO ob2 GND {(floor(floor(op_b + 0.5)/4) - 2*floor(floor(op_b + 0.5)/8)) > 0.5 ? 1G : 100}
+RB3_HI VCC ob3 {floor(op_b + 0.5) >= 8 ? 100 : 1G}
+RB3_LO ob3 GND {floor(op_b + 0.5) >= 8 ? 1G : 100}
+
+* ---- 3. 74LS183 一位二进制全加器 ----
+X183 FA_A nc2 FA_B FA_CI FA_S FA_CO GND u183_c2 u183_s2 GND GND nc12 GND VCC SN74LS183
+Rfas FA_S GND 10k
+Rfaco FA_CO GND 10k
+
+* ---- 4. 74LS283 四位超前进位全加器 ----
+X283 AD4_S1 ob1 oa1 AD4_S0 oa0 ob0 AD4_C0 GND AD4_C4 AD4_S3 ob3 oa3 AD4_S2 oa2 ob2 VCC SN74LS283
+Rs0 AD4_S0 GND 10k
+Rs1 AD4_S1 GND 10k
+Rs2 AD4_S2 GND 10k
+Rs3 AD4_S3 GND 10k
+Rc4 AD4_C4 GND 10k
+
+* ---- 5. 74LS85 四位数值比较器（带外部级联端）----
+X85 ob3 CMP_ILT CMP_IEQ CMP_IGT CMP_OGT CMP_OEQ CMP_OLT GND ob0 oa0 ob1 oa1 oa2 ob2 oa3 VCC SN74LS85
+Rgt CMP_OGT GND 10k
+Req CMP_OEQ GND 10k
+Rlt CMP_OLT GND 10k
+.ends mod_dig_arith
+
+.include "ttl.lib"

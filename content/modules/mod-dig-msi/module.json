@@ -1,0 +1,124 @@
+{
+  "id": "mod-dig-msi",
+  "name": "编码译码与数据选择实验箱",
+  "form": "box",
+  "model": "module.glb",
+  "netlist": "module.cir",
+  "jacks": [
+    { "id": "VCC", "label": "+5V 电源", "kind": "banana4", "polarityHint": "+" },
+    { "id": "GND", "label": "公共地 GND", "kind": "banana4", "polarityHint": "-" },
+    { "id": "K0", "label": "逻辑开关 K0", "kind": "banana4" },
+    { "id": "K1", "label": "逻辑开关 K1", "kind": "banana4" },
+    { "id": "K2", "label": "逻辑开关 K2", "kind": "banana4" },
+    { "id": "K3", "label": "逻辑开关 K3", "kind": "banana4" },
+    { "id": "E_EI", "label": "148 使能 /EI", "kind": "banana4" },
+    { "id": "E_I1", "label": "148 输入 /I1", "kind": "banana4" },
+    { "id": "E_I4", "label": "148 输入 /I4", "kind": "banana4" },
+    { "id": "E_I7", "label": "148 输入 /I7", "kind": "banana4" },
+    { "id": "E_A2", "label": "148 编码 /A2", "kind": "banana4" },
+    { "id": "E_A1", "label": "148 编码 /A1", "kind": "banana4" },
+    { "id": "E_A0", "label": "148 编码 /A0", "kind": "banana4" },
+    { "id": "E_GS", "label": "148 有效 /GS", "kind": "banana4" },
+    { "id": "E_EO", "label": "148 扩展 /EO", "kind": "banana4" },
+    { "id": "SEL_A", "label": "地址输入 A", "kind": "banana4" },
+    { "id": "SEL_B", "label": "地址输入 B", "kind": "banana4" },
+    { "id": "SEL_C", "label": "地址输入 C", "kind": "banana4" },
+    { "id": "DEC_G1", "label": "138 使能 G1", "kind": "banana4" },
+    { "id": "DEC_Y0", "label": "138 译码 /Y0", "kind": "banana4" },
+    { "id": "DEC_Y3", "label": "138 译码 /Y3", "kind": "banana4" },
+    { "id": "DEC_Y5", "label": "138 译码 /Y5", "kind": "banana4" },
+    { "id": "DEC_Y7", "label": "138 译码 /Y7", "kind": "banana4" },
+    { "id": "MUX151_Y", "label": "151 输出 Y", "kind": "banana4" },
+    { "id": "MUX151_W", "label": "151 反相 W", "kind": "banana4" },
+    { "id": "MUX153_1Y", "label": "153 输出 1Y", "kind": "banana4" }
+  ],
+  "controls": [
+    {
+      "id": "SW_K0",
+      "label": "逻辑开关 K0",
+      "kind": "switch",
+      "param": "sw_k0",
+      "steps": [0, 1],
+      "stepLabels": ["低电平 L (0)", "高电平 H (1)"],
+      "targets": [
+        { "element": "RK0_HI", "values": [1000000000, 100] },
+        { "element": "RK0_LO", "values": [100, 1000000000] }
+      ],
+      "unit": "",
+      "default": 0
+    },
+    {
+      "id": "SW_K1",
+      "label": "逻辑开关 K1",
+      "kind": "switch",
+      "param": "sw_k1",
+      "steps": [0, 1],
+      "stepLabels": ["低电平 L (0)", "高电平 H (1)"],
+      "targets": [
+        { "element": "RK1_HI", "values": [1000000000, 100] },
+        { "element": "RK1_LO", "values": [100, 1000000000] }
+      ],
+      "unit": "",
+      "default": 0
+    },
+    {
+      "id": "SW_K2",
+      "label": "逻辑开关 K2",
+      "kind": "switch",
+      "param": "sw_k2",
+      "steps": [0, 1],
+      "stepLabels": ["低电平 L (0)", "高电平 H (1)"],
+      "targets": [
+        { "element": "RK2_HI", "values": [1000000000, 100] },
+        { "element": "RK2_LO", "values": [100, 1000000000] }
+      ],
+      "unit": "",
+      "default": 0
+    },
+    {
+      "id": "SW_K3",
+      "label": "逻辑开关 K3",
+      "kind": "switch",
+      "param": "sw_k3",
+      "steps": [0, 1],
+      "stepLabels": ["低电平 L (0)", "高电平 H (1)"],
+      "targets": [
+        { "element": "RK3_HI", "values": [1000000000, 100] },
+        { "element": "RK3_LO", "values": [100, 1000000000] }
+      ],
+      "unit": "",
+      "default": 1
+    },
+    {
+      "id": "ENC_EXT",
+      "label": "148 辅助编码请求",
+      "kind": "rotary",
+      "param": "enc_ext",
+      "steps": [0, 1, 2, 3, 4, 5],
+      "stepLabels": ["无辅助请求", "请求 /I0 低", "请求 /I2 低", "请求 /I3 低", "请求 /I5 低", "请求 /I6 低"],
+      "targets": [
+        { "element": "REI0_LO", "values": [1000000000, 100, 1000000000, 1000000000, 1000000000, 1000000000] },
+        { "element": "REI2_LO", "values": [1000000000, 1000000000, 100, 1000000000, 1000000000, 1000000000] },
+        { "element": "REI3_LO", "values": [1000000000, 1000000000, 1000000000, 100, 1000000000, 1000000000] },
+        { "element": "REI5_LO", "values": [1000000000, 1000000000, 1000000000, 1000000000, 100, 1000000000] },
+        { "element": "REI6_LO", "values": [1000000000, 1000000000, 1000000000, 1000000000, 1000000000, 100] }
+      ],
+      "unit": "",
+      "default": 0
+    }
+  ],
+  "indicators": [
+    { "id": "L_A2", "kind": "led", "label": "148 /A2", "probe": "E_A2", "common": "GND" },
+    { "id": "L_A1", "kind": "led", "label": "148 /A1", "probe": "E_A1", "common": "GND" },
+    { "id": "L_A0", "kind": "led", "label": "148 /A0", "probe": "E_A0", "common": "GND" },
+    { "id": "L_GS", "kind": "led", "label": "148 /GS", "probe": "E_GS", "common": "GND" },
+    { "id": "L_EO", "kind": "led", "label": "148 /EO", "probe": "E_EO", "common": "GND" },
+    { "id": "L_Y0", "kind": "led", "label": "138 /Y0", "probe": "DEC_Y0", "common": "GND" },
+    { "id": "L_Y3", "kind": "led", "label": "138 /Y3", "probe": "DEC_Y3", "common": "GND" },
+    { "id": "L_Y5", "kind": "led", "label": "138 /Y5", "probe": "DEC_Y5", "common": "GND" },
+    { "id": "L_Y7", "kind": "led", "label": "138 /Y7", "probe": "DEC_Y7", "common": "GND" },
+    { "id": "L_M151", "kind": "led", "label": "151 Y", "probe": "MUX151_Y", "common": "GND" },
+    { "id": "L_M153", "kind": "led", "label": "153 1Y", "probe": "MUX153_1Y", "common": "GND" }
+  ],
+  "simulation": { "analysis": "tran", "maxStep": 0.0005, "pacing": "realtime" }
+}

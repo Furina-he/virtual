@@ -1,0 +1,81 @@
+{
+  "id": "SD-08",
+  "group": "数字逻辑基础",
+  "title": "双向移位寄存器功能测试",
+  "type": "basic",
+  "modules": [{ "instanceId": "sh1", "moduleId": "mod-dig-shift", "slot": "SLOT_BOX_L1" }],
+  "allowedInstruments": ["ins-multimeter", "ins-oscilloscope"],
+  "reference": {
+    "nets": [
+      ["ins-dc-power.V5P", "sh1.VCC", "sh1.SH_CLR", "sh1.SH_SR"],
+      ["ins-dc-power.V5N", "sh1.GND", "sh1.SH_SL"],
+      ["sh1.K0", "sh1.SH_S0"],
+      ["sh1.K1", "sh1.SH_S1"],
+      ["sh1.CP_MAN", "sh1.SH_CP"]
+    ],
+    "measurePoints": [
+      { "id": "u_qa", "kind": "voltage", "mode": "dcv", "between": ["sh1.SH_QA", "sh1.GND"] },
+      { "id": "u_qb", "kind": "voltage", "mode": "dcv", "between": ["sh1.SH_QB", "sh1.GND"] },
+      { "id": "u_qc", "kind": "voltage", "mode": "dcv", "between": ["sh1.SH_QC", "sh1.GND"] },
+      { "id": "u_qd", "kind": "voltage", "mode": "dcv", "between": ["sh1.SH_QD", "sh1.GND"] }
+    ]
+  },
+  "steps": [
+    {
+      "id": "prepare",
+      "text": "保持断电，查阅 74LS194 四位双向移位寄存器模式控制表：(S1,S0)=00 保持、01 右移（SR→QA→QD）、10 左移（SL→QD→QA）、11 并行置数（ABCD→QA..QD）。",
+      "measurePoints": [],
+      "dataTable": "shift_log"
+    },
+    {
+      "id": "wire",
+      "text": "断电连接 +5V/GND，并将 VCC 接 SH_CLR/SH_SR、GND 接 SH_SL、K0→SH_S0、K1→SH_S1、CP_MAN→SH_CP，点击“检查接线”。",
+      "measurePoints": [],
+      "checkWiring": true,
+      "dataTable": "shift_log"
+    },
+    {
+      "id": "parallel_load",
+      "text": "保持默认 PAR_DATA=10 (DCBA=1010)、SW_K1=1、SW_K0=1（并行置数模式），上电后将 CP_BTN 从 0 拨到 1 再回 0，确认板载 H/L 指示与电压为 QA=L、QB=H、QC=L、QD=H，记录第 1 行。",
+      "measurePoints": ["u_qa", "u_qb", "u_qc", "u_qd"],
+      "expect": { "measurePoint": "u_qd", "min": 2.7, "max": 4.2 },
+      "dataTable": "shift_log"
+    },
+    {
+      "id": "shift_right",
+      "text": "置 SW_K1=0、SW_K0=1（右移模式，SR=1），给一个单次脉冲（CP_BTN 0→1→0），验证状态右移为 QA=H、QB=L、QC=H、QD=L（DCBA=0101），记录第 2 行。",
+      "measurePoints": ["u_qa", "u_qb", "u_qc", "u_qd"],
+      "expect": { "measurePoint": "u_qa", "min": 2.7, "max": 4.2 },
+      "dataTable": "shift_log"
+    },
+    {
+      "id": "hold_and_left",
+      "text": "置 SW_K1=0、SW_K0=0（保持模式）发单次脉冲确认输出不变；再置 SW_K1=1、SW_K0=0（左移模式，SL=0）发单次脉冲验证 QD 移入 0、QA←QB←QC←QD 左移为 DCBA=0010，记录第 3 行；断电完成思考题。",
+      "measurePoints": ["u_qa", "u_qb", "u_qc", "u_qd"],
+      "recordTable": "shift_log",
+      "dataTable": "shift_log"
+    }
+  ],
+  "dataTables": [
+    {
+      "id": "shift_log",
+      "title": "74LS194 并行置数、右移、保持与左移状态记录",
+      "rows": 3,
+      "columns": [
+        { "id": "u_qa", "title": "QA", "unit": "V", "measurePoint": "u_qa", "captureSteps": ["parallel_load", "shift_right", "hold_and_left"] },
+        { "id": "u_qb", "title": "QB", "unit": "V", "measurePoint": "u_qb", "captureSteps": ["parallel_load", "shift_right", "hold_and_left"] },
+        { "id": "u_qc", "title": "QC", "unit": "V", "measurePoint": "u_qc", "captureSteps": ["parallel_load", "shift_right", "hold_and_left"] },
+        { "id": "u_qd", "title": "QD", "unit": "V", "measurePoint": "u_qd", "captureSteps": ["parallel_load", "shift_right", "hold_and_left"] }
+      ],
+      "sanity": [
+        { "column": "u_qa", "min": -0.2, "max": 5.2, "message": "TTL 输出应在 0~5 V 之间。" }
+      ]
+    }
+  ],
+  "charts": [],
+  "questions": [
+    "74LS194 在哪种控制组合 (S1,S0) 下完成并行置数？该置数操作是同步（依赖时钟上升沿）还是异步的？",
+    "如何仅增加一根外部反馈线将 74LS194 接成 4 位环形移位寄存器？为何普通环形接法缺少自启动能力？",
+    "将 74LS194 用作“串入-并出”数据转换器时，S1、S0 与时钟脉冲应如何配合？"
+  ]
+}

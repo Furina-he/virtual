@@ -1,0 +1,131 @@
+{
+  "id": "mod-dig-ff",
+  "name": "触发器功能实验箱",
+  "form": "box",
+  "model": "module.glb",
+  "netlist": "module.cir",
+  "jacks": [
+    { "id": "VCC", "label": "+5V 电源", "kind": "banana4", "polarityHint": "+" },
+    { "id": "GND", "label": "公共地 GND", "kind": "banana4", "polarityHint": "-" },
+    { "id": "K0", "label": "逻辑开关 K0", "kind": "banana4" },
+    { "id": "K1", "label": "逻辑开关 K1", "kind": "banana4" },
+    { "id": "K2", "label": "逻辑开关 K2", "kind": "banana4" },
+    { "id": "K3", "label": "逻辑开关 K3", "kind": "banana4" },
+    { "id": "CP_MAN", "label": "单次脉冲 CP", "kind": "banana4" },
+    { "id": "CLK_OUT", "label": "连续脉冲 CLK", "kind": "banana4" },
+    { "id": "RS_S", "label": "RS 置位 /S", "kind": "banana4" },
+    { "id": "RS_R", "label": "RS 复位 /R", "kind": "banana4" },
+    { "id": "RS_Q", "label": "RS 输出 Q", "kind": "banana4" },
+    { "id": "RS_NQ", "label": "RS 输出 /Q", "kind": "banana4" },
+    { "id": "D_PRE", "label": "74 置位 /PRE", "kind": "banana4" },
+    { "id": "D_CLR", "label": "74 复位 /CLR", "kind": "banana4" },
+    { "id": "D_D", "label": "74 数据 D", "kind": "banana4" },
+    { "id": "D_CP", "label": "74 时钟 CP", "kind": "banana4" },
+    { "id": "D_Q", "label": "74 输出 Q", "kind": "banana4" },
+    { "id": "D_NQ", "label": "74 输出 /Q", "kind": "banana4" },
+    { "id": "JK_PRE", "label": "112 置位 /PRE", "kind": "banana4" },
+    { "id": "JK_CLR", "label": "112 复位 /CLR", "kind": "banana4" },
+    { "id": "JK_J", "label": "112 输入 J", "kind": "banana4" },
+    { "id": "JK_K", "label": "112 输入 K", "kind": "banana4" },
+    { "id": "JK_CP", "label": "112 时钟 /CP", "kind": "banana4" },
+    { "id": "JK_Q", "label": "112 输出 Q", "kind": "banana4" },
+    { "id": "JK_NQ", "label": "112 输出 /Q", "kind": "banana4" }
+  ],
+  "controls": [
+    {
+      "id": "SW_K0",
+      "label": "逻辑开关 K0",
+      "kind": "switch",
+      "param": "sw_k0",
+      "steps": [0, 1],
+      "stepLabels": ["低电平 L (0)", "高电平 H (1)"],
+      "targets": [
+        { "element": "RK0_HI", "values": [1000000000, 100] },
+        { "element": "RK0_LO", "values": [100, 1000000000] }
+      ],
+      "unit": "",
+      "default": 1
+    },
+    {
+      "id": "SW_K1",
+      "label": "逻辑开关 K1",
+      "kind": "switch",
+      "param": "sw_k1",
+      "steps": [0, 1],
+      "stepLabels": ["低电平 L (0)", "高电平 H (1)"],
+      "targets": [
+        { "element": "RK1_HI", "values": [1000000000, 100] },
+        { "element": "RK1_LO", "values": [100, 1000000000] }
+      ],
+      "unit": "",
+      "default": 1
+    },
+    {
+      "id": "SW_K2",
+      "label": "逻辑开关 K2",
+      "kind": "switch",
+      "param": "sw_k2",
+      "steps": [0, 1],
+      "stepLabels": ["低电平 L (0)", "高电平 H (1)"],
+      "targets": [
+        { "element": "RK2_HI", "values": [1000000000, 100] },
+        { "element": "RK2_LO", "values": [100, 1000000000] }
+      ],
+      "unit": "",
+      "default": 0
+    },
+    {
+      "id": "SW_K3",
+      "label": "逻辑开关 K3",
+      "kind": "switch",
+      "param": "sw_k3",
+      "steps": [0, 1],
+      "stepLabels": ["低电平 L (0)", "高电平 H (1)"],
+      "targets": [
+        { "element": "RK3_HI", "values": [1000000000, 100] },
+        { "element": "RK3_LO", "values": [100, 1000000000] }
+      ],
+      "unit": "",
+      "default": 0
+    },
+    {
+      "id": "CP_BTN",
+      "label": "单次脉冲按键 CP",
+      "kind": "switch",
+      "param": "cp_btn",
+      "steps": [0, 1],
+      "stepLabels": ["低电平 (0)", "高电平 (1)"],
+      "targets": [
+        { "element": "RCP_HI", "values": [1000000000, 100] },
+        { "element": "RCP_LO", "values": [100, 1000000000] }
+      ],
+      "unit": "",
+      "default": 0
+    },
+    {
+      "id": "CLK_RATE",
+      "label": "连续脉冲频率",
+      "kind": "rotary",
+      "param": "clk_rate",
+      "steps": [1, 2, 5, 10],
+      "stepLabels": ["1 Hz", "2 Hz", "5 Hz", "10 Hz"],
+      "targets": [
+        { "element": "RCLK1", "values": [10, 1000000000, 1000000000, 1000000000] },
+        { "element": "RCLK2", "values": [1000000000, 10, 1000000000, 1000000000] },
+        { "element": "RCLK5", "values": [1000000000, 1000000000, 10, 1000000000] },
+        { "element": "RCLK10", "values": [1000000000, 1000000000, 1000000000, 10] }
+      ],
+      "unit": "Hz",
+      "default": 2
+    }
+  ],
+  "indicators": [
+    { "id": "L_RS_Q", "kind": "led", "label": "RS Q", "probe": "RS_Q", "common": "GND" },
+    { "id": "L_RS_NQ", "kind": "led", "label": "RS /Q", "probe": "RS_NQ", "common": "GND" },
+    { "id": "L_D_Q", "kind": "led", "label": "74 Q", "probe": "D_Q", "common": "GND" },
+    { "id": "L_D_NQ", "kind": "led", "label": "74 /Q", "probe": "D_NQ", "common": "GND" },
+    { "id": "L_JK_Q", "kind": "led", "label": "112 Q", "probe": "JK_Q", "common": "GND" },
+    { "id": "L_JK_NQ", "kind": "led", "label": "112 /Q", "probe": "JK_NQ", "common": "GND" }
+  ],
+  "simulation": { "analysis": "tran", "maxStep": 0.0005, "pacing": "realtime" }
+}

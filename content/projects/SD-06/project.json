@@ -1,0 +1,110 @@
+{
+  "id": "SD-06",
+  "group": "数字逻辑基础",
+  "title": "七段码锁存/译码/驱动器功能测试",
+  "type": "basic",
+  "modules": [{ "instanceId": "dg1", "moduleId": "mod-dig-gates", "slot": "SLOT_BOX_L1" }],
+  "allowedInstruments": ["ins-multimeter", "ins-oscilloscope"],
+  "reference": {
+    "nets": [
+      ["ins-dc-power.V5P", "dg1.VCC"],
+      ["ins-dc-power.V5N", "dg1.GND", "dg1.CD_LE"],
+      ["dg1.K0", "dg1.CD_A"],
+      ["dg1.K1", "dg1.CD_B"],
+      ["dg1.K2", "dg1.CD_C"],
+      ["dg1.K3", "dg1.CD_D"],
+      ["dg1.K4", "dg1.CD_LT"],
+      ["dg1.K5", "dg1.CD_BI"]
+    ],
+    "measurePoints": [
+      { "id": "u_vcc", "kind": "voltage", "mode": "dcv", "between": ["dg1.VCC", "dg1.GND"] },
+      { "id": "u_sega", "kind": "voltage", "mode": "dcv", "between": ["dg1.CD_SEGA", "dg1.GND"] },
+      { "id": "u_bi", "kind": "voltage", "mode": "dcv", "between": ["dg1.CD_BI", "dg1.GND"] },
+      { "id": "u_lt", "kind": "voltage", "mode": "dcv", "between": ["dg1.CD_LT", "dg1.GND"] }
+    ]
+  },
+  "steps": [
+    {
+      "id": "prepare",
+      "text": "保持断电，查阅 CD4511 BCD-七段锁存/译码/驱动器真值表，明确 /LT（灯测低有效，最高优先）、/BI（消隐低有效）和 LE（高电平锁存）的功能。",
+      "measurePoints": [],
+      "dataTable": "cd4511_test"
+    },
+    {
+      "id": "wire",
+      "text": "断电连接 +5V/GND，把 K0~K3 接至 CD_A~CD_D、K4→CD_LT、K5→CD_BI、GND→CD_LE（透明模式），点击“检查接线”。",
+      "measurePoints": [],
+      "checkWiring": true,
+      "dataTable": "cd4511_test"
+    },
+    {
+      "id": "decode_0_9",
+      "text": "保持 SW_K4=1（/LT=1）、SW_K5=1（/BI=1），上电拨动 SW_K0~K3 从 0000 到 1001 观察 3D 与右栏数码管依次显示 0~9，并测记显示 0 时 a 段驱动电压 u_sega（约 3.2 V）；拨至 1010 (10) 验证非法 BCD 自动消隐。",
+      "measurePoints": ["u_vcc", "u_sega", "u_bi", "u_lt"],
+      "expect": { "measurePoint": "u_sega", "min": 2.4, "max": 4.0 },
+      "dataTable": "cd4511_test"
+    },
+    {
+      "id": "lt_bi_le",
+      "text": "验证控制端：置 SW_K4=0（/LT=0）确认即使 /BI=0 数码管仍全亮显示 8；恢复 SW_K4=1 后置 SW_K5=0（/BI=0）确认全灭；如需验证 LE 锁存，可断电将 CD_LE 改接 VCC 观察显示锁存保持。",
+      "measurePoints": ["u_sega", "u_bi", "u_lt"],
+      "dataTable": "cd4511_test"
+    },
+    {
+      "id": "fault_drill",
+      "text": "在右栏“排故”面板演练数码管 a 段缺段、/BI 消隐短路或 /LT 灯测短路故障的测量定位与修复；断电完成思考题。",
+      "measurePoints": ["u_sega", "u_bi", "u_lt"],
+      "recordTable": "cd4511_test",
+      "dataTable": "cd4511_test"
+    }
+  ],
+  "dataTables": [
+    {
+      "id": "cd4511_test",
+      "title": "CD4511 译码、控制端及段驱动电压测试",
+      "rows": 3,
+      "columns": [
+        { "id": "u_vcc", "title": "供电 VDD", "unit": "V", "measurePoint": "u_vcc", "captureSteps": ["decode_0_9"] },
+        { "id": "u_sega", "title": "a 段电压", "unit": "V", "measurePoint": "u_sega", "captureSteps": ["decode_0_9", "lt_bi_le", "fault_drill"] },
+        { "id": "u_bi", "title": "/BI 电平", "unit": "V", "measurePoint": "u_bi", "captureSteps": ["decode_0_9", "lt_bi_le", "fault_drill"] },
+        { "id": "u_lt", "title": "/LT 电平", "unit": "V", "measurePoint": "u_lt", "captureSteps": ["decode_0_9", "lt_bi_le", "fault_drill"] }
+      ],
+      "sanity": [
+        { "column": "u_vcc", "min": 4.7, "max": 5.3, "message": "CD4511 供电应为 5.0 V。" },
+        { "column": "u_sega", "min": -0.2, "max": 4.8, "message": "段驱动电压应在 0~4.5 V 范围内。" }
+      ]
+    }
+  ],
+  "charts": [],
+  "faults": [
+    {
+      "id": "flt-sega-open",
+      "target": "dg1.Rcd_sega",
+      "kind": "open",
+      "symptom": "输入 0000 或灯测 /LT=0 时，数码管顶部横段 a 始终熄灭，显示异常缺段，测量 CD_SEGA 接近 0 V。",
+      "hint": "将 /LT 置低或输入 0000，测 CD_SEGA 跌为 0 V 而其余 b~g 段正常，故障为 a 段限流电阻 Rcd_sega 开路。",
+      "verify": [{ "measurePoint": "u_sega", "min": 2.4, "max": 4.0 }]
+    },
+    {
+      "id": "flt-bi-short",
+      "target": "dg1.Rcd_bi_f",
+      "kind": "short",
+      "symptom": "即使 SW_K5=1（/BI 置高），正常输入 0~9 时数码管依然完全熄灭；测 CD_BI 电压接近 0 V。",
+      "hint": "测量 CD_BI 对地电压被拉低至 <0.2 V；按下灯测 /LT=0 仍可全亮 8，印证消隐端 /BI 对地短路。",
+      "verify": [{ "measurePoint": "u_bi", "min": 4.0, "max": 5.2 }]
+    },
+    {
+      "id": "flt-lt-short",
+      "target": "dg1.Rcd_lt_f",
+      "kind": "short",
+      "symptom": "尽管 SW_K4=1（/LT 置高），拨动 BCD 开关 K0~K3 时数码管始终强制全亮显示“8”；测 CD_LT 电压接近 0 V。",
+      "hint": "测量 CD_LT 对地电压被拉低至 <0.2 V，灯测端 /LT 对地短路使七段强制全亮。",
+      "verify": [{ "measurePoint": "u_lt", "min": 4.0, "max": 5.2 }]
+    }
+  ],
+  "questions": [
+    "当 CD4511 的 /LT 与 /BI 同时接低电平时，数码管显示全亮“8”还是全灭？这说明两者的控制优先级如何？",
+    "CD4511 输入 1010~1111（十进制 10~15）时为何主动消隐？工程上在多位数码管显示中有什么好处？",
+    "CD4511 与共阴极数码管之间为什么要串联 330 Ω 限流电阻？若其中 a 段限流电阻开路，数字 0、1、7、8 分别会呈现出什么缺段现象？"
+  ]
+}

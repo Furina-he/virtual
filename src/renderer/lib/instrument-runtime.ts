@@ -570,12 +570,19 @@ export function connectInstrumentRuntime(onStatus: (status: RuntimeStatus) => vo
     }
     for (const entry of input.modules) {
       for (const indicator of entry.module.indicators) {
-        if (indicator.kind !== 'segment7') continue
-        setInstrumentReading(
-          entry.instanceId,
-          { ...reading, text: '--', unit: '', mode: 'SEG7:0', label: indicator.label ?? indicator.id },
-          indicator.id,
-        )
+        if (indicator.kind === 'segment7') {
+          setInstrumentReading(
+            entry.instanceId,
+            { ...reading, text: '--', unit: '', mode: 'SEG7:0', label: indicator.label ?? indicator.id },
+            indicator.id,
+          )
+        } else if (indicator.kind === 'led') {
+          setInstrumentReading(
+            entry.instanceId,
+            { ...reading, text: '-', unit: '', mode: 'LED:OFF', label: indicator.label ?? indicator.id },
+            indicator.id,
+          )
+        }
       }
     }
   }
@@ -1020,6 +1027,25 @@ export function connectInstrumentRuntime(onStatus: (status: RuntimeStatus) => vo
           value: /^[0-9]$/.test(decoded.char) ? Number(decoded.char) : null,
         },
         seg.indicatorId,
+      )
+    }
+    for (const led of current.plan.leds) {
+      if (!current.powered) continue
+      const voltage = values[led.probe]
+      const valid = typeof voltage === 'number' && Number.isFinite(voltage)
+      const high = valid && voltage >= led.threshold
+      setInstrumentReading(
+        led.instanceId,
+        {
+          text: valid ? (high ? 'H' : 'L') : '-',
+          unit: '',
+          status: valid ? 'ok' : 'pending',
+          label: led.label,
+          mode: valid ? (high ? 'LED:H' : 'LED:L') : 'LED:OFF',
+          value: valid ? (high ? 1 : 0) : null,
+          ...(valid ? { rawValue: voltage } : {}),
+        },
+        led.indicatorId,
       )
     }
     showScopes(current.input, current.plan, current.powered, true)

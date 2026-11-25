@@ -1,0 +1,121 @@
+{
+  "id": "SD-12",
+  "group": "数字逻辑基础",
+  "title": "N 进制计数电路功能测试",
+  "type": "basic",
+  "modules": [{ "instanceId": "cn1", "moduleId": "mod-dig-cnt-n", "slot": "SLOT_BOX_L1" }],
+  "allowedInstruments": ["ins-oscilloscope", "ins-multimeter"],
+  "reference": {
+    "nets": [
+      ["ins-dc-power.V5P", "cn1.VCC", "cn1.C161_LD"],
+      ["ins-dc-power.V5N", "cn1.GND"],
+      ["cn1.CLK_OUT", "cn1.C161_CP"],
+      ["cn1.C161_Q0", "cn1.DISP_A"],
+      ["cn1.C161_Q1", "cn1.FB_A", "cn1.DISP_B"],
+      ["cn1.C161_Q2", "cn1.FB_B", "cn1.DISP_C"],
+      ["cn1.C161_Q3", "cn1.DISP_D"],
+      ["cn1.FB_Y", "cn1.C161_CLR"]
+    ],
+    "measurePoints": [
+      { "id": "f_clk", "kind": "waveform", "quantity": "frequency", "minCycles": 2, "between": ["cn1.C161_CP", "cn1.GND"] },
+      { "id": "f_q2", "kind": "waveform", "quantity": "frequency", "minCycles": 2, "between": ["cn1.C161_Q2", "cn1.GND"] },
+      { "id": "f_rco", "kind": "waveform", "quantity": "frequency", "minCycles": 2, "between": ["cn1.C161_RCO", "cn1.GND"] },
+      { "id": "f_160_q3", "kind": "waveform", "quantity": "frequency", "minCycles": 2, "between": ["cn1.C160_Q3", "cn1.GND"] }
+    ]
+  },
+  "steps": [
+    {
+      "id": "prepare",
+      "text": "保持断电，查阅基于 74LS161/74LS160 构造任意 N 进制计数器的两种经典方法：反馈清零法（异步清零 /CLR）与反馈置数法（同步置数 /LOAD）。",
+      "measurePoints": [],
+      "dataTable": "modn_test"
+    },
+    {
+      "id": "wire",
+      "text": "断电按反馈清零六进制（N=6，译码 0110）接线：+5V→VCC/C161_LD、GND→GND、CLK_OUT→C161_CP、Q1→FB_A、Q2→FB_B、FB_Y→C161_CLR，再接 Q0~Q3 至 DISP_A~DISP_D，点击“检查接线”。",
+      "measurePoints": [],
+      "checkWiring": true,
+      "dataTable": "modn_test"
+    },
+    {
+      "id": "mod6_clear",
+      "text": "设 CLK_RATE=10 Hz，接示波器 CH1→C161_CP、CH2→C161_Q2、GND→GND（时基 0.2 s/div）；上电观察数码管 0→1→2→3→4→5→0 循环，实测 f_clk ≈ 10 Hz、f_q2 ≈ 1.67 Hz（6 分频），记录第 1 行。",
+      "measurePoints": ["f_clk", "f_q2"],
+      "expect": { "measurePoint": "f_q2", "min": 1.5, "max": 1.85 },
+      "dataTable": "modn_test"
+    },
+    {
+      "id": "mod6_preset",
+      "text": "断电改接同步反馈置数法（VCC→C161_CLR、C161_RCO→FB_A/FB_B、FB_Y→C161_LD），设 LD_VAL=10（16−10=6 进制，或设 LD_VAL=4 得 12 进制），示波器 CH2 接 C161_RCO，上电验证无瞬态毛刺的同步 N 分频（LD_VAL=10 时 f_rco ≈ 1.67 Hz）。",
+      "measurePoints": ["f_clk", "f_rco"],
+      "referenceNets": [
+        ["ins-dc-power.V5P", "cn1.VCC", "cn1.C161_CLR"],
+        ["ins-dc-power.V5N", "cn1.GND"],
+        ["cn1.CLK_OUT", "cn1.C161_CP"],
+        ["cn1.C161_RCO", "cn1.FB_A", "cn1.FB_B"],
+        ["cn1.FB_Y", "cn1.C161_LD"],
+        ["cn1.C161_Q0", "cn1.DISP_A"],
+        ["cn1.C161_Q1", "cn1.DISP_B"],
+        ["cn1.C161_Q2", "cn1.DISP_C"],
+        ["cn1.C161_Q3", "cn1.DISP_D"]
+      ],
+      "expect": { "measurePoint": "f_rco", "min": 1.5, "max": 1.85 },
+      "dataTable": "modn_test"
+    },
+    {
+      "id": "fault_and_160",
+      "text": "可另测试板上 74LS160 同步十进制计数器（CLK_OUT→C160_CP、VCC→C160_CLR），或在右栏“排故”面板完成反馈断线/使能断开/清零短路排故演练；断电完成思考题。",
+      "measurePoints": ["f_clk", "f_q2"],
+      "recordTable": "modn_test",
+      "dataTable": "modn_test"
+    }
+  ],
+  "dataTables": [
+    {
+      "id": "modn_test",
+      "title": "N 进制反馈清零与反馈置数计数器分频测量",
+      "rows": 2,
+      "columns": [
+        { "id": "f_clk", "title": "时钟频率 f_CLK", "unit": "Hz", "measurePoint": "f_clk", "captureSteps": ["mod6_clear", "mod6_preset"] },
+        { "id": "f_q2", "title": "清零法 f_Q2", "unit": "Hz", "measurePoint": "f_q2", "captureSteps": ["mod6_clear", "fault_and_160"] },
+        { "id": "f_rco", "title": "置数法 f_RCO", "unit": "Hz", "measurePoint": "f_rco", "captureSteps": ["mod6_preset"] },
+        { "id": "mod_n", "title": "实测模数 N", "unit": "", "computed": "f_clk/f_q2" }
+      ],
+      "sanity": [
+        { "column": "f_q2", "min": 0.2, "max": 5, "message": "10 Hz 时钟下六进制分频输出应约 1.67 Hz。" }
+      ]
+    }
+  ],
+  "charts": [],
+  "faults": [
+    {
+      "id": "flt-fb-open",
+      "target": "cn1.Rfb_y_ser",
+      "kind": "open",
+      "symptom": "六进制电路未能在状态 6 清零，退化为十六进制，示波器测得 f_Q2 由 1.67 Hz 降至 1.25 Hz（f_CLK/8）。",
+      "hint": "观察数码管计过 5 后继续出现 6~9，反馈与非门输出无法将 C161_CLR 拉低，检查 Rfb_y_ser 开路。",
+      "verify": [{ "measurePoint": "f_q2", "min": 1.5, "max": 1.85 }]
+    },
+    {
+      "id": "flt-enp-open",
+      "target": "cn1.Rc161_enp",
+      "kind": "open",
+      "symptom": "时钟脉冲正常进入 C161_CP，但计数器完全停滞不计数，数码管始终停在 0，C161_CLR 保持高电平。",
+      "hint": "确认 C161_CLR 为高电平但 Q0~Q3 静止不动，74LS161 同步计数需 ENP=ENT=1，检查 ENP 上拉电阻 Rc161_enp。",
+      "verify": [{ "measurePoint": "f_q2", "min": 1.5, "max": 1.85 }]
+    },
+    {
+      "id": "flt-clr-short",
+      "target": "cn1.Rc161_clr_f",
+      "kind": "short",
+      "symptom": "数码管始终锁死在 0，测量 C161_CLR 电压始终接近 0 V。",
+      "hint": "测量 C161_CLR 被拉死在 0 V，异步清零 /CLR 对地短路强制封锁全部触发器。",
+      "verify": [{ "measurePoint": "f_q2", "min": 1.5, "max": 1.85 }]
+    }
+  ],
+  "questions": [
+    "采用 74LS161 异步反馈清零法构成 N 进制计数器时，译码门应取状态 N 还是状态 N−1？为什么会有短暂的过渡毛刺状态？",
+    "改用 74LS161 同步反馈置数法（RCO 反相接 /LOAD）构成 N 进制计数器时，预置初值 LD_VAL 应满足什么公式？相比异步清零法有何优点？",
+    "若希望在反馈清零法六进制电路中判断故障是“反馈断线”还是“清零短路”，观察数码管和示波器分别会出现什么截然不同的现象？"
+  ]
+}

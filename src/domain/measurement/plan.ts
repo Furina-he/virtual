@@ -59,6 +59,13 @@ export type Segment7Plan = {
   probes: readonly [string, string, string, string, string, string, string]
   threshold: number
 }
+export type LedPlan = {
+  instanceId: string
+  indicatorId: string
+  label: string
+  probe: string
+  threshold: number
+}
 
 /** 示波器通道探针 ID 固定，2D 面板、3D 屏幕和弹出窗口按同一 ID 读环形缓冲 */
 export const scopeProbeId = (instanceId: string, channelId: string) => `scope:${instanceId}:${channelId}`
@@ -72,6 +79,7 @@ export type MeasurementPlan = {
   parameters: ModuleParameter[]
   speakers: SpeakerPlan[]
   segment7s: Segment7Plan[]
+  leds: LedPlan[]
   scopes: ScopePlan[]
   assembled: AssembleOutput
   meters: MeterPlan[]
@@ -140,10 +148,25 @@ export function buildMeasurementPlan(
   const probes: Probe[] = []
   const speakers: SpeakerPlan[] = []
   const segment7s: Segment7Plan[] = []
+  const leds: LedPlan[] = []
   if (powered && !options.preflight) {
     for (const { instanceId, module } of input.modules) {
       const safeInstance = spiceSafe(instanceId)
       for (const indicator of module.indicators) {
+        if (indicator.kind === 'led') {
+          const probe = indicatorProbeId(instanceId, indicator.id)
+          const commonNode = indicator.common ? assembled.nodeOf[`${instanceId}.${indicator.common}`] : '0'
+          const node = assembled.nodeOf[`${instanceId}.${indicator.probe}`] ?? `x${safeInstance}.${indicator.probe}`
+          probes.push({ id: probe, kind: 'v', node, nodeRef: commonNode })
+          leds.push({
+            instanceId,
+            indicatorId: indicator.id,
+            label: indicator.label ?? indicator.id,
+            probe,
+            threshold: indicator.threshold,
+          })
+          continue
+        }
         if (indicator.kind === 'speaker') {
           const probe = indicatorProbeId(instanceId, indicator.id)
           probes.push({
@@ -338,6 +361,7 @@ export function buildMeasurementPlan(
     parameters,
     speakers,
     segment7s,
+    leds,
     scopes,
     assembled,
     meters,
@@ -390,6 +414,7 @@ function simulationKey(plan: MeasurementPlan, ignoreParameters = false): string 
     ]),
     plan.speakers,
     plan.segment7s,
+    plan.leds,
     plan.parameters.length ? plan.command.parameterTargets : undefined,
     plan.parameters.map(({ controlRef, param, value, targets }) => [
       controlRef,

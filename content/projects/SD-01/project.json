@@ -1,0 +1,88 @@
+{
+  "id": "SD-01",
+  "group": "数字逻辑基础",
+  "title": "基本逻辑门电路功能测试",
+  "type": "basic",
+  "modules": [{ "instanceId": "dg1", "moduleId": "mod-dig-gates", "slot": "SLOT_BOX_L1" }],
+  "allowedInstruments": ["ins-multimeter", "ins-oscilloscope"],
+  "reference": {
+    "nets": [
+      ["ins-dc-power.V5P", "dg1.VCC"],
+      ["ins-dc-power.V5N", "dg1.GND"],
+      ["dg1.K0", "dg1.G_A"],
+      ["dg1.K1", "dg1.G_B"],
+      ["dg1.Y_NAND", "dg1.LED0"],
+      ["dg1.Y_XOR", "dg1.LED1"]
+    ],
+    "measurePoints": [
+      { "id": "u_nand", "kind": "voltage", "mode": "dcv", "between": ["dg1.Y_NAND", "dg1.GND"] },
+      { "id": "u_nor", "kind": "voltage", "mode": "dcv", "between": ["dg1.Y_NOR", "dg1.GND"] },
+      { "id": "u_not", "kind": "voltage", "mode": "dcv", "between": ["dg1.Y_NOT", "dg1.GND"] },
+      { "id": "u_and", "kind": "voltage", "mode": "dcv", "between": ["dg1.Y_AND", "dg1.GND"] },
+      { "id": "u_or", "kind": "voltage", "mode": "dcv", "between": ["dg1.Y_OR", "dg1.GND"] },
+      { "id": "u_xor", "kind": "voltage", "mode": "dcv", "between": ["dg1.Y_XOR", "dg1.GND"] }
+    ]
+  },
+  "steps": [
+    {
+      "id": "prepare",
+      "text": "保持断电，查阅指导书与原理图，认识 74LS00（与非）、74LS02（或非）、74LS04（非）、74LS08（与）、74LS32（或）和 74LS86（异或）的逻辑符号与 TTL 电平标准。",
+      "measurePoints": [],
+      "dataTable": "gate_truth"
+    },
+    {
+      "id": "wire",
+      "text": "断电连接 +5V 电源与地，将逻辑开关 K0→G_A、K1→G_B，再将 Y_NAND→LED0、Y_XOR→LED1 以便同步观察电平指示，点击“检查接线”。",
+      "measurePoints": [],
+      "checkWiring": true,
+      "dataTable": "gate_truth"
+    },
+    {
+      "id": "state_00",
+      "text": "保持 SW_K0=0、SW_K1=0，上电观察模块控件区 6 路门输出 H/L 指示，并用直流电压表或万用表依次测量并记录输入 (0,0) 下各门输出直流电平（高电平约 3.4 V，低电平约 0 V）。",
+      "measurePoints": ["u_nand", "u_nor", "u_not", "u_and", "u_or", "u_xor"],
+      "expect": { "measurePoint": "u_nand", "min": 2.7, "max": 4.2 },
+      "dataTable": "gate_truth"
+    },
+    {
+      "id": "state_01_10",
+      "text": "依次切换 (SW_K0, SW_K1) 为 (0,1) 与 (1,0)，验证 74LS08/32/86/00/02/04 输出电平与真值表一致，填入第 2、3 行。",
+      "measurePoints": ["u_nand", "u_nor", "u_not", "u_and", "u_or", "u_xor"],
+      "dataTable": "gate_truth"
+    },
+    {
+      "id": "state_11",
+      "text": "切换 SW_K0=1、SW_K1=1，测量并记录 (1,1) 状态各门输出（74LS00/02/04/86 输出低电平 <0.5 V，74LS08/32 输出高电平 ≈3.4 V）；断电完成思考题。",
+      "measurePoints": ["u_nand", "u_nor", "u_not", "u_and", "u_or", "u_xor"],
+      "expect": { "measurePoint": "u_and", "min": 2.7, "max": 4.2 },
+      "recordTable": "gate_truth",
+      "dataTable": "gate_truth"
+    }
+  ],
+  "dataTables": [
+    {
+      "id": "gate_truth",
+      "title": "六种基本 TTL 逻辑门真值表与实测输出电平",
+      "rows": 4,
+      "columns": [
+        { "id": "u_nand", "title": "74LS00 与非", "unit": "V", "measurePoint": "u_nand", "captureSteps": ["state_00", "state_01_10", "state_11"] },
+        { "id": "u_nor", "title": "74LS02 或非", "unit": "V", "measurePoint": "u_nor", "captureSteps": ["state_00", "state_01_10", "state_11"] },
+        { "id": "u_not", "title": "74LS04 非(A)", "unit": "V", "measurePoint": "u_not", "captureSteps": ["state_00", "state_01_10", "state_11"] },
+        { "id": "u_and", "title": "74LS08 与", "unit": "V", "measurePoint": "u_and", "captureSteps": ["state_00", "state_01_10", "state_11"] },
+        { "id": "u_or", "title": "74LS32 或", "unit": "V", "measurePoint": "u_or", "captureSteps": ["state_00", "state_01_10", "state_11"] },
+        { "id": "u_xor", "title": "74LS86 异或", "unit": "V", "measurePoint": "u_xor", "captureSteps": ["state_00", "state_01_10", "state_11"] }
+      ],
+      "sanity": [
+        { "column": "u_nand", "min": -0.2, "max": 5.2, "message": "TTL 逻辑电平应在 0~5 V 之间，请检查供电与表笔。" },
+        { "column": "u_xor", "min": -0.2, "max": 5.2, "message": "74LS86 输出应在 0~5 V 范围内。" }
+      ]
+    }
+  ],
+  "charts": [],
+  "questions": [
+    "74LS 系列 TTL 门电路在 +5 V 供电下，实测输出高电平 VOH 为什么约为 3.4 V 而不是 5.0 V？",
+    "74LS00 与 74LS02 均为四 2 输入门电路，但两者在 DIP-14 封装上的引脚排列有何显著差异？",
+    "利用本实验挂箱中的 74LS00（与非门），如何通过连接两个输入端构成反相器（非门）？",
+    "当挂箱未接通 +5 V 供电时，为何即使输入端加入高电平，门电路输出也不会出现有效高电平？"
+  ]
+}

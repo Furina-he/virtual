@@ -118,3 +118,821 @@ X11 ld 11 5 10 LS_OUT
 .model LS90_OR0 d_or(rise_delay=1e-10 fall_delay=1e-10)
 .model LS90_JK d_jkff(clk_delay=8e-9 set_delay=8e-9 reset_delay=8e-9 rise_delay=1e-10 fall_delay=1e-10)
 .ends SN74LS90
+
+
+* ---- 通用高速内部 XSPICE 逻辑原语模型（用于 M2 B5 全部 74LS 组合与时序芯片）----
+.model LS_INV0 d_inverter(rise_delay=1e-10 fall_delay=1e-10)
+.model LS_AND0 d_and(rise_delay=1e-10 fall_delay=1e-10)
+.model LS_OR0 d_or(rise_delay=1e-10 fall_delay=1e-10)
+.model LS_NAND0 d_nand(rise_delay=1e-10 fall_delay=1e-10)
+.model LS_NOR0 d_nor(rise_delay=1e-10 fall_delay=1e-10)
+.model LS_XOR0 d_xor(rise_delay=1e-10 fall_delay=1e-10)
+.model LS_DLY3 d_inverter(rise_delay=3e-9 fall_delay=3e-9)
+.model LS_DFF d_dff(clk_delay=8e-9 set_delay=8e-9 reset_delay=8e-9 rise_delay=1e-10 fall_delay=1e-10)
+.model LS_JKFF d_jkff(clk_delay=8e-9 set_delay=8e-9 reset_delay=8e-9 rise_delay=1e-10 fall_delay=1e-10)
+
+* ---- 74LS02 四 2 输入或非门 ----
+* DIP-14：1 1Y 2 1A 3 1B 4 2Y 5 2A 6 2B 7 GND 8 3A 9 3B 10 3Y 11 4A 12 4B 13 4Y 14 VCC
+.subckt SN74LS02 1 2 3 4 5 6 7 8 9 10 11 12 13 14
+Rq 14 7 2.5k
+Rg 7 0 1G
+X2 2 a1 14 7 LS_IN
+X3 3 b1 14 7 LS_IN
+X5 5 a2 14 7 LS_IN
+X6 6 b2 14 7 LS_IN
+X8 8 a3 14 7 LS_IN
+X9 9 b3 14 7 LS_IN
+X11 11 a4 14 7 LS_IN
+X12 12 b4 14 7 LS_IN
+Aadc [a1 b1 a2 b2 a3 b3 a4 b4] [da1 db1 da2 db2 da3 db3 da4 db4] LS_ADC
+An1 [da1 db1] dy1 LS02_NOR
+An2 [da2 db2] dy2 LS02_NOR
+An3 [da3 db3] dy3 LS02_NOR
+An4 [da4 db4] dy4 LS02_NOR
+Adac [dy1 dy2 dy3 dy4] [l1 l2 l3 l4] LS_DAC
+X1 l1 1 14 7 LS_OUT
+X4 l2 4 14 7 LS_OUT
+X10 l3 10 14 7 LS_OUT
+X13 l4 13 14 7 LS_OUT
+.model LS02_NOR d_nor(rise_delay=8e-9 fall_delay=8e-9)
+.ends SN74LS02
+
+* ---- 74LS04 六反相器 ----
+* DIP-14：1 1A 2 1Y 3 2A 4 2Y 5 3A 6 3Y 7 GND 8 4Y 9 4A 10 5Y 11 5A 12 6Y 13 6A 14 VCC
+.subckt SN74LS04 1 2 3 4 5 6 7 8 9 10 11 12 13 14
+Rq 14 7 2.1k
+Rg 7 0 1G
+X1 1 a1 14 7 LS_IN
+X3 3 a2 14 7 LS_IN
+X5 5 a3 14 7 LS_IN
+X9 9 a4 14 7 LS_IN
+X11 11 a5 14 7 LS_IN
+X13 13 a6 14 7 LS_IN
+Aadc [a1 a2 a3 a4 a5 a6] [da1 da2 da3 da4 da5 da6] LS_ADC
+Ai1 da1 dy1 LS04_INV
+Ai2 da2 dy2 LS04_INV
+Ai3 da3 dy3 LS04_INV
+Ai4 da4 dy4 LS04_INV
+Ai5 da5 dy5 LS04_INV
+Ai6 da6 dy6 LS04_INV
+Adac [dy1 dy2 dy3 dy4 dy5 dy6] [l1 l2 l3 l4 l5 l6] LS_DAC
+X2 l1 2 14 7 LS_OUT
+X4 l2 4 14 7 LS_OUT
+X6 l3 6 14 7 LS_OUT
+X8 l4 8 14 7 LS_OUT
+X10 l5 10 14 7 LS_OUT
+X12 l6 12 14 7 LS_OUT
+.model LS04_INV d_inverter(rise_delay=7e-9 fall_delay=8e-9)
+.ends SN74LS04
+
+* ---- 74LS08 四 2 输入与门 ----
+* DIP-14：1 1A 2 1B 3 1Y 4 2A 5 2B 6 2Y 7 GND 8 3Y 9 3A 10 3B 11 4Y 12 4A 13 4B 14 VCC
+.subckt SN74LS08 1 2 3 4 5 6 7 8 9 10 11 12 13 14
+Rq 14 7 2.1k
+Rg 7 0 1G
+X1 1 a1 14 7 LS_IN
+X2 2 b1 14 7 LS_IN
+X4 4 a2 14 7 LS_IN
+X5 5 b2 14 7 LS_IN
+X9 9 a3 14 7 LS_IN
+X10 10 b3 14 7 LS_IN
+X12 12 a4 14 7 LS_IN
+X13 13 b4 14 7 LS_IN
+Aadc [a1 b1 a2 b2 a3 b3 a4 b4] [da1 db1 da2 db2 da3 db3 da4 db4] LS_ADC
+Aa1 [da1 db1] dy1 LS08_AND
+Aa2 [da2 db2] dy2 LS08_AND
+Aa3 [da3 db3] dy3 LS08_AND
+Aa4 [da4 db4] dy4 LS08_AND
+Adac [dy1 dy2 dy3 dy4] [l1 l2 l3 l4] LS_DAC
+X3 l1 3 14 7 LS_OUT
+X6 l2 6 14 7 LS_OUT
+X8 l3 8 14 7 LS_OUT
+X11 l4 11 14 7 LS_OUT
+.model LS08_AND d_and(rise_delay=8e-9 fall_delay=8e-9)
+.ends SN74LS08
+
+* ---- 74LS32 四 2 输入或门 ----
+* DIP-14：1 1A 2 1B 3 1Y 4 2A 5 2B 6 2Y 7 GND 8 3Y 9 3A 10 3B 11 4Y 12 4A 13 4B 14 VCC
+.subckt SN74LS32 1 2 3 4 5 6 7 8 9 10 11 12 13 14
+Rq 14 7 1.6k
+Rg 7 0 1G
+X1 1 a1 14 7 LS_IN
+X2 2 b1 14 7 LS_IN
+X4 4 a2 14 7 LS_IN
+X5 5 b2 14 7 LS_IN
+X9 9 a3 14 7 LS_IN
+X10 10 b3 14 7 LS_IN
+X12 12 a4 14 7 LS_IN
+X13 13 b4 14 7 LS_IN
+Aadc [a1 b1 a2 b2 a3 b3 a4 b4] [da1 db1 da2 db2 da3 db3 da4 db4] LS_ADC
+Ao1 [da1 db1] dy1 LS32_OR
+Ao2 [da2 db2] dy2 LS32_OR
+Ao3 [da3 db3] dy3 LS32_OR
+Ao4 [da4 db4] dy4 LS32_OR
+Adac [dy1 dy2 dy3 dy4] [l1 l2 l3 l4] LS_DAC
+X3 l1 3 14 7 LS_OUT
+X6 l2 6 14 7 LS_OUT
+X8 l3 8 14 7 LS_OUT
+X11 l4 11 14 7 LS_OUT
+.model LS32_OR d_or(rise_delay=10e-9 fall_delay=10e-9)
+.ends SN74LS32
+
+* ---- 74LS86 四 2 输入异或门 ----
+* DIP-14：1 1A 2 1B 3 1Y 4 2A 5 2B 6 2Y 7 GND 8 3Y 9 3A 10 3B 11 4Y 12 4A 13 4B 14 VCC
+.subckt SN74LS86 1 2 3 4 5 6 7 8 9 10 11 12 13 14
+Rq 14 7 820
+Rg 7 0 1G
+X1 1 a1 14 7 LS_IN
+X2 2 b1 14 7 LS_IN
+X4 4 a2 14 7 LS_IN
+X5 5 b2 14 7 LS_IN
+X9 9 a3 14 7 LS_IN
+X10 10 b3 14 7 LS_IN
+X12 12 a4 14 7 LS_IN
+X13 13 b4 14 7 LS_IN
+Aadc [a1 b1 a2 b2 a3 b3 a4 b4] [da1 db1 da2 db2 da3 db3 da4 db4] LS_ADC
+Ax1 [da1 db1] dy1 LS86_XOR
+Ax2 [da2 db2] dy2 LS86_XOR
+Ax3 [da3 db3] dy3 LS86_XOR
+Ax4 [da4 db4] dy4 LS86_XOR
+Adac [dy1 dy2 dy3 dy4] [l1 l2 l3 l4] LS_DAC
+X3 l1 3 14 7 LS_OUT
+X6 l2 6 14 7 LS_OUT
+X8 l3 8 14 7 LS_OUT
+X11 l4 11 14 7 LS_OUT
+.model LS86_XOR d_xor(rise_delay=10e-9 fall_delay=10e-9)
+.ends SN74LS86
+
+* ---- 74LS148 8-3 线优先编码器（全低电平有效）----
+* DIP-16：1 /I4 2 /I5 3 /I6 4 /I7 5 /EI 6 /A2 7 /A1 8 GND 9 /A0 10 /I0 11 /I1 12 /I2 13 /I3 14 /GS 15 /EO 16 VCC
+.subckt SN74LS148 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16
+Rq 16 8 420
+Rg 8 0 1G
+Xi0 10 xi0 16 8 LS_IN
+Xi1 11 xi1 16 8 LS_IN
+Xi2 12 xi2 16 8 LS_IN
+Xi3 13 xi3 16 8 LS_IN
+Xi4 1 xi4 16 8 LS_IN
+Xi5 2 xi5 16 8 LS_IN
+Xi6 3 xi6 16 8 LS_IN
+Xi7 4 xi7 16 8 LS_IN
+Xei 5 xei 16 8 LS_IN
+Aadc [xi0 xi1 xi2 xi3 xi4 xi5 xi6 xi7 xei] [i0 i1 i2 i3 i4 i5 i6 i7 ei] LS_ADC
+Anen ei en LS_INV0
+Ah0 i0 h0 LS_INV0
+Ah1 i1 h1 LS_INV0
+Ah2 i2 h2 LS_INV0
+Ah3 i3 h3 LS_INV0
+Ah4 i4 h4 LS_INV0
+Ah5 i5 h5 LS_INV0
+Ah6 i6 h6 LS_INV0
+Ah7 i7 h7 LS_INV0
+* 优先级屏蔽（高位优先于低位：/I7 最高，/I0 最低）
+Ap6 [i7 h6] p6 LS_AND0
+Ap5 [i7 i6 h5] p5 LS_AND0
+Ap4 [i7 i6 i5 h4] p4 LS_AND0
+Ap3 [i7 i6 i5 i4 h3] p3 LS_AND0
+Ap2 [i7 i6 i5 i4 i3 h2] p2 LS_AND0
+Ap1 [i7 i6 i5 i4 i3 i2 h1] p1 LS_AND0
+Aany [h0 h1 h2 h3 h4 h5 h6 h7] any LS_OR0
+Anany any nany LS_INV0
+Aa2s [p4 p5 p6 h7] a2s LS_OR0
+Aa1s [p2 p3 p6 h7] a1s LS_OR0
+Aa0s [p1 p3 p5 h7] a0s LS_OR0
+Aoa2 [en a2s] da2 LS_NAND0
+Aoa1 [en a1s] da1 LS_NAND0
+Aoa0 [en a0s] da0 LS_NAND0
+Aogs [en any] dgs LS_NAND0
+Aoeo [en nany] deo LS_NAND0
+Adac [da2 da1 da0 dgs deo] [la2 la1 la0 lgs leo] LS_DAC
+X6 la2 6 16 8 LS_OUT
+X7 la1 7 16 8 LS_OUT
+X9 la0 9 16 8 LS_OUT
+X14 lgs 14 16 8 LS_OUT
+X15 leo 15 16 8 LS_OUT
+.ends SN74LS148
+
+* ---- 74LS138 3-8 线译码器（输出低电平有效）----
+* DIP-16：1 A 2 B 3 C 4 /G2A 5 /G2B 6 G1 7 /Y7 8 GND 9 /Y6 10 /Y5 11 /Y4 12 /Y3 13 /Y2 14 /Y1 15 /Y0 16 VCC
+.subckt SN74LS138 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16
+Rq 16 8 790
+Rg 8 0 1G
+Xa 1 xa 16 8 LS_IN
+Xb 2 xb 16 8 LS_IN
+Xc 3 xc 16 8 LS_IN
+Xg2a 4 xg2a 16 8 LS_IN
+Xg2b 5 xg2b 16 8 LS_IN
+Xg1 6 xg1 16 8 LS_IN
+Aadc [xa xb xc xg2a xg2b xg1] [a b c g2a g2b g1] LS_ADC
+Ana a na LS_INV0
+Anb b nb LS_INV0
+Anc c nc LS_INV0
+Ang2a g2a ng2a LS_INV0
+Ang2b g2b ng2b LS_INV0
+Aen [g1 ng2a ng2b] en LS_AND0
+Ay0 [en nc nb na] dy0 LS_NAND0
+Ay1 [en nc nb a] dy1 LS_NAND0
+Ay2 [en nc b na] dy2 LS_NAND0
+Ay3 [en nc b a] dy3 LS_NAND0
+Ay4 [en c nb na] dy4 LS_NAND0
+Ay5 [en c nb a] dy5 LS_NAND0
+Ay6 [en c b na] dy6 LS_NAND0
+Ay7 [en c b a] dy7 LS_NAND0
+Adac [dy0 dy1 dy2 dy3 dy4 dy5 dy6 dy7] [l0 l1 l2 l3 l4 l5 l6 l7] LS_DAC
+X15 l0 15 16 8 LS_OUT
+X14 l1 14 16 8 LS_OUT
+X13 l2 13 16 8 LS_OUT
+X12 l3 12 16 8 LS_OUT
+X11 l4 11 16 8 LS_OUT
+X10 l5 10 16 8 LS_OUT
+X9 l6 9 16 8 LS_OUT
+X7 l7 7 16 8 LS_OUT
+.ends SN74LS138
+
+* ---- 74LS151 8 选 1 数据选择器 ----
+* DIP-16：1 D3 2 D2 3 D1 4 D0 5 Y 6 W(/Y) 7 /G 8 GND 9 C 10 B 11 A 12 D7 13 D6 14 D5 15 D4 16 VCC
+.subckt SN74LS151 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16
+Rq 16 8 830
+Rg 8 0 1G
+Xd0 4 xd0 16 8 LS_IN
+Xd1 3 xd1 16 8 LS_IN
+Xd2 2 xd2 16 8 LS_IN
+Xd3 1 xd3 16 8 LS_IN
+Xd4 15 xd4 16 8 LS_IN
+Xd5 14 xd5 16 8 LS_IN
+Xd6 13 xd6 16 8 LS_IN
+Xd7 12 xd7 16 8 LS_IN
+Xa 11 xa 16 8 LS_IN
+Xb 10 xb 16 8 LS_IN
+Xc 9 xc 16 8 LS_IN
+Xg 7 xg 16 8 LS_IN
+Aadc [xd0 xd1 xd2 xd3 xd4 xd5 xd6 xd7 xa xb xc xg] [d0 d1 d2 d3 d4 d5 d6 d7 a b c g] LS_ADC
+Ana a na LS_INV0
+Anb b nb LS_INV0
+Anc c nc LS_INV0
+Ang g en LS_INV0
+Am0 [en nc nb na d0] m0 LS_AND0
+Am1 [en nc nb a d1] m1 LS_AND0
+Am2 [en nc b na d2] m2 LS_AND0
+Am3 [en nc b a d3] m3 LS_AND0
+Am4 [en c nb na d4] m4 LS_AND0
+Am5 [en c nb a d5] m5 LS_AND0
+Am6 [en c b na d6] m6 LS_AND0
+Am7 [en c b a d7] m7 LS_AND0
+Ay [m0 m1 m2 m3 m4 m5 m6 m7] dy LS_OR0
+Aw dy dw LS_INV0
+Adac [dy dw] [ly lw] LS_DAC
+X5 ly 5 16 8 LS_OUT
+X6 lw 6 16 8 LS_OUT
+.ends SN74LS151
+
+* ---- 74LS153 双 4 选 1 数据选择器 ----
+* DIP-16：1 /1G 2 B 3 1C3 4 1C2 5 1C1 6 1C0 7 1Y 8 GND 9 2Y 10 2C0 11 2C1 12 2C2 13 2C3 14 A 15 /2G 16 VCC
+.subckt SN74LS153 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16
+Rq 16 8 980
+Rg 8 0 1G
+X1g 1 x1g 16 8 LS_IN
+Xb 2 xb 16 8 LS_IN
+X1c3 3 x1c3 16 8 LS_IN
+X1c2 4 x1c2 16 8 LS_IN
+X1c1 5 x1c1 16 8 LS_IN
+X1c0 6 x1c0 16 8 LS_IN
+X2c0 10 x2c0 16 8 LS_IN
+X2c1 11 x2c1 16 8 LS_IN
+X2c2 12 x2c2 16 8 LS_IN
+X2c3 13 x2c3 16 8 LS_IN
+Xa 14 xa 16 8 LS_IN
+X2g 15 x2g 16 8 LS_IN
+Aadc [x1g x2g xa xb x1c0 x1c1 x1c2 x1c3 x2c0 x2c1 x2c2 x2c3] [g1 g2 a b c10 c11 c12 c13 c20 c21 c22 c23] LS_ADC
+Ana a na LS_INV0
+Anb b nb LS_INV0
+Ae1 g1 e1 LS_INV0
+Ae2 g2 e2 LS_INV0
+A10 [e1 nb na c10] m10 LS_AND0
+A11 [e1 nb a c11] m11 LS_AND0
+A12 [e1 b na c12] m12 LS_AND0
+A13 [e1 b a c13] m13 LS_AND0
+A20 [e2 nb na c20] m20 LS_AND0
+A21 [e2 nb a c21] m21 LS_AND0
+A22 [e2 b na c22] m22 LS_AND0
+A23 [e2 b a c23] m23 LS_AND0
+Ay1 [m10 m11 m12 m13] dy1 LS_OR0
+Ay2 [m20 m21 m22 m23] dy2 LS_OR0
+Adac [dy1 dy2] [ly1 ly2] LS_DAC
+X7 ly1 7 16 8 LS_OUT
+X9 ly2 9 16 8 LS_OUT
+.ends SN74LS153
+
+* ---- 74LS183 双一位二进制全加器 ----
+* DIP-14：1 1A 2 NC 3 1B 4 1CIN 5 1S 6 1COUT 7 GND 8 2COUT 9 2S 10 2CIN 11 2B 12 NC 13 2A 14 VCC
+.subckt SN74LS183 1 2 3 4 5 6 7 8 9 10 11 12 13 14
+Rq 14 7 500
+Rg 7 0 1G
+Rnc2 2 7 1G
+Rnc12 12 7 1G
+X1a 1 xa1 14 7 LS_IN
+X1b 3 xb1 14 7 LS_IN
+X1c 4 xc1 14 7 LS_IN
+X2a 13 xa2 14 7 LS_IN
+X2b 11 xb2 14 7 LS_IN
+X2c 10 xc2 14 7 LS_IN
+Aadc [xa1 xb1 xc1 xa2 xb2 xc2] [a1 b1 c1 a2 b2 c2] LS_ADC
+Ap1 [a1 b1] p1 LS_XOR0
+As1 [p1 c1] s1 LS_XOR0
+Ag1 [a1 b1] g1 LS_AND0
+Ah1 [p1 c1] h1 LS_AND0
+Aco1 [g1 h1] co1 LS_OR0
+Ap2 [a2 b2] p2 LS_XOR0
+As2 [p2 c2] s2 LS_XOR0
+Ag2 [a2 b2] g2 LS_AND0
+Ah2 [p2 c2] h2 LS_AND0
+Aco2 [g2 h2] co2 LS_OR0
+Adac [s1 co1 s2 co2] [ls1 lco1 ls2 lco2] LS_DAC
+X5 ls1 5 14 7 LS_OUT
+X6 lco1 6 14 7 LS_OUT
+X9 ls2 9 14 7 LS_OUT
+X8 lco2 8 14 7 LS_OUT
+.ends SN74LS183
+
+* ---- 74LS283 四位二进制超前进位全加器 ----
+* DIP-16：1 S2 2 B2 3 A2 4 S1 5 A1 6 B1 7 C0 8 GND 9 C4 10 S4 11 B4 12 A4 13 S3 14 A3 15 B3 16 VCC
+.subckt SN74LS283 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16
+Rq 16 8 260
+Rg 8 0 1G
+Xa1 5 xa1 16 8 LS_IN
+Xb1 6 xb1 16 8 LS_IN
+Xa2 3 xa2 16 8 LS_IN
+Xb2 2 xb2 16 8 LS_IN
+Xa3 14 xa3 16 8 LS_IN
+Xb3 15 xb3 16 8 LS_IN
+Xa4 12 xa4 16 8 LS_IN
+Xb4 11 xb4 16 8 LS_IN
+Xc0 7 xc0 16 8 LS_IN
+Aadc [xa1 xb1 xa2 xb2 xa3 xb3 xa4 xb4 xc0] [a1 b1 a2 b2 a3 b3 a4 b4 c0] LS_ADC
+Ap1 [a1 b1] p1 LS_XOR0
+Ag1 [a1 b1] g1 LS_AND0
+Ap2 [a2 b2] p2 LS_XOR0
+Ag2 [a2 b2] g2 LS_AND0
+Ap3 [a3 b3] p3 LS_XOR0
+Ag3 [a3 b3] g3 LS_AND0
+Ap4 [a4 b4] p4 LS_XOR0
+Ag4 [a4 b4] g4 LS_AND0
+* 超前进位链 C1~C4
+Ap1c0 [p1 c0] t11 LS_AND0
+Ac1 [g1 t11] c1 LS_OR0
+Ap2g1 [p2 g1] t21 LS_AND0
+Ap21c0 [p2 p1 c0] t22 LS_AND0
+Ac2 [g2 t21 t22] c2 LS_OR0
+Ap3g2 [p3 g2] t31 LS_AND0
+Ap32g1 [p3 p2 g1] t32 LS_AND0
+Ap321c0 [p3 p2 p1 c0] t33 LS_AND0
+Ac3 [g3 t31 t32 t33] c3 LS_OR0
+Ap4g3 [p4 g3] t41 LS_AND0
+Ap43g2 [p4 p3 g2] t42 LS_AND0
+Ap432g1 [p4 p3 p2 g1] t43 LS_AND0
+Ap4321c0 [p4 p3 p2 p1 c0] t44 LS_AND0
+Ac4 [g4 t41 t42 t43 t44] c4 LS_OR0
+As1 [p1 c0] s1 LS_XOR0
+As2 [p2 c1] s2 LS_XOR0
+As3 [p3 c2] s3 LS_XOR0
+As4 [p4 c3] s4 LS_XOR0
+Adac [s1 s2 s3 s4 c4] [ls1 ls2 ls3 ls4 lc4] LS_DAC
+X4 ls1 4 16 8 LS_OUT
+X1 ls2 1 16 8 LS_OUT
+X13 ls3 13 16 8 LS_OUT
+X10 ls4 10 16 8 LS_OUT
+X9 lc4 9 16 8 LS_OUT
+.ends SN74LS283
+
+* ---- 74LS85 四位数值比较器（支持级联）----
+* DIP-16：1 B3 2 I(A<B) 3 I(A=B) 4 I(A>B) 5 O(A>B) 6 O(A=B) 7 O(A<B) 8 GND 9 B0 10 A0 11 B1 12 A1 13 A2 14 B2 15 A3 16 VCC
+.subckt SN74LS85 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16
+Rq 16 8 500
+Rg 8 0 1G
+Xa0 10 xa0 16 8 LS_IN
+Xa1 12 xa1 16 8 LS_IN
+Xa2 13 xa2 16 8 LS_IN
+Xa3 15 xa3 16 8 LS_IN
+Xb0 9 xb0 16 8 LS_IN
+Xb1 11 xb1 16 8 LS_IN
+Xb2 14 xb2 16 8 LS_IN
+Xb3 1 xb3 16 8 LS_IN
+Xilt 2 xilt 16 8 LS_IN
+Xieq 3 xieq 16 8 LS_IN
+Xigt 4 xigt 16 8 LS_IN
+Aadc [xa0 xa1 xa2 xa3 xb0 xb1 xb2 xb3 xilt xieq xigt] [a0 a1 a2 a3 b0 b1 b2 b3 ilt ieq igt] LS_ADC
+Ana0 a0 na0 LS_INV0
+Ana1 a1 na1 LS_INV0
+Ana2 a2 na2 LS_INV0
+Ana3 a3 na3 LS_INV0
+Anb0 b0 nb0 LS_INV0
+Anb1 b1 nb1 LS_INV0
+Anb2 b2 nb2 LS_INV0
+Anb3 b3 nb3 LS_INV0
+Anilt ilt nilt LS_INV0
+Anieq ieq nieq LS_INV0
+Anigt igt nigt LS_INV0
+Ad0 [a0 b0] d0 LS_XOR0
+Ad1 [a1 b1] d1 LS_XOR0
+Ad2 [a2 b2] d2 LS_XOR0
+Ad3 [a3 b3] d3 LS_XOR0
+Ax0 d0 x0 LS_INV0
+Ax1 d1 x1 LS_INV0
+Ax2 d2 x2 LS_INV0
+Ax3 d3 x3 LS_INV0
+Aeq [x3 x2 x1 x0] eq LS_AND0
+Ag3 [a3 nb3] g3 LS_AND0
+Ag2 [x3 a2 nb2] g2 LS_AND0
+Ag1 [x3 x2 a1 nb1] g1 LS_AND0
+Ag0 [x3 x2 x1 a0 nb0] g0 LS_AND0
+Agloc [g3 g2 g1 g0] gtloc LS_OR0
+Al3 [na3 b3] l3 LS_AND0
+Al2 [x3 na2 b2] l2 LS_AND0
+Al1 [x3 x2 na1 b1] l1 LS_AND0
+Al0 [x3 x2 x1 na0 b0] l0 LS_AND0
+Alloc [l3 l2 l1 l0] ltloc LS_OR0
+* 级联输出（严格对应 TI 74LS85 真值表）
+Aoeq [eq ieq] oeq LS_AND0
+Agt_c [eq nieq nilt] gtc LS_AND0
+Aogt [gtloc gtc] ogt LS_OR0
+Alt_c [eq nieq nigt] ltc LS_AND0
+Aolt [ltloc ltc] olt LS_OR0
+Adac [ogt oeq olt] [logt loeq lolt] LS_DAC
+X5 logt 5 16 8 LS_OUT
+X6 loeq 6 16 8 LS_OUT
+X7 lolt 7 16 8 LS_OUT
+.ends SN74LS85
+
+* ---- 74LS74 双上升沿 D 触发器（异步低有效 /PRE、/CLR）----
+* DIP-14：1 /1CLR 2 1D 3 1CLK 4 /1PRE 5 1Q 6 /1Q 7 GND 8 /2Q 9 2Q 10 /2PRE 11 2CLK 12 2D 13 /2CLR 14 VCC
+.subckt SN74LS74 1 2 3 4 5 6 7 8 9 10 11 12 13 14
+Rq 14 7 1.25k
+Rg 7 0 1G
+X1clr 1 x1clr 14 7 LS_IN
+X1d 2 x1d 14 7 LS_IN
+X1ck 3 x1ck 14 7 LS_IN
+X1pre 4 x1pre 14 7 LS_IN
+X2pre 10 x2pre 14 7 LS_IN
+X2ck 11 x2ck 14 7 LS_IN
+X2d 12 x2d 14 7 LS_IN
+X2clr 13 x2clr 14 7 LS_IN
+Bvcc vs 0 V=V(14,7)
+Aadc [x1clr x1d x1ck x1pre x2clr x2d x2ck x2pre] [clr1 d1 ck1 pre1 clr2 d2 ck2 pre2] LS_ADC
+Apwr [vs] [pwr] LS_PWR
+* FF1
+As1 pre1 s1 LS_INV0
+Ar1 clr1 r1 LS_INV0
+Ab1 [s1 r1] both1 LS_AND0
+Anb1 both1 nboth1 LS_INV0
+Aso1 [s1 nboth1] set1 LS_AND0
+Aro1 [r1 nboth1] rst1 LS_AND0
+Ack1 [ck1 pwr] ick1 LS_AND0
+Aff1 d1 ick1 set1 rst1 q1f nq1f LS_DFF
+Aq1 [q1f both1] q1 LS_OR0
+Anq1 [nq1f both1] nq1 LS_OR0
+* FF2
+As2 pre2 s2 LS_INV0
+Ar2 clr2 r2 LS_INV0
+Ab2 [s2 r2] both2 LS_AND0
+Anb2 both2 nboth2 LS_INV0
+Aso2 [s2 nboth2] set2 LS_AND0
+Aro2 [r2 nboth2] rst2 LS_AND0
+Ack2 [ck2 pwr] ick2 LS_AND0
+Aff2 d2 ick2 set2 rst2 q2f nq2f LS_DFF
+Aq2 [q2f both2] q2 LS_OR0
+Anq2 [nq2f both2] nq2 LS_OR0
+Adac [q1 nq1 q2 nq2] [lq1 lnq1 lq2 lnq2] LS_DAC
+X5 lq1 5 14 7 LS_OUT
+X6 lnq1 6 14 7 LS_OUT
+X9 lq2 9 14 7 LS_OUT
+X8 lnq2 8 14 7 LS_OUT
+.ends SN74LS74
+
+* ---- 74LS112 双下降沿 JK 触发器（异步低有效 /PRE、/CLR）----
+* DIP-16：1 1CLK 2 1K 3 1J 4 /1PRE 5 1Q 6 /1Q 7 /2Q 8 GND 9 2Q 10 /2PRE 11 2J 12 2K 13 2CLK 14 /2CLR 15 /1CLR 16 VCC
+.subckt SN74LS112 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16
+Rq 16 8 1.25k
+Rg 8 0 1G
+X1ck 1 x1ck 16 8 LS_IN
+X1k 2 x1k 16 8 LS_IN
+X1j 3 x1j 16 8 LS_IN
+X1pre 4 x1pre 16 8 LS_IN
+X1clr 15 x1clr 16 8 LS_IN
+X2pre 10 x2pre 16 8 LS_IN
+X2j 11 x2j 16 8 LS_IN
+X2k 12 x2k 16 8 LS_IN
+X2ck 13 x2ck 16 8 LS_IN
+X2clr 14 x2clr 16 8 LS_IN
+Bvcc vs 0 V=V(16,8)
+Aadc [x1ck x1j x1k x1pre x1clr x2ck x2j x2k x2pre x2clr] [ck1 j1 k1 pre1 clr1 ck2 j2 k2 pre2 clr2] LS_ADC
+Apwr [vs] [pwr] LS_PWR
+* FF1（下降沿触发）
+Anck1 ck1 nck1 LS_INV0
+Ack1 [nck1 pwr] ick1 LS_AND0
+As1 pre1 s1 LS_INV0
+Ar1 clr1 r1 LS_INV0
+Ab1 [s1 r1] both1 LS_AND0
+Anb1 both1 nboth1 LS_INV0
+Aso1 [s1 nboth1] set1 LS_AND0
+Aro1 [r1 nboth1] rst1 LS_AND0
+Aff1 j1 k1 ick1 set1 rst1 q1f nq1f LS_JKFF
+Aq1 [q1f both1] q1 LS_OR0
+Anq1 [nq1f both1] nq1 LS_OR0
+* FF2（下降沿触发）
+Anck2 ck2 nck2 LS_INV0
+Ack2 [nck2 pwr] ick2 LS_AND0
+As2 pre2 s2 LS_INV0
+Ar2 clr2 r2 LS_INV0
+Ab2 [s2 r2] both2 LS_AND0
+Anb2 both2 nboth2 LS_INV0
+Aso2 [s2 nboth2] set2 LS_AND0
+Aro2 [r2 nboth2] rst2 LS_AND0
+Aff2 j2 k2 ick2 set2 rst2 q2f nq2f LS_JKFF
+Aq2 [q2f both2] q2 LS_OR0
+Anq2 [nq2f both2] nq2 LS_OR0
+Adac [q1 nq1 q2 nq2] [lq1 lnq1 lq2 lnq2] LS_DAC
+X5 lq1 5 16 8 LS_OUT
+X6 lnq1 6 16 8 LS_OUT
+X9 lq2 9 16 8 LS_OUT
+X7 lnq2 7 16 8 LS_OUT
+.ends SN74LS112
+
+* ---- 74LS194 四位双向通用移位寄存器 ----
+* DIP-16：1 /CLR 2 SR 3 A 4 B 5 C 6 D 7 SL 8 GND 9 S0 10 S1 11 CLK 12 QD 13 QC 14 QB 15 QA 16 VCC
+* 模式 (S1,S0)：00 保持，01 右移(SR->QA->QB->QC->QD)，10 左移(SL->QD->QC->QB->QA)，11 并行置数
+.subckt SN74LS194 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16
+Rq 16 8 330
+Rg 8 0 1G
+Xclr 1 xclr 16 8 LS_IN
+Xsr 2 xsr 16 8 LS_IN
+Xa 3 xa 16 8 LS_IN
+Xb 4 xb 16 8 LS_IN
+Xc 5 xc 16 8 LS_IN
+Xd 6 xd 16 8 LS_IN
+Xsl 7 xsl 16 8 LS_IN
+Xs0 9 xs0 16 8 LS_IN
+Xs1 10 xs1 16 8 LS_IN
+Xck 11 xck 16 8 LS_IN
+Bvcc vs 0 V=V(16,8)
+Aadc [xclr xsr xa xb xc xd xsl xs0 xs1 xck] [clr sr a b c d sl s0 s1 ck] LS_ADC
+Apwr [vs] [pwr] LS_PWR
+Anp pwr npwr LS_INV0
+Azero [pwr npwr] zero LS_AND0
+Anclr clr rst LS_INV0
+Ack [ck pwr] ick LS_AND0
+Ans0 s0 ns0 LS_INV0
+Ans1 s1 ns1 LS_INV0
+Am0 [ns1 ns0] m0 LS_AND0
+Am1 [ns1 s0] m1 LS_AND0
+Am2 [s1 ns0] m2 LS_AND0
+Am3 [s1 s0] m3 LS_AND0
+* 4 选 1 下一态多路器（QA, QB, QC, QD）
+Ada0 [m0 qa] da0 LS_AND0
+Ada1 [m1 sr] da1 LS_AND0
+Ada2 [m2 qb] da2 LS_AND0
+Ada3 [m3 a] da3 LS_AND0
+Ada [da0 da1 da2 da3] na_in LS_OR0
+Adb0 [m0 qb] db0 LS_AND0
+Adb1 [m1 qa] db1 LS_AND0
+Adb2 [m2 qc] db2 LS_AND0
+Adb3 [m3 b] db3 LS_AND0
+Adb [db0 db1 db2 db3] nb_in LS_OR0
+Adc0 [m0 qc] dc0 LS_AND0
+Adc1 [m1 qb] dc1 LS_AND0
+Adc2 [m2 qd] dc2 LS_AND0
+Adc3 [m3 c] dc3 LS_AND0
+Adc [dc0 dc1 dc2 dc3] nc_in LS_OR0
+Add0 [m0 qd] dd0 LS_AND0
+Add1 [m1 qc] dd1 LS_AND0
+Add2 [m2 sl] dd2 LS_AND0
+Add3 [m3 d] dd3 LS_AND0
+Add [dd0 dd1 dd2 dd3] nd_in LS_OR0
+Affa na_in ick zero rst qa nqa LS_DFF
+Affb nb_in ick zero rst qb nqb LS_DFF
+Affc nc_in ick zero rst qc nqc LS_DFF
+Affd nd_in ick zero rst qd nqd LS_DFF
+Adac [qa qb qc qd] [la lb lc ld] LS_DAC
+X15 la 15 16 8 LS_OUT
+X14 lb 14 16 8 LS_OUT
+X13 lc 13 16 8 LS_OUT
+X12 ld 12 16 8 LS_OUT
+.ends SN74LS194
+
+* ---- 74LS192 可逆十进制同步加/减计数器（双时钟 UP/DOWN、异步 CLR 和 /LOAD）----
+* DIP-16：1 B 2 QB 3 QA 4 DOWN 5 UP 6 QC 7 QD 8 GND 9 D 10 C 11 /LOAD 12 /CO 13 /BO 14 CLR 15 A 16 VCC
+.subckt SN74LS192 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16
+Rq 16 8 260
+Rg 8 0 1G
+Xb 1 xb 16 8 LS_IN
+Xdn 4 xdn 16 8 LS_IN
+Xup 5 xup 16 8 LS_IN
+Xd 9 xd 16 8 LS_IN
+Xc 10 xc 16 8 LS_IN
+Xld 11 xld 16 8 LS_IN
+Xclr 14 xclr 16 8 LS_IN
+Xa 15 xa 16 8 LS_IN
+Bvcc vs 0 V=V(16,8)
+Aadc [xa xb xc xd xup xdn xld xclr] [a b c d up dn nld clr] LS_ADC
+Apwr [vs] [pwr] LS_PWR
+* 异步控制：CLR 高有效优先于 /LOAD 低有效
+Anclr clr nclr LS_INV0
+Anld nld ld_raw LS_INV0
+Ald [nclr ld_raw] ld_en LS_AND0
+Ana a na LS_INV0
+Anb b nb LS_INV0
+Anc c nc LS_INV0
+And d nd LS_INV0
+Asa [ld_en a] seta LS_AND0
+Arla [ld_en na] rla LS_AND0
+Ara [clr rla] rsta LS_OR0
+Asb [ld_en b] setb LS_AND0
+Arlb [ld_en nb] rlb LS_AND0
+Arb [clr rlb] rstb LS_OR0
+Asc [ld_en c] setc LS_AND0
+Arlc [ld_en nc] rlc LS_AND0
+Arc [clr rlc] rstc LS_OR0
+Asd [ld_en d] setd LS_AND0
+Arld [ld_en nd] rld LS_AND0
+Ard [clr rld] rstd LS_OR0
+* 双时钟沿合成与方向锁存（UP 下降沿锁存 dir_up=1，DN 下降沿锁存 dir_up=0，免疫任意慢上升沿过渡区）
+Anp pwr npwr LS_INV0
+Azero [pwr npwr] zero LS_AND0
+Vdir_por dir_por 0 PULSE(0 5 1n 1n 1n 1e6 2e6)
+Rdir_por dir_por 0 100k
+Adir_por [dir_por] [dp] LS_ADC
+Anup up nup LS_INV0
+Andn dn ndn LS_INV0
+Adclk0 [nup ndn] dclk_raw LS_OR0
+Adclk [dclk_raw dp] dir_clk LS_AND0
+Affdir dn dir_clk zero zero dir_up dir_dn LS_DFF
+Ack [up dn pwr] ick LS_AND0
+* BCD 加一组合逻辑（0->1->...->9->0）
+Aib_x [qb qa] ib_x LS_XOR0
+Aib [nqd ib_x] inc_b LS_AND0
+Aqba [qb qa] qba LS_AND0
+Aic_x [qc qba] ic_x LS_XOR0
+Aic [nqd ic_x] inc_c LS_AND0
+Aid1 [qd nqa] id1 LS_AND0
+Aid2 [qc qb qa] id2 LS_AND0
+Aid [id1 id2] inc_d LS_OR0
+* BCD 减一组合逻辑（9->8->...->0->9）
+Ais0 [nqd nqc nqb nqa] is0 LS_AND0
+Anis0 is0 nis0 LS_INV0
+Adb_x [qb nqa] db_x LS_XOR0
+Adb [nis0 db_x] dec_b LS_AND0
+Anqba [nqb nqa] nqba LS_AND0
+Adc_x [qc nqba] dc_x LS_XOR0
+Adc [nis0 dc_x] dec_c LS_AND0
+Add1 [qd qa] dd1 LS_AND0
+Add [is0 dd1] dec_d LS_OR0
+* 方向选择下一态（QA 无论加减均翻转）
+Anb1 [dir_up inc_b] nb1 LS_AND0
+Anb2 [dir_dn dec_b] nb2 LS_AND0
+Anb_in [nb1 nb2] next_b LS_OR0
+Anc1 [dir_up inc_c] nc1 LS_AND0
+Anc2 [dir_dn dec_c] nc2 LS_AND0
+Anc_in [nc1 nc2] next_c LS_OR0
+And1 [dir_up inc_d] nd1 LS_AND0
+And2 [dir_dn dec_d] nd2 LS_AND0
+And_in [nd1 nd2] next_d LS_OR0
+Affa nqa ick seta rsta qa nqa LS_DFF
+Affb next_b ick setb rstb qb nqb LS_DFF
+Affc next_c ick setc rstc qc nqc LS_DFF
+Affd next_d ick setd rstd qd nqd LS_DFF
+* 进位 /CO = ~(Q==9 & UP==0)，借位 /BO = ~(Q==0 & DOWN==0)
+Ais9 [qd nqc nqb qa] is9 LS_AND0
+Aco [is9 nup] nco LS_NAND0
+Abo [is0 ndn] nbo LS_NAND0
+Adac [qa qb qc qd nco nbo] [la lb lc ld lco lbo] LS_DAC
+X3 la 3 16 8 LS_OUT
+X2 lb 2 16 8 LS_OUT
+X6 lc 6 16 8 LS_OUT
+X7 ld 7 16 8 LS_OUT
+X12 lco 12 16 8 LS_OUT
+X13 lbo 13 16 8 LS_OUT
+.ends SN74LS192
+
+* ---- 74LS161 四位同步二进制计数器（异步 /CLR、同步 /LOAD、ENP/ENT/RCO）----
+* DIP-16：1 /CLR 2 CLK 3 A 4 B 5 C 6 D 7 ENP 8 GND 9 /LOAD 10 ENT 11 QD 12 QC 13 QB 14 QA 15 RCO 16 VCC
+.subckt SN74LS161 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16
+Rq 16 8 280
+Rg 8 0 1G
+Xclr 1 xclr 16 8 LS_IN
+Xck 2 xck 16 8 LS_IN
+Xa 3 xa 16 8 LS_IN
+Xb 4 xb 16 8 LS_IN
+Xc 5 xc 16 8 LS_IN
+Xd 6 xd 16 8 LS_IN
+Xenp 7 xenp 16 8 LS_IN
+Xld 9 xld 16 8 LS_IN
+Xent 10 xent 16 8 LS_IN
+Bvcc vs 0 V=V(16,8)
+Aadc [xclr xck xa xb xc xd xenp xld xent] [clr ck a b c d enp nld ent] LS_ADC
+Apwr [vs] [pwr] LS_PWR
+Anp pwr npwr LS_INV0
+Azero [pwr npwr] zero LS_AND0
+Anclr clr rst LS_INV0
+Ack [ck pwr] ick LS_AND0
+Ald nld ld_en LS_INV0
+Aen [nld enp ent] en LS_AND0
+Anen en nen LS_INV0
+Ahld [nld nen] hld LS_AND0
+* 四位二进制加一
+Aib [qb qa] inc_b LS_XOR0
+Aqba [qb qa] qba LS_AND0
+Aic [qc qba] inc_c LS_XOR0
+Aqcba [qc qb qa] qcba LS_AND0
+Aid [qd qcba] inc_d LS_XOR0
+* 同步模式选择（置数 / 计数 / 保持）
+Ada1 [ld_en a] da1 LS_AND0
+Ada2 [en nqa] da2 LS_AND0
+Ada3 [hld qa] da3 LS_AND0
+Ada [da1 da2 da3] next_a LS_OR0
+Adb1 [ld_en b] db1 LS_AND0
+Adb2 [en inc_b] db2 LS_AND0
+Adb3 [hld qb] db3 LS_AND0
+Adb [db1 db2 db3] next_b LS_OR0
+Adc1 [ld_en c] dc1 LS_AND0
+Adc2 [en inc_c] dc2 LS_AND0
+Adc3 [hld qc] dc3 LS_AND0
+Adc [dc1 dc2 dc3] next_c LS_OR0
+Add1 [ld_en d] dd1 LS_AND0
+Add2 [en inc_d] dd2 LS_AND0
+Add3 [hld qd] dd3 LS_AND0
+Add [dd1 dd2 dd3] next_d LS_OR0
+Affa next_a ick zero rst qa nqa LS_DFF
+Affb next_b ick zero rst qb nqb LS_DFF
+Affc next_c ick zero rst qc nqc LS_DFF
+Affd next_d ick zero rst qd nqd LS_DFF
+Arco [qd qc qb qa ent] rco LS_AND0
+Adac [qa qb qc qd rco] [la lb lc ld lrco] LS_DAC
+X14 la 14 16 8 LS_OUT
+X13 lb 13 16 8 LS_OUT
+X12 lc 12 16 8 LS_OUT
+X11 ld 11 16 8 LS_OUT
+X15 lrco 15 16 8 LS_OUT
+.ends SN74LS161
+
+* ---- 74LS160 四位同步十进制计数器（异步 /CLR、同步 /LOAD、ENP/ENT/RCO）----
+* DIP-16：1 /CLR 2 CLK 3 A 4 B 5 C 6 D 7 ENP 8 GND 9 /LOAD 10 ENT 11 QD 12 QC 13 QB 14 QA 15 RCO 16 VCC
+.subckt SN74LS160 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16
+Rq 16 8 280
+Rg 8 0 1G
+Xclr 1 xclr 16 8 LS_IN
+Xck 2 xck 16 8 LS_IN
+Xa 3 xa 16 8 LS_IN
+Xb 4 xb 16 8 LS_IN
+Xc 5 xc 16 8 LS_IN
+Xd 6 xd 16 8 LS_IN
+Xenp 7 xenp 16 8 LS_IN
+Xld 9 xld 16 8 LS_IN
+Xent 10 xent 16 8 LS_IN
+Bvcc vs 0 V=V(16,8)
+Aadc [xclr xck xa xb xc xd xenp xld xent] [clr ck a b c d enp nld ent] LS_ADC
+Apwr [vs] [pwr] LS_PWR
+Anp pwr npwr LS_INV0
+Azero [pwr npwr] zero LS_AND0
+Anclr clr rst LS_INV0
+Ack [ck pwr] ick LS_AND0
+Ald nld ld_en LS_INV0
+Aen [nld enp ent] en LS_AND0
+Anen en nen LS_INV0
+Ahld [nld nen] hld LS_AND0
+* BCD 十进制加一（0->1->...->9->0）
+Aib_x [qb qa] ib_x LS_XOR0
+Aib [nqd ib_x] inc_b LS_AND0
+Aqba [qb qa] qba LS_AND0
+Aic_x [qc qba] ic_x LS_XOR0
+Aic [nqd ic_x] inc_c LS_AND0
+Aid1 [qd nqa] id1 LS_AND0
+Aid2 [qc qb qa] id2 LS_AND0
+Aid [id1 id2] inc_d LS_OR0
+* 同步模式选择
+Ada1 [ld_en a] da1 LS_AND0
+Ada2 [en nqa] da2 LS_AND0
+Ada3 [hld qa] da3 LS_AND0
+Ada [da1 da2 da3] next_a LS_OR0
+Adb1 [ld_en b] db1 LS_AND0
+Adb2 [en inc_b] db2 LS_AND0
+Adb3 [hld qb] db3 LS_AND0
+Adb [db1 db2 db3] next_b LS_OR0
+Adc1 [ld_en c] dc1 LS_AND0
+Adc2 [en inc_c] dc2 LS_AND0
+Adc3 [hld qc] dc3 LS_AND0
+Adc [dc1 dc2 dc3] next_c LS_OR0
+Add1 [ld_en d] dd1 LS_AND0
+Add2 [en inc_d] dd2 LS_AND0
+Add3 [hld qd] dd3 LS_AND0
+Add [dd1 dd2 dd3] next_d LS_OR0
+Affa next_a ick zero rst qa nqa LS_DFF
+Affb next_b ick zero rst qb nqb LS_DFF
+Affc next_c ick zero rst qc nqc LS_DFF
+Affd next_d ick zero rst qd nqd LS_DFF
+Arco [qd nqc nqb qa ent] rco LS_AND0
+Adac [qa qb qc qd rco] [la lb lc ld lrco] LS_DAC
+X14 la 14 16 8 LS_OUT
+X13 lb 13 16 8 LS_OUT
+X12 lc 12 16 8 LS_OUT
+X11 ld 11 16 8 LS_OUT
+X15 lrco 15 16 8 LS_OUT
+.ends SN74LS160

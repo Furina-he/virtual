@@ -1,0 +1,112 @@
+{
+  "id": "SD-03",
+  "group": "数字逻辑基础",
+  "title": "二进制译码器和数据选择器功能测试",
+  "type": "basic",
+  "modules": [{ "instanceId": "msi1", "moduleId": "mod-dig-msi", "slot": "SLOT_BOX_L1" }],
+  "allowedInstruments": ["ins-multimeter", "ins-oscilloscope"],
+  "reference": {
+    "nets": [
+      ["ins-dc-power.V5P", "msi1.VCC"],
+      ["ins-dc-power.V5N", "msi1.GND"],
+      ["msi1.K0", "msi1.SEL_A"],
+      ["msi1.K1", "msi1.SEL_B"],
+      ["msi1.K2", "msi1.SEL_C"],
+      ["msi1.K3", "msi1.DEC_G1"]
+    ],
+    "measurePoints": [
+      { "id": "u_y0", "kind": "voltage", "mode": "dcv", "between": ["msi1.DEC_Y0", "msi1.GND"] },
+      { "id": "u_y3", "kind": "voltage", "mode": "dcv", "between": ["msi1.DEC_Y3", "msi1.GND"] },
+      { "id": "u_y5", "kind": "voltage", "mode": "dcv", "between": ["msi1.DEC_Y5", "msi1.GND"] },
+      { "id": "u_y7", "kind": "voltage", "mode": "dcv", "between": ["msi1.DEC_Y7", "msi1.GND"] },
+      { "id": "u_m151", "kind": "voltage", "mode": "dcv", "between": ["msi1.MUX151_Y", "msi1.GND"] },
+      { "id": "u_m153", "kind": "voltage", "mode": "dcv", "between": ["msi1.MUX153_1Y", "msi1.GND"] }
+    ]
+  },
+  "steps": [
+    {
+      "id": "prepare",
+      "text": "保持断电，查阅 74LS138（3-8 译码）、74LS151（8 选 1，板上配置为奇校验 Σm(1,2,4,7)）与 74LS153（双 4 选 1，1C 通道配置为 A⊕B）的逻辑功能。",
+      "measurePoints": [],
+      "dataTable": "msi_truth"
+    },
+    {
+      "id": "wire",
+      "text": "断电连接 +5V/GND，并将 K0→SEL_A、K1→SEL_B、K2→SEL_C、K3→DEC_G1，点击“检查接线”。",
+      "measurePoints": [],
+      "checkWiring": true,
+      "dataTable": "msi_truth"
+    },
+    {
+      "id": "addr_000",
+      "text": "保持 SW_K3=1（G1=1 使能）、CBA=000，上电确认 /Y0=L（<0.5 V），/Y3//Y5//Y7=H，151 Y=L、153 1Y=L，记录第 1 行。",
+      "measurePoints": ["u_y0", "u_y3", "u_y5", "u_y7", "u_m151", "u_m153"],
+      "expect": { "measurePoint": "u_y0", "min": -0.2, "max": 0.5 },
+      "dataTable": "msi_truth"
+    },
+    {
+      "id": "addr_sweep",
+      "text": "依次切换地址 CBA = 011 (3)、101 (5)、111 (7)，验证 74LS138 对应译码端唯一拉低、74LS151 输出奇校验（3→L、5→L、7→H）且 74LS153 输出 A⊕B（3→L、5→H、7→L）。",
+      "measurePoints": ["u_y0", "u_y3", "u_y5", "u_y7", "u_m151", "u_m153"],
+      "dataTable": "msi_truth"
+    },
+    {
+      "id": "fault_drill",
+      "text": "验证 SW_K3=0（G1=0）时 74LS138 输出全高；可选在右栏“排故”面板抽取使能/选通故障进行定位修复演练；断电完成思考题。",
+      "measurePoints": ["u_y0", "u_m151", "u_m153"],
+      "recordTable": "msi_truth",
+      "dataTable": "msi_truth"
+    }
+  ],
+  "dataTables": [
+    {
+      "id": "msi_truth",
+      "title": "74LS138 译码器与 74LS151/153 数据选择器逻辑测试",
+      "rows": 4,
+      "columns": [
+        { "id": "u_y0", "title": "138 /Y0", "unit": "V", "measurePoint": "u_y0", "captureSteps": ["addr_000", "addr_sweep", "fault_drill"] },
+        { "id": "u_y3", "title": "138 /Y3", "unit": "V", "measurePoint": "u_y3", "captureSteps": ["addr_000", "addr_sweep"] },
+        { "id": "u_y5", "title": "138 /Y5", "unit": "V", "measurePoint": "u_y5", "captureSteps": ["addr_000", "addr_sweep"] },
+        { "id": "u_y7", "title": "138 /Y7", "unit": "V", "measurePoint": "u_y7", "captureSteps": ["addr_000", "addr_sweep"] },
+        { "id": "u_m151", "title": "151 Y(奇校验)", "unit": "V", "measurePoint": "u_m151", "captureSteps": ["addr_000", "addr_sweep", "fault_drill"] },
+        { "id": "u_m153", "title": "153 1Y(A⊕B)", "unit": "V", "measurePoint": "u_m153", "captureSteps": ["addr_000", "addr_sweep", "fault_drill"] }
+      ],
+      "sanity": [
+        { "column": "u_y0", "min": -0.2, "max": 5.2, "message": "TTL 电平应在 0~5 V 之间。" },
+        { "column": "u_m151", "min": -0.2, "max": 5.2, "message": "74LS151 输出应在 0~5 V 之间。" }
+      ]
+    }
+  ],
+  "charts": [],
+  "faults": [
+    {
+      "id": "flt-138-g1-short",
+      "target": "msi1.Rdec_g1_f",
+      "kind": "short",
+      "symptom": "即使 SW_K3=1，74LS138 所有译码输出 /Y0~/Y7 始终保持高电平（约 3.4 V），译码完全失效。",
+      "hint": "测量 DEC_G1 对地电压是否被拉低接近 0 V，并与 74LS151/153 对比隔离至 74LS138 使能回路。",
+      "verify": [{ "measurePoint": "u_y0", "min": -0.2, "max": 0.5 }]
+    },
+    {
+      "id": "flt-151-g-stuck",
+      "target": "msi1.Rm151_g_f",
+      "kind": "short",
+      "symptom": "74LS138 与 74LS153 工作正常，但 74LS151 在所有地址下输出 Y 恒为低电平（0 V），W 恒为高电平。",
+      "hint": "将地址切至 CBA=111 (7) 或 001 (1)，观察 151 Y 是否仍为 0 V；排查低有效选通端 /G 粘连高电平。",
+      "verify": [{ "measurePoint": "u_m151", "min": 2.7, "max": 4.2 }]
+    },
+    {
+      "id": "flt-153-g-stuck",
+      "target": "msi1.Rm153_g_f",
+      "kind": "short",
+      "symptom": "74LS138 与 74LS151 工作正常，但在 A≠B 时 74LS153 输出 1Y 始终维持低电平（0 V）。",
+      "hint": "置 A=1, B=0（此时 A⊕B 应为 H），测 MUX153_1Y 仍为 0 V，检查 74LS153 选通使能 /1G。",
+      "verify": [{ "measurePoint": "u_m153", "min": 2.7, "max": 4.2 }]
+    }
+  ],
+  "questions": [
+    "为什么 74LS138 译码器非常适合与多输入与非门配合实现任意三变量组合逻辑函数？",
+    "用一片 74LS151（8 选 1）不仅能实现三变量逻辑函数，如何在不增加门电路的条件下实现四变量逻辑函数？",
+    "当 74LS151 的选通端 /G 误接高电平时，其同相输出 Y 与反相输出 W 的电平状态分别是什么？"
+  ]
+}

@@ -1,0 +1,83 @@
+{
+  "id": "SD-04",
+  "group": "数字逻辑基础",
+  "title": "全加器和超前进位全加器功能测试",
+  "type": "basic",
+  "modules": [{ "instanceId": "ar1", "moduleId": "mod-dig-arith", "slot": "SLOT_BOX_L1" }],
+  "allowedInstruments": ["ins-multimeter", "ins-oscilloscope"],
+  "reference": {
+    "nets": [
+      ["ins-dc-power.V5P", "ar1.VCC"],
+      ["ins-dc-power.V5N", "ar1.GND"],
+      ["ar1.K0", "ar1.FA_A"],
+      ["ar1.K1", "ar1.FA_B"],
+      ["ar1.K2", "ar1.FA_CI", "ar1.AD4_C0"]
+    ],
+    "measurePoints": [
+      { "id": "u_fas", "kind": "voltage", "mode": "dcv", "between": ["ar1.FA_S", "ar1.GND"] },
+      { "id": "u_faco", "kind": "voltage", "mode": "dcv", "between": ["ar1.FA_CO", "ar1.GND"] },
+      { "id": "u_s0", "kind": "voltage", "mode": "dcv", "between": ["ar1.AD4_S0", "ar1.GND"] },
+      { "id": "u_s3", "kind": "voltage", "mode": "dcv", "between": ["ar1.AD4_S3", "ar1.GND"] },
+      { "id": "u_c4", "kind": "voltage", "mode": "dcv", "between": ["ar1.AD4_C4", "ar1.GND"] }
+    ]
+  },
+  "steps": [
+    {
+      "id": "prepare",
+      "text": "保持断电，复习 1 位全加器 74LS183（S = A⊕B⊕Ci，Co = AB + (A⊕B)Ci）与 4 位超前进位全加器 74LS283 的逻辑结构与进位延迟优势。",
+      "measurePoints": [],
+      "dataTable": "adder_test"
+    },
+    {
+      "id": "wire",
+      "text": "断电连接 +5V/GND，再将 K0→FA_A、K1→FA_B、K2 同时接至 FA_CI 与 AD4_C0，点击“检查接线”。",
+      "measurePoints": [],
+      "checkWiring": true,
+      "dataTable": "adder_test"
+    },
+    {
+      "id": "fa_1bit",
+      "text": "上电，依次拨动 SW_K0/K1/K2 验证 74LS183 全部 8 组 (A,B,Ci) 组合，并重点测记 (1,1,0)（S=0,Co=1）与 (1,1,1)（S=1,Co=1）。",
+      "measurePoints": ["u_fas", "u_faco"],
+      "dataTable": "adder_test"
+    },
+    {
+      "id": "fa_4bit",
+      "text": "保持 SW_K2=0（C0=0），确认默认 OP_A=5、OP_B=3 时 74LS283 输出 S3S2S1S0 = 1000 (8)、C4=0；再置 OP_A=9、OP_B=6、SW_K2=1（C0=1），验证全进位链触发 S=0000、C4=1（和为 16）。",
+      "measurePoints": ["u_s0", "u_s3", "u_c4"],
+      "expect": { "measurePoint": "u_c4", "min": 2.7, "max": 4.2 },
+      "dataTable": "adder_test"
+    },
+    {
+      "id": "fa_max",
+      "text": "将 OP_A=15、OP_B=15、SW_K2=1，确认 74LS283 输出全高（1111 + C4=1 = 31）；断电完成数据核对与思考题。",
+      "measurePoints": ["u_s0", "u_s3", "u_c4"],
+      "expect": { "measurePoint": "u_s0", "min": 2.7, "max": 4.2 },
+      "recordTable": "adder_test",
+      "dataTable": "adder_test"
+    }
+  ],
+  "dataTables": [
+    {
+      "id": "adder_test",
+      "title": "74LS183 一位全加器与 74LS283 四位超前进位加法测试",
+      "rows": 4,
+      "columns": [
+        { "id": "u_fas", "title": "183 和 S", "unit": "V", "measurePoint": "u_fas", "captureSteps": ["fa_1bit"] },
+        { "id": "u_faco", "title": "183 进位 Co", "unit": "V", "measurePoint": "u_faco", "captureSteps": ["fa_1bit"] },
+        { "id": "u_s0", "title": "283 最低位 S0", "unit": "V", "measurePoint": "u_s0", "captureSteps": ["fa_4bit", "fa_max"] },
+        { "id": "u_s3", "title": "283 最高位 S3", "unit": "V", "measurePoint": "u_s3", "captureSteps": ["fa_4bit", "fa_max"] },
+        { "id": "u_c4", "title": "283 总进位 C4", "unit": "V", "measurePoint": "u_c4", "captureSteps": ["fa_4bit", "fa_max"] }
+      ],
+      "sanity": [
+        { "column": "u_c4", "min": -0.2, "max": 5.2, "message": "TTL 输出电压应在 0~5 V 之间。" }
+      ]
+    }
+  ],
+  "charts": [],
+  "questions": [
+    "串行进位加法器（多片 74LS183 级联）在位数增多时的主要性能瓶颈是什么？74LS283 超前进位如何消除这一瓶颈？",
+    "如何利用 74LS283 四位全加器和四只异或门（74LS86）实现四位二进制减法 A − B（补码运算）？",
+    "当 OP_A=9、OP_B=6 且低位进位 C0=1 时，74LS283 内部每一位的进位生成信号 Gi 与传播信号 Pi 分别如何作用使 C4=1？"
+  ]
+}

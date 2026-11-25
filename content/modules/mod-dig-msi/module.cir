@@ -1,0 +1,68 @@
+.subckt mod_dig_msi VCC GND K0 K1 K2 K3 E_EI E_I1 E_I4 E_I7 E_A2 E_A1 E_A0 E_GS E_EO SEL_A SEL_B SEL_C DEC_G1 DEC_Y0 DEC_Y3 DEC_Y5 DEC_Y7 MUX151_Y MUX151_W MUX153_1Y params: sw_k0=0 sw_k1=0 sw_k2=0 sw_k3=1 enc_ext=0
+* 编码译码与数据选择实验箱（SD-02 74LS148、SD-03 74LS138/74LS151/74LS153 含 3 项故障元件）
+Rgnd GND 0 1G
+Rvcc_bleed VCC GND 100k
+Cdec VCC GND 100n
+
+* ---- 1. 四路逻辑开关 K0~K3 ----
+RK0_HI VCC k0_sw {sw_k0 > 0.5 ? 100 : 1G}
+RK0_LO k0_sw GND {sw_k0 > 0.5 ? 1G : 100}
+Bk0 k0_buf GND V=V(k0_sw,GND)
+Rk0_out k0_buf K0 50
+
+RK1_HI VCC k1_sw {sw_k1 > 0.5 ? 100 : 1G}
+RK1_LO k1_sw GND {sw_k1 > 0.5 ? 1G : 100}
+Bk1 k1_buf GND V=V(k1_sw,GND)
+Rk1_out k1_buf K1 50
+
+RK2_HI VCC k2_sw {sw_k2 > 0.5 ? 100 : 1G}
+RK2_LO k2_sw GND {sw_k2 > 0.5 ? 1G : 100}
+Bk2 k2_buf GND V=V(k2_sw,GND)
+Rk2_out k2_buf K2 50
+
+RK3_HI VCC k3_sw {sw_k3 > 0.5 ? 100 : 1G}
+RK3_LO k3_sw GND {sw_k3 > 0.5 ? 1G : 100}
+Bk3 k3_buf GND V=V(k3_sw,GND)
+Rk3_out k3_buf K3 50
+
+* ---- 2. 74LS148 优先编码器（全 8 路覆盖：插孔 /I1,/I4,/I7 + 辅助旋钮 /I0,/I2,/I3,/I5,/I6）----
+Rei0_pu ei0 VCC 10k
+Rei2_pu ei2 VCC 10k
+Rei3_pu ei3 VCC 10k
+Rei5_pu ei5 VCC 10k
+Rei6_pu ei6 VCC 10k
+REI0_LO ei0 GND {enc_ext > 0.5 && enc_ext < 1.5 ? 100 : 1G}
+REI2_LO ei2 GND {enc_ext > 1.5 && enc_ext < 2.5 ? 100 : 1G}
+REI3_LO ei3 GND {enc_ext > 2.5 && enc_ext < 3.5 ? 100 : 1G}
+REI5_LO ei5 GND {enc_ext > 3.5 && enc_ext < 4.5 ? 100 : 1G}
+REI6_LO ei6 GND {enc_ext > 4.5 ? 100 : 1G}
+X148 E_I4 ei5 ei6 E_I7 E_EI E_A2 E_A1 GND E_A0 ei0 E_I1 ei2 ei3 E_GS E_EO VCC SN74LS148
+Rea2 E_A2 GND 10k
+Rea1 E_A1 GND 10k
+Rea0 E_A0 GND 10k
+Regs E_GS GND 10k
+Reeo E_EO GND 10k
+
+* ---- 3. 74LS138 3-8 线译码器（/G2A=/G2B=GND，G1 外接控制，含排故元件 Rdec_g1_f）----
+Rdec_g1_f DEC_G1 GND 10Meg
+X138 SEL_A SEL_B SEL_C GND GND DEC_G1 DEC_Y7 GND dec_y6 DEC_Y5 dec_y4 DEC_Y3 dec_y2 dec_y1 DEC_Y0 VCC SN74LS138
+Rdy0 DEC_Y0 GND 10k
+Rdy3 DEC_Y3 GND 10k
+Rdy5 DEC_Y5 GND 10k
+Rdy7 DEC_Y7 GND 10k
+
+* ---- 4. 74LS151 8 选 1 数据选择器（实现三变量奇校验 F(C,B,A) = Σm(1,2,4,7)）----
+Rm151_g_pd m151_g GND 100
+Rm151_g_f m151_g VCC 10Meg
+X151 GND VCC VCC GND MUX151_Y MUX151_W m151_g GND SEL_C SEL_B SEL_A VCC GND GND VCC VCC SN74LS151
+Rm151y MUX151_Y GND 10k
+Rm151w MUX151_W GND 10k
+
+* ---- 5. 74LS153 双 4 选 1 数据选择器（1C=0110 实现异或 F(B,A)=A⊕B）----
+Rm153_g_pd m153_g GND 100
+Rm153_g_f m153_g VCC 10Meg
+X153 m153_g SEL_B GND VCC VCC GND MUX153_1Y GND m153_2y VCC GND GND VCC SEL_A m153_g VCC SN74LS153
+Rm153y MUX153_1Y GND 10k
+.ends mod_dig_msi
+
+.include "ttl.lib"

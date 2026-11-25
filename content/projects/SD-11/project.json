@@ -1,0 +1,95 @@
+{
+  "id": "SD-11",
+  "group": "数字逻辑基础",
+  "title": "可逆十进制计数电路功能测试",
+  "type": "basic",
+  "modules": [{ "instanceId": "cnt1", "moduleId": "mod-dig-cnt-ud", "slot": "SLOT_BOX_L1" }],
+  "allowedInstruments": ["ins-oscilloscope", "ins-multimeter"],
+  "reference": {
+    "nets": [
+      ["ins-dc-power.V5P", "cnt1.VCC", "cnt1.C192_DN"],
+      ["ins-dc-power.V5N", "cnt1.GND"],
+      ["cnt1.CLK_OUT", "cnt1.C192_UP"],
+      ["cnt1.K0", "cnt1.C192_CLR"],
+      ["cnt1.K1", "cnt1.C192_LD"],
+      ["cnt1.C192_Q0", "cnt1.DISP_A"],
+      ["cnt1.C192_Q1", "cnt1.DISP_B"],
+      ["cnt1.C192_Q2", "cnt1.DISP_C"],
+      ["cnt1.C192_Q3", "cnt1.DISP_D"]
+    ],
+    "measurePoints": [
+      { "id": "f_up", "kind": "waveform", "quantity": "frequency", "minCycles": 2, "between": ["cnt1.C192_UP", "cnt1.GND"] },
+      { "id": "f_co", "kind": "waveform", "quantity": "frequency", "minCycles": 2, "between": ["cnt1.C192_CO", "cnt1.GND"] },
+      { "id": "f_bo", "kind": "waveform", "quantity": "frequency", "minCycles": 2, "between": ["cnt1.C192_BO", "cnt1.GND"] }
+    ]
+  },
+  "steps": [
+    {
+      "id": "prepare",
+      "text": "保持断电，查阅 74LS192 双时钟同步可逆十进制计数器功能表：DN=1 时 UP 上升沿加计数并在 Q=9、UP=0 时输出进位 /CO=0；UP=1 时 DN 上升沿减计数并在 Q=0、DN=0 时输出借位 /BO=0。",
+      "measurePoints": [],
+      "dataTable": "cnt192_test"
+    },
+    {
+      "id": "wire",
+      "text": "断电连接 +5V/GND，先按加计数接法连接 CLK_OUT→C192_UP、VCC→C192_DN、K0→C192_CLR、K1→C192_LD，并将 C192_Q0~Q3 接至 DISP_A~DISP_D，点击“检查接线”。",
+      "measurePoints": [],
+      "checkWiring": true,
+      "dataTable": "cnt192_test"
+    },
+    {
+      "id": "up_count",
+      "text": "设 CLK_RATE=10 Hz、SW_K0=0、SW_K1=1，接示波器 CH1→C192_UP、CH2→C192_CO、GND→GND（时基 0.5 s/div）；上电观察数码管 0→9→0 加计数及进位低脉冲 /CO，测记 f_up（≈10 Hz）与 f_co（≈1 Hz）。",
+      "measurePoints": ["f_up", "f_co"],
+      "expect": { "measurePoint": "f_co", "min": 0.9, "max": 1.1 },
+      "dataTable": "cnt192_test"
+    },
+    {
+      "id": "preset_clear",
+      "text": "运行中设置 LD_VAL=5 并将 SW_K1 拨至 0（/LOAD=0）确认数码管立即异步置数为 5，拨回 1 继续计数；将 SW_K0 拨至 1（CLR=1）确认立即归零。",
+      "measurePoints": [],
+      "dataTable": "cnt192_test"
+    },
+    {
+      "id": "down_count",
+      "text": "断电改接减计数（VCC→C192_UP、CLK_OUT→C192_DN），将示波器 CH2 改接 C192_BO，上电观察数码管 9→8→…→0→9 倒计数与借位低脉冲 /BO（f_bo ≈ 1 Hz）；断电核对数据并完成思考题。",
+      "measurePoints": ["f_bo"],
+      "referenceNets": [
+        ["ins-dc-power.V5P", "cnt1.VCC", "cnt1.C192_UP"],
+        ["ins-dc-power.V5N", "cnt1.GND"],
+        ["cnt1.CLK_OUT", "cnt1.C192_DN"],
+        ["cnt1.K0", "cnt1.C192_CLR"],
+        ["cnt1.K1", "cnt1.C192_LD"],
+        ["cnt1.C192_Q0", "cnt1.DISP_A"],
+        ["cnt1.C192_Q1", "cnt1.DISP_B"],
+        ["cnt1.C192_Q2", "cnt1.DISP_C"],
+        ["cnt1.C192_Q3", "cnt1.DISP_D"]
+      ],
+      "expect": { "measurePoint": "f_bo", "min": 0.9, "max": 1.1 },
+      "recordTable": "cnt192_test",
+      "dataTable": "cnt192_test"
+    }
+  ],
+  "dataTables": [
+    {
+      "id": "cnt192_test",
+      "title": "74LS192 加/减计数进位 /CO 与借位 /BO 分频测试",
+      "rows": 2,
+      "columns": [
+        { "id": "f_up", "title": "时钟频率 f_CLK", "unit": "Hz", "measurePoint": "f_up", "captureSteps": ["up_count"] },
+        { "id": "f_co", "title": "加计数进位 f_/CO", "unit": "Hz", "measurePoint": "f_co", "captureSteps": ["up_count"] },
+        { "id": "f_bo", "title": "减计数借位 f_/BO", "unit": "Hz", "measurePoint": "f_bo", "captureSteps": ["down_count"] },
+        { "id": "div_ratio", "title": "十分频比 f_CLK/f_/CO", "unit": "", "computed": "f_up/f_co" }
+      ],
+      "sanity": [
+        { "column": "f_co", "min": 0.08, "max": 2.5, "message": "进位脉冲频率应为输入时钟的 1/10。" }
+      ]
+    }
+  ],
+  "charts": [],
+  "questions": [
+    "74LS192 进行加计数时，为什么必须将不用的减计数时钟端 DOWN 接高电平而不是接地？",
+    "74LS192 的进位输出 /CO 在什么状态和时钟电平下输出低电平？两片 74LS192 如何实现两位十进制可逆计数级联？",
+    "74LS192 的异步清零端 CLR 与异步置数端 /LOAD 同时有效时，哪一个控制端优先起作用？"
+  ]
+}

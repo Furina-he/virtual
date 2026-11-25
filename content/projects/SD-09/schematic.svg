@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 740 310" width="740" height="310" font-family="sans-serif" font-size="13">
+  <rect width="740" height="310" fill="#f8fafc" stroke="#cbd5e1"/>
+  <text x="20" y="28" font-size="16" font-weight="bold" fill="#0f172a">SD-09 74LS90 二-五-十进制计数器（8421 / 5421）原理图</text>
+  <circle cx="52" cy="58" r="5" fill="#dc2626" data-jack="cnt1.VCC"/><text x="64" y="62" fill="#dc2626">+5V</text>
+  <circle cx="145" cy="58" r="5" fill="#0f172a" data-jack="cnt1.GND"/><text x="157" y="62">GND</text>
+  <rect x="38" y="92" width="120" height="170" rx="6" fill="#eff6ff" stroke="#2563eb" stroke-width="2"/>
+  <text x="52" y="116" font-weight="bold" fill="#1d4ed8">脉冲与控制</text>
+  <circle cx="148" cy="148" r="5" fill="#2563eb" data-jack="cnt1.CLK_OUT"/><text x="48" y="152">CLK_OUT</text>
+  <circle cx="148" cy="192" r="5" fill="#d97706" data-jack="cnt1.K0"/><text x="48" y="196">K0 (R0)</text>
+  <rect x="235" y="82" width="235" height="200" rx="6" fill="#f0fdf4" stroke="#16a34a" stroke-width="2"/>
+  <text x="292" y="106" font-weight="bold" fill="#15803d">SN74LS90 (÷2 + ÷5)</text>
+  <circle cx="235" cy="136" r="5" fill="#2563eb" data-jack="cnt1.C90_CP0"/><text x="247" y="140">CP0 ↓ (÷2)</text>
+  <circle cx="235" cy="172" r="5" fill="#2563eb" data-jack="cnt1.C90_CP1"/><text x="247" y="176">CP1 ↓ (÷5)</text>
+  <circle cx="235" cy="212" r="5" fill="#d97706" data-jack="cnt1.C90_R0"/><text x="247" y="216">R0 (清零)</text>
+  <circle cx="235" cy="248" r="5" fill="#0f172a" data-jack="cnt1.C90_R9"/><text x="247" y="252">R9 (置九)</text>
+  <circle cx="470" cy="136" r="5" fill="#dc2626" data-jack="cnt1.C90_Q0"/><text x="442" y="140">Q0</text>
+  <circle cx="470" cy="172" r="5" fill="#dc2626" data-jack="cnt1.C90_Q1"/><text x="442" y="176">Q1</text>
+  <circle cx="470" cy="208" r="5" fill="#dc2626" data-jack="cnt1.C90_Q2"/><text x="442" y="212">Q2</text>
+  <circle cx="470" cy="244" r="5" fill="#dc2626" data-jack="cnt1.C90_Q3"/><text x="442" y="248">Q3</text>
+  <line x1="153" y1="148" x2="230" y2="136" stroke="#2563eb" stroke-width="1.8"/>
+  <line x1="153" y1="192" x2="230" y2="212" stroke="#0f172a" stroke-width="1.6"/>
+  <path d="M 470 136 L 495 136 L 495 72 L 205 72 L 205 172 L 230 172" fill="none" stroke="#16a34a" stroke-width="1.8" stroke-dasharray="4 3"/>
+  <rect x="550" y="106" width="155" height="164" rx="6" fill="#fefce8" stroke="#ca8a04" stroke-width="2"/>
+  <text x="572" y="128" font-weight="bold" fill="#854d0e">CD4511 数码管</text>
+  <circle cx="550" cy="148" r="5" fill="#d97706" data-jack="cnt1.DISP_A"/><text x="564" y="152">DISP_A</text>
+  <circle cx="550" cy="180" r="5" fill="#d97706" data-jack="cnt1.DISP_B"/><text x="564" y="184">DISP_B</text>
+  <circle cx="550" cy="212" r="5" fill="#d97706" data-jack="cnt1.DISP_C"/><text x="564" y="216">DISP_C</text>
+  <circle cx="550" cy="244" r="5" fill="#d97706" data-jack="cnt1.DISP_D"/><text x="564" y="248">DISP_D</text>
+</svg>

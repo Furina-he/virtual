@@ -38,6 +38,7 @@ const makeSnapshot = (freq: number | null, vpp: number | null): MeasurementSnaps
     parameters: [],
     speakers: [],
     segment7s: [],
+    leds: [],
     scopes: [],
     assembled: { netlist: '', nodeOf: {}, nets: [], instrumentSuffix: {} },
     meters: [],

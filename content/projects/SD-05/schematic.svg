@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 740 300" width="740" height="300" font-family="sans-serif" font-size="13">
+  <rect width="740" height="300" fill="#f8fafc" stroke="#cbd5e1"/>
+  <text x="20" y="28" font-size="16" font-weight="bold" fill="#0f172a">SD-05 74LS85 四位数值比较器功能与级联测试原理图</text>
+  <circle cx="52" cy="60" r="5" fill="#dc2626" data-jack="ar1.VCC"/><text x="64" y="64" fill="#dc2626">+5V</text>
+  <circle cx="150" cy="60" r="5" fill="#0f172a" data-jack="ar1.GND"/><text x="162" y="64">GND</text>
+  <rect x="40" y="96" width="135" height="156" rx="6" fill="#eff6ff" stroke="#2563eb" stroke-width="2"/>
+  <text x="54" y="120" font-weight="bold" fill="#1d4ed8">低位级联模拟</text>
+  <circle cx="165" cy="148" r="5" fill="#d97706" data-jack="ar1.K0"/><text x="54" y="152">K0 → I(A&gt;B)</text>
+  <circle cx="165" cy="186" r="5" fill="#d97706" data-jack="ar1.K3"/><text x="54" y="190">K3 → I(A=B)</text>
+  <circle cx="165" cy="224" r="5" fill="#d97706" data-jack="ar1.K1"/><text x="54" y="228">K1 → I(A&lt;B)</text>
+  <rect x="275" y="88" width="235" height="176" rx="6" fill="#f0fdf4" stroke="#16a34a" stroke-width="2"/>
+  <text x="315" y="114" font-weight="bold" fill="#15803d">SN74LS85 (DIP-16)</text>
+  <text x="295" y="136" font-size="11" fill="#475569">内部接入 OP_A(A3..A0) 与 OP_B(B3..B0)</text>
+  <circle cx="275" cy="156" r="5" fill="#d97706" data-jack="ar1.CMP_IGT"/><text x="288" y="160">I(A&gt;B)</text>
+  <circle cx="275" cy="192" r="5" fill="#d97706" data-jack="ar1.CMP_IEQ"/><text x="288" y="196">I(A=B)</text>
+  <circle cx="275" cy="228" r="5" fill="#d97706" data-jack="ar1.CMP_ILT"/><text x="288" y="232">I(A&lt;B)</text>
+  <line x1="170" y1="148" x2="270" y2="156" stroke="#0f172a" stroke-width="1.8"/>
+  <line x1="170" y1="186" x2="270" y2="192" stroke="#0f172a" stroke-width="1.8"/>
+  <line x1="170" y1="224" x2="270" y2="228" stroke="#0f172a" stroke-width="1.8"/>
+  <circle cx="510" cy="156" r="5" fill="#dc2626" data-jack="ar1.CMP_OGT"/><text x="524" y="160">O(A&gt;B)</text>
+  <circle cx="510" cy="192" r="5" fill="#16a34a" data-jack="ar1.CMP_OEQ"/><text x="524" y="196">O(A=B)</text>
+  <circle cx="510" cy="228" r="5" fill="#2563eb" data-jack="ar1.CMP_OLT"/><text x="524" y="232">O(A&lt;B)</text>
+</svg>

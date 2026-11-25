@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 740 320" width="740" height="320" font-family="sans-serif" font-size="13">
+  <rect width="740" height="320" fill="#f8fafc" stroke="#cbd5e1"/>
+  <text x="20" y="28" font-size="16" font-weight="bold" fill="#0f172a">SD-06 CD4511 七段码锁存/译码/驱动器与排故原理图</text>
+  <circle cx="52" cy="58" r="5" fill="#dc2626" data-jack="dg1.VCC"/><text x="64" y="62" fill="#dc2626">+5V</text>
+  <circle cx="150" cy="58" r="5" fill="#0f172a" data-jack="dg1.GND"/><text x="162" y="62">GND</text>
+  <rect x="34" y="84" width="120" height="210" rx="6" fill="#eff6ff" stroke="#2563eb" stroke-width="2"/>
+  <text x="48" y="106" font-weight="bold" fill="#1d4ed8">BCD 与控制</text>
+  <circle cx="144" cy="128" r="5" fill="#d97706" data-jack="dg1.K0"/><text x="46" y="132">K0 (A)</text>
+  <circle cx="144" cy="156" r="5" fill="#d97706" data-jack="dg1.K1"/><text x="46" y="160">K1 (B)</text>
+  <circle cx="144" cy="184" r="5" fill="#d97706" data-jack="dg1.K2"/><text x="46" y="188">K2 (C)</text>
+  <circle cx="144" cy="212" r="5" fill="#d97706" data-jack="dg1.K3"/><text x="46" y="216">K3 (D)</text>
+  <circle cx="144" cy="242" r="5" fill="#d97706" data-jack="dg1.K4"/><text x="46" y="246">K4 (/LT)</text>
+  <circle cx="144" cy="270" r="5" fill="#d97706" data-jack="dg1.K5"/><text x="46" y="274">K5 (/BI)</text>
+  <rect x="240" y="84" width="215" height="210" rx="6" fill="#f0fdf4" stroke="#16a34a" stroke-width="2"/>
+  <text x="290" y="108" font-weight="bold" fill="#15803d">CD4511 (DIP-16)</text>
+  <circle cx="240" cy="128" r="5" fill="#d97706" data-jack="dg1.CD_A"/><text x="252" y="132">A (1)</text>
+  <circle cx="240" cy="154" r="5" fill="#d97706" data-jack="dg1.CD_B"/><text x="252" y="158">B (2)</text>
+  <circle cx="240" cy="180" r="5" fill="#d97706" data-jack="dg1.CD_C"/><text x="252" y="184">C (4)</text>
+  <circle cx="240" cy="206" r="5" fill="#d97706" data-jack="dg1.CD_D"/><text x="252" y="210">D (8)</text>
+  <circle cx="240" cy="232" r="5" fill="#d97706" data-jack="dg1.CD_LT"/><text x="252" y="236">/LT 灯测</text>
+  <circle cx="240" cy="256" r="5" fill="#d97706" data-jack="dg1.CD_BI"/><text x="252" y="260">/BI 消隐</text>
+  <circle cx="240" cy="280" r="5" fill="#d97706" data-jack="dg1.CD_LE"/><text x="252" y="284">LE 锁存</text>
+  <line x1="149" y1="128" x2="235" y2="128" stroke="#0f172a" stroke-width="1.6"/>
+  <line x1="149" y1="156" x2="235" y2="154" stroke="#0f172a" stroke-width="1.6"/>
+  <line x1="149" y1="184" x2="235" y2="180" stroke="#0f172a" stroke-width="1.6"/>
+  <line x1="149" y1="212" x2="235" y2="206" stroke="#0f172a" stroke-width="1.6"/>
+  <line x1="149" y1="242" x2="235" y2="232" stroke="#0f172a" stroke-width="1.6"/>
+  <line x1="149" y1="270" x2="235" y2="256" stroke="#0f172a" stroke-width="1.6"/>
+  <rect x="490" y="114" width="60" height="22" fill="#fefce8" stroke="#ca8a04" stroke-width="1.8"/>
+  <text x="502" y="129" font-size="11">330Ω</text>
+  <line x1="455" y1="125" x2="490" y2="125" stroke="#dc2626" stroke-width="2"/>
+  <line x1="550" y1="125" x2="590" y2="125" stroke="#dc2626" stroke-width="2"/>
+  <circle cx="570" cy="125" r="5" fill="#dc2626" data-jack="dg1.CD_SEGA"/>
+  <text x="546" y="108" font-size="11" fill="#dc2626">CD_SEGA</text>
+  <rect x="590" y="96" width="118" height="170" rx="8" fill="#0f172a" stroke="#334155" stroke-width="2"/>
+  <text x="612" y="122" font-size="12" fill="#cbd5e1">共阴数码管</text>
+  <text x="628" y="206" font-size="72" font-family="monospace" font-weight="bold" fill="#ef4444">8</text>
+  <text x="608" y="252" font-size="11" fill="#94a3b8">a~g (330Ω×7)</text>
+</svg>
