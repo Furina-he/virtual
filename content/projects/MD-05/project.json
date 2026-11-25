@@ -1,0 +1,86 @@
+{
+  "id": "MD-05",
+  "group": "综合性应用实训",
+  "title": "助听器电路的调试（电子产品线路）",
+  "type": "integrated",
+  "modules": [{ "instanceId": "ha1", "moduleId": "mod-app-hearing-aid", "slot": "SLOT_BOX_L1" }],
+  "allowedInstruments": ["ins-func-gen", "ins-oscilloscope", "ins-multimeter"],
+  "reference": {
+    "nets": [
+      ["ins-dc-power.V5P", "ha1.HA_VCC"],
+      ["ins-dc-power.V5N", "ha1.HA_GND1", "ha1.HA_GND2", "ha1.HA_SPK_N"]
+    ],
+    "measurePoints": [
+      { "id": "v_mic", "kind": "voltage", "mode": "dcv", "between": ["ha1.HA_MIC", "ha1.HA_GND1"] },
+      { "id": "v_c1", "kind": "voltage", "mode": "dcv", "between": ["ha1.HA_Q1C", "ha1.HA_GND1"] },
+      { "id": "v_c2", "kind": "voltage", "mode": "dcv", "between": ["ha1.HA_Q2C", "ha1.HA_GND1"] },
+      { "id": "u_ear_vpp", "kind": "waveform", "quantity": "vpp", "between": ["ha1.HA_SPK_P", "ha1.HA_SPK_N"] }
+    ]
+  },
+  "steps": [
+    {
+      "id": "prepare",
+      "text": "保持断电，阅读指导书与原理图；从仪表柜拖出双通道数字示波器与双通道函数信号发生器；将实验板“话筒声压激励”置“正常语音”，“音量电位器”置 60%。",
+      "measurePoints": [],
+      "dataTable": "hearing_aid_debug"
+    },
+    {
+      "id": "wire",
+      "text": "断电按图连接 5 V 便携供电：直流电源 +5V→ha1.HA_VCC、5V−→ha1.HA_GND1；示波器 CH1 接前级输出 C1、CH2 接耳机输出 EAR+、GND 接 GND 2，点击“检查接线”。",
+      "measurePoints": ["u_ear_vpp"],
+      "checkWiring": true,
+      "dataTable": "hearing_aid_debug"
+    },
+    {
+      "id": "static_check",
+      "text": "静态调试：将话筒声压切至“静音 / 外接信号”，上电用直流电压表依次测录驻极体偏置点 MIC（约 2.5 V）、前级集电极 C1（约 2.4 V）与推动级集电极 C2（约 2.5 V），确认三级直流工作点处于线性区中点。",
+      "measurePoints": ["v_mic", "v_c1", "v_c2"],
+      "expect": { "measurePoint": "v_mic", "min": 2.0, "max": 3.0 },
+      "dataTable": "hearing_aid_debug"
+    },
+    {
+      "id": "mic_vol_debug",
+      "text": "动态与音量/声压调试：将“话筒声压激励”切回“正常语音”，带电调节音量电位器（20%、60%、100%），观察耳机端输出 1 kHz 音频波形峰峰值平滑递增且无削顶，并可聆听实时音频输出；随后切换轻声/大声档验证动态响应。",
+      "measurePoints": ["u_ear_vpp"],
+      "expect": { "measurePoint": "u_ear_vpp", "min": 0.12, "max": 2.6 },
+      "dataTable": "hearing_aid_debug"
+    },
+    {
+      "id": "analyse",
+      "text": "断电后核对音量–输出特性曲线，结合驻极体偏置、级间耦合与射极跟随驱动 32 Ω 耳机机理完成思考题。",
+      "measurePoints": [],
+      "recordTable": "hearing_aid_debug",
+      "dataTable": "hearing_aid_debug"
+    }
+  ],
+  "dataTables": [
+    {
+      "id": "hearing_aid_debug",
+      "title": "助听器电路音量电位器位置与 32 Ω 耳机输出幅值调试记录（正常语音 1 kHz）",
+      "rows": 3,
+      "columns": [
+        { "id": "vol_pct", "title": "音量设定", "unit": "%" },
+        { "id": "u_ear_vpp", "title": "耳机输出 Vpp", "unit": "V", "measurePoint": "u_ear_vpp", "captureSteps": ["mic_vol_debug"] }
+      ],
+      "sanity": [
+        { "column": "vol_pct", "min": 0, "max": 100, "message": "请在 20%、60%、100% 三个典型音量档位记录输出幅值。" },
+        { "column": "u_ear_vpp", "min": 0.05, "max": 3.0, "message": "正常语音下耳机输出峰峰值随音量单调上升至约 0.5~1.5 Vpp。" }
+      ]
+    }
+  ],
+  "charts": [
+    {
+      "id": "vol-output-plot",
+      "title": "助听器音量电位器调节与耳机输出幅值特性曲线",
+      "table": "hearing_aid_debug",
+      "x": "vol_pct",
+      "y": ["u_ear_vpp"],
+      "kind": "line"
+    }
+  ],
+  "questions": [
+    "驻极体话筒内部集成场效应管阻抗变换器，为什么必须串联 R_mic = 2.2 kΩ 上拉偏置电阻接至 +5 V 才能输出声学电信号？",
+    "音量调节电位器为什么安排在前置放大级与推动放大级之间，而不是放在话筒最前端或 32 Ω 耳机输出端？",
+    "末级 Q3 采用共集电极射极跟随器结构，对驱动 32 Ω 低阻抗耳机起到什么作用？"
+  ]
+}

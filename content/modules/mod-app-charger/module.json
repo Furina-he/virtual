@@ -1,0 +1,53 @@
+{
+  "id": "mod-app-charger",
+  "name": "场效应管恒流充电器实验板",
+  "form": "board",
+  "model": "module.glb",
+  "netlist": "module.cir",
+  "jacks": [
+    { "id": "CHG_VIN", "label": "+12V 充电输入", "kind": "banana4", "polarityHint": "+" },
+    { "id": "CHG_GND1", "label": "GND 1", "kind": "banana4", "polarityHint": "-" },
+    { "id": "CHG_GND2", "label": "GND 2", "kind": "banana4", "polarityHint": "-" },
+    { "id": "ICHG_A", "label": "充电电流 +", "kind": "banana4" },
+    { "id": "ICHG_B", "label": "充电电流 −", "kind": "banana4" },
+    { "id": "BAT_P", "label": "锂电池正极 B+", "kind": "banana4", "polarityHint": "+" },
+    { "id": "BAT_N", "label": "锂电池负极 B−", "kind": "banana4", "polarityHint": "-" },
+    { "id": "MOS_D", "label": "MOS 漏极 D", "kind": "banana4" },
+    { "id": "MOS_G", "label": "MOS 栅极 G", "kind": "banana4" },
+    { "id": "MOS_S", "label": "取样电阻端 S", "kind": "banana4" },
+    { "id": "LED_K", "label": "指示灯阴极观测", "kind": "banana4" }
+  ],
+  "controls": [
+    {
+      "id": "I_SET",
+      "label": "恒流设定档位",
+      "kind": "rotary",
+      "param": "i_set",
+      "steps": [0, 1, 2],
+      "stepLabels": ["50 mA (Rs=13.6Ω)", "100 mA (Rs=6.8Ω)", "200 mA (Rs=3.4Ω)"],
+      "targets": [{ "element": "RSENSE", "values": [13.6, 6.8, 3.4] }],
+      "unit": "",
+      "default": 1
+    },
+    {
+      "id": "BAT_INIT",
+      "label": "电池初始电压",
+      "kind": "rotary",
+      "param": "v_bat_init",
+      "steps": [3.2, 3.7, 4.1],
+      "stepLabels": ["3.2 V (低电量)", "3.7 V (半电)", "4.1 V (近满电)"],
+      "unit": "V",
+      "default": 3.2
+    }
+  ],
+  "indicators": [],
+  "commonNets": [
+    ["CHG_GND1", "CHG_GND2"],
+    ["CHG_VIN", "ICHG_A"],
+    ["ICHG_B", "BAT_P"]
+  ],
+  "internalJumpers": [
+    { "id": "S_ICHG", "kind": "currentSocket", "a": "ICHG_A", "b": "ICHG_B" }
+  ],
+  "simulation": { "analysis": "tran", "maxStep": 0.0005, "pacing": "realtime" }
+}

@@ -1,0 +1,19 @@
+* fet.lib -- 场效应管模型库（JFET / MOSFET，SIM-02 / SIM-15）
+*
+* 1. J3DJ6（N 沟道结型场效应管 3DJ6，夹断电压 VP ≈ -3.0 V，饱和漏极电流 IDSS ≈ 6.0 mA）
+*   来源：本项目按国产 3DJ6 典型中档（G/H 档：VP = -2.5~-3.5 V，IDSS = 4~8 mA，gm ≈ 3~4 mS）自行拟合，
+*   未复制任何厂商 SPICE 模型文件。
+*   参数只取 ngspice 内置 JFET 模型（NJF, level 1）标准参数。
+*   许可证：随本项目发布，可自由再分发（项目自有内容）。
+*
+.model J3DJ6 NJF(VTO=-3.0 BETA=6.67e-4 LAMBDA=0.015 RD=10 RS=10 CGS=4e-12 CGD=3e-12 PB=0.7 IS=1e-14)
+
+* 2. NMOS_2N7000（N 沟道增强型 MOSFET，VGS(th) ≈ 2.0 V，ID_max ≥ 350 mA，RDS(on) ≈ 1.7 Ω）
+*   来源：本项目按 2N7000 通用小功率增强型 MOSFET 典型参数自行拟合，未复制任何厂商 SPICE 模型文件。
+*   拟合目标（25 °C，VDS = 10 V）：
+*     VGS = 1.5 V -> 截止（ID < 1 uA）；VGS = 2.5 V -> ID ≈ 25 mA；
+*     VGS = 3.0 V -> ID ≈ 100 mA；VGS = 3.5 V -> ID ≈ 220 mA
+*   参数只取 ngspice 内置 MOSFET 模型（NMOS, level 1）标准参数。
+*   许可证：随本项目发布，可自由再分发（项目自有内容）。
+*
+.model NMOS_2N7000 NMOS(LEVEL=1 VTO=2.0 KP=0.18 LAMBDA=0.02 RD=1.2 RS=0.5 CGSO=25e-12 CGDO=10e-12 CBD=30e-12)

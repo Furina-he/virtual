@@ -1,0 +1,44 @@
+.subckt mod_analog_base AC_P1 AC_P2 AC_S1 AC_CT AC_S2 D4007_A D4007_K D4148_A D4148_K DZ_A DZ_K LED_A LED_K CLIP_A CLIP_B R470_1 R470_2 BJT_B BJT_C BJT_E JFET_G JFET_D JFET_S MOS_G MOS_D MOS_S RB_1 RB_2
+* 模拟电路综合实验挂箱（原型选型说明 §3.1 #8，服务 MD-01 / MD-02 / MD-08 / MD-09）
+*
+* ---- 区 1：220 V -> 15 V x 2 中心抽头降压电源变压器（50 Hz，空载半绕组 ~15.3 Vrms）----
+R_xf_p AC_P1 n_xp 15
+L_xf_p n_xp AC_P2 25
+R_xf_core AC_P1 AC_P2 25k
+L_xf_s1 n_xs1 AC_CT 0.1225
+R_xf_s1 n_xs1 AC_S1 0.8
+L_xf_s2 AC_CT n_xs2 0.1225
+R_xf_s2 n_xs2 AC_S2 0.8
+K_xf_ab L_xf_p L_xf_s1 0.996
+K_xf_ac L_xf_p L_xf_s2 0.996
+K_xf_bc L_xf_s1 L_xf_s2 0.996
+R_iso_xf AC_CT 0 100Meg
+*
+* ---- 区 2：常用二极管与双向限幅/稳压器件组 ----
+D_4007 D4007_A D4007_K D1N4007
+R_iso_d1 D4007_K 0 100Meg
+D_4148 D4148_A D4148_K D1N4148
+R_iso_d2 D4148_K 0 100Meg
+D_z2cw DZ_A DZ_K D2CW51
+R_iso_dz DZ_K 0 100Meg
+D_led LED_A LED_K DLED_RED
+R_iso_led LED_K 0 100Meg
+D_clip1 CLIP_A CLIP_B D1N4148
+D_clip2 CLIP_B CLIP_A D1N4148
+R_iso_clip CLIP_B 0 100Meg
+R_470 R470_1 R470_2 470
+R_iso_r470 R470_2 0 100Meg
+*
+* ---- 区 3：双极晶体管（S9013）、JFET（3DJ6）与 MOSFET（2N7000）测试区 ----
+Q_9013 BJT_C BJT_B BJT_E S9013
+R_iso_bjt BJT_E 0 100Meg
+J_3dj6 JFET_D JFET_G JFET_S J3DJ6
+R_iso_jfet JFET_S 0 100Meg
+M_2n7000 MOS_D MOS_G MOS_S MOS_S NMOS_2N7000
+R_iso_mos MOS_S 0 100Meg
+R_b100k RB_1 RB_2 100k
+R_iso_rb RB_2 0 100Meg
+.ends mod_analog_base
+.include "diodes.lib"
+.include "bjt.lib"
+.include "fet.lib"

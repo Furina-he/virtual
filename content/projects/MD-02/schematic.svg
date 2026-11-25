@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 340" width="720" height="340" font-family="sans-serif" font-size="13">
+  <rect width="720" height="340" fill="#f8fafc" stroke="#cbd5e1"/>
+  <text x="20" y="28" font-size="16" font-weight="bold" fill="#0f172a">MD-02 双极晶体管（S9013）与场效应管（3DJ6 / 2N7000）特性测试图</text>
+  <rect x="20" y="48" width="330" height="270" rx="6" fill="#ffffff" stroke="#94a3b8"/>
+  <text x="34" y="70" font-weight="bold" fill="#1e293b">1. S9013 共射极输出特性测试回路</text>
+  <line x1="60" y1="175" x2="105" y2="175" stroke="#dc2626" stroke-width="2"/>
+  <rect x="105" y="164" width="60" height="22" fill="#fff7ed" stroke="#ea580c" stroke-width="2"/>
+  <text x="112" y="179" fill="#9a3412">100kΩ</text>
+  <line x1="165" y1="175" x2="215" y2="175" stroke="#0f172a" stroke-width="2"/>
+  <line x1="215" y1="150" x2="215" y2="200" stroke="#0f172a" stroke-width="3"/>
+  <line x1="215" y1="162" x2="255" y2="132" stroke="#0f172a" stroke-width="2"/>
+  <line x1="215" y1="188" x2="255" y2="218" stroke="#0f172a" stroke-width="2"/>
+  <line x1="255" y1="100" x2="255" y2="132" stroke="#dc2626" stroke-width="2"/>
+  <line x1="255" y1="218" x2="255" y2="265" stroke="#0f172a" stroke-width="2"/>
+  <line x1="60" y1="265" x2="295" y2="265" stroke="#0f172a" stroke-width="2"/>
+  <text x="266" y="178" fill="#1d4ed8">S9013</text>
+  <circle cx="60" cy="175" r="5" fill="#dc2626" data-jack="ins-dc-power.CH1P"/>
+  <text x="30" y="163" fill="#dc2626">CH1+</text>
+  <circle cx="100" cy="175" r="4" fill="#d97706" data-jack="ab1.RB_1"/>
+  <circle cx="172" cy="175" r="4" fill="#d97706" data-jack="ab1.RB_2"/>
+  <circle cx="204" cy="175" r="5" fill="#2563eb" data-jack="ab1.BJT_B"/>
+  <circle cx="255" cy="118" r="5" fill="#dc2626" data-jack="ab1.BJT_C"/>
+  <text x="266" y="122" fill="#dc2626">C (接毫安表)</text>
+  <circle cx="255" cy="240" r="5" fill="#0f172a" data-jack="ab1.BJT_E"/>
+  <circle cx="295" cy="100" r="5" fill="#dc2626" data-jack="ins-dc-power.CH2P"/>
+  <text x="275" y="90" fill="#dc2626">CH2+</text>
+  <circle cx="60" cy="265" r="5" fill="#0f172a" data-jack="ins-dc-power.CH1N"/>
+  <circle cx="295" cy="265" r="5" fill="#0f172a" data-jack="ins-dc-power.CH2N"/>
+
+  <rect x="370" y="48" width="330" height="270" rx="6" fill="#ffffff" stroke="#94a3b8"/>
+  <text x="384" y="70" font-weight="bold" fill="#1e293b">2. 3DJ6（负栅压）与 2N7000（正栅压）测试区</text>
+  <rect x="395" y="100" width="125" height="175" rx="4" fill="#f0fdf4" stroke="#16a34a"/>
+  <text x="415" y="122" font-weight="bold" fill="#15803d">JFET 3DJ6</text>
+  <circle cx="420" cy="175" r="5" fill="#d97706" data-jack="ab1.JFET_G"/>
+  <text x="432" y="179" fill="#1e293b">G（接 CH1−）</text>
+  <circle cx="420" cy="145" r="5" fill="#dc2626" data-jack="ab1.JFET_D"/>
+  <text x="432" y="149" fill="#1e293b">D（经 mA→CH2+）</text>
+  <circle cx="420" cy="215" r="5" fill="#0f172a" data-jack="ab1.JFET_S"/>
+  <text x="432" y="219" fill="#1e293b">S（CH1+/CH2−）</text>
+
+  <rect x="545" y="100" width="135" height="175" rx="4" fill="#eff6ff" stroke="#2563eb"/>
+  <text x="560" y="122" font-weight="bold" fill="#1d4ed8">MOS 2N7000</text>
+  <circle cx="570" cy="175" r="5" fill="#d97706" data-jack="ab1.MOS_G"/>
+  <text x="582" y="179" fill="#1e293b">G（接 CH1+）</text>
+  <circle cx="570" cy="145" r="5" fill="#dc2626" data-jack="ab1.MOS_D"/>
+  <text x="582" y="149" fill="#1e293b">D（经 mA→CH2+）</text>
+  <circle cx="570" cy="215" r="5" fill="#0f172a" data-jack="ab1.MOS_S"/>
+  <text x="582" y="219" fill="#1e293b">S（CH1−/CH2−）</text>
+</svg>

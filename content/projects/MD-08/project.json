@@ -1,0 +1,108 @@
+{
+  "id": "MD-08",
+  "group": "直流稳压电源",
+  "title": "整流、滤波及稳压电路的研究",
+  "type": "basic",
+  "modules": [
+    { "instanceId": "ab1", "moduleId": "mod-analog-base", "slot": "SLOT_BOX_L1" },
+    { "instanceId": "reg1", "moduleId": "mod-power-reg", "slot": "SLOT_BOX_L2" }
+  ],
+  "allowedInstruments": ["ins-oscilloscope", "ins-multimeter"],
+  "reference": {
+    "nets": [
+      ["ins-ac-power.U", "ab1.AC_P1"],
+      ["ins-ac-power.N", "ab1.AC_P2"],
+      ["ab1.AC_S1", "reg1.AC_1"],
+      ["ab1.AC_CT", "reg1.AC_2"],
+      ["reg1.RECT_N", "reg1.REG_GND", "reg1.REG_GND2"],
+      ["reg1.RECT_P", "reg1.REG317_IN"],
+      ["reg1.REG317_OUT", "reg1.LOAD_IN"]
+    ],
+    "measurePoints": [
+      { "id": "u_hw", "kind": "waveform", "quantity": "vpp", "between": ["reg1.HW_OUT", "reg1.REG_GND"] },
+      { "id": "u_rect", "kind": "voltage", "mode": "dcv", "between": ["reg1.RECT_P", "reg1.REG_GND"] },
+      { "id": "u_ripple", "kind": "waveform", "quantity": "vpp", "between": ["reg1.RECT_P", "reg1.REG_GND"] },
+      { "id": "u_317", "kind": "voltage", "mode": "dcv", "between": ["reg1.REG317_OUT", "reg1.REG_GND"] }
+    ]
+  },
+  "steps": [
+    {
+      "id": "prepare",
+      "text": "保持断电，从仪表柜拖出双通道数字示波器；将三相调压交流电源相电压设为 220 V（经模拟主板降压为 15 Vrms 单相交流），稳压板滤波电容 SW_CFILT 先置“无滤波 (0 µF)”，负载置“轻载 (240 Ω)”，LM317 调压电阻 R2 置 1200 Ω。",
+      "measurePoints": [],
+      "dataTable": "rect_filter"
+    },
+    {
+      "id": "wire",
+      "text": "断电按图连接：交流电源 U/N → 变压器原边 220V+/220V−，副边 15V A → 交流输入 ~1，副边 0V CT → 交流输入 ~2（副边悬空输入整流桥）；桥式负输出 −Ui → 公共地 GND；桥式正输出 +Ui → LM317 输入端，LM317 可调输出 → 可调负载端 RL；直流电压表并接 +Ui/GND，示波器 CH1 接半波 HW、CH2 接桥式 +Ui、GND 接 GND2，点击“检查接线”。",
+      "measurePoints": ["u_rect", "u_ripple"],
+      "checkWiring": true,
+      "dataTable": "rect_filter"
+    },
+    {
+      "id": "rect_filter",
+      "text": "整流与三级电容滤波对比：上电观察无滤波时半波（50 Hz 脉动）与全波桥式（100 Hz 脉动，均值约为半波 2 倍）波形差异；随后带电依次将 SW_CFILT 切至 0 µF、100 µF、470 µF、1000 µF，记录直流均值 U_rect（由约 13 V 升至约 19.5 V）与纹波峰峰值显著压缩。",
+      "measurePoints": ["u_rect", "u_ripple"],
+      "expect": { "measurePoint": "u_rect", "min": 11.0, "max": 22.0 },
+      "dataTable": "rect_filter"
+    },
+    {
+      "id": "lm317_reg",
+      "text": "LM317 可调三端稳压：保持滤波电容 470 µF，将直流电压表与示波器 CH2（AC 耦合）改接 LM317 可调输出端与 GND；带电依次将 R317_ADJ 调至 400 Ω（约 3.35 V）、1200 Ω（约 7.56 V）、2000 Ω（约 11.77 V），验证 Vo = 1.25(1 + R2/240) 及 > 40 dB 纹波抑制。",
+      "measurePoints": ["u_317"],
+      "expect": { "measurePoint": "u_317", "min": 2.0, "max": 13.5 },
+      "dataTable": "lm317_sweep"
+    },
+    {
+      "id": "analyse",
+      "text": "断电后查看滤波纹波对比曲线与 LM317 线性调压曲线，完成思考题。",
+      "measurePoints": [],
+      "recordTable": "lm317_sweep",
+      "dataTable": "lm317_sweep"
+    }
+  ],
+  "dataTables": [
+    {
+      "id": "rect_filter",
+      "title": "单相桥式整流不同滤波电容容量下直流输出与纹波记录",
+      "rows": 4,
+      "columns": [
+        { "id": "c_uf", "title": "滤波电容 C", "unit": "µF" },
+        { "id": "u_rect", "title": "整流直流均值 U_i", "unit": "V", "measurePoint": "u_rect", "captureSteps": ["rect_filter"] },
+        { "id": "u_rip", "title": "纹波峰峰值 ΔU", "unit": "V", "measurePoint": "u_ripple", "captureSteps": ["rect_filter"] }
+      ],
+      "sanity": [
+        { "column": "c_uf", "min": 0, "max": 1200, "message": "依次记录 0、100、470、1000 µF 四档滤波电容。" },
+        { "column": "u_rect", "min": 10, "max": 23, "message": "无滤波均值约 13 V，加电容后升至约 18~20 V。" }
+      ]
+    },
+    {
+      "id": "lm317_sweep",
+      "title": "LM317 调压电阻 R2 与稳压输出电压 Vo 实测记录（R1 = 240 Ω）",
+      "rows": 3,
+      "columns": [
+        { "id": "r2_ohm", "title": "调压电阻 R2", "unit": "Ω" },
+        { "id": "u_317", "title": "实测输出 Vo", "unit": "V", "measurePoint": "u_317", "captureSteps": ["lm317_reg"] }
+      ],
+      "sanity": [
+        { "column": "r2_ohm", "min": 200, "max": 2200, "message": "R2 调节范围 200 ~ 2200 Ω。" },
+        { "column": "u_317", "min": 2.0, "max": 13.5, "message": "输出应满足 Vo ≈ 1.25 × (1 + R2 / 240)。" }
+      ]
+    }
+  ],
+  "charts": [
+    {
+      "id": "lm317-linear-plot",
+      "title": "LM317 输出电压 Vo 随调压电阻 R2 变化特性曲线",
+      "table": "lm317_sweep",
+      "x": "r2_ohm",
+      "y": ["u_317"],
+      "kind": "line"
+    }
+  ],
+  "questions": [
+    "在相同 15 Vrms 50 Hz 交流输入下，半波整流与桥式全波整流的脉动频率与直流平均值之比各为多少？",
+    "增大滤波电容由 100 µF 到 1000 µF 时，直流平均值、纹波峰峰值以及整流二极管导通角分别怎样变化？",
+    "LM317 为何能够通过单只可调电阻 R2 实现 1.25 V 以上宽范围连续稳压？输入电压低于 Vo + 2 V 时会出现什么现象？"
+  ]
+}

@@ -1,0 +1,113 @@
+{
+  "id": "MD-02",
+  "group": "半导体器件",
+  "title": "双极晶体管及场效管输出特性的测定",
+  "type": "basic",
+  "modules": [{ "instanceId": "ab1", "moduleId": "mod-analog-base", "slot": "SLOT_BOX_L1" }],
+  "allowedInstruments": ["ins-multimeter"],
+  "reference": {
+    "nets": [
+      ["ins-dc-power.CH1P", "ab1.RB_1"],
+      ["ab1.RB_2", "ab1.BJT_B"],
+      ["ins-dc-power.CH2P", "ab1.BJT_C"],
+      ["ab1.BJT_E", "ins-dc-power.CH1N", "ins-dc-power.CH2N"]
+    ],
+    "measurePoints": [
+      { "id": "u_ce", "kind": "voltage", "mode": "dcv", "between": ["ab1.BJT_C", "ab1.BJT_E"] },
+      { "id": "i_c", "kind": "current", "mode": "dca", "branch": ["ins-dc-power.CH2P", "ab1.BJT_C"] },
+      { "id": "u_ds_j", "kind": "voltage", "mode": "dcv", "between": ["ab1.JFET_D", "ab1.JFET_S"] },
+      { "id": "i_d_j", "kind": "current", "mode": "dca", "branch": ["ins-dc-power.CH2P", "ab1.JFET_D"] },
+      { "id": "u_ds_m", "kind": "voltage", "mode": "dcv", "between": ["ab1.MOS_D", "ab1.MOS_S"] },
+      { "id": "i_d_m", "kind": "current", "mode": "dca", "branch": ["ins-dc-power.CH2P", "ab1.MOS_D"] }
+    ]
+  },
+  "steps": [
+    {
+      "id": "prepare",
+      "text": "保持断电，阅读指导书与原理图；直流稳压电源 CH1 用作基极/栅极偏置源，CH2 用作集电极/漏极扫描电源（限流设 0.2 A）。",
+      "measurePoints": [],
+      "dataTable": "bjt_output"
+    },
+    {
+      "id": "bjt_out",
+      "text": "阶段 1（NPN 三极管 S9013 输出特性）：断电按图连接 CH1+→100kΩ左、100kΩ右→9013基极 B，CH2+ 经直流毫安表（20 mA 档）接 9013集电极 C，9013发射极 E 共接 CH1−/CH2−；直流电压表测 C–E，点击“检查接线”。上电固定 CH1 = 2.7 V（IB ≈ 20 µA）及 4.7 V（IB ≈ 40 µA），扫描 CH2 = 0.06、1、5、10 V 记录 U_CE 与 I_C。",
+      "measurePoints": ["u_ce", "i_c"],
+      "checkWiring": true,
+      "dataTable": "bjt_output"
+    },
+    {
+      "id": "jfet_out",
+      "text": "阶段 2（N 沟道 JFET 3DJ6 转移与输出特性）：断电改接 CH1 反向偏置栅极（CH1−→3DJ6栅极 G、CH1+ 共接 3DJ6源极 S 与 CH2−），CH2+ 经毫安表（20 mA 档）接 3DJ6漏极 D，电压表测 D–S，点击“检查接线”。上电设 CH2 = 10 V，依次设 CH1 = 0、1、2、3.2 V（即 U_GS = 0、−1、−2、−3.2 V），记录 I_D 验证平方律夹断特性。",
+      "referenceNets": [
+        ["ins-dc-power.CH1N", "ab1.JFET_G"],
+        ["ins-dc-power.CH1P", "ab1.JFET_S", "ins-dc-power.CH2N"],
+        ["ins-dc-power.CH2P", "ab1.JFET_D"]
+      ],
+      "measurePoints": ["u_ds_j", "i_d_j"],
+      "checkWiring": true,
+      "dataTable": "fet_transfer"
+    },
+    {
+      "id": "mos_out",
+      "text": "阶段 3（增强型 N-MOSFET 2N7000 转移特性）：断电改接 CH1+→MOS栅极 G、CH2+ 经毫安表（200 mA 档）接 MOS漏极 D、MOS源极 S 共接 CH1−/CH2−，点击“检查接线”。上电设 CH2 = 10 V，依次设 U_GS = 1.5、2.5、3.0 V，观察 U_GS < 2 V 时截止、超过开启电压后 I_D 快速增长。",
+      "referenceNets": [
+        ["ins-dc-power.CH1P", "ab1.MOS_G"],
+        ["ins-dc-power.CH2P", "ab1.MOS_D"],
+        ["ab1.MOS_S", "ins-dc-power.CH1N", "ins-dc-power.CH2N"]
+      ],
+      "measurePoints": ["u_ds_m", "i_d_m"],
+      "checkWiring": true,
+      "dataTable": "fet_transfer"
+    },
+    {
+      "id": "analyse",
+      "text": "断电后对比三极管电流控制与场效应管电压控制特性曲线，完成思考题。",
+      "measurePoints": [],
+      "recordTable": "bjt_output",
+      "dataTable": "bjt_output"
+    }
+  ],
+  "dataTables": [
+    {
+      "id": "bjt_output",
+      "title": "S9013 共射输出特性测定记录（IB ≈ 20 µA / 40 µA）",
+      "rows": 4,
+      "columns": [
+        { "id": "u_ce", "title": "集射电压 U_CE", "unit": "V", "measurePoint": "u_ce", "captureSteps": ["bjt_out"] },
+        { "id": "i_c", "title": "集电极电流 I_C", "unit": "A", "measurePoint": "i_c", "captureSteps": ["bjt_out"] }
+      ],
+      "sanity": [
+        { "column": "u_ce", "min": 0, "max": 15, "message": "请在 0.2 V ~ 10 V 范围内扫描 U_CE。" },
+        { "column": "i_c", "min": 0, "max": 0.02, "message": "本列单位为 A，IB = 20 µA 时放大区 I_C 约 0.0033 A（3.3 mA）。" }
+      ]
+    },
+    {
+      "id": "fet_transfer",
+      "title": "3DJ6（JFET）与 2N7000（MOSFET）转移特性记录（U_DS = 10 V）",
+      "rows": 4,
+      "columns": [
+        { "id": "u_gs", "title": "栅源电压 U_GS", "unit": "V" },
+        { "id": "i_d_j", "title": "JFET 漏电流 I_D", "unit": "A", "measurePoint": "i_d_j", "captureSteps": ["jfet_out"] },
+        { "id": "i_d_m", "title": "MOS 漏电流 I_D", "unit": "A", "measurePoint": "i_d_m", "captureSteps": ["mos_out"] }
+      ],
+      "sanity": [
+        { "column": "u_gs", "min": -5, "max": 5, "message": "3DJ6 采用负栅压 0 ~ −3.2 V，2N7000 采用正栅压 1.5 ~ 3.0 V。" }
+      ]
+    }
+  ],
+  "charts": [
+    {
+      "id": "bjt-output-curve",
+      "title": "S9013 共射极输出特性曲线（I_C – U_CE）",
+      "table": "bjt_output",
+      "x": "u_ce",
+      "y": ["i_c"],
+      "kind": "line"
+    }
+  ],
+  "questions": [
+    "在 S9013 共射输出特性曲线上，U_CE = 0.2 V 与 U_CE = 5 V 分别处于哪个工作区？放大区曲线略微上翘反映了什么物理效应？",
+    "为什么测定 N 沟道 JFET 3DJ6 的转移特性时需要将 CH1 反向接入栅源之间，而测定增强型 N-MOSFET 2N7000 时需正向接入？",
+    "对比 BJT 与 FET 的输入控制方式：为什么称 BJT 为电流控制器件而称 FET 为电压控制器件？"
+  ]
+}

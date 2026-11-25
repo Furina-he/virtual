@@ -1,0 +1,23 @@
+.subckt mod_app_charger CHG_VIN CHG_GND1 CHG_GND2 ICHG_A ICHG_B BAT_P BAT_N MOS_D MOS_G MOS_S LED_K params: i_set=1 v_bat_init=3.2
+* 场效应管恒流充电器实验板（原型选型说明 §3.1 #15，服务 MD-06）
+Rcu_gnd CHG_GND1 CHG_GND2 10m
+Rcu_vin CHG_VIN ICHG_A 10m
+Rcu_bp ICHG_B BAT_P 10m
+* 可充电 3.7 V 锂离子电池模型（需学员外接 BAT_N -> MOS_D 闭合充电回路）
+X_bat BAT_P BAT_N LI_CELL_3V7 v_init={v_bat_init} c_eq=0.05 r_int=0.15
+* ---- NMOS + NPN 闭环恒流源（I_chg ≈ V_BE(Q1) / RSENSE）----
+R_gate CHG_VIN MOS_G 10k
+M_pass MOS_D MOS_G MOS_S MOS_S NMOS_2N7000
+RSENSE MOS_S CHG_GND1 {i_set < 0.5 ? 13.6 : (i_set < 1.5 ? 6.8 : 3.4)}
+Q_lim MOS_G MOS_S CHG_GND1 S9013
+R_iso_d MOS_D CHG_GND1 100Meg
+* ---- 充电状态指示 LED（当充电电流使 MOS_S 抬升至 ~0.68 V 时 Q_led 导通点亮）----
+R_led CHG_VIN n_leda 680
+D_led n_leda LED_K DLED_RED
+Q_led LED_K n_lb CHG_GND1 S9013
+R_lb MOS_S n_lb 2.2k
+.ends mod_app_charger
+.include "fet.lib"
+.include "bjt.lib"
+.include "diodes.lib"
+.include "sensors.lib"

@@ -158,7 +158,9 @@ test('T1.9B B1/B2 空间减法、阶段预设、动态有效构图、免切镜�
   await expect(editor()).toHaveAttribute('data-auto-wire-color', 'on')
   await focusDevice(page, 'ins-dc-power')
   await expect(page.locator('[data-persistent-jack-label]').first()).toBeVisible()
-  expect(await page.locator('[data-persistent-jack-label]').count()).toBeGreaterThanOrEqual(4)
+  await expect
+    .poll(() => page.locator('[data-persistent-jack-label]').count(), { timeout: 10_000 })
+    .toBeGreaterThanOrEqual(4)
   const labelToggle = viewport().getByRole('button', { name: '插孔标注', exact: true })
   await labelToggle.click()
   await expect(labelToggle).toHaveAttribute('aria-pressed', 'false')

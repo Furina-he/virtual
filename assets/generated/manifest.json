@@ -5488,6 +5488,1230 @@
           "height": 2048
         }
       ]
+    },
+    {
+      "id": "mod-analog-base",
+      "model": "content/modules/mod-analog-base/module.glb",
+      "bytes": 661352,
+      "sha256": "2bf84ab440b4892af4475d81257349476f9e35317f5ee307e1f2ab857e29d7e6",
+      "triangles": 4754,
+      "drawCalls": 3,
+      "bounds": {
+        "min": [
+          -0.14499999582767487,
+          5.9604643443123e-10,
+          -0.030500000342726707
+        ],
+        "max": [
+          0.14499999582767487,
+          0.4699999988079071,
+          0.031550001353025436
+        ]
+      },
+      "anchors": [
+        {
+          "name": "JACK_AC_P1",
+          "position": [
+            -0.103,
+            0.392,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_AC_P2",
+          "position": [
+            -0.103,
+            0.348,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_AC_S1",
+          "position": [
+            0.101,
+            0.402,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_AC_CT",
+          "position": [
+            0.101,
+            0.37,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_AC_S2",
+          "position": [
+            0.101,
+            0.338,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_D4007_A",
+          "position": [
+            -0.109,
+            0.274,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_D4007_K",
+          "position": [
+            -0.065,
+            0.274,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_D4148_A",
+          "position": [
+            -0.021,
+            0.274,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_D4148_K",
+          "position": [
+            0.023,
+            0.274,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_DZ_A",
+          "position": [
+            0.067,
+            0.274,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_DZ_K",
+          "position": [
+            0.111,
+            0.274,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_LED_A",
+          "position": [
+            -0.109,
+            0.208,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_LED_K",
+          "position": [
+            -0.065,
+            0.208,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_CLIP_A",
+          "position": [
+            -0.021,
+            0.208,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_CLIP_B",
+          "position": [
+            0.023,
+            0.208,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_R470_1",
+          "position": [
+            0.067,
+            0.208,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_R470_2",
+          "position": [
+            0.111,
+            0.208,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_BJT_B",
+          "position": [
+            -0.109,
+            0.122,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_BJT_C",
+          "position": [
+            -0.065,
+            0.122,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_BJT_E",
+          "position": [
+            -0.021,
+            0.122,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_JFET_G",
+          "position": [
+            0.023,
+            0.122,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_JFET_D",
+          "position": [
+            0.067,
+            0.122,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_JFET_S",
+          "position": [
+            0.111,
+            0.122,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_MOS_G",
+          "position": [
+            -0.103,
+            0.054,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_MOS_D",
+          "position": [
+            -0.053,
+            0.054,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_MOS_S",
+          "position": [
+            -0.003,
+            0.054,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_RB_1",
+          "position": [
+            0.057,
+            0.054,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_RB_2",
+          "position": [
+            0.107,
+            0.054,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "textures": [
+        {
+          "mimeType": "image/webp",
+          "width": 1264,
+          "height": 2048
+        }
+      ]
+    },
+    {
+      "id": "mod-analog-fb",
+      "model": "content/modules/mod-analog-fb/module.glb",
+      "bytes": 395292,
+      "sha256": "f706642977c8799c953495839276fe35d00a4bb40fb85fc511362083b60e7ec4",
+      "triangles": 2726,
+      "drawCalls": 5,
+      "bounds": {
+        "min": [
+          -0.13199999928474426,
+          -1.788139358804841e-10,
+          -0.023000000044703484
+        ],
+        "max": [
+          0.13199999928474426,
+          0.18400000035762787,
+          0.03379999959468842
+        ]
+      },
+      "anchors": [
+        {
+          "name": "JACK_FB_VCC",
+          "position": [
+            0.112,
+            0.164,
+            0.024
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_FB_GND1",
+          "position": [
+            0.112,
+            0.018,
+            0.024
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_FB_GND2",
+          "position": [
+            -0.112,
+            0.018,
+            0.024
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_FB_US",
+          "position": [
+            -0.112,
+            0.09,
+            0.024
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_FB_UI",
+          "position": [
+            -0.076,
+            0.09,
+            0.024
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_FB_C1",
+          "position": [
+            -0.024,
+            0.112,
+            0.024
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_FB_E1",
+          "position": [
+            -0.024,
+            0.06,
+            0.024
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_FB_C2",
+          "position": [
+            0.034,
+            0.112,
+            0.024
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_FB_UO",
+          "position": [
+            0.078,
+            0.112,
+            0.024
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_FB_RL",
+          "position": [
+            0.078,
+            0.074,
+            0.024
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_FB_VF",
+          "position": [
+            0.026,
+            0.04,
+            0.024
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "KNOB_SW_FB",
+          "position": [
+            0.006,
+            0.15,
+            0.021500000000000002
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "SW_SW_RL",
+          "position": [
+            0.106,
+            0.074,
+            0.021500000000000002
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "textures": [
+        {
+          "mimeType": "image/webp",
+          "width": 2048,
+          "height": 1428
+        }
+      ]
+    },
+    {
+      "id": "mod-app-hearing-aid",
+      "model": "content/modules/mod-app-hearing-aid/module.glb",
+      "bytes": 400528,
+      "sha256": "9e8afe97d2f5be651a8291a698a6b16671a2270064375fe981236ef3ec4adee9",
+      "triangles": 2754,
+      "drawCalls": 5,
+      "bounds": {
+        "min": [
+          -0.13199999928474426,
+          -1.788139358804841e-10,
+          -0.023000000044703484
+        ],
+        "max": [
+          0.13199999928474426,
+          0.18400000035762787,
+          0.029075000170618297
+        ]
+      },
+      "anchors": [
+        {
+          "name": "JACK_HA_VCC",
+          "position": [
+            0.112,
+            0.164,
+            0.024
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_HA_GND1",
+          "position": [
+            0.112,
+            0.018,
+            0.024
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_HA_GND2",
+          "position": [
+            -0.112,
+            0.018,
+            0.024
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_HA_MIC",
+          "position": [
+            -0.108,
+            0.104,
+            0.024
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_HA_EXT",
+          "position": [
+            -0.108,
+            0.06,
+            0.024
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_HA_Q1C",
+          "position": [
+            -0.038,
+            0.088,
+            0.024
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_HA_VOL",
+          "position": [
+            0.01,
+            0.088,
+            0.024
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_HA_Q2C",
+          "position": [
+            0.056,
+            0.088,
+            0.024
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_HA_SPK_P",
+          "position": [
+            0.108,
+            0.104,
+            0.024
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_HA_SPK_N",
+          "position": [
+            0.108,
+            0.06,
+            0.024
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "KNOB_MIC_SPL",
+          "position": [
+            -0.062,
+            0.15,
+            0.021500000000000002
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "KNOB_VOL_POT",
+          "position": [
+            0.02,
+            0.15,
+            0.021500000000000002
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "textures": [
+        {
+          "mimeType": "image/webp",
+          "width": 2048,
+          "height": 1428
+        }
+      ]
+    },
+    {
+      "id": "mod-app-charger",
+      "model": "content/modules/mod-app-charger/module.glb",
+      "bytes": 421980,
+      "sha256": "85dbe698caffc960e02333a2b01cae47b9fd135f38850dbb49cfe0682aa66615",
+      "triangles": 2910,
+      "drawCalls": 5,
+      "bounds": {
+        "min": [
+          -0.13199999928474426,
+          -1.788139358804841e-10,
+          -0.023000000044703484
+        ],
+        "max": [
+          0.13199999928474426,
+          0.18400000035762787,
+          0.029075000170618297
+        ]
+      },
+      "anchors": [
+        {
+          "name": "JACK_CHG_VIN",
+          "position": [
+            -0.11,
+            0.162,
+            0.024
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_CHG_GND1",
+          "position": [
+            -0.11,
+            0.02,
+            0.024
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_CHG_GND2",
+          "position": [
+            0.11,
+            0.02,
+            0.024
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_ICHG_A",
+          "position": [
+            -0.108,
+            0.102,
+            0.024
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_ICHG_B",
+          "position": [
+            -0.08,
+            0.102,
+            0.024
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_BAT_P",
+          "position": [
+            -0.036,
+            0.102,
+            0.024
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_BAT_N",
+          "position": [
+            -0.036,
+            0.054,
+            0.024
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_MOS_D",
+          "position": [
+            0.02,
+            0.098,
+            0.024
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_MOS_G",
+          "position": [
+            0.064,
+            0.098,
+            0.024
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_MOS_S",
+          "position": [
+            0.02,
+            0.052,
+            0.024
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_LED_K",
+          "position": [
+            0.106,
+            0.098,
+            0.024
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "KNOB_BAT_INIT",
+          "position": [
+            -0.05,
+            0.15,
+            0.021500000000000002
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "KNOB_I_SET",
+          "position": [
+            0.038,
+            0.15,
+            0.021500000000000002
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "textures": [
+        {
+          "mimeType": "image/webp",
+          "width": 2048,
+          "height": 1428
+        }
+      ]
+    },
+    {
+      "id": "mod-power-reg",
+      "model": "content/modules/mod-power-reg/module.glb",
+      "bytes": 540640,
+      "sha256": "f337ec2673fd41f39edc146cc1cef977cd3a363e6448decdda799d7d88bd16cf",
+      "triangles": 3782,
+      "drawCalls": 6,
+      "bounds": {
+        "min": [
+          -0.13199999928474426,
+          -1.788139358804841e-10,
+          -0.023000000044703484
+        ],
+        "max": [
+          0.13199999928474426,
+          0.18400000035762787,
+          0.028225000217556955
+        ]
+      },
+      "anchors": [
+        {
+          "name": "JACK_AC_1",
+          "position": [
+            -0.11,
+            0.112,
+            0.024
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_AC_2",
+          "position": [
+            -0.11,
+            0.07,
+            0.024
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_REG_GND",
+          "position": [
+            -0.11,
+            0.02,
+            0.024
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_REG_GND2",
+          "position": [
+            0.11,
+            0.02,
+            0.024
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_HW_OUT",
+          "position": [
+            -0.074,
+            0.112,
+            0.024
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_RECT_P",
+          "position": [
+            -0.036,
+            0.112,
+            0.024
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_RECT_N",
+          "position": [
+            -0.036,
+            0.07,
+            0.024
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_REG78_IN",
+          "position": [
+            0.012,
+            0.112,
+            0.024
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_REG78_OUT",
+          "position": [
+            0.056,
+            0.112,
+            0.024
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_REG79_IN",
+          "position": [
+            0.012,
+            0.07,
+            0.024
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_REG79_OUT",
+          "position": [
+            0.056,
+            0.07,
+            0.024
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_REG317_IN",
+          "position": [
+            0.012,
+            0.032,
+            0.024
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_REG317_OUT",
+          "position": [
+            0.056,
+            0.032,
+            0.024
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_LOAD_IN",
+          "position": [
+            0.104,
+            0.07,
+            0.024
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "KNOB_SW_CFILT",
+          "position": [
+            -0.046,
+            0.152,
+            0.021500000000000002
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "KNOB_R317_ADJ",
+          "position": [
+            0.032,
+            0.152,
+            0.021500000000000002
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "KNOB_SW_RLOAD",
+          "position": [
+            0.104,
+            0.152,
+            0.021500000000000002
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "textures": [
+        {
+          "mimeType": "image/webp",
+          "width": 2048,
+          "height": 1428
+        }
+      ]
     }
   ],
   "preview": {

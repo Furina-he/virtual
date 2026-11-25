@@ -20,3 +20,19 @@
 *   许可证：随本项目发布，可自由再分发（项目自有内容）。
 *
 .model D2CW51 D(IS=1.5e-8 N=1.65 RS=12 BV=3.24 IBV=5e-3 NBV=2.0 CJO=50e-12 M=0.33 VJ=0.6 TT=1e-7 EG=1.11 XTI=3)
+
+* 1N4148（高速硅开关二极管，VRRM = 100 V，IF = 150 mA，trr ≤ 4 ns）
+*   来源：本项目按 JEDEC 1N4148 数据手册典型值自行拟合，未复制任何厂商 SPICE 模型文件。
+*   拟合目标（25 °C）：
+*     IF = 1 mA -> VF ≈ 0.59 V；IF = 10 mA -> VF ≈ 0.71 V；IF = 100 mA -> VF ≈ 0.89 V；CJ0 ≈ 4 pF，trr ≈ 4 ns
+*   许可证：随本项目发布，可自由再分发（项目自有内容）。
+*
+.model D1N4148 D(IS=4.35e-9 N=1.85 RS=0.8 BV=100 IBV=5e-6 CJO=4e-12 M=0.33 VJ=0.6 TT=4e-9 EG=1.11 XTI=3)
+
+* LED_RED（红色 5 mm 发光二极管，GaAsP/GaP，IF_typ = 10~20 mA，VF ≈ 1.85~2.0 V）
+*   来源：本项目按常见红色 LED 正向特性自行拟合，未复制任何厂商 SPICE 模型文件。
+*   拟合目标（25 °C）：
+*     IF = 1 mA（万用表二极管档）-> VF ≈ 1.75 V；IF = 10 mA -> VF ≈ 1.91 V；IF = 20 mA -> VF ≈ 2.00 V；VR = 5 V
+*   许可证：随本项目发布，可自由再分发（项目自有内容）。
+*
+.model DLED_RED D(IS=2.2e-18 N=2.0 RS=5 BV=5 IBV=10e-6 CJO=20e-12 M=0.33 VJ=1.6 TT=1e-8 EG=1.9 XTI=3)

@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 740 340" width="740" height="340" font-family="sans-serif" font-size="13">
+  <rect width="740" height="340" fill="#f8fafc" stroke="#cbd5e1"/>
+  <text x="20" y="28" font-size="16" font-weight="bold" fill="#0f172a">MD-09 中心抽头正负对称整流与 LM7812 / LM7912 稳压原理图</text>
+  <rect x="25" y="70" width="135" height="190" rx="6" fill="#fefce8" stroke="#ca8a04" stroke-width="2"/>
+  <text x="38" y="102" font-weight="bold" fill="#854d0e">双 15V 变压器</text>
+  <text x="44" y="124" font-size="11" fill="#713f12">中心抽头接地</text>
+  <circle cx="25" cy="120" r="5" fill="#dc2626" data-jack="ab1.AC_P1"/>
+  <circle cx="25" cy="210" r="5" fill="#0f172a" data-jack="ab1.AC_P2"/>
+  <circle cx="160" cy="105" r="5" fill="#d97706" data-jack="ab1.AC_S1"/>
+  <circle cx="160" cy="165" r="5" fill="#0f172a" data-jack="ab1.AC_CT"/>
+  <circle cx="160" cy="225" r="5" fill="#d97706" data-jack="ab1.AC_S2"/>
+
+  <line x1="160" y1="105" x2="220" y2="105" stroke="#d97706" stroke-width="2"/>
+  <line x1="160" y1="225" x2="220" y2="225" stroke="#d97706" stroke-width="2"/>
+  <line x1="160" y1="165" x2="680" y2="165" stroke="#0f172a" stroke-width="2.5"/>
+  <circle cx="290" cy="165" r="5" fill="#0f172a" data-jack="reg1.REG_GND"/>
+  <circle cx="620" cy="165" r="5" fill="#0f172a" data-jack="reg1.REG_GND2"/>
+  <text x="688" y="169" fill="#0f172a">GND</text>
+
+  <rect x="220" y="75" width="135" height="180" rx="6" fill="#eff6ff" stroke="#2563eb" stroke-width="2"/>
+  <text x="234" y="114" font-weight="bold" fill="#1d4ed8">双电源桥堆</text>
+  <text x="236" y="138" font-size="11" fill="#475569">+20V / −20V</text>
+  <text x="240" y="210" font-size="11" fill="#475569">对称 470µF</text>
+  <circle cx="220" cy="105" r="5" fill="#d97706" data-jack="reg1.AC_1"/>
+  <circle cx="220" cy="225" r="5" fill="#d97706" data-jack="reg1.AC_2"/>
+  <circle cx="355" cy="105" r="5" fill="#dc2626" data-jack="reg1.RECT_P"/>
+  <circle cx="355" cy="225" r="5" fill="#1d4ed8" data-jack="reg1.RECT_N"/>
+
+  <line x1="355" y1="105" x2="430" y2="105" stroke="#dc2626" stroke-width="2"/>
+  <rect x="430" y="75" width="125" height="62" rx="6" fill="#fef2f2" stroke="#dc2626" stroke-width="2"/>
+  <text x="462" y="106" font-weight="bold" fill="#b91c1c">LM7812</text>
+  <text x="458" y="126" font-size="11" fill="#991b1b">+12.00 V</text>
+  <circle cx="430" cy="105" r="5" fill="#dc2626" data-jack="reg1.REG78_IN"/>
+  <circle cx="555" cy="105" r="5" fill="#dc2626" data-jack="reg1.REG78_OUT"/>
+  <line x1="555" y1="105" x2="650" y2="105" stroke="#dc2626" stroke-width="2"/>
+  <circle cx="650" cy="105" r="5" fill="#d97706" data-jack="reg1.LOAD_IN"/>
+  <line x1="650" y1="105" x2="650" y2="165" stroke="#ea580c" stroke-width="2"/>
+  <text x="658" y="138" fill="#9a3412">RL</text>
+
+  <line x1="355" y1="225" x2="430" y2="225" stroke="#1d4ed8" stroke-width="2"/>
+  <rect x="430" y="195" width="125" height="62" rx="6" fill="#eff6ff" stroke="#1d4ed8" stroke-width="2"/>
+  <text x="462" y="226" font-weight="bold" fill="#1d4ed8">LM7912</text>
+  <text x="458" y="246" font-size="11" fill="#1e40af">−12.00 V</text>
+  <circle cx="430" cy="225" r="5" fill="#1d4ed8" data-jack="reg1.REG79_IN"/>
+  <circle cx="555" cy="225" r="5" fill="#1d4ed8" data-jack="reg1.REG79_OUT"/>
+  <line x1="555" y1="225" x2="650" y2="225" stroke="#1d4ed8" stroke-width="2"/>
+  <text x="656" y="229" fill="#1d4ed8">−12V</text>
+</svg>

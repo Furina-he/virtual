@@ -1,0 +1,54 @@
+* regulators.lib -- 三端集成稳压器行为宏模型库（LM7805 / LM7812 / LM7905 / LM7912 / LM317）
+*   来源：本项目按标准 78xx/79xx/LM317 数据手册典型电气指标自行构建平滑行为宏模型，
+*   未复制任何第三方厂商 SPICE 模型文件。
+*   统一电气特征（SIM-02 / SIM-15）：
+*     - 压差饱和特性：|Vin - Vout| >= 2.0 V 时稳压，低于压差平滑跌落；未供电时输出为 0 V
+*     - 线性调整率 / 纹波抑制（PSRR ≈ 60 dB，0.1% 输入纹波穿透）与真实负载调整率（Ro ≈ 0.07 Ω）
+*     - 电流守恒（负载电流由 IN 经调整管流向 OUT，外加约 5 mA 静态电流至 GND）与约 1.2 A 平滑限流
+*   许可证：随本项目发布，可自由再分发（项目自有内容）。
+*
+
+* ---- LM7805（+5.00 V 固定正三端稳压器，端口：IN COM OUT）----
+.subckt LM7805 IN COM OUT
+Rq IN COM 1.8k
+Rbleed OUT COM 833
+B_ref n_ref COM V = 0.5 * (5.00 + 0.001 * (v(IN,COM) - 8.0) + 0.5 * ((v(IN,COM) - 2.0) + sqrt((v(IN,COM) - 2.0) * (v(IN,COM) - 2.0) + 0.04)) - sqrt((5.00 + 0.001 * (v(IN,COM) - 8.0) - 0.5 * ((v(IN,COM) - 2.0) + sqrt((v(IN,COM) - 2.0) * (v(IN,COM) - 2.0) + 0.04))) * (5.00 + 0.001 * (v(IN,COM) - 8.0) - 0.5 * ((v(IN,COM) - 2.0) + sqrt((v(IN,COM) - 2.0) * (v(IN,COM) - 2.0) + 0.04))) + 0.01))
+B_pass IN OUT I = 1.2 * tanh(0.5 * (15 * (v(n_ref,COM) - v(OUT,COM)) + sqrt(225 * (v(n_ref,COM) - v(OUT,COM)) * (v(n_ref,COM) - v(OUT,COM)) + 1e-4))) * 0.5 * (1 + tanh((v(IN,OUT) - 0.1) / 0.1))
+C_out OUT COM 0.1u
+.ends LM7805
+
+* ---- LM7812（+12.00 V 固定正三端稳压器，端口：IN COM OUT）----
+.subckt LM7812 IN COM OUT
+Rq IN COM 3.0k
+Rbleed OUT COM 2.0k
+B_ref n_ref COM V = 0.5 * (12.00 + 0.001 * (v(IN,COM) - 15.0) + 0.5 * ((v(IN,COM) - 2.0) + sqrt((v(IN,COM) - 2.0) * (v(IN,COM) - 2.0) + 0.04)) - sqrt((12.00 + 0.001 * (v(IN,COM) - 15.0) - 0.5 * ((v(IN,COM) - 2.0) + sqrt((v(IN,COM) - 2.0) * (v(IN,COM) - 2.0) + 0.04))) * (12.00 + 0.001 * (v(IN,COM) - 15.0) - 0.5 * ((v(IN,COM) - 2.0) + sqrt((v(IN,COM) - 2.0) * (v(IN,COM) - 2.0) + 0.04))) + 0.01))
+B_pass IN OUT I = 1.2 * tanh(0.5 * (15 * (v(n_ref,COM) - v(OUT,COM)) + sqrt(225 * (v(n_ref,COM) - v(OUT,COM)) * (v(n_ref,COM) - v(OUT,COM)) + 1e-4))) * 0.5 * (1 + tanh((v(IN,OUT) - 0.1) / 0.1))
+C_out OUT COM 0.1u
+.ends LM7812
+
+* ---- LM7905（-5.00 V 固定负三端稳压器，端口：IN COM OUT）----
+.subckt LM7905 IN COM OUT
+Rq COM IN 1.8k
+Rbleed COM OUT 833
+B_ref COM n_ref V = 0.5 * (5.00 + 0.001 * (v(COM,IN) - 8.0) + 0.5 * ((v(COM,IN) - 2.0) + sqrt((v(COM,IN) - 2.0) * (v(COM,IN) - 2.0) + 0.04)) - sqrt((5.00 + 0.001 * (v(COM,IN) - 8.0) - 0.5 * ((v(COM,IN) - 2.0) + sqrt((v(COM,IN) - 2.0) * (v(COM,IN) - 2.0) + 0.04))) * (5.00 + 0.001 * (v(COM,IN) - 8.0) - 0.5 * ((v(COM,IN) - 2.0) + sqrt((v(COM,IN) - 2.0) * (v(COM,IN) - 2.0) + 0.04))) + 0.01))
+B_pass OUT IN I = 1.2 * tanh(0.5 * (15 * (v(COM,n_ref) - v(COM,OUT)) + sqrt(225 * (v(COM,n_ref) - v(COM,OUT)) * (v(COM,n_ref) - v(COM,OUT)) + 1e-4))) * 0.5 * (1 + tanh((v(OUT,IN) - 0.1) / 0.1))
+C_out COM OUT 0.1u
+.ends LM7905
+
+* ---- LM7912（-12.00 V 固定负三端稳压器，端口：IN COM OUT）----
+.subckt LM7912 IN COM OUT
+Rq COM IN 3.0k
+Rbleed COM OUT 2.0k
+B_ref COM n_ref V = 0.5 * (12.00 + 0.001 * (v(COM,IN) - 15.0) + 0.5 * ((v(COM,IN) - 2.0) + sqrt((v(COM,IN) - 2.0) * (v(COM,IN) - 2.0) + 0.04)) - sqrt((12.00 + 0.001 * (v(COM,IN) - 15.0) - 0.5 * ((v(COM,IN) - 2.0) + sqrt((v(COM,IN) - 2.0) * (v(COM,IN) - 2.0) + 0.04))) * (12.00 + 0.001 * (v(COM,IN) - 15.0) - 0.5 * ((v(COM,IN) - 2.0) + sqrt((v(COM,IN) - 2.0) * (v(COM,IN) - 2.0) + 0.04))) + 0.01))
+B_pass OUT IN I = 1.2 * tanh(0.5 * (15 * (v(COM,n_ref) - v(COM,OUT)) + sqrt(225 * (v(COM,n_ref) - v(COM,OUT)) * (v(COM,n_ref) - v(COM,OUT)) + 1e-4))) * 0.5 * (1 + tanh((v(OUT,IN) - 0.1) / 0.1))
+C_out COM OUT 0.1u
+.ends LM7912
+
+* ---- LM317（可调正三端稳压器，Vref = 1.250 V，Iadj ≈ 50 uA，端口：IN ADJ OUT）----
+.subckt LM317 IN ADJ OUT
+B_adj IN ADJ I = 50e-6 * 0.5 * (1 + tanh((v(IN,ADJ) - 1.5) / 0.2))
+B_ref n_ref ADJ V = 0.5 * (1.250 + 0.0005 * (v(IN,ADJ) - 5.0) + 0.5 * ((v(IN,ADJ) - 2.0) + sqrt((v(IN,ADJ) - 2.0) * (v(IN,ADJ) - 2.0) + 0.04)) - sqrt((1.250 + 0.0005 * (v(IN,ADJ) - 5.0) - 0.5 * ((v(IN,ADJ) - 2.0) + sqrt((v(IN,ADJ) - 2.0) * (v(IN,ADJ) - 2.0) + 0.04))) * (1.250 + 0.0005 * (v(IN,ADJ) - 5.0) - 0.5 * ((v(IN,ADJ) - 2.0) + sqrt((v(IN,ADJ) - 2.0) * (v(IN,ADJ) - 2.0) + 0.04))) + 0.004))
+B_pass IN OUT I = 1.2 * tanh(0.5 * (20 * (v(n_ref,ADJ) - v(OUT,ADJ)) + sqrt(400 * (v(n_ref,ADJ) - v(OUT,ADJ)) * (v(n_ref,ADJ) - v(OUT,ADJ)) + 1e-4))) * 0.5 * (1 + tanh((v(IN,OUT) - 0.1) / 0.1))
+R_cout OUT n_cout 10
+C_out n_cout ADJ 1n
+.ends LM317

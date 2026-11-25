@@ -132,19 +132,13 @@ async function selectOption(container: ReturnType<typeof panel>, label: string, 
   await page.mouse.move(0, 0)
   const selectedValue = trigger.locator('[data-slot="select-value"]')
   await expect(selectedValue).toBeVisible()
-  const selectedName = ((await selectedValue.textContent()) ?? '').trim()
-  await trigger.press('Enter')
-  // Wait for Radix initial focus before moving to a different option.
-  await expect(page.getByRole('option', { name: selectedName, exact: true })).toBeFocused()
+  if (((await selectedValue.textContent()) ?? '').trim() === optionName) return
+  await trigger.click()
   const option = page.getByRole('option', { name: optionName, exact: true })
   await expect(option).toBeVisible()
-  await option.focus()
-  await expect(option).toBeFocused()
-  await page.keyboard.press('Enter')
+  await option.click()
   await expect(trigger).toHaveAttribute('aria-expanded', 'false')
   await expect(trigger).toContainText(optionName)
-  // Closing autofocus must finish before the next selector receives a key.
-  await expect(trigger).toBeFocused()
 }
 
 async function showTable(table: TableId) {

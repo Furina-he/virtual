@@ -1,0 +1,38 @@
+.subckt mod_analog_fb FB_VCC FB_GND1 FB_GND2 FB_US FB_UI FB_C1 FB_E1 FB_C2 FB_UO FB_RL FB_VF params: sw_fb=0 sw_rl=1
+* 两级阻容耦合共射放大与电压串联负反馈实验板（原型选型说明 §3.1 #10，服务 MD-04）
+Rcu_gnd FB_GND1 FB_GND2 10m
+* 输入限流/测 Ri 电阻 R_in = 5.1 kΩ
+R_in FB_US FB_UI 5.1k
+C_in FB_UI n_b1 10u
+* ---- 第一级共射放大（S9013，Re1a=100Ω 为串联反馈取样电阻）----
+R_b11 FB_VCC n_b1 47k
+R_b12 n_b1 FB_GND1 12k
+Q_1 FB_C1 n_b1 FB_E1 S9013
+R_c1 FB_VCC FB_C1 3.9k
+R_e1a FB_E1 n_e1m 100
+R_e1b n_e1m FB_GND1 1k
+R_ce1_esr n_e1m n_ce1 0.5
+C_e1 n_ce1 FB_GND1 47u
+* 级间阻容耦合与高频主极点（便于演示负反馈展宽通频带）
+C_c12 FB_C1 n_b2 10u
+C_bw FB_C1 FB_GND1 1.5n
+* ---- 第二级共射放大（S9013，与一级级联后总输出 Uo 与输入 Ui 同相）----
+R_b21 FB_VCC n_b2 47k
+R_b22 n_b2 FB_GND1 12k
+Q_2 FB_C2 n_b2 n_e2 S9013
+R_c2 FB_VCC FB_C2 3.3k
+R_e2a n_e2 n_e2m 150
+R_e2b n_e2m FB_GND1 1k
+R_ce2_esr n_e2m n_ce2 0.5
+C_e2 n_ce2 FB_GND1 47u
+* 输出耦合与可切换负载 RL = 3.3 kΩ
+C_out FB_C2 FB_UO 10u
+R_uo_bleed FB_UO FB_GND1 1Meg
+RSW_RL FB_UO FB_RL {sw_rl > 0.5 ? 1 : 100Meg}
+R_load FB_RL FB_GND1 3.3k
+* ---- 电压串联负反馈网络（Uo -> Cf -> RRFB -> E1）----
+C_fb FB_UO FB_VF 10u
+R_vf_bleed FB_VF FB_GND1 1Meg
+RRFB FB_VF FB_E1 {sw_fb < 0.5 ? 100Meg : (sw_fb < 1.5 ? 2200 : 6800)}
+.ends mod_analog_fb
+.include "bjt.lib"

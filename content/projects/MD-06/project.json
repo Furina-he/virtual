@@ -1,0 +1,88 @@
+{
+  "id": "MD-06",
+  "group": "综合性应用实训",
+  "title": "恒流充电器的调试（场效应管的应用）（电子产品线路）",
+  "type": "integrated",
+  "modules": [{ "instanceId": "chg1", "moduleId": "mod-app-charger", "slot": "SLOT_BOX_L1" }],
+  "allowedInstruments": ["ins-multimeter"],
+  "reference": {
+    "nets": [
+      ["ins-dc-power.CH1P", "chg1.CHG_VIN"],
+      ["chg1.BAT_N", "chg1.MOS_D"],
+      ["ins-dc-power.CH1N", "chg1.CHG_GND1", "chg1.CHG_GND2"]
+    ],
+    "measurePoints": [
+      { "id": "i_chg", "kind": "current", "mode": "dca", "branch": ["chg1.ICHG_A", "chg1.ICHG_B"] },
+      { "id": "u_bat", "kind": "voltage", "mode": "dcv", "between": ["chg1.BAT_P", "chg1.BAT_N"] },
+      { "id": "u_s", "kind": "voltage", "mode": "dcv", "between": ["chg1.MOS_S", "chg1.CHG_GND1"] }
+    ]
+  },
+  "steps": [
+    {
+      "id": "prepare",
+      "text": "保持断电，阅读指导书与原理图；将直流稳压电源 CH1 设为 12 V、限流 0.5 A，实验板“恒流设定档位”置 100 mA、“电池初始电压”置 3.2 V。",
+      "measurePoints": [],
+      "dataTable": "cc_charger"
+    },
+    {
+      "id": "wire",
+      "text": "断电按图闭合充电主回路：CH1+→+12V 输入、锂电池负极 B−→MOS 漏极 D、CH1−→GND 1；直流毫安表（200 mA 档或 2000 mA 档）串入充电电流插座 I+/I−，直流电压表（20 V 档）跨接锂电池两端 B+/B−，点击“检查接线”。",
+      "measurePoints": ["i_chg", "u_bat"],
+      "checkWiring": true,
+      "dataTable": "cc_charger"
+    },
+    {
+      "id": "cc_sweep",
+      "text": "恒流档位标定：上电依次切换“恒流设定档位”为 50 mA（Rs=13.6 Ω）、100 mA（Rs=6.8 Ω）、200 mA（Rs=3.4 Ω），每档分别记入设定值、实测充电电流 I_chg 与取样电阻端电压 U_S（约 0.68 V）。",
+      "measurePoints": ["i_chg", "u_bat"],
+      "expect": { "measurePoint": "i_chg", "min": 0.042, "max": 0.22 },
+      "dataTable": "cc_charger"
+    },
+    {
+      "id": "bat_charge_observe",
+      "text": "恒流充电过程与电池压升验证：保持 100 mA 档，观察充电过程中电池电压 U_bat 随时间单调攀升（由 3.2 V 持续上升趋近 4.2 V）而充电电流 I_chg 几乎保持恒定；再切换不同初始电压（3.2 / 3.7 / 4.1 V）核实全过程恒流稳定度。",
+      "measurePoints": ["i_chg", "u_bat"],
+      "expect": { "measurePoint": "u_bat", "min": 3.1, "max": 4.35 },
+      "dataTable": "cc_charger"
+    },
+    {
+      "id": "analyse",
+      "text": "断电后检查恒流设定–实测曲线，分析 MOSFET + BJT 负反馈恒流控制环路与功耗散热问题，完成思考题。",
+      "measurePoints": [],
+      "recordTable": "cc_charger",
+      "dataTable": "cc_charger"
+    }
+  ],
+  "dataTables": [
+    {
+      "id": "cc_charger",
+      "title": "MOSFET 恒流充电器三档恒流设定与实测记录（U_in = 12 V）",
+      "rows": 3,
+      "columns": [
+        { "id": "i_target_ma", "title": "设定恒流", "unit": "mA" },
+        { "id": "i_chg", "title": "实测电流 I_chg", "unit": "A", "measurePoint": "i_chg", "captureSteps": ["cc_sweep", "bat_charge_observe"] },
+        { "id": "u_bat", "title": "电池电压 U_bat", "unit": "V", "measurePoint": "u_bat", "captureSteps": ["cc_sweep", "bat_charge_observe"] }
+      ],
+      "sanity": [
+        { "column": "i_target_ma", "min": 40, "max": 220, "message": "请依次记录 50、100、200 mA 三档恒流值。" },
+        { "column": "i_chg", "min": 0.04, "max": 0.23, "message": "本列单位为 A，100 mA 档应记录为约 0.100 A。" },
+        { "column": "u_bat", "min": 3.0, "max": 4.35, "message": "单节 3.7 V 锂电充电电压应位于 3.2 ~ 4.25 V。" }
+      ]
+    }
+  ],
+  "charts": [
+    {
+      "id": "charger-cc-curve",
+      "title": "恒流充电器设定电流与实测充电电流对应曲线",
+      "table": "cc_charger",
+      "x": "i_target_ma",
+      "y": ["i_chg"],
+      "kind": "line"
+    }
+  ],
+  "questions": [
+    "在 2N7000（MOSFET）+ S9013（NPN）构成的闭环恒流电路中，当电池电压由 3.2 V 升至 4.1 V 时，负反馈环路如何自动调节栅源电压 V_GS 使充电电流保持恒定？",
+    "恒流充电电流近似由 I_chg ≈ V_BE(Q1) / R_S 决定，为什么将取样电阻 R_S 减半（如 6.8 Ω → 3.4 Ω）能将充电电流翻倍？",
+    "在输入 12 V、恒流 200 mA 对 3.7 V 电池充电时，调整管 MOSFET 上的静态功耗约是多少？实际电子产品为何需要考虑散热或恒压截流（CC/CV）切换？"
+  ]
+}

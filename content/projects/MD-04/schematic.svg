@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 740 340" width="740" height="340" font-family="sans-serif" font-size="13">
+  <rect width="740" height="340" fill="#f8fafc" stroke="#cbd5e1"/>
+  <text x="20" y="28" font-size="16" font-weight="bold" fill="#0f172a">MD-04 两级阻容耦合放大器与电压串联负反馈原理图</text>
+  <line x1="80" y1="62" x2="670" y2="62" stroke="#dc2626" stroke-width="2.5"/>
+  <text x="680" y="66" fill="#dc2626">+12V</text>
+  <circle cx="670" cy="62" r="5" fill="#dc2626" data-jack="fb1.FB_VCC"/>
+  <line x1="40" y1="295" x2="690" y2="295" stroke="#0f172a" stroke-width="2.5"/>
+  <circle cx="60" cy="295" r="5" fill="#0f172a" data-jack="fb1.FB_GND2"/>
+  <circle cx="670" cy="295" r="5" fill="#0f172a" data-jack="fb1.FB_GND1"/>
+  <text x="680" y="299" fill="#0f172a">GND</text>
+  <line x1="50" y1="165" x2="90" y2="165" stroke="#0f172a" stroke-width="2"/>
+  <rect x="90" y="155" width="48" height="20" fill="#fff7ed" stroke="#ea580c" stroke-width="2"/>
+  <text x="95" y="169" font-size="11" fill="#9a3412">5.1kΩ</text>
+  <line x1="138" y1="165" x2="195" y2="165" stroke="#0f172a" stroke-width="2"/>
+  <circle cx="50" cy="165" r="5" fill="#d97706" data-jack="fb1.FB_US"/>
+  <text x="38" y="152" fill="#92400e">Us</text>
+  <circle cx="156" cy="165" r="5" fill="#d97706" data-jack="fb1.FB_UI"/>
+  <text x="150" y="152" fill="#92400e">Ui</text>
+
+  <rect x="195" y="95" width="145" height="120" rx="6" fill="#eff6ff" stroke="#2563eb" stroke-width="2"/>
+  <text x="215" y="145" font-weight="bold" fill="#1d4ed8">第一级 Q1</text>
+  <text x="212" y="168" fill="#475569">S9013 共射</text>
+  <text x="208" y="190" font-size="11" fill="#475569">Re1a=100Ω 反馈端</text>
+  <circle cx="340" cy="130" r="5" fill="#2563eb" data-jack="fb1.FB_C1"/>
+  <text x="348" y="122" fill="#1d4ed8">C1</text>
+  <circle cx="268" cy="215" r="5" fill="#16a34a" data-jack="fb1.FB_E1"/>
+  <text x="278" y="224" fill="#15803d">E1</text>
+
+  <line x1="340" y1="130" x2="405" y2="130" stroke="#0f172a" stroke-width="2"/>
+  <text x="358" y="147" font-size="11" fill="#475569">C12 10µF</text>
+  <rect x="405" y="95" width="145" height="120" rx="6" fill="#eff6ff" stroke="#2563eb" stroke-width="2"/>
+  <text x="425" y="145" font-weight="bold" fill="#1d4ed8">第二级 Q2</text>
+  <text x="422" y="168" fill="#475569">S9013 共射</text>
+  <text x="420" y="190" font-size="11" fill="#475569">同相输出级</text>
+  <circle cx="550" cy="130" r="5" fill="#2563eb" data-jack="fb1.FB_C2"/>
+  <text x="556" y="122" fill="#1d4ed8">C2</text>
+
+  <line x1="550" y1="130" x2="625" y2="130" stroke="#0f172a" stroke-width="2"/>
+  <circle cx="625" cy="130" r="5" fill="#dc2626" data-jack="fb1.FB_UO"/>
+  <text x="634" y="134" fill="#dc2626">Uo</text>
+  <line x1="625" y1="130" x2="625" y2="215" stroke="#0f172a" stroke-width="2"/>
+  <rect x="613" y="215" width="24" height="52" fill="#fff7ed" stroke="#ea580c" stroke-width="2"/>
+  <text x="644" y="245" fill="#9a3412">RL 3.3kΩ</text>
+  <line x1="625" y1="267" x2="625" y2="295" stroke="#0f172a" stroke-width="2"/>
+  <circle cx="625" cy="195" r="5" fill="#d97706" data-jack="fb1.FB_RL"/>
+
+  <polyline points="625,130 600,130 600,255 470,255" fill="none" stroke="#16a34a" stroke-width="2"/>
+  <rect x="375" y="243" width="95" height="24" fill="#f0fdf4" stroke="#16a34a" stroke-width="2"/>
+  <text x="383" y="259" font-size="11" fill="#15803d">Rf (SW_FB)</text>
+  <polyline points="375,255 268,255 268,215" fill="none" stroke="#16a34a" stroke-width="2"/>
+  <circle cx="510" cy="255" r="5" fill="#16a34a" data-jack="fb1.FB_VF"/>
+  <text x="502" y="275" fill="#15803d">Vf</text>
+</svg>

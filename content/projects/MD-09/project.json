@@ -1,0 +1,98 @@
+{
+  "id": "MD-09",
+  "group": "直流稳压电源",
+  "title": "直流稳压正、负电源电路的研究",
+  "type": "basic",
+  "modules": [
+    { "instanceId": "ab1", "moduleId": "mod-analog-base", "slot": "SLOT_BOX_L1" },
+    { "instanceId": "reg1", "moduleId": "mod-power-reg", "slot": "SLOT_BOX_L2" }
+  ],
+  "allowedInstruments": ["ins-oscilloscope", "ins-multimeter"],
+  "reference": {
+    "nets": [
+      ["ins-ac-power.U", "ab1.AC_P1"],
+      ["ins-ac-power.N", "ab1.AC_P2"],
+      ["ab1.AC_S1", "reg1.AC_1"],
+      ["ab1.AC_S2", "reg1.AC_2"],
+      ["ab1.AC_CT", "reg1.REG_GND", "reg1.REG_GND2"],
+      ["reg1.RECT_P", "reg1.REG78_IN"],
+      ["reg1.RECT_N", "reg1.REG79_IN"],
+      ["reg1.REG78_OUT", "reg1.LOAD_IN"]
+    ],
+    "measurePoints": [
+      { "id": "u_pos", "kind": "voltage", "mode": "dcv", "between": ["reg1.REG78_OUT", "reg1.REG_GND"] },
+      { "id": "u_neg", "kind": "voltage", "mode": "dcv", "between": ["reg1.REG79_OUT", "reg1.REG_GND"] },
+      { "id": "u_rp", "kind": "voltage", "mode": "dcv", "between": ["reg1.RECT_P", "reg1.REG_GND"] },
+      { "id": "u_rn", "kind": "voltage", "mode": "dcv", "between": ["reg1.RECT_N", "reg1.REG_GND"] }
+    ]
+  },
+  "steps": [
+    {
+      "id": "prepare",
+      "text": "保持断电，从仪表柜拖出双通道数字示波器与数字万用表；三相调压交流电源设相电压 220 V，稳压板滤波电容 SW_CFILT 置 470 µF，负载 SW_RLOAD 先置“空载 (10 kΩ)”。",
+      "measurePoints": [],
+      "dataTable": "dual_supply"
+    },
+    {
+      "id": "wire",
+      "text": "断电搭建中心抽头对称正负稳压电源：交流 U/N → 变压器原边 220V+/220V−，副边 15V A/B → 整流桥 ~1/~2，副边中心抽头 0V → 公共地 GND；桥式 +Ui → 7812 输入，−Ui → 7912 输入，+12V 输出 → 可调负载 RL；直流电压表接 +12V/GND，数字万用表（20 V 直流档）接 −12V/GND，点击“检查接线”。",
+      "measurePoints": ["u_pos", "u_neg"],
+      "checkWiring": true,
+      "dataTable": "dual_supply"
+    },
+    {
+      "id": "dual_no_load",
+      "text": "正负对称空载测试：上电核实未稳压滤波端正负电压对称（约 +20 V / −20 V），测录 7812 正输出（约 +12.00 V）与 7912 负输出（约 −12.00 V），计算对称误差（≤ 1%）并记入第 1 行。",
+      "measurePoints": ["u_pos", "u_neg"],
+      "expect": { "measurePoint": "u_pos", "min": 11.8, "max": 12.2 },
+      "expects": [{ "measurePoint": "u_neg", "min": -12.2, "max": -11.8 }],
+      "dataTable": "dual_supply"
+    },
+    {
+      "id": "load_reg",
+      "text": "负载调整率与纹波抑制测试：带电将正电源负载 SW_RLOAD 依次切换为“轻载 (240 Ω，50 mA)”与“满载 (120 Ω，100 mA)”，记录各档 +12V 实际电压并计算负载调整率（ΔUo / Uo0 < 1%）；用示波器 AC 耦合对比整流端与稳压端纹波。",
+      "measurePoints": ["u_pos"],
+      "expect": { "measurePoint": "u_pos", "min": 11.75, "max": 12.2 },
+      "dataTable": "dual_supply"
+    },
+    {
+      "id": "analyse",
+      "text": "断电后检查正负对称稳压及负载调整曲线，完成思考题。",
+      "measurePoints": [],
+      "recordTable": "dual_supply",
+      "dataTable": "dual_supply"
+    }
+  ],
+  "dataTables": [
+    {
+      "id": "dual_supply",
+      "title": "LM7812 / LM7912 正负对称直流稳压电源负载特性记录",
+      "rows": 3,
+      "columns": [
+        { "id": "load_ma", "title": "正电源负载电流约值", "unit": "mA" },
+        { "id": "u_pos", "title": "+12V 输出 U+", "unit": "V", "measurePoint": "u_pos", "captureSteps": ["dual_no_load", "load_reg"] },
+        { "id": "u_neg", "title": "−12V 输出 U−", "unit": "V", "measurePoint": "u_neg", "captureSteps": ["dual_no_load", "load_reg"] }
+      ],
+      "sanity": [
+        { "column": "load_ma", "min": 0, "max": 150, "message": "依次记录空载(~1 mA)、轻载(50 mA)、满载(100 mA)三组数据。" },
+        { "column": "u_pos", "min": 11.5, "max": 12.5, "message": "LM7812 输出应稳定在 +12.0 V ± 0.2 V 以内。" },
+        { "column": "u_neg", "min": -12.5, "max": -11.5, "message": "LM7912 输出应稳定在 −12.0 V ± 0.2 V 以内。" }
+      ]
+    }
+  ],
+  "charts": [
+    {
+      "id": "dual-load-reg",
+      "title": "±12 V 直流稳压电源带载输出电压特性曲线",
+      "table": "dual_supply",
+      "x": "load_ma",
+      "y": ["u_pos", "u_neg"],
+      "kind": "line"
+    }
+  ],
+  "questions": [
+    "为什么用单只整流桥配合带中心抽头的双 15 V 副边绕组，就能同时产生对地对称的正、负两路全波直流电压？",
+    "7812 与 7912 的引脚排列在实物器件中并不相同（7812 为 1-IN/2-GND/3-OUT，7912 为 1-GND/2-IN/3-OUT），实际装配若接错会出现什么后果？",
+    "负载由空载切换至 120 Ω（100 mA）满载时，未稳压端 +Ui 与稳压输出端 +12V 的电压跌落幅度为何相差悬殊？"
+  ]
+}

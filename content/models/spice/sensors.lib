@@ -29,3 +29,39 @@ C_th th 0 0.02
 .subckt CU50 p n params: temp_c=20
 R_cu p n {50 * (1 + 4.28e-3 * temp_c)}
 .ends CU50
+
+* 3. ELECTRET_MIC（驻极体话筒行为模型，需外部直流偏置供电，输出声学交流电压/电流）
+*   来源：本项目按标准 2 端驻极体电容话筒（内置 JFET 阻抗变换器，典型偏置 1.5~3 V / 0.4~0.6 mA，
+*   等效输出内阻 2.2 kΩ）自行构建，未复制任何第三方 SPICE 模型。
+*   特点：未加直流偏置（V(p,n) ≈ 0）时声学输出自动归零；正常偏置后输出幅值为 spl_mv（mV 峰值）、
+*   频率为 freq_hz 的正弦音频激励（可直接被多级音频放大器放大并经扬声器输出）。
+*   许可证：随本项目发布，可自由再分发（项目自有内容）。
+*
+.subckt ELECTRET_MIC p n params: spl_mv=10 freq_hz=1000
+* 内部直流偏置与 2.2 kΩ 等效输出阻抗；偏置有效系数随 V(p,n) 平滑开启
+R_dc p n 2.2k
+V_ac n_ac 0 SIN(0 {spl_mv * 1e-3} {freq_hz})
+R_ac_ref n_ac 0 1k
+B_mic p n I = (v(n_ac) / 2200) * 0.5 * (1 + tanh((v(p,n) - 0.5) / 0.2))
+.ends ELECTRET_MIC
+
+* 4. LI_CELL_3V7（单节 3.7 V 可充电锂离子电池行为模型，支持直流工作点与瞬态充电爬升观测）
+*   来源：本项目按单节 3.7 V 锂电工作区间（3.0~4.2 V，内阻 0.15 Ω）与教学加速荷电积分电容构建。
+*   特点：
+*     - 直流 .op 与 t=0 初始瞬态解（time=0）：开路电压严格等于 v_init，端电压 = v_init + I_chg * r_int；
+*     - 瞬态 .tran（time>0）：充电电流通过平滑门控积分至等效荷电电容 c_eq（默认 50 mF，100 mA 恒流约 2 V/s 爬升），
+*       并带 4.25 V 满电钳位，使学员在数秒仿真内即可直观观测恒流充电过程电池电压单调上升。
+*   许可证：随本项目发布，可自由再分发（项目自有内容）。
+*
+.subckt LI_CELL_3V7 p n params: v_init=3.4 c_eq=0.05 r_int=0.15
+V_sense p n_r DC 0
+R_int n_r n_v {r_int}
+B_ocv n_v n V = {v_init} + v(soc)
+B_chg 0 soc I = i(V_sense) * tanh(time / 1m)
+C_soc soc 0 {c_eq}
+R_soc_dc soc 0 100Meg
+V_lim n_lim 0 DC {max(0.05, 4.25 - v_init)}
+D_full soc n_lim D_LI_CLAMP
+D_empty 0 soc D_LI_CLAMP
+.model D_LI_CLAMP D(IS=1e-12 N=1 RS=0.5)
+.ends LI_CELL_3V7

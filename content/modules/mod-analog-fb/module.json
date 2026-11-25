@@ -1,0 +1,47 @@
+{
+  "id": "mod-analog-fb",
+  "name": "两级放大与负反馈实验板",
+  "form": "board",
+  "model": "module.glb",
+  "netlist": "module.cir",
+  "jacks": [
+    { "id": "FB_VCC", "label": "+12V 电源", "kind": "banana4", "polarityHint": "+" },
+    { "id": "FB_GND1", "label": "GND 1", "kind": "banana4", "polarityHint": "-" },
+    { "id": "FB_GND2", "label": "GND 2", "kind": "banana4", "polarityHint": "-" },
+    { "id": "FB_US", "label": "信号源输入 Us", "kind": "banana4" },
+    { "id": "FB_UI", "label": "放大器输入 Ui", "kind": "banana4" },
+    { "id": "FB_C1", "label": "一级集电极 C1", "kind": "banana4" },
+    { "id": "FB_E1", "label": "反馈射极 E1", "kind": "banana4" },
+    { "id": "FB_C2", "label": "二级集电极 C2", "kind": "banana4" },
+    { "id": "FB_UO", "label": "放大器输出 Uo", "kind": "banana4" },
+    { "id": "FB_RL", "label": "负载端 RL", "kind": "banana4" },
+    { "id": "FB_VF", "label": "反馈监测端 Vf", "kind": "banana4" }
+  ],
+  "controls": [
+    {
+      "id": "SW_FB",
+      "label": "电压串联负反馈深度",
+      "kind": "rotary",
+      "param": "sw_fb",
+      "steps": [0, 1, 2],
+      "stepLabels": ["开环 (无反馈)", "深负反馈 (Rf=2.2kΩ)", "浅负反馈 (Rf=6.8kΩ)"],
+      "targets": [{ "element": "RRFB", "values": [100000000, 2200, 6800] }],
+      "unit": "",
+      "default": 0
+    },
+    {
+      "id": "SW_RL",
+      "label": "负载电阻 RL (3.3kΩ)",
+      "kind": "switch",
+      "param": "sw_rl",
+      "steps": [0, 1],
+      "stepLabels": ["空载 (断开)", "带载 (3.3kΩ)"],
+      "targets": [{ "element": "RSW_RL", "values": [100000000, 1] }],
+      "unit": "",
+      "default": 1
+    }
+  ],
+  "indicators": [],
+  "commonNets": [["FB_GND1", "FB_GND2"]],
+  "simulation": { "analysis": "tran", "maxStep": 0.000005, "pacing": "window" }
+}

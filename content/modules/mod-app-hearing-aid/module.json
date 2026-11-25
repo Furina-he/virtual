@@ -1,0 +1,51 @@
+{
+  "id": "mod-app-hearing-aid",
+  "name": "助听器电路实验板",
+  "form": "board",
+  "model": "module.glb",
+  "netlist": "module.cir",
+  "jacks": [
+    { "id": "HA_VCC", "label": "+5V 电源", "kind": "banana4", "polarityHint": "+" },
+    { "id": "HA_GND1", "label": "GND 1", "kind": "banana4", "polarityHint": "-" },
+    { "id": "HA_GND2", "label": "GND 2", "kind": "banana4", "polarityHint": "-" },
+    { "id": "HA_MIC", "label": "驻极体话筒 MIC", "kind": "banana4" },
+    { "id": "HA_EXT", "label": "外接测试输入 EXT", "kind": "banana4" },
+    { "id": "HA_Q1C", "label": "前级集电极 C1", "kind": "banana4" },
+    { "id": "HA_VOL", "label": "音量电位器抽头", "kind": "banana4" },
+    { "id": "HA_Q2C", "label": "推动级集电极 C2", "kind": "banana4" },
+    { "id": "HA_SPK_P", "label": "耳机输出 +", "kind": "banana4", "polarityHint": "+" },
+    { "id": "HA_SPK_N", "label": "耳机输出 −", "kind": "banana4", "polarityHint": "-" }
+  ],
+  "controls": [
+    {
+      "id": "MIC_SPL",
+      "label": "话筒声压激励",
+      "kind": "rotary",
+      "param": "mic_spl",
+      "steps": [0, 1, 2, 3],
+      "stepLabels": ["静音 / 外接信号", "轻声", "正常语音", "大声"],
+      "targets": [{ "element": "RMIC_COUP", "values": [100000000, 15000, 3300, 470] }],
+      "unit": "",
+      "default": 2
+    },
+    {
+      "id": "VOL_POT",
+      "label": "音量电位器",
+      "kind": "pot",
+      "param": "vol_pct",
+      "range": [0, 100],
+      "step": 5,
+      "targets": [
+        { "element": "RV_TOP", "scale": -98, "offset": 10000, "min": 100 },
+        { "element": "RV_BOT", "scale": 98, "offset": 200, "min": 100 }
+      ],
+      "unit": "%",
+      "default": 60
+    }
+  ],
+  "indicators": [
+    { "id": "EAR1", "kind": "speaker", "between": ["HA_SPK_P", "HA_SPK_N"], "audio": { "fullScale": 2.5 } }
+  ],
+  "commonNets": [["HA_GND1", "HA_GND2", "HA_SPK_N"]],
+  "simulation": { "analysis": "tran", "maxStep": 0.00002, "pacing": "realtime" }
+}

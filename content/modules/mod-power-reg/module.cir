@@ -1,0 +1,47 @@
+.subckt mod_power_reg AC_1 AC_2 REG_GND REG_GND2 HW_OUT RECT_P RECT_N REG78_IN REG78_OUT REG79_IN REG79_OUT REG317_IN REG317_OUT LOAD_IN params: sw_cfilt=2 r317_adj=1200 sw_rload=1
+* 整流、滤波与三端正负稳压电源实验板（原型选型说明 §3.1 #13，服务 MD-08 / MD-09）
+Rcu_gnd REG_GND REG_GND2 10m
+R_iso_gnd REG_GND 0 100Meg
+* ---- 1. 半波整流支路（50 Hz 脉动）----
+D_hw AC_1 HW_OUT D1N4007
+R_hw_load HW_OUT REG_GND 1k
+* ---- 2. 全波整流桥（单相 100 Hz 脉动或中心抽头正负双电源整流）----
+D_b1 AC_1 RECT_P D1N4007
+D_b2 AC_2 RECT_P D1N4007
+D_b3 RECT_N AC_1 D1N4007
+D_b4 RECT_N AC_2 D1N4007
+R_rp_bleed RECT_P REG_GND 10k
+R_rn_bleed RECT_N REG_GND 10k
+* 正支路多档滤波电容（100u + 370u + 530u -> 0 / 100 / 470 / 1000 uF）
+RCF_P1 RECT_P n_cp1 {sw_cfilt > 0.5 ? 0.5 : 100Meg}
+C_fp1 n_cp1 REG_GND 100u
+Rbleed_cp1 n_cp1 REG_GND 100Meg
+RCF_P2 RECT_P n_cp2 {sw_cfilt > 1.5 ? 0.5 : 100Meg}
+C_fp2 n_cp2 REG_GND 370u
+Rbleed_cp2 n_cp2 REG_GND 100Meg
+RCF_P3 RECT_P n_cp3 {sw_cfilt > 2.5 ? 0.5 : 100Meg}
+C_fp3 n_cp3 REG_GND 530u
+Rbleed_cp3 n_cp3 REG_GND 100Meg
+* 负支路对称滤波电容（供 MD-09 双电源滤波）
+RCF_N1 RECT_N n_cn1 {sw_cfilt > 0.5 ? 0.5 : 100Meg}
+C_fn1 n_cn1 REG_GND 100u
+Rbleed_cn1 n_cn1 REG_GND 100Meg
+RCF_N2 RECT_N n_cn2 {sw_cfilt > 1.5 ? 0.5 : 100Meg}
+C_fn2 n_cn2 REG_GND 370u
+Rbleed_cn2 n_cn2 REG_GND 100Meg
+RCF_N3 RECT_N n_cn3 {sw_cfilt > 2.5 ? 0.5 : 100Meg}
+C_fn3 n_cn3 REG_GND 530u
+Rbleed_cn3 n_cn3 REG_GND 100Meg
+* ---- 3. 三端稳压器（LM7812 / LM7912 / LM317）与可切换负载 ----
+X_7812 REG78_IN REG_GND REG78_OUT LM7812
+R_78_in_iso REG78_IN REG_GND 100Meg
+X_7912 REG79_IN REG_GND REG79_OUT LM7912
+R_79_in_iso REG79_IN REG_GND 100Meg
+X_317 REG317_IN n_317_adj REG317_OUT LM317
+R_317_in_iso REG317_IN REG_GND 100Meg
+R_317_r1 REG317_OUT n_317_adj 240
+RR317_ADJ n_317_adj REG_GND {max(200, r317_adj)}
+RRLOAD LOAD_IN REG_GND {sw_rload < 0.5 ? 10000 : (sw_rload < 1.5 ? 240 : 120)}
+.ends mod_power_reg
+.include "diodes.lib"
+.include "regulators.lib"

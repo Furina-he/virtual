@@ -1,0 +1,45 @@
+.subckt mod_app_hearing_aid HA_VCC HA_GND1 HA_GND2 HA_MIC HA_EXT HA_Q1C HA_VOL HA_Q2C HA_SPK_P HA_SPK_N params: mic_spl=2 vol_pct=60
+* 助听器综合应用电路实验板（原型选型说明 §3.1 #14，服务 MD-05）
+Rcu_gnd1 HA_GND1 HA_GND2 10m
+Rcu_gnd2 HA_GND1 HA_SPK_N 10m
+* ---- 驻极体话筒拾音与偏置级 ----
+R_mic_bias HA_VCC HA_MIC 2.2k
+X_mic HA_MIC HA_GND1 ELECTRET_MIC spl_mv=12 freq_hz=1000
+C_mic_in HA_MIC n_m_ac 10u
+RMIC_COUP n_m_ac n_in_sum {mic_spl < 0.5 ? 100Meg : (mic_spl < 1.5 ? 15000 : (mic_spl < 2.5 ? 3300 : 470))}
+* 外接信号源测试入口（与话筒经求和电阻送入前级，静音档下可纯外接测频响与增益）
+R_ext_in HA_EXT n_ext_c 2.2k
+C_ext_in n_ext_c n_in_sum 10u
+R_in_sum_g n_in_sum HA_GND1 100k
+* ---- 第一级低噪声前置放大（S9013）----
+C_b1 n_in_sum n_b1 10u
+R_b11 HA_VCC n_b1 33k
+R_b12 n_b1 HA_GND1 15k
+Q_1 HA_Q1C n_b1 n_e1 S9013
+R_c1 HA_VCC HA_Q1C 2.2k
+R_e1a n_e1 n_e1m 82
+R_e1b n_e1m HA_GND1 680
+R_ce1_esr n_e1m n_ce1 0.5
+C_e1 n_ce1 HA_GND1 47u
+* ---- 音量调节电位器（10 kΩ 恒定总阻分压，ADR-009 实时调节）----
+C_vol_in HA_Q1C n_vtop 10u
+RV_TOP n_vtop HA_VOL {max(100, 10000 - 98 * vol_pct)}
+RV_BOT HA_VOL HA_GND1 {max(100, 200 + 98 * vol_pct)}
+* ---- 第二级电压放大推动级（S9013）----
+C_b2 HA_VOL n_b2 10u
+R_b21 HA_VCC n_b2 33k
+R_b22 n_b2 HA_GND1 15k
+Q_2 HA_Q2C n_b2 n_e2 S9013
+R_c2 HA_VCC HA_Q2C 2.2k
+R_e2a n_e2 n_e2m 120
+R_e2b n_e2m HA_GND1 680
+R_ce2_esr n_e2m n_ce2 0.5
+C_e2 n_ce2 HA_GND1 47u
+* ---- 射极跟随输出级与 32 Ω 耳机负载 ----
+Q_3 HA_VCC HA_Q2C n_e3 S9013
+R_e3 n_e3 HA_GND1 100
+C_spk n_e3 HA_SPK_P 100u
+R_ear HA_SPK_P HA_SPK_N 32
+.ends mod_app_hearing_aid
+.include "bjt.lib"
+.include "sensors.lib"

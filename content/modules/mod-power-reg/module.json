@@ -1,0 +1,68 @@
+{
+  "id": "mod-power-reg",
+  "name": "整流滤波稳压实验板",
+  "form": "board",
+  "model": "module.glb",
+  "netlist": "module.cir",
+  "jacks": [
+    { "id": "AC_1", "label": "交流输入 ~1", "kind": "banana4" },
+    { "id": "AC_2", "label": "交流输入 ~2", "kind": "banana4" },
+    { "id": "REG_GND", "label": "公共地 GND", "kind": "banana4", "polarityHint": "-" },
+    { "id": "REG_GND2", "label": "地端 GND2", "kind": "banana4", "polarityHint": "-" },
+    { "id": "HW_OUT", "label": "半波整流输出 HW", "kind": "banana4" },
+    { "id": "RECT_P", "label": "桥式正输出 +Ui", "kind": "banana4", "polarityHint": "+" },
+    { "id": "RECT_N", "label": "桥式负输出 −Ui", "kind": "banana4", "polarityHint": "-" },
+    { "id": "REG78_IN", "label": "7812 输入端", "kind": "banana4", "polarityHint": "+" },
+    { "id": "REG78_OUT", "label": "+12V 稳压输出", "kind": "banana4", "polarityHint": "+" },
+    { "id": "REG79_IN", "label": "7912 输入端", "kind": "banana4", "polarityHint": "-" },
+    { "id": "REG79_OUT", "label": "−12V 稳压输出", "kind": "banana4", "polarityHint": "-" },
+    { "id": "REG317_IN", "label": "LM317 输入端", "kind": "banana4", "polarityHint": "+" },
+    { "id": "REG317_OUT", "label": "LM317 可调输出", "kind": "banana4", "polarityHint": "+" },
+    { "id": "LOAD_IN", "label": "可调负载端 RL", "kind": "banana4" }
+  ],
+  "controls": [
+    {
+      "id": "SW_CFILT",
+      "label": "滤波电容容量",
+      "kind": "rotary",
+      "param": "sw_cfilt",
+      "steps": [0, 1, 2, 3],
+      "stepLabels": ["无滤波 (0 µF)", "100 µF", "470 µF", "1000 µF"],
+      "targets": [
+        { "element": "RCF_P1", "values": [100000000, 0.5, 0.5, 0.5] },
+        { "element": "RCF_P2", "values": [100000000, 100000000, 0.5, 0.5] },
+        { "element": "RCF_P3", "values": [100000000, 100000000, 100000000, 0.5] },
+        { "element": "RCF_N1", "values": [100000000, 0.5, 0.5, 0.5] },
+        { "element": "RCF_N2", "values": [100000000, 100000000, 0.5, 0.5] },
+        { "element": "RCF_N3", "values": [100000000, 100000000, 100000000, 0.5] }
+      ],
+      "unit": "",
+      "default": 2
+    },
+    {
+      "id": "R317_ADJ",
+      "label": "LM317 调压电阻 R2",
+      "kind": "pot",
+      "param": "r317_adj",
+      "range": [200, 2200],
+      "step": 100,
+      "targets": [{ "element": "RR317_ADJ", "min": 200 }],
+      "unit": "Ω",
+      "default": 1200
+    },
+    {
+      "id": "SW_RLOAD",
+      "label": "直流负载电阻 RL",
+      "kind": "rotary",
+      "param": "sw_rload",
+      "steps": [0, 1, 2],
+      "stepLabels": ["空载 (10 kΩ)", "轻载 (240 Ω)", "满载 (120 Ω)"],
+      "targets": [{ "element": "RRLOAD", "values": [10000, 240, 120] }],
+      "unit": "Ω",
+      "default": 1
+    }
+  ],
+  "indicators": [],
+  "commonNets": [["REG_GND", "REG_GND2"]],
+  "internalJumpers": []
+}

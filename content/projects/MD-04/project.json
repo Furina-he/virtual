@@ -1,0 +1,89 @@
+{
+  "id": "MD-04",
+  "group": "基本放大电路",
+  "title": "两级放大电路及负反馈放大电路的研究",
+  "type": "basic",
+  "modules": [{ "instanceId": "fb1", "moduleId": "mod-analog-fb", "slot": "SLOT_BOX_L1" }],
+  "allowedInstruments": ["ins-func-gen", "ins-oscilloscope", "ins-ac-millivoltmeter", "ins-multimeter"],
+  "reference": {
+    "nets": [
+      ["ins-dc-power.CH1P", "fb1.FB_VCC"],
+      ["ins-dc-power.CH1N", "fb1.FB_GND1", "fb1.FB_GND2", "ins-func-gen.GND"],
+      ["ins-func-gen.CH1", "fb1.FB_US"]
+    ],
+    "measurePoints": [
+      { "id": "uc1", "kind": "voltage", "mode": "dcv", "between": ["fb1.FB_C1", "fb1.FB_GND1"] },
+      { "id": "uc2", "kind": "voltage", "mode": "dcv", "between": ["fb1.FB_C2", "fb1.FB_GND1"] },
+      { "id": "ui_vpp", "kind": "waveform", "quantity": "vpp", "between": ["fb1.FB_UI", "fb1.FB_GND2"] },
+      { "id": "uo_vpp", "kind": "waveform", "quantity": "vpp", "between": ["fb1.FB_UO", "fb1.FB_GND2"] },
+      { "id": "ui_mv", "kind": "voltage", "mode": "acv", "between": ["fb1.FB_UI", "fb1.FB_GND2"] },
+      { "id": "uo_mv", "kind": "voltage", "mode": "acv", "between": ["fb1.FB_UO", "fb1.FB_GND2"] }
+    ]
+  },
+  "steps": [
+    {
+      "id": "prepare",
+      "text": "保持断电，从仪表柜拖出双通道函数信号发生器、双通道数字示波器与交流毫伏表；直流稳压电源 CH1 设 12 V，实验板反馈开关 SW_FB 置“开环 (无反馈)”，负载 SW_RL 置“带载 (3.3kΩ)”。",
+      "measurePoints": [],
+      "dataTable": "fb_compare"
+    },
+    {
+      "id": "wire",
+      "text": "断电按图连接供电与信号源：CH1+→+12V、CH1−→GND 1，信号源 CH1→Us、GND→GND 2；示波器 CH1 接 Ui、CH2 接 Uo、GND 接 GND 2，点击“检查接线”。",
+      "measurePoints": ["ui_vpp", "uo_vpp"],
+      "checkWiring": true,
+      "dataTable": "fb_compare"
+    },
+    {
+      "id": "open_loop",
+      "text": "工况 1（开环两级放大，SW_FB = 开环）：信号源设为 1 kHz、0.03 Vpp 正弦波，上电测录输入 Ui 与同相放大输出 Uo（开环电压增益 Au = Uo / Ui 约 140~220），并观察二级集电极直流电位 UC1 ≈ 6.5 V、UC2 ≈ 7.2 V。",
+      "measurePoints": ["ui_vpp", "uo_vpp"],
+      "dataTable": "fb_compare"
+    },
+    {
+      "id": "neg_feedback",
+      "text": "工况 2（引入电压串联负反馈）：依次切换 SW_FB 至“浅负反馈 (Rf=6.8kΩ)”与“深负反馈 (Rf=2.2kΩ)”，并将信号源幅值适当增大至 0.1 Vpp，记录闭环增益 Auf（分别降至约 55 与 21，贴近 1 + Rf/Re1a）；随后将频率提高至 50 kHz 对比开环与闭环高频衰减，验证负反馈展宽通频带。",
+      "measurePoints": ["ui_vpp", "uo_vpp"],
+      "dataTable": "fb_compare"
+    },
+    {
+      "id": "analyse",
+      "text": "断电后核对三种反馈深度下的增益、带宽对比曲线，完成思考题。",
+      "measurePoints": [],
+      "recordTable": "fb_compare",
+      "dataTable": "fb_compare"
+    }
+  ],
+  "dataTables": [
+    {
+      "id": "fb_compare",
+      "title": "两级放大器开环与电压串联负反馈增益对比记录（f = 1 kHz, RL = 3.3 kΩ）",
+      "rows": 3,
+      "columns": [
+        { "id": "fb_mode", "title": "反馈档 (0:开环 1:深反馈 2:浅反馈)", "unit": "" },
+        { "id": "ui_vpp", "title": "输入 Ui Vpp", "unit": "V", "measurePoint": "ui_vpp", "captureSteps": ["open_loop", "neg_feedback"] },
+        { "id": "uo_vpp", "title": "输出 Uo Vpp", "unit": "V", "measurePoint": "uo_vpp", "captureSteps": ["open_loop", "neg_feedback"] },
+        { "id": "gain", "title": "电压增益 Au = Uo/Ui", "unit": "", "computed": "uo_vpp/ui_vpp" }
+      ],
+      "sanity": [
+        { "column": "fb_mode", "min": 0, "max": 2, "message": "依次记录开环(0)、深负反馈(1)与浅负反馈(2)三种状态。" },
+        { "column": "gain", "min": 10, "max": 350, "message": "深反馈闭环增益约 20~24，浅反馈约 48~62，开环增益高于 120。" }
+      ]
+    }
+  ],
+  "charts": [
+    {
+      "id": "fb-gain-bar",
+      "title": "不同负反馈深度下两级放大器电压增益对比",
+      "table": "fb_compare",
+      "x": "fb_mode",
+      "y": ["gain"],
+      "kind": "line"
+    }
+  ],
+  "questions": [
+    "为什么两级共射极阻容耦合放大器的总输出 Uo 与输入 Ui 同相，且从 Uo 经 Rf 引回第一级发射极 E1 构成电压串联负反馈？",
+    "在深度负反馈（Rf = 2.2 kΩ, Re1a = 100 Ω）下，闭环电压放大倍数为何近似等于 1 + Rf/Re1a = 23 且几乎不依赖三极管 β 值？",
+    "引入电压串联负反馈后，放大电路的输入电阻、输出电阻、通频带与非线性失真分别发生什么方向的变化？"
+  ]
+}

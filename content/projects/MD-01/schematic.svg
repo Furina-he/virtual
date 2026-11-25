@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 340" width="720" height="340" font-family="sans-serif" font-size="13">
+  <rect width="720" height="340" fill="#f8fafc" stroke="#cbd5e1"/>
+  <text x="20" y="28" font-size="16" font-weight="bold" fill="#0f172a">MD-01 常用二极管稳压与双向限幅实验原理图</text>
+  <rect x="20" y="48" width="330" height="270" rx="6" fill="#ffffff" stroke="#94a3b8"/>
+  <text x="34" y="70" font-weight="bold" fill="#1e293b">电路 A：2CW51 稳压电路（CH1 = 6~12 V）</text>
+  <line x1="65" y1="125" x2="125" y2="125" stroke="#dc2626" stroke-width="2"/>
+  <rect x="125" y="114" width="66" height="22" fill="#fff7ed" stroke="#ea580c" stroke-width="2"/>
+  <text x="137" y="129" fill="#9a3412">470 Ω</text>
+  <line x1="191" y1="125" x2="255" y2="125" stroke="#0f172a" stroke-width="2"/>
+  <line x1="255" y1="125" x2="255" y2="170" stroke="#0f172a" stroke-width="2"/>
+  <polygon points="243,215 267,215 255,180" fill="#dbeafe" stroke="#2563eb" stroke-width="2"/>
+  <polyline points="238,175 243,180 267,180 272,185" fill="none" stroke="#2563eb" stroke-width="2"/>
+  <line x1="255" y1="215" x2="255" y2="265" stroke="#0f172a" stroke-width="2"/>
+  <line x1="65" y1="265" x2="255" y2="265" stroke="#0f172a" stroke-width="2"/>
+  <text x="276" y="202" fill="#1d4ed8">2CW51</text>
+  <text x="276" y="220" fill="#475569">Uz ≈ 3.3 V</text>
+  <circle cx="65" cy="125" r="5" fill="#dc2626" data-jack="ins-dc-power.CH1P"/>
+  <text x="34" y="113" fill="#dc2626">CH1+</text>
+  <circle cx="65" cy="265" r="5" fill="#0f172a" data-jack="ins-dc-power.CH1N"/>
+  <text x="34" y="284" fill="#0f172a">CH1−</text>
+  <circle cx="115" cy="125" r="5" fill="#d97706" data-jack="ab1.R470_1"/>
+  <circle cx="205" cy="125" r="5" fill="#d97706" data-jack="ab1.R470_2"/>
+  <circle cx="255" cy="152" r="5" fill="#2563eb" data-jack="ab1.DZ_K"/>
+  <text x="266" y="156" fill="#1e40af">DZ_K (−)</text>
+  <circle cx="255" cy="242" r="5" fill="#2563eb" data-jack="ab1.DZ_A"/>
+  <text x="266" y="246" fill="#1e40af">DZ_A (+)</text>
+
+  <rect x="370" y="48" width="330" height="270" rx="6" fill="#ffffff" stroke="#94a3b8"/>
+  <text x="384" y="70" font-weight="bold" fill="#1e293b">电路 B：1N4148 双向限幅（4 Vpp → 1.3 Vpp）</text>
+  <line x1="415" y1="125" x2="475" y2="125" stroke="#dc2626" stroke-width="2"/>
+  <rect x="475" y="114" width="66" height="22" fill="#fff7ed" stroke="#ea580c" stroke-width="2"/>
+  <text x="487" y="129" fill="#9a3412">470 Ω</text>
+  <line x1="541" y1="125" x2="605" y2="125" stroke="#0f172a" stroke-width="2"/>
+  <line x1="585" y1="125" x2="585" y2="265" stroke="#0f172a" stroke-width="2"/>
+  <line x1="625" y1="125" x2="625" y2="265" stroke="#0f172a" stroke-width="2"/>
+  <polygon points="575,180 595,180 585,205" fill="#dcfce7" stroke="#16a34a" stroke-width="2"/>
+  <line x1="575" y1="205" x2="595" y2="205" stroke="#16a34a" stroke-width="2"/>
+  <polygon points="615,205 635,205 625,180" fill="#dcfce7" stroke="#16a34a" stroke-width="2"/>
+  <line x1="615" y1="180" x2="635" y2="180" stroke="#16a34a" stroke-width="2"/>
+  <line x1="415" y1="265" x2="625" y2="265" stroke="#0f172a" stroke-width="2"/>
+  <circle cx="415" cy="125" r="5" fill="#dc2626" data-jack="generator1.CH1"/>
+  <text x="382" y="113" fill="#dc2626">GEN CH1</text>
+  <circle cx="415" cy="265" r="5" fill="#0f172a" data-jack="generator1.GND"/>
+  <text x="382" y="284" fill="#0f172a">GND</text>
+  <circle cx="605" cy="125" r="5" fill="#16a34a" data-jack="ab1.CLIP_A"/>
+  <text x="615" y="118" fill="#15803d">CLIP_A</text>
+  <circle cx="605" cy="265" r="5" fill="#16a34a" data-jack="ab1.CLIP_B"/>
+  <text x="615" y="284" fill="#15803d">CLIP_B</text>
+</svg>

@@ -1,0 +1,104 @@
+{
+  "id": "MD-01",
+  "group": "半导体器件",
+  "title": "常用二极管的性能测试及应用",
+  "type": "basic",
+  "modules": [{ "instanceId": "ab1", "moduleId": "mod-analog-base", "slot": "SLOT_BOX_L1" }],
+  "allowedInstruments": ["ins-multimeter", "ins-func-gen", "ins-oscilloscope"],
+  "reference": {
+    "nets": [
+      ["ins-dc-power.CH1P", "ab1.R470_1"],
+      ["ab1.R470_2", "ab1.DZ_K"],
+      ["ab1.DZ_A", "ins-dc-power.CH1N"]
+    ],
+    "measurePoints": [
+      { "id": "u_zener", "kind": "voltage", "mode": "dcv", "between": ["ab1.DZ_K", "ab1.DZ_A"] },
+      { "id": "u_clip", "kind": "waveform", "quantity": "vpp", "between": ["ab1.CLIP_A", "ab1.CLIP_B"] }
+    ]
+  },
+  "steps": [
+    {
+      "id": "prepare",
+      "text": "保持断电，阅读指导书与原理图；从仪表柜拖出数字万用表、双通道函数信号发生器与双通道数字示波器。",
+      "measurePoints": [],
+      "dataTable": "diode_test"
+    },
+    {
+      "id": "diode_check",
+      "text": "阶段 1（无源正反向判别）：保持外部电源断电不接线，将数字万用表切至“二极管”档，依次正接与反接 1N4007、1N4148、2CW51 与红 LED 两端，记录正向导通压降（1N4007/1N4148 约 0.55~0.62 V，红 LED 约 1.75 V；反接均显示 OL.）。",
+      "measurePoints": [],
+      "dataTable": "diode_test"
+    },
+    {
+      "id": "zener_reg",
+      "text": "阶段 2（稳压二极管 2CW51 稳压特性）：断电拆去万用表，按图连接直流稳压电源 CH1+→470Ω左、470Ω右→2CW51阴极(−)、2CW51阳极(+)→CH1−；直流电压表（20 V 档）并接 2CW51 阴极(+)与阳极(−)，点击“检查接线”。上电依次设 CH1 = 6、9、12 V，记录稳压输出 U_Z（稳定在约 3.30~3.52 V）。",
+      "measurePoints": ["u_zener"],
+      "checkWiring": true,
+      "expect": { "measurePoint": "u_zener", "min": 3.15, "max": 3.65 },
+      "dataTable": "zener_reg"
+    },
+    {
+      "id": "clipper",
+      "text": "阶段 3（二极管双向限幅应用）：断电改接信号发生器 CH1（1 kHz、4 Vpp 正弦波）→470Ω左、470Ω右→双向限幅端 1、双向限幅端 2→GND；示波器 CH1 接 470Ω左（输入）、CH2 接限幅端 1（输出）、GND 接限幅端 2，点击“检查接线”。上电观测正负半周被双向削平至约 ±0.66 V（Vpp ≈ 1.32 V）。",
+      "referenceNets": [
+        ["ins-func-gen.CH1", "ab1.R470_1"],
+        ["ab1.R470_2", "ab1.CLIP_A"],
+        ["ab1.CLIP_B", "ins-func-gen.GND"]
+      ],
+      "measurePoints": ["u_clip"],
+      "checkWiring": true,
+      "expect": { "measurePoint": "u_clip", "min": 1.0, "max": 1.65 },
+      "dataTable": "zener_reg"
+    },
+    {
+      "id": "analyse",
+      "text": "断电后核对四种二极管导通压降、稳压曲线与限幅波形，完成思考题。",
+      "measurePoints": [],
+      "recordTable": "zener_reg",
+      "dataTable": "zener_reg"
+    }
+  ],
+  "dataTables": [
+    {
+      "id": "diode_test",
+      "title": "四种常用二极管万用表二极管档正反向测试记录（1 mA 测试源）",
+      "rows": 4,
+      "columns": [
+        { "id": "dev_idx", "title": "器件编号 (1:4007 2:4148 3:2CW51 4:LED)", "unit": "" },
+        { "id": "vf_v", "title": "正向压降 VF", "unit": "V" }
+      ],
+      "sanity": [
+        { "column": "dev_idx", "min": 1, "max": 4, "message": "依次记录 1N4007、1N4148、2CW51、红 LED 四种器件。" },
+        { "column": "vf_v", "min": 0.45, "max": 2.0, "message": "硅二极管 1 mA 正向压降约 0.55~0.65 V，红色 LED 约 1.75 V。" }
+      ]
+    },
+    {
+      "id": "zener_reg",
+      "title": "2CW51 稳压管输入电压变化时的稳压输出记录（限流电阻 470 Ω）",
+      "rows": 3,
+      "columns": [
+        { "id": "u_in", "title": "输入电压 Ui", "unit": "V" },
+        { "id": "u_z", "title": "稳压输出 Uz", "unit": "V", "measurePoint": "u_zener", "captureSteps": ["zener_reg"] }
+      ],
+      "sanity": [
+        { "column": "u_in", "min": 5, "max": 15, "message": "请在 6 V、9 V、12 V 三个输入电压点测量稳压输出。" },
+        { "column": "u_z", "min": 3.1, "max": 3.7, "message": "2CW51 反向稳压值应稳定在 3.30~3.55 V 之间。" }
+      ]
+    }
+  ],
+  "charts": [
+    {
+      "id": "zener-line-reg",
+      "title": "2CW51 稳压电路输出电压随输入电压变化曲线",
+      "table": "zener_reg",
+      "x": "u_in",
+      "y": ["u_z"],
+      "kind": "line"
+    }
+  ],
+  "questions": [
+    "如何仅用数字万用表的二极管档快速判别整流二极管、开关二极管与发光二极管的阳极、阴极和好坏？",
+    "稳压二极管 2CW51 在稳压电路中为什么必须反向接入且串联限流电阻 R = 470 Ω？若去掉限流电阻会出现什么后果？",
+    "在双向限幅电路中，若把两只反并联的 1N4148 改为单只二极管，示波器观察到的输出波形会变成什么形态？"
+  ]
+}
