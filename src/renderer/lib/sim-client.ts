@@ -122,6 +122,7 @@ export class SimClient {
     }
     if (ev.type === 'altered') {
       for (const observation of this.observations.values()) observation.clear()
+      for (const buffer of this.buffers.values()) buffer.markBoundary()
     }
     for (const l of this.listeners) l(ev)
   }

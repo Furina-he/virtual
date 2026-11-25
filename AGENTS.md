@@ -26,12 +26,14 @@
 - 运行时不访问外网；字体、HDRI、drei 与模型资源全部本地。联网获取只能是显式开发期步骤。
 - 不用手填、理论值、跳步骤、另一个加速会话或修改物理/时间/PCM 门槛冒充真实验收。
 
-## 验证（本地轻量定向 + GitHub Actions 云端重测）
+## 验证（GitHub Actions 云端优先，本地最小化）
 
-- **日常单任务迭代（本地必跑）**：先跑秒级静态校验（`pnpm typecheck`、`pnpm lint`、`pnpm docs:lint`、`pnpm content:lint`；改 3D 资产时加 `pnpm assets:lint`），再只跑**本次改动直接关联的单测与 1~2 个定向 E2E**（如 `pnpm exec vitest run <对应.test.ts>`、`node tools/run-exclusive.ts e2e <对应.spec.ts>`；改电路/仪表物理逻辑时补跑对应 `tests/golden/<文件>.test.ts`）。不在本地每次重跑全量串行单测或 19 分钟全量 E2E。
-- **全量回归（GitHub Actions 云端执行）**：推送或 PR 自动触发 `.github/workflows/ci.yml`，在 GitHub `windows-latest` 云端运行全量串行单元/ngspice 金标准与 Electron 功能 E2E（支持手动勾选打包 NSIS）。原超时和数值阈值不变。
-- **硬件实时与里程碑封板**：强依赖物理独显帧率或声卡时钟的基准（`scene-performance`、`sd22-realtime`、`sim-audio`、`SIM_SOAK_SEC=600` 浸泡）仅在改了仿真调度/渲染管线或里程碑封板时在本地执行。
-- 本地运行构建、资产、音频、E2E 等重任务仍通过 `tools/run-exclusive.ts` 使用共享锁；不重叠运行，不擅自删锁，不杀其他会话的进程。
+- **云端优先（默认测试渠道）**：单元测、ngspice 金标准、Electron 功能 E2E 与 NSIS 打包默认全部交由 GitHub Actions 云端执行（推送或 PR 自动触发 `.github/workflows/ci.yml`，在 `windows-latest` 上跑全量校验与回归；原超时和数值阈值不变）。日常改动**不在本地默认跑 Electron E2E、全量单测或重型编译测试**。
+- **本地仅做“云上无法进行或不得不做”的测试**：
+  1. **秒级静态与契约校验**（提交前防低级错误，不得不做）：`pnpm typecheck`、`pnpm lint`、`pnpm docs:lint`、`pnpm content:lint`（改 3D 资产时加 `pnpm assets:lint`）。
+  2. **云端无法运行的物理硬件/实时/断网测试**：强依赖物理独显帧率、声卡时钟或真实离线环境的基准（`scene-performance`、`sd22-realtime`、`sd22-workflow`、`sim-audio`、`long-window.spec.ts`、`SIM_SOAK_SEC=600` 浸泡、以及目标机断网安装实测），仅在改了仿真调度/渲染管线、排查硬件相关问题或里程碑封板时在本地执行。
+  3. **极小范围定向排障（仅必要时）**：仅在定位无法直接从云端日志确认的根因、或用户明确要求时，才在本地运行单个关联单测/定向 E2E。
+- 本地运行构建、资产、音频、E2E 等重任务必须通过 `tools/run-exclusive.ts` 使用共享锁；不重叠运行，不擅自删锁，不杀其他会话的进程。
 - `pnpm build:app` 只编译，`pnpm build` 才生成 NSIS。
 
 ## Git

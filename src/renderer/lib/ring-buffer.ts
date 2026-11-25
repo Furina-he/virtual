@@ -5,6 +5,8 @@ export class RingBuffer {
   readonly data: Float32Array
   /** 已写入的总点数（单调递增），可用于判断是否有新数据 */
   written = 0
+  /** 最近一次在线参数变更（alter）时的写入位置；自动测量只取变更后的新采样，原始缓冲仍保留连续显示历史 */
+  boundary = 0
   /** 最新一点对应的仿真时间 */
   lastTime = 0
   dt = 0
@@ -15,6 +17,16 @@ export class RingBuffer {
 
   get length(): number {
     return Math.min(this.written, this.capacity)
+  }
+
+  /** 自最近一次在线参数变更边界起，当前缓冲内可用的有效新点数 */
+  get sinceBoundary(): number {
+    return Math.min(this.length, Math.max(0, this.written - this.boundary))
+  }
+
+  /** 标记在线参数变更边界，不清空缓冲内已保留的连续显示波形 */
+  markBoundary(): void {
+    this.boundary = this.written
   }
 
   /** 追加一段等间隔采样，t0 为 samples[0] 的时间 */
@@ -53,6 +65,7 @@ export class RingBuffer {
 
   clear(): void {
     this.written = 0
+    this.boundary = 0
     this.lastTime = 0
   }
 }

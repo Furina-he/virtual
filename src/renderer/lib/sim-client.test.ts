@@ -77,6 +77,15 @@ describe('SimClient session buffers', () => {
     f.port.deliver({ type: 'altered', simTime: 3.5, changes: [{ param: 'p_r', value: 1000 }] })
     expect(observation.snapshot().measurement).toBeNull()
     expect(f.client.buffer(id).length).toBe(1 << 18)
+    expect(f.client.buffer(id).sinceBoundary).toBe(0)
+    f.port.deliver({
+      type: 'chunk',
+      seq: 70,
+      t0: 3.5,
+      dt,
+      data: { [id]: Float32Array.from([1, 2, 3, 4]) },
+    })
+    expect(f.client.buffer(id).sinceBoundary).toBe(4)
     f.loaded()
     expect(observation.snapshot().measurement).toBeNull()
     expect(f.client.observation(id)).not.toBe(observation)

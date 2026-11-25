@@ -307,4 +307,61 @@ describe('示波器采集', () => {
     expect(unfrozen.measurements[0]?.vpp).toBeCloseTo(8, 1)
     expect(unfrozen.measurements[0]?.frequency).toBeCloseTo(2500, 0)
   })
+
+  it('在线参数 alter 后自动测量立即切至变更后采样，不混入环形缓冲内旧频率历史', () => {
+    live()
+    const raw = new RingBuffer(1 << 18)
+    const observed = new LongWindow()
+    const step = 0.0005
+    let time = 0
+    const pushFreq = (seconds: number, hz: number) => {
+      const count = Math.round(seconds / step)
+      const samples = Float32Array.from({ length: count }, (_, i) =>
+        Math.sin(2 * Math.PI * hz * (time + i * step)) >= 0 ? 3.4 : 0,
+      )
+      raw.push(samples, time, step)
+      observed.push(samples, time, step)
+      time += count * step
+    }
+
+    // 模拟 SD-21 初始 30 r/min (30 Hz) 持续 2 s，旧采样留在 65536 点自动测量窗口内
+    pushFreq(2.0, 30)
+    const before = acquireScope(
+      's',
+      scope,
+      { tdiv: 0.05 },
+      100,
+      () => raw,
+      () => observed,
+    )
+    expect(before.measurements[0]?.frequency).toBeGreaterThan(29.5)
+    expect(before.measurements[0]?.frequency).toBeLessThan(30.5)
+
+    // 在线 alter 切换至 60 r/min：清空观测窗并标记环形缓冲边界，但保留原始显示缓冲
+    observed.clear()
+    raw.markBoundary()
+    const cleared = acquireScope(
+      's',
+      scope,
+      { tdiv: 0.05 },
+      120,
+      () => raw,
+      () => observed,
+    )
+    expect(cleared.measurements[0]).toBeNull()
+    expect(raw.length).toBe(4000)
+
+    // 仅推进 0.2 s 的 60 Hz 新采样，自动测量应立即读出 ~60 Hz（而非与 2 s 旧 30 Hz 混算出的 ~33 Hz）
+    pushFreq(0.2, 60)
+    const after = acquireScope(
+      's',
+      scope,
+      { tdiv: 0.05 },
+      250,
+      () => raw,
+      () => observed,
+    )
+    expect(after.measurements[0]?.frequency).toBeGreaterThan(59)
+    expect(after.measurements[0]?.frequency).toBeLessThan(61)
+  })
 })

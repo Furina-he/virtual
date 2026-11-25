@@ -53,6 +53,7 @@ type Acquisition = {
   armedWritten: number
   captured: boolean
   measuredAt: number
+  boundaries: number[]
   scratch: Float32Array
   measureScratch: Float32Array
 }
@@ -101,6 +102,7 @@ export function acquireScope(
       armedWritten: 0,
       captured: false,
       measuredAt: Number.NEGATIVE_INFINITY,
+      boundaries: [],
       scratch: new Float32Array(0),
       measureScratch: new Float32Array(0),
     }
@@ -147,7 +149,8 @@ export function acquireScope(
     return acq.frame
   }
 
-  const key = JSON.stringify([settingsRecord, live])
+  const boundaries = channelBuffers.map((buffer) => buffer.boundary)
+  const key = JSON.stringify([settingsRecord, live, boundaries])
   if (reference.written === acq.written && key === acq.key) return acq.frame
   acq.written = reference.written
   acq.key = key
@@ -159,11 +162,19 @@ export function acquireScope(
   const pre = Math.round(triggerColumn(settings) * pointsPerDiv)
   const post = screenPoints - pre
 
-  // 自动测量：长记录、10 Hz 刷新
+  // 自动测量：长记录、10 Hz 刷新；在线 alter 后不混入旧参数采样
   let measurements = acq.frame.measurements
   let windows = acq.frame.windows
-  if (now - acq.measuredAt >= MEASURE_INTERVAL_MS || measurements.length !== settings.channels.length) {
+  const boundaryChanged =
+    acq.boundaries.length !== boundaries.length ||
+    boundaries.some((boundary, index) => boundary !== acq.boundaries[index])
+  if (
+    boundaryChanged ||
+    now - acq.measuredAt >= MEASURE_INTERVAL_MS ||
+    measurements.length !== settings.channels.length
+  ) {
     acq.measuredAt = now
+    acq.boundaries = boundaries
     if (acq.measureScratch.length < MEASURE_POINTS) acq.measureScratch = new Float32Array(MEASURE_POINTS)
     windows = []
     measurements = channelBuffers.map((buffer, index) => {
@@ -171,10 +182,10 @@ export function acquireScope(
         windows?.push(null)
         return null
       }
-      const raw = latest(buffer, acq.measureScratch, MEASURE_POINTS)
+      const raw = latest(buffer, acq.measureScratch, Math.min(MEASURE_POINTS, buffer.sinceBoundary))
       let measured = measureSignal(raw, dt)
       let window: WaveformWindow = {
-        start: buffer.lastTime - (raw.length - 1) * dt,
+        start: raw.length > 0 ? buffer.lastTime - (raw.length - 1) * dt : buffer.lastTime,
         end: buffer.lastTime,
         rawStep: dt,
         completeCycles: measured?.completeCycles ?? 0,
