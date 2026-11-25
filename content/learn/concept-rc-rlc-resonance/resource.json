@@ -1,0 +1,45 @@
+{
+  "id": "concept-rc-rlc-resonance",
+  "category": "concept",
+  "subcategory": "交流电路概念",
+  "title": "RC 选频网络与 RLC 串联谐振",
+  "subtitle": "一阶 RC 低通/高通/选频频率特性与 RLC 串联高 Q 谐振尖峰",
+  "summary": "揭示 RC 网络幅频/相频特性（−3 dB 截止频率与 ±45° 相移，DG-14）以及 RLC 串联电路在感抗等于容抗时阻抗最小、电流最大且产生 Q 倍过电压的谐振规律（DG-15）。",
+  "keywords": [
+    "RC选频",
+    "串联谐振",
+    "品质因数Q",
+    "截止频率",
+    "通频带",
+    "DG-14",
+    "DG-15"
+  ],
+  "relatedInstruments": [
+    "ins-func-gen",
+    "ins-oscilloscope",
+    "ins-ac-millivoltmeter"
+  ],
+  "relatedModules": [
+    "mod-rlc-transient"
+  ],
+  "specs": [
+    {
+      "label": "RC 截止频率",
+      "value": "f_c = 1 / (2πRC)（幅值 0.707，相移 ±45°）"
+    },
+    {
+      "label": "RLC 谐振频率",
+      "value": "f_0 = 1 / (2π√(LC))（X_L = X_C，Z = R）"
+    },
+    {
+      "label": "对应实训",
+      "value": "DG-14 / DG-15"
+    }
+  ],
+  "sections": {
+    "structure": "## 选频与谐振物理本质\n\n- **RC 选频网络（`DG-14`）**：低通滤波衰减高频、高通滤波衰减低频，RC 串并联网络（文氏网络）在 $f_0 = \\frac{1}{2\\pi R C}$ 处呈现零相移与最大传输比 $1/3$。\n- **RLC 串联谐振（`DG-15`）**：当 $2\\pi f_0 L = \\frac{1}{2\\pi f_0 C}$ 时电感与电容无功完全内部互换，总阻抗降至纯阻最小值 $R$，回路电流达峰值且电感/电容两端出现高达电源电压 $Q$ 倍的谐振过电压（故又称电压谐振）。",
+    "symbol": "## 谐振曲线与通频带标识\n\n- 通用谐振曲线 $I(f)$ 以 $f_0$ 为中心呈峰状，电流降至 $0.707 I_0$ 时的上下半功率点频率之差 $BW = f_2 - f_1$ 称为通频带。",
+    "parameters": "## 品质因数 Q 与带宽公式\n\n- $$Q = \\frac{1}{R}\\sqrt{\\frac{L}{C}} = \\frac{\\omega_0 L}{R} = \\frac{U_{L0}}{U_S}, \\quad BW = \\frac{f_0}{Q}$$\n- 增大回路串联电阻 $R$ 会降低 $Q$ 值，使谐振峰变矮、变宽、选择性变差。",
+    "troubleshooting": "## 实验扫描排查要点\n\n1. 测绘谐振曲线时须保持函数信号发生器输出端电压恒定（因谐振点负载阻抗最低，信号源 50 Ω 内阻会拉低端电压，必须以实际端电压为准）。\n2. 实测 $Q$ 值通常略低于纯 $L/C/R$ 理论值，需计入电感线圈自身直流内阻 $R_L$。"
+  }
+}

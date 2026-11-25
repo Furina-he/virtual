@@ -1,0 +1,49 @@
+{
+  "id": "concept-ac-phasor-impedance",
+  "category": "concept",
+  "subcategory": "交流电路概念",
+  "title": "正弦交流相量、复阻抗与 RLC 交流特性",
+  "subtitle": "相量法分析 R/L/C 交流相位差、阻抗三角形与三表法测量",
+  "summary": "用复数相量把正弦稳态微分方程化为代数运算，清晰刻画电阻同相、电感电压超前电流 90°、电容电流超前电压 90° 的核心规律（DG-10 / DG-11 / DG-13）。",
+  "keywords": [
+    "相量法",
+    "复阻抗",
+    "感抗",
+    "容抗",
+    "相位差",
+    "交流元件",
+    "DG-10",
+    "DG-11",
+    "DG-13"
+  ],
+  "relatedInstruments": [
+    "ins-ac-voltmeter",
+    "ins-ac-ammeter",
+    "ins-oscilloscope"
+  ],
+  "relatedModules": [
+    "mod-ac-fluorescent",
+    "mod-phase-dimmer",
+    "mod-rlc-transient"
+  ],
+  "specs": [
+    {
+      "label": "复阻抗",
+      "value": "Z = R + j(ωL − 1/(ωC))"
+    },
+    {
+      "label": "相角关系",
+      "value": "电感电压超前 90° · 电容电流超前 90°"
+    },
+    {
+      "label": "对应实训",
+      "value": "DG-10 / DG-11 / DG-13"
+    }
+  ],
+  "sections": {
+    "structure": "## 正弦稳态相量本质\n\n- 同频率正弦量可一一映射为复平面相量，基尔霍夫定律与欧姆定律在相量域依然成立：$\\dot{U} = Z \\dot{I}$。\n- 串联交流支路中，各元件有效值电压满足**矢量三角形**关系 $U = \\sqrt{U_R^2 + (U_L - U_C)^2}$，因此实验中常出现 $U_R + U_L > U$ 或谐振时 $U_L, U_C \\gg U$ 的奇妙现象（`DG-13`、`DG-15`）。",
+    "symbol": "## 复阻抗与相量图约定\n\n- 感性支路阻抗角 $\\varphi > 0$（电压超前电流）；容性支路 $\\varphi < 0$（电流超前电压）；纯阻性 $\\varphi = 0$。",
+    "parameters": "## 关键计算公式\n\n- 阻抗模与相角：$|Z| = \\sqrt{R^2 + (X_L - X_C)^2}$，$\\varphi = \\arctan\\frac{X_L - X_C}{R}$。\n- 示波器双通道测相位差：测出同频两波形过零时间差 $\\Delta t$ 与周期 $T$，得 $\\varphi = \\frac{\\Delta t}{T} \\times 360^\\circ$（或用 X-Y 李萨如椭圆 $\\sin|\\varphi| = y_0 / y_m$）。",
+    "troubleshooting": "## 交流测量排查要点\n\n1. 用示波器双通道测串联元件相位差时，必须把两通道共用 `GND` 夹在两元件公共节点（必要时启用 CH2 反相），严禁造成短接。\n2. 晶闸管移相调光（`DG-11`）为非正弦斩波，须用真有效值仪表读数。"
+  }
+}

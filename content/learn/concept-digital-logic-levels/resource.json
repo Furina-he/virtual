@@ -1,0 +1,45 @@
+{
+  "id": "concept-digital-logic-levels",
+  "category": "concept",
+  "subcategory": "数字逻辑基础",
+  "title": "TTL 与 CMOS 逻辑电平、噪声容限与真值表",
+  "subtitle": "数字电路高低电平规范、扇出系数、电平指示与逻辑代数化简",
+  "summary": "明确 74LS（TTL）与 4000 系列（CMOS）高低电平电压阈值、噪声容限、输入悬空行为差异及布尔代数德摩根定律与真值表验证方法（SD-01）。",
+  "keywords": [
+    "TTL电平",
+    "CMOS电平",
+    "噪声容限",
+    "真值表",
+    "布尔代数",
+    "德摩根定律",
+    "SD-01"
+  ],
+  "relatedInstruments": [
+    "ins-dc-power",
+    "ins-dc-voltmeter",
+    "ins-multimeter"
+  ],
+  "relatedModules": [
+    "mod-dig-gates"
+  ],
+  "specs": [
+    {
+      "label": "74LS TTL (5 V)",
+      "value": "VOH ≈ 3.4 V · VOL ≤ 0.4 V · VIH ≥ 2.0 V · VIL ≤ 0.8 V"
+    },
+    {
+      "label": "CMOS (VDD)",
+      "value": "VOH ≈ VDD · VOL ≈ 0 V · 翻转阈值 ≈ VDD / 2"
+    },
+    {
+      "label": "对应实训",
+      "value": "SD-01"
+    }
+  ],
+  "sections": {
+    "structure": "## TTL 与 CMOS 电气规范对比\n\n- **噪声容限**：输出保证电平与输入识别门槛之间的安全余量（TTL 低电平容限 $0.4\\ \\text{V}$、高电平容限 $\\ge 0.7\\ \\text{V}$；CMOS 对称噪声容限可达 $30\\% V_{DD}$）。\n- **悬空引脚差异**：TTL 输入悬空相当于接高电平 `1`（易引入干扰仍须接确定电平），而 **CMOS 输入悬空严禁出现**（栅极感应电荷可能导致上下管同时微导通发烫甚至逻辑随机翻转）。",
+    "symbol": "## 逻辑电平指示双编码规范（NFR-08）\n\n- 实训挂箱每路逻辑电平指示灯均同步呈现状态色与 `H / L` 文字标识，信息不单一依赖颜色，兼顾色觉无障碍与教学精准读取。",
+    "parameters": "## 德摩根定律与完备门变换\n\n- $\\overline{A \\cdot B} = \\bar{A} + \\bar{B}$，$\\overline{A + B} = \\bar{A} \\cdot \\bar{B}$。\n- 仅用与非门（74LS00）或仅用或非门（74LS02）均可变换实现与、或、非、异或等全部组合逻辑功能。",
+    "troubleshooting": "## 逻辑门实训排查要点\n\n1. 测得输出停留在 `1.2~1.8 V` 中间不确定区，多为两路输出端误短接发生总线冲突或芯片未接 `GND`。\n2. TTL 直接驱动 CMOS 时因 $V_{OH} \\approx 3.4\\ \\text{V}$ 接近 5 V CMOS 门槛，建议在接口加 $2.2\\ \\text{k}\\Omega$ 上拉电阻提升高电平裕量。"
+  }
+}

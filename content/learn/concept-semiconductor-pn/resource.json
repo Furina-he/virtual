@@ -1,0 +1,48 @@
+{
+  "id": "concept-semiconductor-pn",
+  "category": "concept",
+  "subcategory": "半导体基础",
+  "title": "PN 结单向导电、三极管与场效应管特性曲线",
+  "subtitle": "二极管伏安非线性、BJT 电流控制与 JFET/MOSFET 电压控制对比",
+  "summary": "系统对比硅/锗 PN 结导通与齐纳击穿、双极型三极管输出/转移特性曲线，以及结型/绝缘栅场效应管平方律转移特性与夹断/开启阈值（MD-01 / MD-02）。",
+  "keywords": [
+    "PN结",
+    "二极管特性",
+    "三极管特性曲线",
+    "场效应管",
+    "夹断电压",
+    "开启电压",
+    "MD-01",
+    "MD-02"
+  ],
+  "relatedInstruments": [
+    "ins-dc-power",
+    "ins-dc-voltmeter",
+    "ins-dc-ammeter",
+    "ins-multimeter"
+  ],
+  "relatedModules": [
+    "mod-analog-base",
+    "mod-analog-amp"
+  ],
+  "specs": [
+    {
+      "label": "BJT 本质",
+      "value": "电流控制电流源（CCCS）：IC = β · IB"
+    },
+    {
+      "label": "FET 本质",
+      "value": "电压控制电流源（VCCS）：ID = f(UGS)"
+    },
+    {
+      "label": "对应实训",
+      "value": "MD-01 / MD-02"
+    }
+  ],
+  "sections": {
+    "structure": "## 半导体有源器件物理机制对比\n\n- **PN 结（`MD-01`）**：正偏导通压降约 $0.6 \\sim 0.7\\ \\text{V}$（硅管）、反偏截止直至达到齐纳/雪崩击穿电压 $U_Z$，反向并联两只开关管构成对称双向限幅器。\n- **BJT vs FET（`MD-02`）**：三极管靠基极少数载流子注入控制集电极电流（需输入偏置电流、输入电阻千欧级）；场效应管靠栅极电场调制多子导电沟道（输入阻抗极高、热稳定性好）。",
+    "symbol": "## 曲线分区识别（截止 / 放大 / 饱和）\n\n- BJT 输出特性曲线族 $I_C(U_{CE})|_{I_B}$ 分为截止区（$I_B \\le 0$）、线性放大区（水平恒流段）与饱和区（$U_{CE} < 0.3\\ \\text{V}$）。\n- JFET 需反偏栅压 $U_P < U_{GS} \\le 0$，增强型 NMOS 需正栅压 $U_{GS} > U_{th}$ 导通。",
+    "parameters": "## 核心特性方程\n\n- BJT 放大区：$I_C = \\beta I_B$；JFET 恒流区：$I_D = I_{DSS}(1 - U_{GS}/U_P)^2$；增强型 NMOS 饱和区：$I_D = K_n (U_{GS} - U_{th})^2$。",
+    "troubleshooting": "## 曲线测绘注意事项\n\n1. 测绘三极管与稳压管特性时务必串入限流保护电阻并控制 $I_C \\cdot U_{CE} < P_{CM}$，严防过载烧管。\n2. 测 JFET 务必保证栅源反偏，切勿施加正向高压击穿栅结。"
+  }
+}

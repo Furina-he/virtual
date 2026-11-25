@@ -1,0 +1,44 @@
+{
+  "id": "cmp-cbb-cap",
+  "category": "component",
+  "subcategory": "电容类",
+  "title": "CBB 电容（聚丙烯薄膜电容）",
+  "subtitle": "低损耗高稳定度交流移相、谐振与文氏桥选频电容",
+  "summary": "以无极性聚丙烯薄膜（PP）为介质，介质损耗极低、绝缘电阻极高、频率与温度稳定性优异，是交流功率因数补偿、谐振回路与精密振荡的首选电容。",
+  "keywords": [
+    "CBB电容",
+    "CBB22",
+    "聚丙烯电容",
+    "功率因数补偿",
+    "谐振电容",
+    "DG-12",
+    "MD-19"
+  ],
+  "model": "models/components/cmp-capacitor-ceramic.glb",
+  "relatedModules": [
+    "mod-ac-fluorescent",
+    "mod-rlc-transient",
+    "mod-opamp",
+    "mod-phase-dimmer"
+  ],
+  "specs": [
+    {
+      "label": "常见型号",
+      "value": "CBB21 / CBB22（红棕色） / CBB61（交流补偿）"
+    },
+    {
+      "label": "介质损耗 tanδ",
+      "value": "≤ 0.001（极低）"
+    },
+    {
+      "label": "常见耐压",
+      "value": "100 V ~ 630 V DC / 450 V AC"
+    }
+  ],
+  "sections": {
+    "structure": "## 内部结构与特性描述\n\n- 采用金属化聚丙烯薄膜无感卷绕并喷金焊接引线，兼具低损耗、负微温漂、强抗脉冲电流与优良自愈能力。\n- 在交流电路（如 `DG-12` 日光灯功率因数补偿、`DG-15` RLC 串联谐振）中无极性耐交流冲击；在 `MD-19` 文氏桥振荡器中保证选频频率稳定。\n- **安装说明**：交流 220 V 回路必须选用标称交流耐压（如 `450 V AC`）且有安全认证的型号，严禁用直流 250 V 档冒充。",
+    "symbol": "## 电路符号与标称识别\n\n- 电路符号为普通无极性电容（位号 `C`）。\n- 印字如 `CBB22 474J 400V` 表示金属化聚丙烯电容、$0.47\\ \\mu\\text{F}$、±5%、直流耐压 400 V。",
+    "parameters": "## 参数计算与无功补偿\n\n- 并联电容提高功率因数公式：\n  $$C = \\frac{P (\\tan\\varphi_1 - \\tan\\varphi_2)}{\\omega U^2}$$\n- RLC 谐振频率：$f_0 = \\frac{1}{2\\pi\\sqrt{LC}}$，CBB 极低 $\\tan\\delta$ 保证高 $Q$ 值尖锐谐振峰。",
+    "troubleshooting": "## 万用表检测与常见故障\n\n- **检测方法**：断电并对电容两脚短接彻底**放电**后，用万用表电容档直测容量。\n- **常见故障**：长期在 220 V 交流下多次微自愈导致有效极板面积缩小、**容量缓慢衰减**（如 4.7 µF 降至 2 µF 使电机/灯具补偿不足）。"
+  }
+}

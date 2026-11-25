@@ -92,9 +92,14 @@ describe('函数信号发生器模型（INS-08）', () => {
     expect(signalSettingValid(scope, 'out_wave', 4)).toBe(false)
   })
 
-  it('最短输出周期决定仿真步长；输出关闭不计入', () => {
+  it('最短输出周期决定仿真步长；输出关闭或未接线不计入', () => {
     expect(shortestActivePeriod(gen, { ch1_freq: 1000, ch2_freq: 5000 })).toBeCloseTo(2e-4, 12)
     expect(shortestActivePeriod(gen, { ch1_freq: 1000, ch2_freq: 5000, ch2_on: 0 })).toBeCloseTo(1e-3, 12)
+    expect(shortestActivePeriod(gen, { ch1_freq: 1000, ch2_freq: 5000 }, new Set(['CH1', 'GND']))).toBeCloseTo(1e-3, 12)
+    expect(shortestActivePeriod(scope, {}, new Set(['CH1', 'GND']))).toBeUndefined()
+    expect(shortestActivePeriod(scope, {}, new Set(['OUT', 'GND']))).toBeCloseTo(1e-3, 12)
+    expect(signalSourceTemplate(scope, {}, new Set(['CH1', 'GND']))).toBe('')
+    expect(signalSourceTemplate(scope, {}, new Set(['OUT', 'GND']))).toContain('Vsig_out_{X}')
     expect(shortestActivePeriod(gen, { passive: true })).toBeUndefined()
   })
 

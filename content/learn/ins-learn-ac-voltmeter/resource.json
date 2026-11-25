@@ -1,0 +1,47 @@
+{
+  "id": "ins-learn-ac-voltmeter",
+  "category": "instrument-tool",
+  "subcategory": "测量仪表",
+  "title": "交流数字电压表（真有效值）",
+  "subtitle": "控制屏固定真有效值（True-RMS）工频交流电压测量仪表",
+  "summary": "对交流周期信号执行均方根（True-RMS）采样运算，无论正弦波还是晶闸管移相斩波非正弦交流电压均能给出准确有效值读数（DG-10~18）。",
+  "keywords": [
+    "交流电压表",
+    "真有效值",
+    "True-RMS",
+    "工频交流",
+    "INS-05",
+    "DG-11",
+    "DG-16"
+  ],
+  "model": "instruments/ins-ac-voltmeter/instrument.glb",
+  "relatedInstruments": [
+    "ins-ac-voltmeter"
+  ],
+  "relatedModules": [
+    "mod-ac-fluorescent",
+    "mod-phase-dimmer",
+    "mod-3ph-lamp",
+    "mod-transformer"
+  ],
+  "specs": [
+    {
+      "label": "测量体制",
+      "value": "真有效值 True-RMS（适用非正弦斩波）"
+    },
+    {
+      "label": "常见量程",
+      "value": "20 V / 200 V / 500 V AC"
+    },
+    {
+      "label": "输入阻抗",
+      "value": "高阻并联测量，无正负极之分"
+    }
+  ],
+  "sections": {
+    "structure": "## 真有效值采样原理\n\n- 区别于仅按正弦波峰值折算的简易平均值表，真有效值表直接按定义对完整交流周期求均方根值，因此在 `DG-11` 晶闸管移相调光斩波波形下同样保持准确。",
+    "symbol": "## 符号与接法\n\n- 电路符号为圆圈内字母 `V` 下加交流波浪线 `~`；并联接入待测交流节点两端，两插孔无正负极性要求。",
+    "parameters": "## 有效值与峰值换算\n\n- 真有效值定义：$U_{\\text{rms}} = \\sqrt{\\frac{1}{T}\\int_0^T u^2(t)\\,\\text{d}t}$；纯正弦波下 $U_{\\text{rms}} = \\frac{U_m}{\\sqrt{2}} = \\frac{U_{\\text{pp}}}{2\\sqrt{2}}$。",
+    "troubleshooting": "## 常见误区排查\n\n1. **RLC 串联分压和大于总电压**：交流电压为相量叠加，电感电压与电容电压相位相反，算术相加必然大于总源电压，切勿误判表坏。\n2. **读数需等待 1~2 个完整工频周期稳定**。"
+  }
+}

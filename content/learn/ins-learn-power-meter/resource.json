@@ -1,0 +1,48 @@
+{
+  "id": "ins-learn-power-meter",
+  "category": "instrument-tool",
+  "subcategory": "测量仪表",
+  "title": "智能数字功率表（含 cosφ）",
+  "subtitle": "同步采样电压电流计算 P / Q / S / cosφ 的四端交流功率仪",
+  "summary": "同时接入电压并联通道（U+/U−）与电流串联通道（I+/I−），实时计算有功功率 P、无功功率 Q、视在功率 S、功率因数 cosφ 及负载感容性质（DG-12 / DG-17）。",
+  "keywords": [
+    "功率表",
+    "功率因数",
+    "cosφ",
+    "有功功率",
+    "无功功率",
+    "二瓦计法",
+    "INS-12",
+    "DG-12",
+    "DG-17"
+  ],
+  "model": "instruments/ins-power-meter/instrument.glb",
+  "relatedInstruments": [
+    "ins-power-meter"
+  ],
+  "relatedModules": [
+    "mod-ac-fluorescent",
+    "mod-3ph-lamp",
+    "mod-transformer"
+  ],
+  "specs": [
+    {
+      "label": "四端接线",
+      "value": "电流口 I+/I− 串联 · 电压口 U+/U− 并联（注意同名端 *）"
+    },
+    {
+      "label": "同步参数",
+      "value": "有功 P (W) · 无功 Q (var) · 视在 S (VA) · cosφ"
+    },
+    {
+      "label": "性质判别",
+      "value": "自动识别感性（滞后）/ 容性（超前）/ 阻性"
+    }
+  ],
+  "sections": {
+    "structure": "## 功率同步采样与同名端原则\n\n- 内部高速同步采集电压 $u(t)$ 与电流 $i(t)$ 并求一周期瞬时功率均值 $P = \\frac{1}{T}\\int_0^T u(t)i(t)\\,\\text{d}t$。\n- 须遵守**“发电机端（同名端 *）相连”原则**：电流进端 `I+` 与电压正端 `U+` 共接电源同侧，确保有功功率读数符号正确。",
+    "symbol": "## 电路符号与四端接线规范\n\n- 原理图中功率表（位号 `W` / `P`）包含粗线电流线圈与细线电压线圈，各标 `*` 同名端。\n- 面板四孔：`I+ / I−` 串联在主回路中，`U+ / U−` 并联在被测负载两端。",
+    "parameters": "## 功率三角形与二瓦计法\n\n- 功率关系：$S = U I = \\sqrt{P^2 + Q^2}$，$\\cos\\varphi = P / S$。\n- **三相三线二瓦计法（`DG-17`）**：两台功率表读数代数和 $P_{\\text{总}} = P_1 + P_2$ 恒等于三相总有功功率（不论负载是否对称；当 $\\varphi > 60^\\circ$ 时其中一表读数为负，须保留负号相加）。",
+    "troubleshooting": "## 接线错误与异常处理\n\n1. **读数为负值**：优先检查 `I+/I−` 或 `U+/U−` 是否单侧反接（在二瓦计法强感性角 $>60^\\circ$ 时读数为负属正常物理现象）。\n2. **功率读数为 0**：确认电压并联线与电流串联线均已同时可靠接入。"
+  }
+}

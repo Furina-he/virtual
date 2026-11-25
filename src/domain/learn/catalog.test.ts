@@ -75,4 +75,71 @@ describe('T1.9 LRN-01~LRN-08 五类学习资源分类树、全文检索与四项
     expect(ampRes).toBeDefined()
     expect(ampRes?.relatedModules).toContain('mod-analog-amp')
   })
+
+  it('M2 LRN 验收：90 个元器件（★ ≥80 且十类齐全）、38 款芯片、12 仪表 + 5 工具，且覆盖全部 61 项目与 33 模块', () => {
+    const components = resources.filter((item) => item.category === 'component')
+    const ics = resources.filter((item) => item.category === 'ic')
+    const instrumentsAndTools = resources.filter((item) => item.category === 'instrument-tool')
+    const principles = resources.filter((item) => item.category === 'concept' || item.category === 'theory')
+
+    // PRD 5.2.1(2)1) ★ ≥80 元器件 & §8.1 精确 90 个十类齐全
+    expect(components.length).toBe(90)
+    const compSubs = new Map<string, number>()
+    for (const c of components) compSubs.set(c.subcategory, (compSubs.get(c.subcategory) ?? 0) + 1)
+    expect(Object.fromEntries(compSubs)).toEqual({
+      电阻类: 14,
+      电容类: 10,
+      电感与磁性元件: 10,
+      二极管类: 11,
+      '三极管、场效应管、晶闸管': 10,
+      光电与显示: 5,
+      电声器件: 5,
+      '开关、继电器与保护': 10,
+      传感器: 7,
+      其他: 8,
+    })
+
+    // PRD §8.2 精确 38 款常用集成电路（全部含 Markdown 功能表）
+    expect(ics.length).toBe(38)
+    for (const ic of ics) {
+      expect(ic.model, `${ic.id} 须配置 3D 封装模型`).toBeDefined()
+    }
+
+    // PRD LRN-07 & LRN-08：全部 12 台实训台仪表均支持精准一键直跳 + 5 件常用电工工具
+    const allInstrumentIds = readdirSync(resolve('content/instruments'), { withFileTypes: true })
+      .filter((entry) => entry.isDirectory())
+      .map((entry) => entry.name)
+    expect(allInstrumentIds.length).toBe(12)
+    for (const insId of allInstrumentIds) {
+      const hit = findLearnResourceForBenchTarget(resources, { instrumentId: insId })
+      expect(hit?.category, `${insId} 跳转应优先落至仪表资料`).toBe('instrument-tool')
+      expect(hit?.relatedInstruments).toContain(insId)
+    }
+    const tools = instrumentsAndTools.filter((item) => item.subcategory === '常用电工工具')
+    expect(tools.length).toBe(5)
+
+    // PRD Q9：全部 61 个正式项目均有 ≥1 份基本概念/基础理论原理条目关联
+    const allProjects = readdirSync(resolve('content/projects'), { withFileTypes: true })
+      .filter((entry) => entry.isDirectory())
+      .map((entry) => entry.name)
+    expect(allProjects.length).toBe(61)
+    for (const pid of allProjects) {
+      const covered = principles.some(
+        (item) =>
+          item.keywords.includes(pid) ||
+          item.summary.includes(pid) ||
+          Object.values(item.sections).some((text) => text.includes(pid)),
+      )
+      expect(covered, `正式项目 ${pid} 至少关联 1 份原理知识点`).toBe(true)
+    }
+
+    // PRD LRN-08：全部 33 块挂箱/实验板模块均有关联学习资料
+    const allModules = readdirSync(resolve('content/modules'), { withFileTypes: true })
+      .filter((entry) => entry.isDirectory())
+      .map((entry) => entry.name)
+    for (const modId of allModules) {
+      const hit = findLearnResourceForBenchTarget(resources, { moduleId: modId })
+      expect(hit?.relatedModules, `模块 ${modId} 应存在关联学习条目`).toContain(modId)
+    }
+  })
 })

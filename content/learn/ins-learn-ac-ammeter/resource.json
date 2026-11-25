@@ -1,0 +1,46 @@
+{
+  "id": "ins-learn-ac-ammeter",
+  "category": "instrument-tool",
+  "subcategory": "测量仪表",
+  "title": "交流数字电流表（真有效值）",
+  "subtitle": "控制屏固定真有效值多量程交流电流测量仪表",
+  "summary": "串联于交流支路测量工频及音频交流电流真有效值，是三表法测阻抗、日光灯功率因数补偿及三相电路线/相电流测量的必备仪表（DG-10~18）。",
+  "keywords": [
+    "交流电流表",
+    "True-RMS",
+    "三表法",
+    "线电流",
+    "INS-05",
+    "DG-12",
+    "DG-16"
+  ],
+  "model": "instruments/ins-ac-ammeter/instrument.glb",
+  "relatedInstruments": [
+    "ins-ac-ammeter"
+  ],
+  "relatedModules": [
+    "mod-ac-fluorescent",
+    "mod-3ph-lamp",
+    "mod-transformer"
+  ],
+  "specs": [
+    {
+      "label": "测量体制",
+      "value": "真有效值 True-RMS 串联采样"
+    },
+    {
+      "label": "常见量程",
+      "value": "200 mA / 2 A / 5 A AC"
+    },
+    {
+      "label": "安全规范",
+      "value": "严禁并联接在交流电源或负载两端"
+    }
+  ],
+  "sections": {
+    "structure": "## 交流串联采样原理\n\n- 通过低感精密分流电阻采集交流瞬时电流波形并做均方根积分，与交流电压表、功率表合称交流“三表法”核心测量组合。",
+    "symbol": "## 符号与串联接法\n\n- 电路符号为圆圈内 `A` 下加波浪线 `~`，串联在待测交流回路中，无极性限制。",
+    "parameters": "## 三表法求阻抗参数\n\n- 由交流电压 $U$、交流电流 $I$ 与有功功率 $P$ 可完整反推出元件等效阻抗模 $|Z| = U / I$、等效电阻 $R = P / I^2$ 与电抗 $|X| = \\sqrt{|Z|^2 - R^2}$。",
+    "troubleshooting": "## 安全与排查要点\n\n1. **严禁并联电源**：交流电流表低阻并联 220 V 会立即触发过流保护跳闸。\n2. **功率因数补偿验证**：`DG-12` 中并联恰当电容后，灯管支路电流不变，但**总线路电流显著下降**。"
+  }
+}

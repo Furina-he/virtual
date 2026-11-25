@@ -181,4 +181,31 @@ describe('measurement plan', () => {
       expect(plan.command.probes.find((probe) => probe.id === unwiredSupply.voltageProbe)).toBeUndefined()
     }
   })
+
+  it('ignores an unwired oscilloscope built-in OUT source when stamping netlist and choosing tran step', () => {
+    const scope = load('ins-oscilloscope')
+    const learner: AssembleInput = {
+      title: 'Scope without OUT wired',
+      modules: [],
+      instruments: [
+        { instanceId: 'source', instrument: ps, settings: { ch1_v: 5 } },
+        { instanceId: 'scope1', instrument: scope, settings: { tdiv: 0.0005 } },
+      ],
+      wires: [
+        { a: 'scope1.CH1', b: 'source.CH1P' },
+        { a: 'scope1.GND', b: 'source.CH1N' },
+      ],
+      ground: 'source.CH1N',
+      controlValues: {},
+      analysis: [],
+    }
+    const unwired = buildMeasurementPlan(learner, true, 'no-out')
+    expect(unwired.assembled.netlist).not.toContain('Vsig_out_')
+    expect(unwired.command.analysis).toEqual({ kind: 'tran', step: 5e-6, continuous: true })
+
+    learner.wires.push({ a: 'scope1.OUT', b: 'scope1.CH2' })
+    const wired = buildMeasurementPlan(learner, true, 'with-out')
+    expect(wired.assembled.netlist).toContain('Vsig_out_')
+    expect(wired.command.analysis).toEqual({ kind: 'tran', step: 1e-6, continuous: true })
+  })
 })

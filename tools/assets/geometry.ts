@@ -532,15 +532,141 @@ function addComponent(batch: MeshBatch, style: ComponentStyle): void {
       for (const x of [-0.004, 0, 0.004]) batch.box([0.001, 0.005, 0.0005], [x, 0.0025, 0], colors.brass, 'metal')
       break
     case 'dip8':
-      batch.add(roundedBox(0.0105, 0.0032, 0.0066, 0.0006), colors.dark, [0, 0.0044, 0])
-      for (const x of [-0.00381, -0.00127, 0.00127, 0.00381]) {
+    case 'dip14':
+    case 'dip16': {
+      const pairs = style === 'dip8' ? 4 : style === 'dip14' ? 7 : 8
+      const pitch = 0.00254
+      const bodyLen = pairs * pitch + 0.0004
+      batch.add(roundedBox(bodyLen, 0.0032, 0.0066, 0.0006), colors.dark, [0, 0.0044, 0])
+      for (let i = 0; i < pairs; i++) {
+        const x = (i - (pairs - 1) / 2) * pitch
         for (const sign of [-1, 1]) {
           batch.rod([x, 0, sign * 0.0048], [x, 0.002, sign * 0.0048], 0.00023)
           batch.rod([x, 0.002, sign * 0.0048], [x, 0.0036, sign * 0.0031], 0.00023)
         }
       }
-      batch.add(new THREE.CircleGeometry(0.0005, 8), colors.paint, [-0.0037, 0.00605, 0.002], [-Math.PI / 2, 0, 0])
-      batch.box([0.0005, 0.0001, 0.002], [-0.005, 0.00605, 0], colors.rubber)
+      batch.add(
+        new THREE.CircleGeometry(0.0005, 8),
+        colors.paint,
+        [-bodyLen / 2 + 0.0015, 0.00605, 0.002],
+        [-Math.PI / 2, 0, 0],
+      )
+      batch.box([0.0006, 0.00012, 0.0022], [-bodyLen / 2 + 0.0003, 0.00605, 0], colors.rubber)
+      break
+    }
+    case 'to220':
+      batch.box([0.01, 0.009, 0.0044], [0, 0.0145, 0], colors.dark)
+      batch.box([0.01, 0.0064, 0.0014], [0, 0.0222, -0.0015], colors.metal, 'metal')
+      batch.cylinder(0.0018, 0.0015, [0, 0.0228, -0.0015], colors.dark, frontRotation)
+      for (const x of [-0.00254, 0, 0.00254]) {
+        batch.box([0.0008, 0.01, 0.0005], [x, 0.005, 0], colors.metal, 'metal')
+      }
+      break
+    case 'inductor':
+      batch.cylinder(0.0058, 0.002, [0, 0.013, 0], colors.dark, [0, 0, 0], 'paint', 12)
+      batch.cylinder(0.0058, 0.002, [0, 0.005, 0], colors.dark, [0, 0, 0], 'paint', 12)
+      batch.cylinder(0.0049, 0.0065, [0, 0.009, 0], colors.brass, [0, 0, 0], 'metal', 14)
+      for (let i = 0; i < 4; i++) {
+        batch.cylinder(0.0052, 0.0006, [0, 0.0068 + i * 0.0015, 0], 'hsl(28, 66%, 42%)', [0, 0, 0], 'metal', 12)
+      }
+      for (const x of [-0.0025, 0.0025]) batch.rod([x, 0, 0], [x, 0.0042, 0], 0.00035)
+      break
+    case 'transformer':
+      batch.box([0.042, 0.032, 0.018], [0, 0.02, 0], colors.frame, 'metal')
+      batch.box([0.022, 0.026, 0.028], [0, 0.02, 0], colors.brass, 'metal')
+      batch.box([0.024, 0.003, 0.03], [0, 0.031, 0], colors.dark)
+      batch.box([0.024, 0.003, 0.03], [0, 0.009, 0], colors.dark)
+      batch.box([0.046, 0.0025, 0.022], [0, 0.005, 0], colors.metal, 'metal')
+      for (const x of [-0.012, -0.004, 0.004, 0.012]) {
+        batch.box([0.0012, 0.005, 0.0008], [x, 0.0025, 0.008], colors.brass, 'metal')
+      }
+      break
+    case 'relay':
+      batch.add(roundedBox(0.019, 0.0155, 0.0155, 0.001), colors.blue, [0, 0.01175, 0])
+      batch.box([0.018, 0.0006, 0.0145], [0, 0.0042, 0], colors.dark)
+      for (const [x, z] of [
+        [-0.006, -0.0045],
+        [-0.006, 0.0045],
+        [-0.006, 0],
+        [0.006, -0.0045],
+        [0.006, 0.0045],
+      ] as const) {
+        batch.box([0.0009, 0.004, 0.0006], [x, 0.002, z], colors.brass, 'metal')
+      }
+      break
+    case 'segment7':
+      batch.box([0.0126, 0.019, 0.008], [0, 0.0135, 0], colors.dark)
+      batch.box([0.0116, 0.018, 0.0005], [0, 0.0135, 0.0041], colors.rubber)
+      for (const y of [0.0195, 0.0135, 0.0075]) batch.box([0.0056, 0.0011, 0.0003], [-0.0006, y, 0.0044], colors.red)
+      for (const [x, y] of [
+        [-0.0036, 0.0165],
+        [0.0024, 0.0165],
+        [-0.0036, 0.0105],
+        [0.0024, 0.0105],
+      ] as const) {
+        batch.box([0.0011, 0.005, 0.0003], [x, y, 0.0044], colors.red)
+      }
+      batch.cylinder(0.0007, 0.0003, [0.0042, 0.0072, 0.0044], colors.red, frontRotation)
+      for (let i = 0; i < 5; i++) {
+        const x = (i - 2) * 0.00254
+        for (const z of [-0.003, 0.003]) batch.rod([x, 0, z], [x, 0.004, z], 0.00025)
+      }
+      break
+    case 'speaker':
+      batch.cylinder(0.012, 0.008, [0, 0.004, 0], colors.metal, [0, 0, 0], 'metal', 16)
+      batch.cylinder(0.019, 0.01, [0, 0.012, 0], colors.dark, [0, 0, 0], 'paint', 16)
+      batch.cylinder(0.0175, 0.002, [0, 0.0175, 0], colors.rubber, [0, 0, 0], 'paint', 16)
+      batch.cylinder(0.0055, 0.0025, [0, 0.018, 0], colors.frame, [0, 0, 0], 'paint', 12)
+      for (const x of [-0.006, 0.006]) batch.box([0.002, 0.005, 0.0006], [x, 0.003, 0.013], colors.brass, 'metal')
+      break
+    case 'motor':
+      batch.cylinder(0.018, 0.042, [0, 0.018, -0.004], colors.metal, frontRotation, 'metal', 16)
+      batch.cylinder(0.017, 0.006, [0, 0.018, -0.028], colors.dark, frontRotation, 'paint', 16)
+      batch.cylinder(0.007, 0.005, [0, 0.018, 0.019], colors.frame, frontRotation, 'metal', 12)
+      batch.cylinder(0.0025, 0.014, [0, 0.018, 0.028], colors.metal, frontRotation, 'metal', 10)
+      for (const x of [-0.006, 0.006]) batch.box([0.0025, 0.006, 0.0008], [x, 0.018, -0.032], colors.brass, 'metal')
+      break
+    case 'crystal':
+      batch.add(roundedBox(0.011, 0.011, 0.0045, 0.002), colors.metal, [0, 0.011, 0], [0, 0, 0], 'metal')
+      batch.box([0.0118, 0.0014, 0.005], [0, 0.0055, 0], colors.frame, 'metal')
+      for (const x of [-0.0024, 0.0024]) batch.rod([x, 0, 0], [x, 0.005, 0], 0.00025)
+      break
+    case 'screwdriver':
+      batch.cylinder(0.013, 0.088, [0, 0.014, -0.05], colors.red, frontRotation, 'paint', 12)
+      batch.cylinder(0.0145, 0.01, [0, 0.014, -0.002], colors.yellow, frontRotation, 'paint', 12)
+      batch.cylinder(0.0025, 0.085, [0, 0.014, 0.044], colors.metal, frontRotation, 'metal', 10)
+      batch.box([0.006, 0.0014, 0.01], [0, 0.014, 0.091], colors.metal, 'metal')
+      break
+    case 'soldering-iron':
+      batch.cylinder(0.011, 0.105, [0, 0.012, -0.05], colors.blue, frontRotation, 'paint', 12)
+      batch.cylinder(0.007, 0.012, [0, 0.012, -0.108], colors.dark, frontRotation, 'paint', 10)
+      batch.cylinder(0.0048, 0.072, [0, 0.012, 0.038], colors.metal, frontRotation, 'metal', 12)
+      batch.cylinder(0.0022, 0.024, [0, 0.012, 0.086], colors.brass, frontRotation, 'metal', 10)
+      break
+    case 'wire-stripper':
+      for (const sign of [-1, 1]) {
+        batch.add(
+          roundedBox(0.012, 0.014, 0.095, 0.003),
+          colors.red,
+          [sign * 0.016, 0.009, -0.036],
+          [0, sign * 0.14, 0],
+        )
+        batch.add(
+          new THREE.BoxGeometry(0.009, 0.007, 0.058),
+          colors.metal,
+          [sign * 0.006, 0.009, 0.042],
+          [0, -sign * 0.12, 0],
+          'metal',
+        )
+      }
+      batch.cylinder(0.0055, 0.01, [0, 0.009, 0.016], colors.frame, [0, 0, 0], 'metal', 12)
+      break
+    case 'test-pencil':
+      batch.cylinder(0.0075, 0.086, [0, 0.009, -0.028], colors.yellow, frontRotation, 'paint', 12)
+      batch.cylinder(0.0078, 0.014, [0, 0.009, -0.076], colors.metal, frontRotation, 'metal', 12)
+      batch.box([0.003, 0.005, 0.046], [0, 0.016, -0.042], colors.metal, 'metal')
+      batch.cylinder(0.0035, 0.042, [0, 0.009, 0.036], colors.dark, frontRotation, 'paint', 10)
+      batch.box([0.004, 0.0012, 0.014], [0, 0.009, 0.063], colors.metal, 'metal')
       break
     case 'banana-jack': {
       batch.cylinder(0.0032, 0.016, [0, 0.0055, -0.004], colors.metal, frontRotation, 'metal')

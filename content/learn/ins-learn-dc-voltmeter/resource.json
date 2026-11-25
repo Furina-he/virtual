@@ -1,0 +1,45 @@
+{
+  "id": "ins-learn-dc-voltmeter",
+  "category": "instrument-tool",
+  "subcategory": "测量仪表",
+  "title": "直流数字电压表",
+  "subtitle": "控制屏固定高输入阻抗多量程直流电压测量仪表",
+  "summary": "采用高阻分压与双积分/Σ-Δ ADC 转换，提供 200 mV 至 200 V 多档高精度直流电压测量，支持极性自动显示，并联接入待测两点读取实时电压。",
+  "keywords": [
+    "直流电压表",
+    "电压测量",
+    "并联测量",
+    "高输入阻抗",
+    "INS-02",
+    "DG-01",
+    "DG-05"
+  ],
+  "model": "instruments/ins-dc-voltmeter/instrument.glb",
+  "relatedInstruments": [
+    "ins-dc-voltmeter"
+  ],
+  "relatedModules": [
+    "mod-dc-circuit",
+    "mod-dc-components"
+  ],
+  "specs": [
+    {
+      "label": "测量方式",
+      "value": "并联接入待测支路或节点两端"
+    },
+    {
+      "label": "输入阻抗",
+      "value": "10 MΩ（高阻档） / 可模拟传统低阻加载"
+    },
+    {
+      "label": "显示特性",
+      "value": "自动正负极性符号，超量程提示 OL"
+    }
+  ],
+  "sections": {
+    "structure": "## 仪表原理与内阻加载效应\n\n- 理想电压表内阻为无穷大；真实数字直流电压表具有 $10\\ \\text{M}\\Omega$ 输入阻抗，并联在一般电路中分流极微；但在 `DG-01` 高阻分压（如 $1\\ \\text{M}\\Omega$ 网络）实训中仍会产生可观测的并联加载误差。",
+    "symbol": "## 符号与表笔极性\n\n- 电路符号为圆圈内字母 `V` 下加直流直线；面板红孔 `POS (+)` 接参考高电位端、黑孔 `NEG (−)` 接参考低电位端。\n- 读数出现负号表示实际电位方向与预设参考方向相反，记录数据时务必保留负号。",
+    "parameters": "## 加载误差修正公式\n\n- 戴维南等效内阻为 $R_{\\text{th}}$ 的节点接上内阻 $R_V$ 的电压表后，实测电压：\n  $$U_{\\text{meas}} = U_{\\text{oc}} \\cdot \\frac{R_V}{R_{\\text{th}} + R_V}$$\n- 合理选档原则：优先使读数落在量程的 $20\\% \\sim 90\\%$ 区间以兼顾分辨率与防溢。",
+    "troubleshooting": "## 常见误用排查\n\n1. **显示 `OL` 超量程**：立即切大一级电压量程，切勿盲目猜测。\n2. **误将电压表串入主回路**：因 $10\\ \\text{M}\\Omega$ 极大内阻会近似断开主回路，导致负载不工作且电压表几乎读出全部电源电压。"
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "id": "ins-learn-ac-millivoltmeter",
+  "category": "instrument-tool",
+  "subcategory": "测量仪表",
+  "title": "双通道交流毫伏表",
+  "subtitle": "用于放大电路 mV 级输入输出幅值与幅频响应测量的高灵敏交流表",
+  "summary": "具备高输入阻抗与宽频带响应，专测 1 mV ~ 30 V 交流有效值，可同步双通道读取放大器输入/输出信号以精确计算增益 $A_u$ 与 −3 dB 带宽（MD-03/04/12）。",
+  "keywords": [
+    "交流毫伏表",
+    "毫伏表",
+    "电压放大倍数",
+    "幅频特性",
+    "INS-13",
+    "MD-03",
+    "MD-04"
+  ],
+  "model": "instruments/ins-ac-millivoltmeter/instrument.glb",
+  "relatedInstruments": [
+    "ins-ac-millivoltmeter"
+  ],
+  "relatedModules": [
+    "mod-analog-amp",
+    "mod-analog-fb",
+    "mod-app-hearing-aid",
+    "mod-app-lm386"
+  ],
+  "specs": [
+    {
+      "label": "测量范围",
+      "value": "1 mV ~ 30 V AC（真有效值，隔直交流耦合）"
+    },
+    {
+      "label": "输入特性",
+      "value": "高阻隔直（自动过滤直流静态工作点）"
+    },
+    {
+      "label": "典型用途",
+      "value": "测放大器输入 ui、输出 uo 与通频带 fL/fH"
+    }
+  ],
+  "sections": {
+    "structure": "## 隔直宽带交流放大测量结构\n\n- 输入端采用隔直高阻衰减网络，彻底滤除三极管集电极或运放输出端的直流偏置电位，仅对纯交流信号分量求取有效值。\n- 相比普通万用表交流档（仅限于 50~400 Hz），交流毫伏表频响宽至百 kHz 级且毫伏分辨率极高，是测绘放大器幅频特性曲线的专属仪表。",
+    "symbol": "## 端子接法与共地原则\n\n- 配备 `CH1`、`CH2` 同轴/红孔与公共参考地 `GND`（黑孔）；测放大器输入输出时务必将 `GND` 可靠接至电路公共地，禁止悬空测量引入 50 Hz 工频感应杂波。",
+    "parameters": "## 增益与 −3 dB 带宽计算\n\n- 电压放大倍数：$A_u = \\frac{U_o}{U_i}$；分贝增益 $A_{u(\\text{dB})} = 20\\lg A_u$。\n- 上/下限截止频率判据：保持输入 $U_i$ 不变，改变信号源频率使输出 $U_o$ 下降至中频值的 $0.707$ 倍（即 $-3\\ \\text{dB}$）时对应的频率即为 $f_L$ 与 $f_H$。",
+    "troubleshooting": "## 常见测量异常排查\n\n1. **表头空载读数乱跳**：输入端开路易感应工频干扰，接妥被测节点及 `GND` 后即稳定。\n2. **测得增益异常偏小**：先用示波器观察输出是否已发生严重削顶失真，若削顶须减小函数信号发生器输入幅值。"
+  }
+}

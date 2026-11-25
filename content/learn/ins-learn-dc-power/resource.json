@@ -1,0 +1,46 @@
+{
+  "id": "ins-learn-dc-power",
+  "category": "instrument-tool",
+  "subcategory": "电源设备",
+  "title": "直流稳压电源（双路可调 +5V / 恒流源）",
+  "subtitle": "实训台控制屏固定集成双路 CV/CC 稳压电源、+5 V 逻辑源与三档恒流源",
+  "summary": "提供 CH1/CH2 两路 0~30 V 连续可调 CV/CC 直流稳压电源（支持串联跟踪输出对称 ±12 V）、独立 +5 V 固定逻辑电源及 0~50 mA 精密直流恒流源。",
+  "keywords": [
+    "直流稳压电源",
+    "CV/CC",
+    "恒流源",
+    "对称正负电源",
+    "+5V",
+    "INS-07"
+  ],
+  "model": "instruments/ins-dc-power/instrument.glb",
+  "relatedInstruments": [
+    "ins-dc-power"
+  ],
+  "relatedModules": [
+    "mod-dc-circuit",
+    "mod-analog-amp",
+    "mod-opamp",
+    "mod-dig-gates"
+  ],
+  "specs": [
+    {
+      "label": "双路可调输出",
+      "value": "CH1 / CH2：0 ~ 30 V · 限流 0.02 ~ 1.0 A"
+    },
+    {
+      "label": "固定逻辑电源",
+      "value": "+5 V（V5P / V5N）专供 TTL/CMOS 数字电路"
+    },
+    {
+      "label": "恒流源输出",
+      "value": "ISP / ISN（支持 DG-07 戴维南/诺顿与受控源）"
+    }
+  ],
+  "sections": {
+    "structure": "## 电源分区与 CV/CC 自动保护结构\n\n- **CH1 / CH2 独立可调区**：每路均具恒压（CV）与恒流（CC）自动切换机制；当负载电流低于设定限流值时稳压输出，一旦发生短路或过流立即转为恒流限幅保护，避免烧毁挂箱元件。\n- **串联跟踪对称正负电源**：将 `CH1N` 与 `CH2P` 短接作为公共地 `GND`，即可由 `CH1P` 输出 $+12\\ \\text{V}$、`CH2N` 输出 $-12\\ \\text{V}$ 供集成运放（`MD-13~19`）使用。\n- **+5 V 与恒流源区**：`V5P/V5N` 为数字逻辑提供低纹波 $+5\\ \\text{V}$；`ISP/ISN` 提供高内阻恒定直流电流。",
+    "symbol": "## 面板端子与极性颜色识别\n\n- 红色插孔为正极输出（`CH1P`、`CH2P`、`V5P`、`ISP`），黑色插孔为对应负端（`CH1N`、`CH2N`、`V5N`、`ISN`）。\n- 各路负端内部相互浮地隔离，需要共地时由学员通过导线显式单点连接，培养规范接地意识。",
+    "parameters": "## 输出设置与保护参数\n\n- 调节电压前建议先在断电态预设好电压上限与合理限流值（例如小信号模电实验限流 $0.1 \\sim 0.3\\ \\text{A}$）。\n- 恒压/恒流边界判据：$R_L > U_{\\text{set}} / I_{\\text{lim}}$ 处于 `CV` 状态，$R_L < U_{\\text{set}} / I_{\\text{lim}}$ 自动进入 `CC` 限流状态。",
+    "troubleshooting": "## 安全操作与异常排查\n\n1. **带电改线禁忌**：任何拆接电源线操作前必须先按顶栏“断电”按钮。\n2. **指示灯转 `CC` 且电压骤降**：立即断电排查电路是否存在正负极直短、电解电容反接或芯片电源反接。\n3. **数电实验无反应**：核对是否将 `V5N` 与其他外部信号源 `GND` 共地连通。"
+  }
+}

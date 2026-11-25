@@ -222,39 +222,39 @@ describe('T1.10 NFR-07 项目 guide.md 六项结构、原理图与学习资源 M
     expect(projectFiles).toHaveLength(3)
     expect(() => scaffoldProject({ id: 'DG-99', title: '重复不覆盖', outRoot: root })).toThrow('目标目录已存在')
 
-    // 2. 生成五类学习资源（元器件、芯片、仪表工具、概念、理论）
+    // 2. 生成五类学习资源（使用不与 M2 正式资源冲突的合成 ID）
     scaffoldLearnResource({
       category: 'component',
-      id: 'cmp-metal-resistor',
-      title: '金属膜电阻器',
+      id: 'cmp-metal-resistor-demo',
+      title: '金属膜电阻器样例',
       subcategory: '电阻类',
       outRoot: root,
     })
     scaffoldLearnResource({
       category: 'ic',
-      id: 'ic-cd4511',
-      title: 'CD4511 七段锁存译码驱动器',
+      id: 'ic-cd4511-demo',
+      title: 'CD4511 译码器样例',
       subcategory: '显示译码',
       outRoot: root,
     })
     scaffoldLearnResource({
       category: 'instrument-tool',
-      id: 'tool-wire-stripper',
-      title: '剥线钳',
+      id: 'tool-wire-stripper-demo',
+      title: '剥线钳样例',
       subcategory: '常用电工工具',
       outRoot: root,
     })
     scaffoldLearnResource({
       category: 'concept',
-      id: 'concept-power-factor',
-      title: '交流电路功率因数',
+      id: 'concept-power-factor-demo',
+      title: '交流电路功率因数样例',
       subcategory: '交流电路概念',
       outRoot: root,
     })
     scaffoldLearnResource({
       category: 'theory',
-      id: 'theory-thevenin',
-      title: '戴维南等效定理',
+      id: 'theory-thevenin-demo',
+      title: '戴维南等效定理样例',
       subcategory: '直流网络理论',
       outRoot: root,
     })

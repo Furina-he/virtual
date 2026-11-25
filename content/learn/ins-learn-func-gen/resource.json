@@ -1,0 +1,47 @@
+{
+  "id": "ins-learn-func-gen",
+  "category": "instrument-tool",
+  "subcategory": "信号源设备",
+  "title": "双通道函数信号发生器",
+  "subtitle": "可输出正弦、方波、三角波、锯齿波与 TTL 同步脉冲的精密信号源",
+  "summary": "提供 CH1/CH2 两路独立可调 1 Hz ~ 1 MHz 函数波形输出（含幅值、直流偏置与占空比设置）及标准 0~5 V TTL 同步脉冲口，满足全部模数电激励需求（INS-08）。",
+  "keywords": [
+    "函数信号发生器",
+    "信号源",
+    "正弦波",
+    "方波",
+    "TTL脉冲",
+    "占空比",
+    "INS-08"
+  ],
+  "model": "instruments/ins-func-gen/instrument.glb",
+  "relatedInstruments": [
+    "ins-func-gen"
+  ],
+  "relatedModules": [
+    "mod-analog-amp",
+    "mod-analog-fb",
+    "mod-dig-pulse",
+    "mod-rlc-transient"
+  ],
+  "specs": [
+    {
+      "label": "输出波形",
+      "value": "正弦波 / 方波 / 三角波 / 锯齿波 / TTL 脉冲"
+    },
+    {
+      "label": "频率与内阻",
+      "value": "1 Hz ~ 1 MHz · 输出内阻 50 Ω"
+    },
+    {
+      "label": "三路输出",
+      "value": "CH1、CH2（独立调节）及 TTL 同步口（跟随 CH1）"
+    }
+  ],
+  "sections": {
+    "structure": "## 波形合成与输出级结构\n\n- 支持独立设定 `CH1` 与 `CH2` 的波形类型、频率 $f$、峰峰值幅值 $V_{\\text{pp}}$、直流偏置与方波占空比，每路均串接标准 $50\\ \\Omega$ 源内阻。\n- `TTL` 同步口固定输出 $0 \\sim 5\\ \\text{V}$ 逻辑脉冲且频率/占空比自动同步跟随 `CH1`，可直接驱动 74LS 触发器与单稳态电路。",
+    "symbol": "## 面板接口与接地规范\n\n- `CH1`、`CH2`、`TTL` 为信号输出正端，共用底部黑色 `GND` 参考地。\n- 接放大器输入时务必将 `GND` 与放大器公共地可靠相连，切勿遗漏地线。",
+    "parameters": "## 50 Ω 内阻分压与小信号设置\n\n- 标称输出幅值为空载开路电动势（高阻负载实测等于设定值）；当接入低阻负载 $R_L$ 时实际端电压为 $U_L = U_{\\text{set}} \\cdot \\frac{R_L}{50 + R_L}$。\n- 测三极管共射放大器（如 `MD-03`、`MD-04`）或 `LM386` 200× 档时，输入信号宜设为毫伏级（如 $10 \\sim 40\\ \\text{mV}_{\\text{pp}}$），防止输出严重饱和削波。",
+    "troubleshooting": "## 常见问题排查\n\n1. **示波器无信号**：核对对应通道“输出开”开关是否已打开、是否已接通信号源 `GND` 与总电源“上电”。\n2. **数字电路触发无响应**：激励 TTL 芯片应选 `TTL` 同步口或将方波偏置设为峰峰值一半（使低电平 0 V、高电平 5 V），避免对称正负方波负压损坏逻辑输入。"
+  }
+}

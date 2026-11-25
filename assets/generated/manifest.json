@@ -12535,6 +12535,314 @@
           "height": 2048
         }
       ]
+    },
+    {
+      "id": "cmp-dip14",
+      "model": "content/models/components/cmp-dip14.glb",
+      "bytes": 135976,
+      "sha256": "5ba2a88697a30e87d6b032accabf4cca8aa14c3d3959a4519dc3bb42ac5ef053",
+      "triangles": 1008,
+      "drawCalls": 2,
+      "bounds": {
+        "min": [
+          -0.009600000455975533,
+          0,
+          -0.00430000014603138
+        ],
+        "max": [
+          0.009600000455975533,
+          0.007600000128149986,
+          0.00430000014603138
+        ]
+      },
+      "anchors": [],
+      "textures": []
+    },
+    {
+      "id": "cmp-dip16",
+      "model": "content/models/components/cmp-dip16.glb",
+      "bytes": 152868,
+      "sha256": "0524fdf974b499a7b0dbf2b18b7da386e0e8aff7d11b7f405e3a120cd6ba8fb7",
+      "triangles": 1136,
+      "drawCalls": 2,
+      "bounds": {
+        "min": [
+          -0.01080000028014183,
+          0,
+          -0.00430000014603138
+        ],
+        "max": [
+          0.01080000028014183,
+          0.007600000128149986,
+          0.00430000014603138
+        ]
+      },
+      "anchors": [],
+      "textures": []
+    },
+    {
+      "id": "cmp-to220",
+      "model": "content/models/components/cmp-to220.glb",
+      "bytes": 17108,
+      "sha256": "16af54ee1fd253435068793057d975b4d3bec8bb17ef52e47d2746c8a694bdf0",
+      "triangles": 108,
+      "drawCalls": 2,
+      "bounds": {
+        "min": [
+          -0.005100000184029341,
+          0,
+          -0.002300000051036477
+        ],
+        "max": [
+          0.005100000184029341,
+          0.02850000001490116,
+          0.002300000051036477
+        ]
+      },
+      "anchors": [],
+      "textures": []
+    },
+    {
+      "id": "cmp-inductor",
+      "model": "content/models/components/cmp-inductor.glb",
+      "bytes": 56704,
+      "sha256": "b93a81825311872fcb75ba59bd4e1acb931a987d72769e44ef8275e7b1b3bf31",
+      "triangles": 408,
+      "drawCalls": 2,
+      "bounds": {
+        "min": [
+          -0.006000000052154064,
+          0,
+          -0.006000000052154064
+        ],
+        "max": [
+          0.006000000052154064,
+          0.014000000432133675,
+          0.006000000052154064
+        ]
+      },
+      "anchors": [],
+      "textures": []
+    },
+    {
+      "id": "cmp-transformer",
+      "model": "content/models/components/cmp-transformer.glb",
+      "bytes": 17096,
+      "sha256": "5e13fef43066e8643e3fed40f8036322d8fd7c130957e2df470271d437fa9d02",
+      "triangles": 108,
+      "drawCalls": 2,
+      "bounds": {
+        "min": [
+          -0.023000000044703484,
+          0,
+          -0.014999999664723873
+        ],
+        "max": [
+          0.023000000044703484,
+          0.035999998450279236,
+          0.014999999664723873
+        ]
+      },
+      "anchors": [],
+      "textures": []
+    },
+    {
+      "id": "cmp-relay",
+      "model": "content/models/components/cmp-relay.glb",
+      "bytes": 24544,
+      "sha256": "8d58014bb0f8370bfdb741072fa0f2f07510b98ff9eec1ee7182f910a72f337f",
+      "triangles": 164,
+      "drawCalls": 2,
+      "bounds": {
+        "min": [
+          -0.009499999694526196,
+          0,
+          -0.00774999987334013
+        ],
+        "max": [
+          0.009499999694526196,
+          0.019500000402331352,
+          0.00774999987334013
+        ]
+      },
+      "anchors": [],
+      "textures": []
+    },
+    {
+      "id": "cmp-segment7",
+      "model": "content/models/components/cmp-segment7.glb",
+      "bytes": 65696,
+      "sha256": "a31cd44439ef7ef4c7fc24d7786bcb33a04775e96e9203b2047e61f39c0c36dd",
+      "triangles": 476,
+      "drawCalls": 2,
+      "bounds": {
+        "min": [
+          -0.006300000008195639,
+          0,
+          -0.0042500002309679985
+        ],
+        "max": [
+          0.006300000008195639,
+          0.023000000044703484,
+          0.0042500002309679985
+        ]
+      },
+      "anchors": [],
+      "textures": []
+    },
+    {
+      "id": "cmp-speaker",
+      "model": "content/models/components/cmp-speaker.glb",
+      "bytes": 37700,
+      "sha256": "eb2bb8aa2c7cd101a5fcd1b890f86683a117de7d7cf98cf66509bbbaf36e1567",
+      "triangles": 264,
+      "drawCalls": 2,
+      "bounds": {
+        "min": [
+          -0.01899999938905239,
+          0,
+          -0.01899999938905239
+        ],
+        "max": [
+          0.01899999938905239,
+          0.019999999552965164,
+          0.01899999938905239
+        ]
+      },
+      "anchors": [],
+      "textures": []
+    },
+    {
+      "id": "cmp-motor",
+      "model": "content/models/components/cmp-motor.glb",
+      "bytes": 34520,
+      "sha256": "28c626a2d9f892166210e20b09436042eebc9744e0be5522119e0ae33e6815bf",
+      "triangles": 240,
+      "drawCalls": 2,
+      "bounds": {
+        "min": [
+          -0.017999999225139618,
+          0,
+          -0.032999999821186066
+        ],
+        "max": [
+          0.017999999225139618,
+          0.036000002175569534,
+          0.032999999821186066
+        ]
+      },
+      "anchors": [],
+      "textures": []
+    },
+    {
+      "id": "cmp-crystal",
+      "model": "content/models/components/cmp-crystal.glb",
+      "bytes": 23912,
+      "sha256": "83a0a24d1e0345d716238ecad0e06e8b671d86739b90e7f4a2b30f750d37e979",
+      "triangles": 168,
+      "drawCalls": 1,
+      "bounds": {
+        "min": [
+          -0.005900000222027302,
+          0,
+          -0.0024999999441206455
+        ],
+        "max": [
+          0.005900000222027302,
+          0.016499999910593033,
+          0.0024999999441206455
+        ]
+      },
+      "anchors": [],
+      "textures": []
+    },
+    {
+      "id": "tool-screwdriver",
+      "model": "content/models/tools/tool-screwdriver.glb",
+      "bytes": 22384,
+      "sha256": "fc83f3cffbaeb69252793ed8a8bb511365de3b920a3dc1376dd42df859a817af",
+      "triangles": 148,
+      "drawCalls": 2,
+      "bounds": {
+        "min": [
+          -0.014499999582767487,
+          0,
+          -0.0949999988079071
+        ],
+        "max": [
+          0.014499999582767487,
+          0.028999999165534973,
+          0.0949999988079071
+        ]
+      },
+      "anchors": [],
+      "textures": []
+    },
+    {
+      "id": "tool-soldering-iron",
+      "model": "content/models/tools/tool-soldering-iron.glb",
+      "bytes": 26080,
+      "sha256": "661ff7462c81fd53b14d85fc841829024e272a914c724e0ecfd12f07f122d868",
+      "triangles": 176,
+      "drawCalls": 2,
+      "bounds": {
+        "min": [
+          -0.010999999940395355,
+          0,
+          -0.10599999874830246
+        ],
+        "max": [
+          0.010999999940395355,
+          0.02199999988079071,
+          0.10599999874830246
+        ]
+      },
+      "anchors": [],
+      "textures": []
+    },
+    {
+      "id": "tool-wire-stripper",
+      "model": "content/models/tools/tool-wire-stripper.glb",
+      "bytes": 36788,
+      "sha256": "a0eee9df5d78bce180ad21ac76abe17162cbb16e3718a170f8ef97b40cf5d551",
+      "triangles": 256,
+      "drawCalls": 2,
+      "bounds": {
+        "min": [
+          -0.027000000700354576,
+          0,
+          -0.08250000327825546
+        ],
+        "max": [
+          0.027000000700354576,
+          0.0139999995008111,
+          0.08250000327825546
+        ]
+      },
+      "anchors": [],
+      "textures": []
+    },
+    {
+      "id": "tool-test-pencil",
+      "model": "content/models/tools/tool-test-pencil.glb",
+      "bytes": 23968,
+      "sha256": "052d34cddd5e653ea8a1da4eac468874528b11dbf4b8f89176459d67820b2fff",
+      "triangles": 160,
+      "drawCalls": 2,
+      "bounds": {
+        "min": [
+          -0.00800000037997961,
+          0,
+          -0.07699999958276749
+        ],
+        "max": [
+          0.00800000037997961,
+          0.018000001087784767,
+          0.07699999958276749
+        ]
+      },
+      "anchors": [],
+      "textures": []
     }
   ],
   "preview": {

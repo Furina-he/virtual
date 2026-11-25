@@ -1,0 +1,41 @@
+{
+  "id": "cmp-jfet",
+  "category": "component",
+  "subcategory": "三极管、场效应管、晶闸管",
+  "title": "结型场效应管（JFET / 3DJ6）",
+  "subtitle": "高输入阻抗电压控制耗尽型场效应晶体管",
+  "summary": "依靠反向偏置栅-源 PN 结耗尽层调制导电沟道宽窄，输入电阻高达 $10^7 \\sim 10^9\\ \\Omega$、噪声极低，适用于高阻话筒前置放大与压控可变电阻。",
+  "keywords": [
+    "结型场效应管",
+    "JFET",
+    "3DJ6",
+    "2N5457",
+    "夹断电压",
+    "电压控制",
+    "MD-02"
+  ],
+  "model": "models/components/cmp-transistor-to92.glb",
+  "relatedModules": [
+    "mod-analog-base"
+  ],
+  "specs": [
+    {
+      "label": "典型型号",
+      "value": "3DJ6 / 2N5457 / J201（N 沟道耗尽型）"
+    },
+    {
+      "label": "核心参数",
+      "value": "饱和电流 IDSS · 夹断电压 VP (< 0)"
+    },
+    {
+      "label": "栅源偏置",
+      "value": "正常放大要求 UGS ≤ 0（反偏）"
+    }
+  ],
+  "sections": {
+    "structure": "## 内部结构与特性描述\n\n- 在 N 型硅导电沟道两侧扩散重掺杂 P+ 栅区形成 PN 结，引出栅极 `G`、漏极 `D` 与源极 `S`。\n- 当 $U_{GS} = 0$ 时沟道最宽，漏极饱和电流最大（$I_{DSS}$）；随着负栅压 $|U_{GS}|$ 增大，耗尽层展宽沟道变窄，至 $U_{GS} = U_P$（夹断电压）时 $I_D$ 归零（如 `MD-02` 转移特性测绘）。\n- **安装说明**：因靠栅结反偏工作，输入电流几乎为零；自给偏压电路仅需在源极串电阻 $R_S$ 即可自然产生负 $U_{GS} = -I_D R_S$。",
+    "symbol": "## 电路符号与极性识别\n\n- N 沟道 JFET 符号中垂直沟道为连续实线，栅极箭头**由 G 指向沟道**（P 沟道向外指，位号 `J` / `Q`）。\n- 金属壳或 TO-92 封装的 `D`、`S` 多数结构对称，实际装机按手册辨明 `G` 脚位置。",
+    "parameters": "## 参数计算（肖克利平方律）\n\n- 恒流区（饱和区）转移特性平方律：\n  $$I_D = I_{DSS} \\left(1 - \\frac{U_{GS}}{U_P}\\right)^2 \\quad (U_P < U_{GS} \\le 0)$$\n- 低频跨导：$g_m = \\frac{\\partial I_D}{\\partial U_{GS}} = -\\frac{2 I_{DSS}}{U_P}\\left(1 - \\frac{U_{GS}}{U_P}\\right)$。",
+    "troubleshooting": "## 万用表检测与常见故障\n\n- **检测方法**：① 用二极管档测 `G-S` 与 `G-D` 应呈标准 PN 结单向导通（N 沟道红接 G 约 `0.65 V`，反测 `OL.`）；② 用电阻档测 `D-S` 间（$U_{GS}=0$ 时沟道导通）应为数百欧至数 $\\text{k}\\Omega$ 对称电阻。\n- **常见故障**：栅结误加正偏大电流烧毁或漏源击穿。"
+  }
+}

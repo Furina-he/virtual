@@ -1,0 +1,44 @@
+{
+  "id": "theory-constant-current-charger",
+  "category": "theory",
+  "subcategory": "模拟应用系统",
+  "title": "场效应管恒流充电与电流负反馈闭环理论",
+  "subtitle": "采样电阻 + 三极管反馈控制 MOSFET 栅压实现跨电压恒流充电",
+  "summary": "深入分析由 MOSFET 调整管、采样电阻 Rs 与反馈三极管组成的经典串联恒流充电闭环：无论锂电池电压处于 3.2 V 还是 4.1 V，充电电流均稳定锁定在 $0.65\\ \\text{V} / R_s$（MD-06）。",
+  "keywords": [
+    "恒流充电",
+    "电流负反馈",
+    "场效应管充电器",
+    "锂电池充电",
+    "采样电阻",
+    "MD-06"
+  ],
+  "relatedInstruments": [
+    "ins-dc-ammeter",
+    "ins-dc-voltmeter",
+    "ins-dc-power"
+  ],
+  "relatedModules": [
+    "mod-app-charger"
+  ],
+  "specs": [
+    {
+      "label": "恒流设定",
+      "value": "I_chg ≈ U_BE(Q) / R_s（如 0.65 V / 6.5 Ω ≈ 100 mA）"
+    },
+    {
+      "label": "闭环调节",
+      "value": "I↑ → U_Rs↑ → Q 导通加深 → MOSFET U_GS↓ → I↓"
+    },
+    {
+      "label": "对应实训",
+      "value": "MD-06"
+    }
+  ],
+  "sections": {
+    "structure": "## 负反馈自动稳流闭环机理\n\n- 充电电流流经串联采样电阻 $R_s$ 产生电压 $U_s = I_{\\text{chg}} R_s$ 直接加在反馈三极管基-射极之间。\n- 当充电电流试图增大时，$U_s$ 超过三极管导通门限（约 $0.65\\ \\text{V}$），三极管集电极电流增大从而拉低 MOSFET 栅极电压 $U_{GS}$，自动增大 MOSFET 沟道压降将电流钳回设定值（`MD-06`）。",
+    "symbol": "## 电流插座监测与充电指示\n\n- 串联常闭电流插座便于随时接入直流毫安表实测三档恒流精度，同时在采样支路并联限流 LED 指示正在充电状态。",
+    "parameters": "## 恒流稳定度与调整管功耗\n\n- 跨电芯电压电流变化率：$\\delta_I = \\frac{|I_{3.2\\text{V}} - I_{4.1\\text{V}}|}{I_{\\text{avg}}} \\times 100\\%$（优良闭环可优于 3%）。\n- MOSFET 发热功耗：$P_M = (U_{\\text{in}} - U_{\\text{bat}} - U_s) \\cdot I_{\\text{chg}}$，低压电芯刚开始充电时调整管压差最大、发热最重。",
+    "troubleshooting": "## 恒流充电器常见故障排查\n\n1. **充电电流远小于设定值**：检查输入直流电压是否足够高于 $U_{\\text{bat}} + U_{GS(th)} + 0.7\\ \\text{V}$ 压差需求。\n2. **失去恒流保护电流飙升**：排查反馈三极管是否开路或采样电阻虚焊断路。"
+  }
+}

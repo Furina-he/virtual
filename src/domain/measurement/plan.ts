@@ -323,7 +323,8 @@ export function buildMeasurementPlan(
   }
   const periods = instruments.flatMap(({ instanceId, instrument, settings }) => {
     if (!assembled.instrumentSuffix[instanceId]) return []
-    const period = shortestActivePeriod(instrument, settings)
+    const connected = new Set(connectedInstrumentJacks(input, instanceId, instrument))
+    const period = shortestActivePeriod(instrument, settings, connected)
     return period === undefined ? [] : [period]
   })
   const shortest = periods.length ? Math.min(...periods) : undefined

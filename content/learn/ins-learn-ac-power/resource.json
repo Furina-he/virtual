@@ -1,0 +1,48 @@
+{
+  "id": "ins-learn-ac-power",
+  "category": "instrument-tool",
+  "subcategory": "电源设备",
+  "title": "三相可调交流电源（调压器）",
+  "subtitle": "实训台控制屏固定集成 50 Hz 三相四线（U/V/W/N）同步调压交流源",
+  "summary": "提供频率 50 Hz、相位互差 120° 的对称三相四线交流电源（相电压 0~220 V 连续可调，线电压 0~380 V），服务于单相/三相交流电路、日光灯与变压器实训。",
+  "keywords": [
+    "三相交流电源",
+    "调压器",
+    "三相四线",
+    "相电压",
+    "线电压",
+    "50Hz",
+    "DG-12",
+    "DG-16"
+  ],
+  "model": "instruments/ins-ac-power/instrument.glb",
+  "relatedInstruments": [
+    "ins-ac-power"
+  ],
+  "relatedModules": [
+    "mod-ac-fluorescent",
+    "mod-3ph-lamp",
+    "mod-phase-dimmer",
+    "mod-transformer"
+  ],
+  "specs": [
+    {
+      "label": "输出制式",
+      "value": "三相四线制 U / V / W + 中性线 N（50 Hz）"
+    },
+    {
+      "label": "电压关系",
+      "value": "线电压 U_L = √3 · U_P（如 220 V / 380 V）"
+    },
+    {
+      "label": "相位关系",
+      "value": "U(0°)、V(−120°)、W(+120°) 对称正序"
+    }
+  ],
+  "sections": {
+    "structure": "## 三相电源结构与星形中点\n\n- 内部由三相同轴自耦调压器同步调节三相输出幅值，中性点引出 `N` 端，既可单取 `U-N` 作单相 220 V 交流电源（如 `DG-11`/`DG-12`/`DG-18`），也可同时引出 `U/V/W/N` 进行三相星形/三角形实验（`DG-16`/`DG-17`）。",
+    "symbol": "## 端子标识与安全警示\n\n- `U`（黄）、`V`（绿）、`W`（红）为三相相线，`N`（黑/蓝）为中性零线。\n- 严禁将任意两相相线或相线与中性线直接短接；严禁将普通示波器地夹直接夹在未隔离的市电相线上。",
+    "parameters": "## 线电压与相电压核算\n\n- 对称三相系统中：$U_{UV} = U_{VW} = U_{WU} = \\sqrt{3}\\,U_{\\text{相}}$；星形负载中 $I_L = I_P$，三角形负载中 $I_L = \\sqrt{3}\\,I_P$。\n- 交流调压应由低电压缓慢升至额定值，断电前养成先归零习惯。",
+    "troubleshooting": "## 常见接线错误与排查\n\n1. **三相灯组亮度严重失衡**：核查星形接法中线 `N` 是否断开（不对称负载断中线会引发中性点位移，轻载相过压烧灯）。\n2. **单相电路读数为零**：确认是否误接至未调压端子或未连接中性线 `N`。"
+  }
+}

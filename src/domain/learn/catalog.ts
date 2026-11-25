@@ -109,7 +109,10 @@ export function findLearnResourceForBenchTarget(
   target: { instrumentId?: string; moduleId?: string; keyword?: string },
 ): LearnResource | undefined {
   if (target.instrumentId) {
-    const matched = resources.find((item) => item.relatedInstruments.includes(target.instrumentId as string))
+    const id = target.instrumentId
+    const direct = resources.find((item) => item.category === 'instrument-tool' && item.relatedInstruments.includes(id))
+    if (direct) return direct
+    const matched = resources.find((item) => item.relatedInstruments.includes(id))
     if (matched) return matched
   }
   if (target.moduleId) {

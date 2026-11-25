@@ -13304,6 +13304,258 @@
         "texts": [],
         "labels": []
       }
+    },
+    {
+      "id": "cmp-dip14",
+      "name": "DIP-14 双列直插芯片",
+      "kind": "component",
+      "model": "content/models/components/cmp-dip14.glb",
+      "bodyStyle": "component",
+      "componentStyle": "dip14",
+      "dimensionsMm": [
+        19.2,
+        7.6,
+        8.6
+      ],
+      "estimatedDimensions": true,
+      "dimensionNote": "Standard 14-pin dual-inline IC package (2.54 mm pitch, 7.62 mm row spacing).",
+      "jacks": [],
+      "controls": [],
+      "screens": []
+    },
+    {
+      "id": "cmp-dip16",
+      "name": "DIP-16 双列直插芯片",
+      "kind": "component",
+      "model": "content/models/components/cmp-dip16.glb",
+      "bodyStyle": "component",
+      "componentStyle": "dip16",
+      "dimensionsMm": [
+        21.6,
+        7.6,
+        8.6
+      ],
+      "estimatedDimensions": true,
+      "dimensionNote": "Standard 16-pin dual-inline IC package (2.54 mm pitch, 7.62 mm row spacing).",
+      "jacks": [],
+      "controls": [],
+      "screens": []
+    },
+    {
+      "id": "cmp-to220",
+      "name": "TO-220 功率封装器件",
+      "kind": "component",
+      "model": "content/models/components/cmp-to220.glb",
+      "bodyStyle": "component",
+      "componentStyle": "to220",
+      "dimensionsMm": [
+        10.2,
+        28.5,
+        4.6
+      ],
+      "estimatedDimensions": true,
+      "dimensionNote": "Standard TO-220 3-lead power package with metal mounting tab.",
+      "jacks": [],
+      "controls": [],
+      "screens": []
+    },
+    {
+      "id": "cmp-inductor",
+      "name": "绕线电感器",
+      "kind": "component",
+      "model": "content/models/components/cmp-inductor.glb",
+      "bodyStyle": "component",
+      "componentStyle": "inductor",
+      "dimensionsMm": [
+        12,
+        14,
+        12
+      ],
+      "estimatedDimensions": true,
+      "dimensionNote": "Radial drum ferrite inductor with enameled copper winding.",
+      "jacks": [],
+      "controls": [],
+      "screens": []
+    },
+    {
+      "id": "cmp-transformer",
+      "name": "铁芯变压器",
+      "kind": "component",
+      "model": "content/models/components/cmp-transformer.glb",
+      "bodyStyle": "component",
+      "componentStyle": "transformer",
+      "dimensionsMm": [
+        46,
+        36,
+        30
+      ],
+      "estimatedDimensions": true,
+      "dimensionNote": "Small E-I laminated iron-core PCB power/audio transformer.",
+      "jacks": [],
+      "controls": [],
+      "screens": []
+    },
+    {
+      "id": "cmp-relay",
+      "name": "电磁继电器",
+      "kind": "component",
+      "model": "content/models/components/cmp-relay.glb",
+      "bodyStyle": "component",
+      "componentStyle": "relay",
+      "dimensionsMm": [
+        19,
+        19.5,
+        15.5
+      ],
+      "estimatedDimensions": true,
+      "dimensionNote": "Standard 5-pin miniature PCB electromagnetic relay housing.",
+      "jacks": [],
+      "controls": [],
+      "screens": []
+    },
+    {
+      "id": "cmp-segment7",
+      "name": "七段 LED 数码管",
+      "kind": "component",
+      "model": "content/models/components/cmp-segment7.glb",
+      "bodyStyle": "component",
+      "componentStyle": "segment7",
+      "dimensionsMm": [
+        12.6,
+        23,
+        8.5
+      ],
+      "estimatedDimensions": true,
+      "dimensionNote": "Single-digit 0.56-inch 7-segment LED display package.",
+      "jacks": [],
+      "controls": [],
+      "screens": []
+    },
+    {
+      "id": "cmp-speaker",
+      "name": "电声换能器/扬声器",
+      "kind": "component",
+      "model": "content/models/components/cmp-speaker.glb",
+      "bodyStyle": "component",
+      "componentStyle": "speaker",
+      "dimensionsMm": [
+        38,
+        20,
+        38
+      ],
+      "estimatedDimensions": true,
+      "dimensionNote": "Miniature electromagnetic speaker and acoustic transducer master model.",
+      "jacks": [],
+      "controls": [],
+      "screens": []
+    },
+    {
+      "id": "cmp-motor",
+      "name": "直流/伺服电机",
+      "kind": "component",
+      "model": "content/models/components/cmp-motor.glb",
+      "bodyStyle": "component",
+      "componentStyle": "motor",
+      "dimensionsMm": [
+        36,
+        36,
+        66
+      ],
+      "estimatedDimensions": true,
+      "dimensionNote": "Small cylindrical DC/servo motor body with front shaft and rear terminals.",
+      "jacks": [],
+      "controls": [],
+      "screens": []
+    },
+    {
+      "id": "cmp-crystal",
+      "name": "石英晶体谐振器",
+      "kind": "component",
+      "model": "content/models/components/cmp-crystal.glb",
+      "bodyStyle": "component",
+      "componentStyle": "crystal",
+      "dimensionsMm": [
+        11.8,
+        16.5,
+        5
+      ],
+      "estimatedDimensions": true,
+      "dimensionNote": "HC-49S metallic quartz crystal resonator master model.",
+      "jacks": [],
+      "controls": [],
+      "screens": []
+    },
+    {
+      "id": "tool-screwdriver",
+      "name": "绝缘螺丝刀",
+      "kind": "component",
+      "model": "content/models/tools/tool-screwdriver.glb",
+      "bodyStyle": "component",
+      "componentStyle": "screwdriver",
+      "dimensionsMm": [
+        29,
+        29,
+        190
+      ],
+      "estimatedDimensions": true,
+      "dimensionNote": "Insulated electrician screwdriver procedural 3D model.",
+      "jacks": [],
+      "controls": [],
+      "screens": []
+    },
+    {
+      "id": "tool-soldering-iron",
+      "name": "电烙铁",
+      "kind": "component",
+      "model": "content/models/tools/tool-soldering-iron.glb",
+      "bodyStyle": "component",
+      "componentStyle": "soldering-iron",
+      "dimensionsMm": [
+        22,
+        22,
+        212
+      ],
+      "estimatedDimensions": true,
+      "dimensionNote": "Pencil electric soldering iron procedural 3D model.",
+      "jacks": [],
+      "controls": [],
+      "screens": []
+    },
+    {
+      "id": "tool-wire-stripper",
+      "name": "剥线钳",
+      "kind": "component",
+      "model": "content/models/tools/tool-wire-stripper.glb",
+      "bodyStyle": "component",
+      "componentStyle": "wire-stripper",
+      "dimensionsMm": [
+        54,
+        14,
+        165
+      ],
+      "estimatedDimensions": true,
+      "dimensionNote": "Insulated electrician wire stripper procedural 3D model.",
+      "jacks": [],
+      "controls": [],
+      "screens": []
+    },
+    {
+      "id": "tool-test-pencil",
+      "name": "低压验电笔",
+      "kind": "component",
+      "model": "content/models/tools/tool-test-pencil.glb",
+      "bodyStyle": "component",
+      "componentStyle": "test-pencil",
+      "dimensionsMm": [
+        16,
+        18,
+        154
+      ],
+      "estimatedDimensions": true,
+      "dimensionNote": "Low-voltage neon electrician test pencil procedural 3D model.",
+      "jacks": [],
+      "controls": [],
+      "screens": []
     }
   ],
   "preview": {

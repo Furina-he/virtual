@@ -72,7 +72,7 @@ function expandTemplate(
     const power = powerSourceTemplate(instrument, settings, connectedJacks)
     if (power) template = power
     // 信号源波形随设置变化，由领域模型生成（INS-08/10）；静态部分（如示波器输入阻抗）仍来自内容模板
-    const sources = signalSourceTemplate(instrument, settings)
+    const sources = signalSourceTemplate(instrument, settings, connectedJacks)
     if (sources) template = `${template}\n${sources}`
   } catch (error) {
     if (error instanceof InstrumentConfigurationError) throw new AssembleError('content', error.message)

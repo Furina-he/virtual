@@ -89,10 +89,14 @@ export function waveformSpec(resolved: ResolvedSource): string {
   }
 }
 
-/** 网表行，沿用拼装器的 {J:插孔}/{X} 占位符 */
-export function signalSourceTemplate(instrument: Instrument, settings: Record<string, unknown>): string {
+/** 网表行，沿用拼装器的 {J:插孔}/{X} 占位符；传入 connectedJacks 时跳过未接线的开路输出端 */
+export function signalSourceTemplate(
+  instrument: Instrument,
+  settings: Record<string, unknown>,
+  connectedJacks?: ReadonlySet<string>,
+): string {
   return resolveSources(instrument, settings)
-    .filter((resolved) => resolved.enabled)
+    .filter((resolved) => resolved.enabled && (!connectedJacks || connectedJacks.has(resolved.source.positiveJack)))
     .map(({ source, ...rest }) => {
       const id = source.id.toLowerCase()
       return [
@@ -135,15 +139,19 @@ export function signalSettingValid(instrument: Instrument, key: string, v: unkno
   return undefined
 }
 
-/** 正在输出的最短周期（秒），决定仿真步长 */
-export function shortestActivePeriod(instrument: Instrument, settings: Record<string, unknown>): number | undefined {
+/** 正在输出的最短周期（秒），决定仿真步长；传入 connectedJacks 时忽略未接线的开路输出端 */
+export function shortestActivePeriod(
+  instrument: Instrument,
+  settings: Record<string, unknown>,
+  connectedJacks?: ReadonlySet<string>,
+): number | undefined {
   if (settings.passive === true) return undefined
   if (instrument.kind === 'acSupply') {
     const uPhase = typeof settings.u_phase === 'number' ? settings.u_phase : 220
     return uPhase > 0 ? 1 / 50 : undefined
   }
   const periods = resolveSources(instrument, settings)
-    .filter((resolved) => resolved.enabled)
+    .filter((resolved) => resolved.enabled && (!connectedJacks || connectedJacks.has(resolved.source.positiveJack)))
     .map((resolved) => 1 / resolved.frequency)
   return periods.length ? Math.min(...periods) : undefined
 }

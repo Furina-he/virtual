@@ -62,22 +62,40 @@ test('T1.9 LRN-01~LRN-08 学习模式分类树检索、3D 查看器拆解/剖切
       expect((await panel.textContent())?.trim().length ?? 0).toBeGreaterThan(20)
     }
 
-    // 4. 验证五类资源分类树过滤与关键字全文检索（LRN-01/LRN-03/LRN-06/LRN-07）
+    // 4. 验证五类资源分类树过滤、M2 全量计数与关键字全文检索（LRN-01/LRN-03/LRN-06/LRN-07）
     const tree = page.getByRole('complementary', { name: '资源分类树', exact: true })
     for (const cat of ['concept', 'theory', 'component', 'ic', 'instrument-tool']) {
       await expect(tree.locator(`[data-category-filter="${cat}"]`)).toBeVisible()
     }
+    await expect(tree.locator('[data-category-filter="component"]')).toContainText('90')
+    await expect(tree.locator('[data-category-filter="ic"]')).toContainText('38')
+    await expect(tree.locator('[data-category-filter="instrument-tool"]')).toContainText('17')
+
     await tree.locator('[data-category-filter="component"]').click()
     await expect(page.locator('[data-learn-item="cmp-carbon-resistor"]')).toBeVisible()
     await expect(page.locator('[data-learn-item="cmp-bjt-npn"]')).toBeVisible()
 
-    // 切回全部并按关键字检索 NE555 集成电路与电工工具组合钳
+    // 切回全部并按关键字检索 NE555、CD4511 (DIP-16)、LM317 (TO-220) 与电工工具（组合钳/电烙铁）
     await tree.locator('[data-category-filter="all"]').click()
     const searchInput = page.getByRole('searchbox', { name: '检索学习资源', exact: true })
     await searchInput.fill('NE555')
     await expect(page.locator('[data-learn-item="ic-ne555"]')).toBeVisible()
     await page.locator('[data-learn-item="ic-ne555"]').click()
     await expect(page.getByRole('main', { name: '资源详情' })).toHaveAttribute('data-selected-resource', 'ic-ne555')
+    await expect(viewer3d(page)).toHaveAttribute('data-viewer-state', 'ready', { timeout: 30_000 })
+
+    // 验证新增 DIP-16 与电工工具 3D 母版模型在离线 3D 查看器中正常就绪
+    await searchInput.fill('CD4511')
+    await page.locator('[data-learn-item="ic-cd4511"]').click()
+    await expect(page.getByRole('main', { name: '资源详情' })).toHaveAttribute('data-selected-resource', 'ic-cd4511')
+    await expect(viewer3d(page)).toHaveAttribute('data-viewer-state', 'ready', { timeout: 30_000 })
+
+    await searchInput.fill('恒温电烙铁')
+    await page.locator('[data-learn-item="tool-soldering-iron"]').click()
+    await expect(page.getByRole('main', { name: '资源详情' })).toHaveAttribute(
+      'data-selected-resource',
+      'tool-soldering-iron',
+    )
     await expect(viewer3d(page)).toHaveAttribute('data-viewer-state', 'ready', { timeout: 30_000 })
 
     await searchInput.fill('组合钳')

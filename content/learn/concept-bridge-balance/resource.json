@@ -1,0 +1,44 @@
+{
+  "id": "concept-bridge-balance",
+  "category": "concept",
+  "subcategory": "直流测量原理",
+  "title": "惠斯通直流电桥平衡与非平衡测温",
+  "subtitle": "高精度比较法测未知电阻与 Cu50 热电阻温度电桥标定原理",
+  "summary": "利用四臂电桥平衡态检流计指零（与电源电压波动无关）精密测定电阻（DG-03），并利用微失衡电桥输出电压与阻值增量的线性关系实现 Cu50 测温（DG-09）。",
+  "keywords": [
+    "惠斯通电桥",
+    "单臂电桥",
+    "电桥平衡",
+    "Cu50测温",
+    "DG-03",
+    "DG-09"
+  ],
+  "relatedInstruments": [
+    "ins-galvanometer",
+    "ins-dc-voltmeter"
+  ],
+  "relatedModules": [
+    "mod-dc-components",
+    "mod-dc-circuit"
+  ],
+  "specs": [
+    {
+      "label": "平衡条件",
+      "value": "R1 · R4 = R2 · R3（IG = 0）"
+    },
+    {
+      "label": "抗电源波动",
+      "value": "平衡点严格与桥源电压无关"
+    },
+    {
+      "label": "对应实训",
+      "value": "DG-03 / DG-09"
+    }
+  ],
+  "sections": {
+    "structure": "## 平衡法与偏转法双重机理\n\n- **平衡比较法（`DG-03`）**：当对角检流计电流归零时，桥臂分压完全相等，未知电阻 $R_x$ 仅由高精度标准比例臂与电阻箱读数决定，彻底消除直流电源电压波动与表头刻度误差。\n- **不平衡测温法（`DG-09`）**：将 $0\\ ^\\circ\\text{C}$ 时阻值 $50\\ \\Omega$ 的 Cu50 接入桥臂并调零，升温产生 $\\Delta R$ 后桥路输出不平衡电压 $U_{BD}$，在 $\\Delta R \\ll R_0$ 区间近似与温度成正比。",
+    "symbol": "## 桥臂拓扑与对角端区分\n\n- 菱形四臂电桥中，相对顶点一组接直流励磁电源，另一组对角顶点接指针式检流计或毫伏电压表，不可接错相邻臂。",
+    "parameters": "## 平衡与小信号灵敏度公式\n\n- 平衡解：$R_x = \\frac{R_1}{R_2} R_{\\text{box}}$。\n- 等臂电桥（$R_1=R_2=R_3=R_0$）在微小增量 $\\Delta R$ 下的开路输出电压：\n  $$U_{BD} = U_S \\cdot \\frac{\\Delta R}{4 R_0 + 2\\Delta R} \\approx \\frac{U_S}{4 R_0} \\Delta R$$",
+    "troubleshooting": "## 调平衡常见排故\n\n1. 无论怎么调电阻箱检流计均单向偏转：检查比例臂倍率是否合适或被测臂开路。\n2. `DG-09` 测温读数偏离直线：检查是否误将两根电源线接成不对称负载或电桥供电电压偏离标定值。"
+  }
+}
