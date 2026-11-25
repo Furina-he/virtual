@@ -1,0 +1,72 @@
+{
+  "id": "SD-15",
+  "group": "数字逻辑基础",
+  "title": "集成单稳态触发器及其应用",
+  "type": "basic",
+  "modules": [{ "instanceId": "pls1", "moduleId": "mod-dig-pulse", "slot": "SLOT_BOX_L1" }],
+  "allowedInstruments": ["ins-oscilloscope", "ins-func-gen"],
+  "reference": {
+    "nets": [
+      ["ins-dc-power.V5P", "pls1.VCC"],
+      ["ins-dc-power.V5N", "pls1.GND", "ins-func-gen.GND"],
+      ["ins-func-gen.CH1", "pls1.M121_B", "pls1.M123_B"],
+      ["pls1.K_CLR", "pls1.M123_CLR"]
+    ],
+    "measurePoints": [
+      { "id": "f_121", "kind": "waveform", "quantity": "frequency", "minCycles": 2, "between": ["pls1.M121_Q", "pls1.GND"] },
+      { "id": "v_121_vpp", "kind": "waveform", "quantity": "vpp", "between": ["pls1.M121_Q", "pls1.GND"] },
+      { "id": "v_123_mean", "kind": "waveform", "quantity": "mean", "between": ["pls1.M123_Q", "pls1.GND"] }
+    ]
+  },
+  "steps": [
+    {
+      "id": "prepare",
+      "text": "保持断电，对比不可重复触发单稳态触发器 74LS121（tw = 0.693·R1·C1）与可重复触发单稳态触发器 74LS123（tw ≈ 0.45·R2·C2，带异步 /CLR）的核心区别。",
+      "measurePoints": [],
+      "dataTable": "mono_test"
+    },
+    {
+      "id": "wire",
+      "text": "断电拖放函数信号发生器与示波器；接 +5V→VCC、公共地，信号源 CH1 同时接 M121_B 与 M123_B，K_CLR 接 M123_CLR，点击“检查接线”。",
+      "measurePoints": [],
+      "checkWiring": true,
+      "dataTable": "mono_test"
+    },
+    {
+      "id": "single_trig",
+      "text": "设信号源 CH1 为 500 Hz（周期 2 ms > 0.7 ms）、5 Vpp、+2.5 V 偏置方波；保持 R_121=10 kΩ（C=100 nF），示波器 CH1 测 M121_Q、CH2 测 M123_Q（时基 500 µs/div）；上电观察两者均输出 500 Hz、脉宽约 0.68 ms 的单稳态脉冲，记录第 1 行。",
+      "measurePoints": ["f_121", "v_121_vpp", "v_123_mean"],
+      "expect": { "measurePoint": "f_121", "min": 480, "max": 520 },
+      "dataTable": "mono_test"
+    },
+    {
+      "id": "retrig_compare",
+      "text": "将信号源频率调高至 2 kHz（触发周期 0.5 ms < 0.68 ms 脉宽）：观察不可重触发 74LS121 忽略暂稳期间脉冲退化为二分频 1 kHz 脉冲串，而可重触发 74LS123 被连续重触发并保持持续高电平（v_123_mean > 2.7 V，看门狗/脉冲丢失检测原理）；再拨动 SW_CLR 体验异步清零，记录第 2 行并断电。",
+      "measurePoints": ["f_121", "v_123_mean"],
+      "expect": { "measurePoint": "v_123_mean", "min": 2.7, "max": 4.2 },
+      "recordTable": "mono_test",
+      "dataTable": "mono_test"
+    }
+  ],
+  "dataTables": [
+    {
+      "id": "mono_test",
+      "title": "74LS121 不可重触发与 74LS123 可重触发单稳态对比记录",
+      "rows": 2,
+      "columns": [
+        { "id": "f_121", "title": "74LS121 输出频率", "unit": "Hz", "measurePoint": "f_121", "captureSteps": ["single_trig", "retrig_compare"] },
+        { "id": "v_121_vpp", "title": "74LS121 输出 Vpp", "unit": "V", "measurePoint": "v_121_vpp", "captureSteps": ["single_trig"] },
+        { "id": "v_123_mean", "title": "74LS123 输出均值", "unit": "V", "measurePoint": "v_123_mean", "captureSteps": ["single_trig", "retrig_compare"] }
+      ],
+      "sanity": [
+        { "column": "v_123_mean", "min": 0.5, "max": 4.5, "message": "500 Hz 单触发下均值约 1.2 V，2 kHz 连续重触发下保持高电平（>2.7 V）。" }
+      ]
+    }
+  ],
+  "charts": [],
+  "questions": [
+    "当输入触发脉冲周期 T 小于单稳态脉宽 tw 时，不可重触发 74LS121 与可重触发 74LS123 的输出波形有何本质区别？",
+    "为什么常用可重触发单稳态触发器（如 74LS123）构成脉冲丢失检测电路（看门狗定时器）？",
+    "74LS123 的异步清零端 /CLR 置低时对正在进行的暂稳态输出会产生什么影响？"
+  ]
+}

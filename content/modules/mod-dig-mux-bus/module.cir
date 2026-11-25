@@ -1,0 +1,76 @@
+.subckt mod_dig_mux_bus VCC GND CP_MAN CLK_OUT CNT_CP CNT_CLR CNT_A0 CNT_A1 CNT_A2 TX_A0 TX_A1 TX_A2 TX_Y TX_W RX_A0 RX_A1 RX_A2 RX_DIN RX0 RX1 RX2 RX3 RX4 RX5 RX6 RX7 params: clk_rate=2 cp_btn=0 tx_low=5 tx_high=10
+* 8 线时分复用数据传输实验箱（SD-18：74LS161 地址计数 + 74LS151 发送端 + 74LS138 接收分配端 + 74LS04）
+Rgnd GND 0 1G
+Rvcc_bleed VCC GND 100k
+Cdec VCC GND 100n
+
+* ---- 1. 时钟源（25 ms 相位偏移避开 50 ms 切片边界）与单次脉冲 ----
+Vclk1 clk1_raw GND PULSE(0 1 0.475 10u 10u 0.5 1.0)
+Vclk2 clk2_raw GND PULSE(0 1 0.225 10u 10u 0.25 0.5)
+Vclk5 clk5_raw GND PULSE(0 1 0.075 10u 10u 0.1 0.2)
+Vclk10 clk10_raw GND PULSE(0 1 0.025 10u 10u 0.05 0.1)
+RCLK1 clk1_raw clk_mix {clk_rate < 1.5 ? 10 : 1G}
+RCLK2 clk2_raw clk_mix {clk_rate >= 1.5 && clk_rate < 3.5 ? 10 : 1G}
+RCLK5 clk5_raw clk_mix {clk_rate >= 3.5 && clk_rate < 7.5 ? 10 : 1G}
+RCLK10 clk10_raw clk_mix {clk_rate >= 7.5 ? 10 : 1G}
+Rclk_load clk_mix GND 100k
+Bclk_buf clk_buf GND V=V(clk_mix,GND)*max(V(VCC,GND),0)
+Rclk_out clk_buf CLK_OUT 50
+
+RCP_HI VCC cp_sw {cp_btn > 0.5 ? 100 : 1G}
+RCP_LO cp_sw GND {cp_btn > 0.5 ? 1G : 100}
+Bcp cp_buf GND V=V(cp_sw,GND)
+Rcp_out cp_buf CP_MAN 50
+
+* ---- 2. 74LS161 三位同步地址计数器（1 ms 上电清零保证从地址 0 起步）----
+Vpor por_n GND PULSE(0 1 1m 10u 10u 1e6 2e6)
+Rpor por_n GND 100k
+Rclr_pu CNT_CLR VCC 20k
+Bclr cnt_clr_int GND V=min(V(CNT_CLR,GND),V(por_n,GND)*max(V(VCC,GND),0))
+X161 cnt_clr_int CNT_CP GND GND GND GND VCC GND VCC VCC cnt_a3 CNT_A2 CNT_A1 CNT_A0 cnt_rco VCC SN74LS161
+Ra0 CNT_A0 GND 10k
+Ra1 CNT_A1 GND 10k
+Ra2 CNT_A2 GND 10k
+
+* ---- 3. 8 路发送数据拨码 D0~D7（低 4 位 tx_low，高 4 位 tx_high）----
+RD0_HI VCC d0 {(floor(tx_low + 0.5) - 2*floor(floor(tx_low + 0.5)/2)) > 0.5 ? 100 : 1G}
+RD0_LO d0 GND {(floor(tx_low + 0.5) - 2*floor(floor(tx_low + 0.5)/2)) > 0.5 ? 1G : 100}
+RD1_HI VCC d1 {(floor(floor(tx_low + 0.5)/2) - 2*floor(floor(tx_low + 0.5)/4)) > 0.5 ? 100 : 1G}
+RD1_LO d1 GND {(floor(floor(tx_low + 0.5)/2) - 2*floor(floor(tx_low + 0.5)/4)) > 0.5 ? 1G : 100}
+RD2_HI VCC d2 {(floor(floor(tx_low + 0.5)/4) - 2*floor(floor(tx_low + 0.5)/8)) > 0.5 ? 100 : 1G}
+RD2_LO d2 GND {(floor(floor(tx_low + 0.5)/4) - 2*floor(floor(tx_low + 0.5)/8)) > 0.5 ? 1G : 100}
+RD3_HI VCC d3 {floor(tx_low + 0.5) >= 8 ? 100 : 1G}
+RD3_LO d3 GND {floor(tx_low + 0.5) >= 8 ? 1G : 100}
+
+RD4_HI VCC d4 {(floor(tx_high + 0.5) - 2*floor(floor(tx_high + 0.5)/2)) > 0.5 ? 100 : 1G}
+RD4_LO d4 GND {(floor(tx_high + 0.5) - 2*floor(floor(tx_high + 0.5)/2)) > 0.5 ? 1G : 100}
+RD5_HI VCC d5 {(floor(floor(tx_high + 0.5)/2) - 2*floor(floor(tx_high + 0.5)/4)) > 0.5 ? 100 : 1G}
+RD5_LO d5 GND {(floor(floor(tx_high + 0.5)/2) - 2*floor(floor(tx_high + 0.5)/4)) > 0.5 ? 1G : 100}
+RD6_HI VCC d6 {(floor(floor(tx_high + 0.5)/4) - 2*floor(floor(tx_high + 0.5)/8)) > 0.5 ? 100 : 1G}
+RD6_LO d6 GND {(floor(floor(tx_high + 0.5)/4) - 2*floor(floor(tx_high + 0.5)/8)) > 0.5 ? 1G : 100}
+RD7_HI VCC d7 {floor(tx_high + 0.5) >= 8 ? 100 : 1G}
+RD7_LO d7 GND {floor(tx_high + 0.5) >= 8 ? 1G : 100}
+
+* ---- 4. 74LS151 8 选 1 并转串发送器 ----
+* DIP-16: 1 D3 2 D2 3 D1 4 D0 5 Y 6 W 7 /G 8 GND 9 C 10 B 11 A 12 D7 13 D6 14 D5 15 D4 16 VCC
+X151 d3 d2 d1 d0 TX_Y TX_W GND GND TX_A2 TX_A1 TX_A0 d7 d6 d5 d4 VCC SN74LS151
+Rtxy TX_Y GND 10k
+Rtxw TX_W GND 10k
+
+* ---- 5. 74LS138 3-8 线串转并分配器（RX_DIN 接 G1，/G2A=/G2B=GND；输出经两片 74LS04 反相为高有效 RX0~RX7）----
+* DIP-16: 1 A 2 B 3 C 4 /G2A 5 /G2B 6 G1 7 /Y7 8 GND 9 /Y6 10 /Y5 11 /Y4 12 /Y3 13 /Y2 14 /Y1 15 /Y0 16 VCC
+Rdin_pd RX_DIN GND 10k
+X138 RX_A0 RX_A1 RX_A2 GND GND RX_DIN ny7 GND ny6 ny5 ny4 ny3 ny2 ny1 ny0 VCC SN74LS138
+Xinv1 ny0 RX0 ny1 RX1 ny2 RX2 GND RX3 ny3 RX4 ny4 RX5 ny5 VCC SN74LS04
+Xinv2 ny6 RX6 ny7 RX7 GND u04_3 GND u04_4 GND u04_5 GND u04_6 GND VCC SN74LS04
+Rrx0 RX0 GND 10k
+Rrx1 RX1 GND 10k
+Rrx2 RX2 GND 10k
+Rrx3 RX3 GND 10k
+Rrx4 RX4 GND 10k
+Rrx5 RX5 GND 10k
+Rrx6 RX6 GND 10k
+Rrx7 RX7 GND 10k
+.ends mod_dig_mux_bus
+
+.include "ttl.lib"

@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 440" width="820" height="440">
+  <rect width="820" height="440" fill="#f8fafc"/>
+  <text x="410" y="30" text-anchor="middle" font-family="sans-serif" font-size="16" font-weight="bold" fill="#0f172a">SD-21 伺服电机光电测速与数字测频系统原理图（mod-motor-speed + mod-digital-logic）</text>
+  <rect x="30" y="75" width="215" height="270" rx="6" fill="#eff6ff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="137" y="102" text-anchor="middle" font-size="13" font-weight="bold" fill="#1e3a8a">伺服电机与 60 槽码盘</text>
+  <text x="137" y="138" text-anchor="middle" font-size="12" fill="#334155">12 V 调压 → SERVO_MOTOR</text>
+  <text x="137" y="170" text-anchor="middle" font-size="12" fill="#334155">60 槽光电开关 → ENC_RAW</text>
+  <text x="137" y="205" text-anchor="middle" font-size="12" fill="#1d4ed8">74LS14 施密特整形 → TACH_OUT</text>
+  <text x="137" y="242" text-anchor="middle" font-size="11" fill="#475569">f_TACH (Hz) = n (r/min)</text>
+  <rect x="295" y="75" width="210" height="270" rx="6" fill="#fef3c7" stroke="#d97706" stroke-width="1.5"/>
+  <text x="400" y="102" text-anchor="middle" font-size="13" font-weight="bold" fill="#92400e">1 s 标准闸门与门控</text>
+  <text x="400" y="145" text-anchor="middle" font-size="12" fill="#334155">GATE_OUT (1.000 s 高电平)</text>
+  <text x="400" y="182" text-anchor="middle" font-size="12" fill="#334155">74LS08：TACH &amp; GATE → COUNT</text>
+  <text x="400" y="220" text-anchor="middle" font-size="12" fill="#b45309">前导 20 ms 清零 → RST_AUTO</text>
+  <rect x="555" y="75" width="235" height="270" rx="6" fill="#f0fdf4" stroke="#16a34a" stroke-width="1.5"/>
+  <text x="672" y="102" text-anchor="middle" font-size="13" font-weight="bold" fill="#14532d">二位十进制计数显示</text>
+  <text x="672" y="142" text-anchor="middle" font-size="12" fill="#334155">mod-digital-logic (dig1)</text>
+  <text x="672" y="178" text-anchor="middle" font-size="12" fill="#334155">74LS90×2 级联 (00~99)</text>
+  <text x="672" y="214" text-anchor="middle" font-size="12" fill="#15803d">CD4511×2 → 双七段数码管</text>
+  <text x="672" y="250" text-anchor="middle" font-size="11" fill="#475569">直读电机转速 (30 / 60 r/min)</text>
+  <line x1="245" y1="180" x2="295" y2="180" stroke="#0f172a" stroke-width="2"/>
+  <line x1="505" y1="180" x2="555" y2="180" stroke="#dc2626" stroke-width="2"/>
+  <line x1="505" y1="220" x2="555" y2="220" stroke="#0f172a" stroke-width="1.8" stroke-dasharray="5,3"/>
+  <circle cx="245" cy="180" r="4" fill="#2563eb" data-jack="spd1.TACH_OUT"/>
+  <circle cx="505" cy="180" r="4" fill="#dc2626" data-jack="spd1.COUNT_OUT"/>
+  <circle cx="555" cy="180" r="4" fill="#16a34a" data-jack="dig1.U1_CP0"/>
+  <circle cx="555" cy="220" r="4" fill="#16a34a" data-jack="dig1.U1_R0"/>
+  <text x="410" y="405" text-anchor="middle" font-size="12" fill="#64748b">+5V→dig1/spd1.VCC，CH1(+12V)→spd1.VM_IN，COUNT_OUT→U1_CP0，RST_AUTO→U1_R0/U2_R0</text>
+</svg>

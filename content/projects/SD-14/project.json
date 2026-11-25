@@ -1,0 +1,71 @@
+{
+  "id": "SD-14",
+  "group": "数字逻辑基础",
+  "title": "微分型单稳态触发器",
+  "type": "basic",
+  "modules": [{ "instanceId": "pls1", "moduleId": "mod-dig-pulse", "slot": "SLOT_BOX_L1" }],
+  "allowedInstruments": ["ins-oscilloscope", "ins-func-gen"],
+  "reference": {
+    "nets": [
+      ["ins-dc-power.V5P", "pls1.VCC"],
+      ["ins-dc-power.V5N", "pls1.GND", "ins-func-gen.GND"],
+      ["ins-func-gen.CH1", "pls1.DIF_IN"]
+    ],
+    "measurePoints": [
+      { "id": "f_out", "kind": "waveform", "quantity": "frequency", "minCycles": 2, "between": ["pls1.DIF_G1Y", "pls1.GND"] },
+      { "id": "v_g1_vpp", "kind": "waveform", "quantity": "vpp", "between": ["pls1.DIF_G1Y", "pls1.GND"] },
+      { "id": "v_rc_vpp", "kind": "waveform", "quantity": "vpp", "between": ["pls1.DIF_RC", "pls1.GND"] }
+    ]
+  },
+  "steps": [
+    {
+      "id": "prepare",
+      "text": "保持断电，熟悉 74LS00 双与非门与 RC 微分网络构成的数模混合微分型单稳态触发器（SIM-09）：输入窄负脉冲触发暂稳态，脉宽 tw 与微分时间常数 Rd·Cd 成正比。",
+      "measurePoints": [],
+      "dataTable": "dif_test"
+    },
+    {
+      "id": "wire",
+      "text": "断电拖放双通道函数信号发生器与示波器；连接 +5V→VCC、公共地接 V5N/pls1.GND/ins-func-gen.GND，信号源 CH1→pls1.DIF_IN，点击“检查接线”。",
+      "measurePoints": [],
+      "checkWiring": true,
+      "dataTable": "dif_test"
+    },
+    {
+      "id": "rd_1k",
+      "text": "设信号源 CH1 为 200 Hz、5 Vpp、+2.5 V 偏置、占空比 90% 方波（每周期 0.5 ms 窄负触发脉冲）；设 Rd=1.0 kΩ（Cd=470 nF），示波器 CH1 测 DIF_G1Y、CH2 测 DIF_RC（时基 1 ms/div）；上电观测 DIF_G1Y 正单稳脉冲（tw ≈ 0.7 ms）与 DIF_RC 指数衰减曲线，记录第 1 行。",
+      "measurePoints": ["f_out", "v_g1_vpp"],
+      "expect": { "measurePoint": "f_out", "min": 190, "max": 210 },
+      "dataTable": "dif_test"
+    },
+    {
+      "id": "rd_2k",
+      "text": "在线将微分定时电阻切换为 Rd=2.0 kΩ（翻倍），使用示波器光标观测 DIF_G1Y 暂稳态脉宽同步展宽至约 1.5 ms（约翻倍），记录第 2 行并断电完成思考题。",
+      "measurePoints": ["f_out", "v_g1_vpp", "v_rc_vpp"],
+      "expect": { "measurePoint": "v_g1_vpp", "min": 2.8, "max": 4.2 },
+      "recordTable": "dif_test",
+      "dataTable": "dif_test"
+    }
+  ],
+  "dataTables": [
+    {
+      "id": "dif_test",
+      "title": "微分型单稳态触发器定时电阻与波形测试记录",
+      "rows": 2,
+      "columns": [
+        { "id": "f_out", "title": "触发重复频率 f", "unit": "Hz", "measurePoint": "f_out", "captureSteps": ["rd_1k", "rd_2k"] },
+        { "id": "v_g1_vpp", "title": "单稳输出 Vpp", "unit": "V", "measurePoint": "v_g1_vpp", "captureSteps": ["rd_1k", "rd_2k"] },
+        { "id": "v_rc_vpp", "title": "微分节点 Vpp", "unit": "V", "measurePoint": "v_rc_vpp", "captureSteps": ["rd_2k"] }
+      ],
+      "sanity": [
+        { "column": "v_g1_vpp", "min": 2.0, "max": 5.5, "message": "TTL 门电路单稳态输出高电平峰峰值应在 3.4 V 附近。" }
+      ]
+    }
+  ],
+  "charts": [],
+  "questions": [
+    "微分型单稳态触发器中，为何要求输入触发负脉冲宽度小于暂稳态脉宽 tw？若触发脉冲过宽会出现什么现象？",
+    "增大微分电阻 Rd 时，TTL 与非门输入灌电流为什么限制了 Rd 不能无限增大？",
+    "比较暂稳态结束瞬间电容 Cd 反向恢复充电对电路最高工作频率的影响。"
+  ]
+}

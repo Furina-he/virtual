@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 440" width="820" height="440">
+  <rect width="820" height="440" fill="#f8fafc"/>
+  <text x="410" y="30" text-anchor="middle" font-family="sans-serif" font-size="16" font-weight="bold" fill="#0f172a">SD-20 秒脉冲信号发生器原理图（32768 Hz 晶振 + CD4060 + 74LS74）</text>
+  <rect x="40" y="130" width="175" height="140" rx="6" fill="#eff6ff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="127" y="165" text-anchor="middle" font-size="13" font-weight="bold" fill="#1e3a8a">32.768 kHz 晶振</text>
+  <text x="127" y="198" text-anchor="middle" font-size="12" fill="#334155">XTAL_32768 行为源</text>
+  <text x="127" y="228" text-anchor="middle" font-size="11" fill="#475569">基准频率 2^15 Hz</text>
+  <rect x="275" y="95" width="235" height="210" rx="6" fill="#f0fdf4" stroke="#16a34a" stroke-width="1.5"/>
+  <text x="392" y="128" text-anchor="middle" font-size="13" font-weight="bold" fill="#14532d">CD4060（14 级分频）</text>
+  <text x="392" y="160" text-anchor="middle" font-size="12" fill="#334155">PHI_I ← XTAL_OUT</text>
+  <text x="392" y="188" text-anchor="middle" font-size="12" fill="#334155">Q10=32 Hz · Q12=8 Hz · Q13=4 Hz</text>
+  <text x="392" y="216" text-anchor="middle" font-size="12" font-weight="bold" fill="#15803d">Q14 = 32768 / 2^14 = 2.000 Hz</text>
+  <text x="392" y="250" text-anchor="middle" font-size="11" fill="#475569">K_MR → C4060_MR (高有效清零)</text>
+  <rect x="570" y="120" width="210" height="160" rx="6" fill="#fef3c7" stroke="#d97706" stroke-width="1.5"/>
+  <text x="675" y="152" text-anchor="middle" font-size="13" font-weight="bold" fill="#92400e">74LS74（二分频）</text>
+  <text x="675" y="184" text-anchor="middle" font-size="12" fill="#334155">FF_CP ← Q14 (2 Hz)</text>
+  <text x="675" y="212" text-anchor="middle" font-size="12" fill="#334155">反馈：FF_NQ → FF_D</text>
+  <text x="675" y="242" text-anchor="middle" font-size="12" font-weight="bold" fill="#b45309">FF_Q = 1.000 Hz 秒脉冲</text>
+  <line x1="215" y1="200" x2="275" y2="200" stroke="#0f172a" stroke-width="2"/>
+  <line x1="510" y1="200" x2="570" y2="200" stroke="#0f172a" stroke-width="2"/>
+  <circle cx="215" cy="200" r="4" fill="#2563eb" data-jack="sec1.XTAL_OUT"/>
+  <circle cx="275" cy="200" r="4" fill="#16a34a" data-jack="sec1.C4060_PHI"/>
+  <circle cx="510" cy="200" r="4" fill="#16a34a" data-jack="sec1.C4060_Q14"/>
+  <circle cx="570" cy="200" r="4" fill="#d97706" data-jack="sec1.FF_CP"/>
+  <circle cx="780" cy="200" r="4" fill="#dc2626" data-jack="sec1.FF_Q"/>
+  <text x="410" y="405" text-anchor="middle" font-size="12" fill="#64748b">+5V→VCC，GND→GND，XTAL_OUT→C4060_PHI，K_MR→C4060_MR，C4060_Q14→FF_CP，FF_NQ→FF_D</text>
+</svg>

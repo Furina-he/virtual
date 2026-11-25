@@ -1,0 +1,84 @@
+{
+  "id": "SD-18",
+  "group": "综合性应用仿真实训项目",
+  "title": "8 线数据传输电路",
+  "type": "integrated",
+  "modules": [{ "instanceId": "mux1", "moduleId": "mod-dig-mux-bus", "slot": "SLOT_BOX_L1" }],
+  "allowedInstruments": ["ins-oscilloscope", "ins-multimeter"],
+  "reference": {
+    "nets": [
+      ["ins-dc-power.V5P", "mux1.VCC", "mux1.CNT_CLR"],
+      ["ins-dc-power.V5N", "mux1.GND"],
+      ["mux1.CP_MAN", "mux1.CNT_CP"],
+      ["mux1.CNT_A0", "mux1.TX_A0", "mux1.RX_A0"],
+      ["mux1.CNT_A1", "mux1.TX_A1", "mux1.RX_A1"],
+      ["mux1.CNT_A2", "mux1.TX_A2", "mux1.RX_A2"],
+      ["mux1.TX_Y", "mux1.RX_DIN"]
+    ],
+    "measurePoints": [
+      { "id": "v_bus", "kind": "voltage", "mode": "dcv", "between": ["mux1.TX_Y", "mux1.GND"] },
+      { "id": "f_clk", "kind": "waveform", "quantity": "frequency", "minCycles": 2, "between": ["mux1.CNT_CP", "mux1.GND"] },
+      { "id": "f_a2", "kind": "waveform", "quantity": "frequency", "minCycles": 2, "between": ["mux1.CNT_A2", "mux1.GND"] }
+    ]
+  },
+  "steps": [
+    {
+      "id": "prepare",
+      "text": "保持断电，理解单线时分复用（TDM）8 线数据传输原理：74LS161 产生同步 3 位地址 A2A1A0，发送端 74LS151 完成 8 选 1 并转串，接收端 74LS138 完成 1 分 8 串转并分配。",
+      "measurePoints": [],
+      "dataTable": "mux_test"
+    },
+    {
+      "id": "wire",
+      "text": "断电按单次步进接线：+5V→VCC/CNT_CLR、GND→GND、CP_MAN→CNT_CP，将地址线 CNT_A0~A2 同步接至 TX_A0~A2 与 RX_A0~A2，再以单根串行总线连 TX_Y→RX_DIN，点击“检查接线”。",
+      "measurePoints": [],
+      "checkWiring": true,
+      "dataTable": "mux_test"
+    },
+    {
+      "id": "step_verify",
+      "text": "保持默认发送数据低 4 位 TX_LOW=5 (0101：D0=1,D1=0,D2=1,D3=0)、高 4 位 TX_HIGH=10 (1010：D4=0,D5=1,D6=0,D7=1)；上电观察地址 000 时串行总线 TX_Y=H 且仅 RX0=H；逐次翻转 CP_BTN 步进地址 0→7，核对每个通道 RXk 与发送位 Dk 一一对应，并记录直流电压表测得的总线电平。",
+      "measurePoints": ["v_bus"],
+      "expect": { "measurePoint": "v_bus", "min": 2.7, "max": 4.2 },
+      "dataTable": "mux_test"
+    },
+    {
+      "id": "continuous_scan",
+      "text": "断电改接 CLK_OUT→CNT_CP（设 CLK_RATE=10 Hz），示波器 CH1 接 CNT_CP、CH2 接 CNT_A2，上电观察 8 通道自动循环扫描与 f_A2 = f_CLK / 8 ≈ 1.25 Hz，记录并断电完成思考题。",
+      "measurePoints": ["f_clk", "f_a2"],
+      "referenceNets": [
+        ["ins-dc-power.V5P", "mux1.VCC", "mux1.CNT_CLR"],
+        ["ins-dc-power.V5N", "mux1.GND"],
+        ["mux1.CLK_OUT", "mux1.CNT_CP"],
+        ["mux1.CNT_A0", "mux1.TX_A0", "mux1.RX_A0"],
+        ["mux1.CNT_A1", "mux1.TX_A1", "mux1.RX_A1"],
+        ["mux1.CNT_A2", "mux1.TX_A2", "mux1.RX_A2"],
+        ["mux1.TX_Y", "mux1.RX_DIN"]
+      ],
+      "expect": { "measurePoint": "f_a2", "min": 1.15, "max": 1.35 },
+      "recordTable": "mux_test",
+      "dataTable": "mux_test"
+    }
+  ],
+  "dataTables": [
+    {
+      "id": "mux_test",
+      "title": "8 线时分复用数据传输测量记录",
+      "rows": 2,
+      "columns": [
+        { "id": "v_bus", "title": "串行总线电平 TX_Y", "unit": "V", "measurePoint": "v_bus", "captureSteps": ["step_verify"] },
+        { "id": "f_clk", "title": "扫描时钟 f_CLK", "unit": "Hz", "measurePoint": "f_clk", "captureSteps": ["continuous_scan"] },
+        { "id": "f_a2", "title": "帧周期频率 f_A2", "unit": "Hz", "measurePoint": "f_a2", "captureSteps": ["continuous_scan"] }
+      ],
+      "sanity": [
+        { "column": "f_a2", "min": 0.1, "max": 3, "message": "10 Hz 扫描时钟下 8 通道帧频应约 1.25 Hz。" }
+      ]
+    }
+  ],
+  "charts": [],
+  "questions": [
+    "8 线时分复用系统中，若发送端与接收端的地址线 A2A1A0 出现 1 位错位，接收端数据会发生什么现象？",
+    "本电路中 74LS138 的选通端 G1 接入串行总线 TX_Y 起到什么作用？",
+    "与 8 根并行线直接传输相比，时分复用传输节省了导线，但在传输速率上有何代价？"
+  ]
+}

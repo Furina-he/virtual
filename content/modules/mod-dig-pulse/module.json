@@ -1,0 +1,87 @@
+{
+  "id": "mod-dig-pulse",
+  "name": "脉冲整形与单稳态实验箱",
+  "form": "box",
+  "model": "module.glb",
+  "netlist": "module.cir",
+  "jacks": [
+    { "id": "VCC", "label": "+5V 电源", "kind": "banana4", "polarityHint": "+" },
+    { "id": "GND", "label": "公共地 GND", "kind": "banana4", "polarityHint": "-" },
+    { "id": "DIF_IN", "label": "微分单稳触发 IN", "kind": "banana4" },
+    { "id": "DIF_G1Y", "label": "微分单稳 G1 输出", "kind": "banana4" },
+    { "id": "DIF_RC", "label": "微分节点 RC", "kind": "banana4" },
+    { "id": "DIF_Q", "label": "微分单稳输出 Q", "kind": "banana4" },
+    { "id": "M121_B", "label": "74LS121 触发 B", "kind": "banana4" },
+    { "id": "M121_RC", "label": "74LS121 定时 RC", "kind": "banana4" },
+    { "id": "M121_Q", "label": "74LS121 输出 Q", "kind": "banana4" },
+    { "id": "M121_NQ", "label": "74LS121 输出 /Q", "kind": "banana4" },
+    { "id": "M123_B", "label": "74LS123 触发 1B", "kind": "banana4" },
+    { "id": "M123_CLR", "label": "74LS123 清零 /CLR", "kind": "banana4" },
+    { "id": "M123_RC", "label": "74LS123 定时 RC", "kind": "banana4" },
+    { "id": "M123_Q", "label": "74LS123 输出 1Q", "kind": "banana4" },
+    { "id": "M123_NQ", "label": "74LS123 输出 1/Q", "kind": "banana4" },
+    { "id": "S14_IN", "label": "74LS14 输入 A", "kind": "banana4" },
+    { "id": "S14_OUT", "label": "74LS14 输出 Y", "kind": "banana4" },
+    { "id": "S106_IN", "label": "CD40106 输入 A", "kind": "banana4" },
+    { "id": "S106_OUT", "label": "CD40106 输出 Y", "kind": "banana4" },
+    { "id": "OSC_R", "label": "施密特振荡反馈 R", "kind": "banana4" },
+    { "id": "OSC_C", "label": "施密特振荡电容 C", "kind": "banana4" },
+    { "id": "K_CLR", "label": "清零开关 K0", "kind": "banana4" }
+  ],
+  "controls": [
+    {
+      "id": "R_DIF",
+      "label": "微分定时电阻 Rd",
+      "kind": "rotary",
+      "param": "r_dif",
+      "steps": [510, 1000, 2000],
+      "stepLabels": ["510 Ω", "1.0 kΩ", "2.0 kΩ"],
+      "targets": [{ "element": "RDIF", "values": [510, 1000, 2000] }],
+      "unit": "Ω",
+      "default": 1000
+    },
+    {
+      "id": "R_121",
+      "label": "74LS121 定时电阻 R1",
+      "kind": "rotary",
+      "param": "r_121",
+      "steps": [4700, 10000, 22000],
+      "stepLabels": ["4.7 kΩ", "10 kΩ", "22 kΩ"],
+      "targets": [{ "element": "R121T", "values": [4700, 10000, 22000] }],
+      "unit": "Ω",
+      "default": 10000
+    },
+    {
+      "id": "R_OSC",
+      "label": "施密特振荡电阻 Rf",
+      "kind": "rotary",
+      "param": "r_osc",
+      "steps": [2200, 4700, 10000],
+      "stepLabels": ["2.2 kΩ", "4.7 kΩ", "10 kΩ"],
+      "targets": [{ "element": "ROSC", "values": [2200, 4700, 10000] }],
+      "unit": "Ω",
+      "default": 4700
+    },
+    {
+      "id": "SW_CLR",
+      "label": "清零开关 K0 (/CLR)",
+      "kind": "switch",
+      "param": "sw_clr",
+      "steps": [0, 1],
+      "stepLabels": ["低电平清零 (0)", "高电平允许 (1)"],
+      "targets": [
+        { "element": "RK_HI", "values": [1000000000, 100] },
+        { "element": "RK_LO", "values": [100, 1000000000] }
+      ],
+      "unit": "",
+      "default": 1
+    }
+  ],
+  "indicators": [
+    { "id": "L_M121", "kind": "led", "label": "74LS121 Q", "probe": "M121_Q", "common": "GND" },
+    { "id": "L_M123", "kind": "led", "label": "74LS123 Q", "probe": "M123_Q", "common": "GND" },
+    { "id": "L_S14", "kind": "led", "label": "74LS14 Y", "probe": "S14_OUT", "common": "GND" },
+    { "id": "L_S106", "kind": "led", "label": "CD40106 Y", "probe": "S106_OUT", "common": "GND" }
+  ],
+  "simulation": { "analysis": "tran", "maxStep": 0.000005, "pacing": "window" }
+}

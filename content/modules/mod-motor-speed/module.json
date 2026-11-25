@@ -1,0 +1,58 @@
+{
+  "id": "mod-motor-speed",
+  "name": "伺服电机光电测速模块",
+  "form": "box",
+  "model": "module.glb",
+  "netlist": "module.cir",
+  "jacks": [
+    { "id": "VM_IN", "label": "+12V 电机电源", "kind": "banana4", "polarityHint": "+" },
+    { "id": "VCC", "label": "+5V 测速电源", "kind": "banana4", "polarityHint": "+" },
+    { "id": "GND", "label": "公共地 GND", "kind": "banana4", "polarityHint": "-" },
+    { "id": "VM_MON", "label": "电枢电压观测", "kind": "banana4" },
+    { "id": "ENC_RAW", "label": "码盘原始信号", "kind": "banana4" },
+    { "id": "SCH_IN", "label": "施密特输入", "kind": "banana4" },
+    { "id": "TACH_OUT", "label": "整形测速脉冲", "kind": "banana4" },
+    { "id": "GATE_OUT", "label": "1 s 闸门信号", "kind": "banana4" },
+    { "id": "RST_AUTO", "label": "闸门自动清零", "kind": "banana4" },
+    { "id": "AND_A", "label": "闸门与门 A", "kind": "banana4" },
+    { "id": "AND_B", "label": "闸门与门 B", "kind": "banana4" },
+    { "id": "COUNT_OUT", "label": "门控计数输出", "kind": "banana4" }
+  ],
+  "controls": [
+    {
+      "id": "SPEED_SET",
+      "label": "电机设定转速 (60 槽码盘)",
+      "kind": "rotary",
+      "param": "speed_set",
+      "steps": [0, 15, 30, 45, 60, 75],
+      "stepLabels": ["0 r/min (停转)", "15 r/min (15 Hz)", "30 r/min (30 Hz)", "45 r/min (45 Hz)", "60 r/min (60 Hz)", "75 r/min (75 Hz)"],
+      "targets": [
+        { "element": "RSPD_TOP", "values": [1000000000, 9500, 7500, 5500, 3500, 1500] },
+        { "element": "RSPD_BOT", "values": [100, 2500, 4500, 6500, 8500, 10500] }
+      ],
+      "unit": "r/min",
+      "default": 30
+    },
+    {
+      "id": "GATE_MODE",
+      "label": "测频闸门模式",
+      "kind": "switch",
+      "param": "gate_mode",
+      "steps": [1, 0],
+      "stepLabels": ["1 s 闸门测速 (r/min)", "连续直通 (测频)"],
+      "targets": [
+        { "element": "RGM_GATE", "values": [10, 1000000000] },
+        { "element": "RGM_CONT", "values": [1000000000, 10] },
+        { "element": "RRST_EN", "values": [10, 1000000000] }
+      ],
+      "unit": "",
+      "default": 1
+    }
+  ],
+  "indicators": [
+    { "id": "L_TACH", "kind": "led", "label": "测速脉冲 TACH", "probe": "TACH_OUT", "common": "GND" },
+    { "id": "L_GATE", "kind": "led", "label": "1 s 闸门 GATE", "probe": "GATE_OUT", "common": "GND" },
+    { "id": "L_CNT", "kind": "led", "label": "计数输出 CNT", "probe": "COUNT_OUT", "common": "GND" }
+  ],
+  "simulation": { "analysis": "tran", "maxStep": 0.0005, "pacing": "realtime" }
+}

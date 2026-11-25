@@ -1,0 +1,52 @@
+.subckt mod_dig_ring VCC GND CP_MAN CLK_OUT R194_CP R194_CLR R194_S0 R194_S1 R194_SR R194_FB R194_QA R194_QB R194_QC R194_QD R175_CP R175_CLR R175_D1 R175_Q1 R175_Q2 R175_Q3 R175_Q4 R175_NQ4 params: clk_rate=5 cp_btn=0
+* 4 位环形计数节拍发生器板（SD-19：74LS194 自启动四拍环形 + 74LS175 扭环形约翰逊计数器）
+Rgnd GND 0 1G
+Rvcc_bleed VCC GND 100k
+Cdec VCC GND 100n
+
+* ---- 1. 时钟源（25 ms 相位偏移）与单次脉冲 ----
+Vclk1 clk1_raw GND PULSE(0 1 0.475 10u 10u 0.5 1.0)
+Vclk2 clk2_raw GND PULSE(0 1 0.225 10u 10u 0.25 0.5)
+Vclk5 clk5_raw GND PULSE(0 1 0.075 10u 10u 0.1 0.2)
+Vclk10 clk10_raw GND PULSE(0 1 0.025 10u 10u 0.05 0.1)
+RCLK1 clk1_raw clk_mix {clk_rate < 1.5 ? 10 : 1G}
+RCLK2 clk2_raw clk_mix {clk_rate >= 1.5 && clk_rate < 3.5 ? 10 : 1G}
+RCLK5 clk5_raw clk_mix {clk_rate >= 3.5 && clk_rate < 7.5 ? 10 : 1G}
+RCLK10 clk10_raw clk_mix {clk_rate >= 7.5 ? 10 : 1G}
+Rclk_load clk_mix GND 100k
+Bclk_buf clk_buf GND V=V(clk_mix,GND)*max(V(VCC,GND),0)
+Rclk_out clk_buf CLK_OUT 50
+
+RCP_HI VCC cp_sw {cp_btn > 0.5 ? 100 : 1G}
+RCP_LO cp_sw GND {cp_btn > 0.5 ? 1G : 100}
+Bcp cp_buf GND V=V(cp_sw,GND)
+Rcp_out cp_buf CP_MAN 50
+
+* ---- 2. 1 ms 上电复位脉冲 ----
+Vpor por_n GND PULSE(0 1 1m 10u 10u 1e6 2e6)
+Rpor por_n GND 100k
+
+* ---- 3. 74LS194 四拍自启动环形计数器（反馈 R194_FB = ~(QA | QB | QC)，清零后第 1 拍自动置入 1000）----
+R194clr_pu R194_CLR VCC 20k
+B194clr r194_clr_int GND V=min(V(R194_CLR,GND),V(por_n,GND)*max(V(VCC,GND),0))
+X194 r194_clr_int R194_SR GND GND GND GND GND GND R194_S0 R194_S1 R194_CP R194_QD R194_QC R194_QB R194_QA VCC SN74LS194
+Xfb_or R194_QA R194_QB ab_or ab_or R194_QC abc_or GND u32_3 GND GND u32_4 GND GND VCC SN74LS32
+Xfb_inv abc_or R194_FB GND u04_2 GND u04_3 GND u04_4 GND u04_5 GND u04_6 GND VCC SN74LS04
+Rqa R194_QA GND 10k
+Rqb R194_QB GND 10k
+Rqc R194_QC GND 10k
+Rqd R194_QD GND 10k
+Rrfb R194_FB GND 10k
+
+* ---- 4. 74LS175 四位扭环形（约翰逊）计数器（D2=Q1, D3=Q2, D4=Q3 内部级联，R175_NQ4 -> R175_D1 得 8 拍八分频）----
+R175clr_pu R175_CLR VCC 20k
+B175clr r175_clr_int GND V=min(V(R175_CLR,GND),V(por_n,GND)*max(V(VCC,GND),0))
+X175 r175_clr_int R175_Q1 nq1 R175_D1 R175_Q1 nq2 R175_Q2 GND R175_CP R175_Q3 nq3 R175_Q2 R175_Q3 R175_NQ4 R175_Q4 VCC SN74LS175
+Rq1 R175_Q1 GND 10k
+Rq2 R175_Q2 GND 10k
+Rq3 R175_Q3 GND 10k
+Rq4 R175_Q4 GND 10k
+Rnq4 R175_NQ4 GND 10k
+.ends mod_dig_ring
+
+.include "ttl.lib"

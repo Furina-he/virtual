@@ -91,3 +91,54 @@ R_tone_ref n_tone 0 1k
 B_snd SND_P SND_N V = v(n_tone) * 0.5 * (1 + tanh((v(POS,NEG) - 2.2) / 0.25))
 R_snd_ref SND_N 0 100Meg
 .ends BUZZER_ACTIVE
+
+
+* 7. LDR_GL5528（GL5528 硫化镉光敏电阻，0 ~ 500 lx 光照度可调）
+*   来源：本项目按 GL5528 数据手册典型照度-阻值幂律特性自行构建：
+*     0 lx（黑暗）= 200 kΩ；10 lx（微光）≈ 33.2 kΩ；100 lx（室内）≈ 5.5 kΩ；500 lx（白天强光）≈ 1.4 kΩ。
+*   许可证：随本项目发布，可自由再分发（项目自有内容）。
+.subckt LDR_GL5528 A B params: lux=10
+R_ldr A B {200000 / (1 + pwr(max(0, lux) / 1.5, 0.85))}
+.ends LDR_GL5528
+
+* 8. RELAY_5V_SPST（5 V 常开单刀单掷电磁继电器，端口：COIL_P COIL_N COM NO）
+*   来源：本项目按常见 5 V 信号继电器典型参数（线圈内阻 125 Ω / 40 mA，吸合电压 ≈ 3.1 V，
+*   释放电压 ≈ 2.1 V，触点导通电阻 0.5 Ω、关断绝缘 100 MΩ）自行构建。
+*   许可证：随本项目发布，可自由再分发（项目自有内容）。
+.subckt RELAY_5V_SPST COIL_P COIL_N COM NO
+R_coil COIL_P COIL_N 125
+S_con COM NO COIL_P COIL_N SW_REL5V
+.model SW_REL5V SW(VT=2.6 VH=0.5 RON=0.5 ROFF=100Meg)
+.ends RELAY_5V_SPST
+
+* 9. XTAL_32768（32.768 kHz 石英晶振行为振荡源，端口：VDD VSS OUT）
+*   来源：本项目按 PRD 7.3 SD-20（晶振行为模型）自行构建：未供电（VDD-VSS < 2.8 V）时无输出，
+*   正常供电时输出直流偏置 0.5·VDD、交流峰峰值 0.8·VDD 的无断点平滑正弦 32768 Hz 晶振信号，
+*   示波器放大时基（20 µs/div）可直接观测精确 32768 Hz 波形，且在低速实时观测 1 Hz 秒脉冲时不产生高频断点拖慢。
+*   许可证：随本项目发布，可自由再分发（项目自有内容）。
+.subckt XTAL_32768 VDD VSS OUT params: freq_hz=32768
+Rq VDD VSS 100k
+V_osc n_osc 0 SIN(0.6 0.3 {freq_hz})
+R_osc n_osc 0 1k
+B_out n_drv VSS V=V(n_osc)*max(V(VDD,VSS),0)*0.5*(1+tanh((V(VDD,VSS)-2.8)/0.2))
+R_out n_drv OUT 100
+.ends XTAL_32768
+
+* 10. SERVO_MOTOR_ENC（12 V 直流伺服电机 + 60 槽光电码盘测速传感器行为模型）
+*   来源：本项目按原型选型说明 §3.1 #22（60 槽光电码盘：1 Hz 脉冲 = 1 r/min 转速）自行构建。
+*   端口：VM_P VM_N（电机电枢供电 0~12 V）、VCC GND（光电开关 +5 V 供电）、TACH_OUT（测速方波输出）。
+*   物理依据：稳态转速 rpm = rpm_per_v * max(V(VM_P,VM_N) - 0.5, 0)（默认 rpm_per_v=7.5 -> 4.5 V 约 30 r/min、
+*   8.5 V 约 60 r/min、12 V 约 86 r/min），相位积分器连续平滑推进支持运行中实时调速无跳变。
+*   许可证：随本项目发布，可自由再分发（项目自有内容）。
+.subckt SERVO_MOTOR_ENC VM_P VM_N VCC GND TACH_OUT params: rpm_per_v=7.5
+* 电枢直流负载（额定 12 V 约 120 mA）与传感器静耗
+R_arm VM_P VM_N 100
+R_vcc VCC GND 10k
+* 连续转速积分器：d(phi)/dt = 2*pi * f_hz（60 槽码盘：f_hz = rpm * 60 / 60 = rpm）
+B_omega 0 phi I = 6.283185307179586 * {rpm_per_v} * max(0, V(VM_P,VM_N) - 0.5) * tanh(time / 1m)
+C_phi phi 0 1
+R_phi phi 0 1T
+* 光电开关槽孔调制输出（依赖 VCC 供电）
+B_tach n_t GND V = max(V(VCC,GND), 0) * 0.5 * (1 + tanh(8 * sin(V(phi)))) * 0.5 * (1 + tanh((V(VCC,GND) - 3.5) / 0.25))
+R_tach n_t TACH_OUT 100
+.ends SERVO_MOTOR_ENC

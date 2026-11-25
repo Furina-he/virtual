@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 440" width="820" height="440">
+  <rect width="820" height="440" fill="#f8fafc"/>
+  <text x="410" y="30" text-anchor="middle" font-family="sans-serif" font-size="16" font-weight="bold" fill="#0f172a">SD-15 集成单稳态触发器对比原理图（74LS121 不可重触发 vs 74LS123 可重触发）</text>
+  <rect x="45" y="75" width="340" height="290" rx="6" fill="#eff6ff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="215" y="105" text-anchor="middle" font-size="13" font-weight="bold" fill="#1e3a8a">SN74LS121（不可重复触发）</text>
+  <text x="215" y="142" text-anchor="middle" font-size="12" fill="#334155">A1=A2=GND，B 上升沿触发 (M121_B)</text>
+  <text x="215" y="176" text-anchor="middle" font-size="12" fill="#334155">R1 = 4.7/10/22 kΩ，C1 = 100 nF</text>
+  <text x="215" y="212" text-anchor="middle" font-size="12" font-weight="bold" fill="#1d4ed8">tw = 0.693·R1·C1 ≈ 0.693 ms</text>
+  <text x="215" y="248" text-anchor="middle" font-size="11" fill="#475569">2 kHz 触发下忽略中间沿 → 1 kHz 脉冲</text>
+  <rect x="435" y="75" width="340" height="290" rx="6" fill="#f0fdf4" stroke="#16a34a" stroke-width="1.5"/>
+  <text x="605" y="105" text-anchor="middle" font-size="13" font-weight="bold" fill="#14532d">SN74LS123（可重复触发 + /CLR）</text>
+  <text x="605" y="142" text-anchor="middle" font-size="12" fill="#334155">1A=GND，1B 上升沿触发 (M123_B)</text>
+  <text x="605" y="176" text-anchor="middle" font-size="12" fill="#334155">R2 = 15 kΩ，C2 = 100 nF，/CLR ← K_CLR</text>
+  <text x="605" y="212" text-anchor="middle" font-size="12" font-weight="bold" fill="#15803d">tw ≈ 0.45·R2·C2 ≈ 0.675 ms</text>
+  <text x="605" y="248" text-anchor="middle" font-size="11" fill="#475569">2 kHz 触发下连续续期 → 持续高电平</text>
+  <circle cx="95" cy="310" r="4" fill="#2563eb" data-jack="pls1.M121_B"/>
+  <circle cx="335" cy="310" r="4" fill="#2563eb" data-jack="pls1.M121_Q"/>
+  <circle cx="485" cy="310" r="4" fill="#16a34a" data-jack="pls1.M123_B"/>
+  <circle cx="605" cy="310" r="4" fill="#16a34a" data-jack="pls1.M123_CLR"/>
+  <circle cx="725" cy="310" r="4" fill="#16a34a" data-jack="pls1.M123_Q"/>
+  <text x="410" y="405" text-anchor="middle" font-size="12" fill="#64748b">信号源 CH1 同接 M121_B 与 M123_B，K_CLR→M123_CLR，示波器 CH1/CH2 对比 M121_Q 与 M123_Q</text>
+</svg>

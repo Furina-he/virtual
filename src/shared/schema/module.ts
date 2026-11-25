@@ -63,7 +63,7 @@ export const ModuleIndicator = z.discriminatedUnion('kind', [
     label: z.string().min(1).optional(),
     probe: z.string().min(1),
     common: JackId.optional(),
-    threshold: z.number().positive().default(1.8),
+    threshold: z.number().positive().optional(),
   }),
   z.object({
     id: z.string().min(1),
@@ -73,7 +73,7 @@ export const ModuleIndicator = z.discriminatedUnion('kind', [
       .tuple([SpiceNodeName, SpiceNodeName, SpiceNodeName, SpiceNodeName, SpiceNodeName, SpiceNodeName, SpiceNodeName])
       .optional(),
     common: JackId.optional(),
-    threshold: z.number().positive().default(1.8),
+    threshold: z.number().positive().optional(),
     probe: z.string().min(1).optional(),
   }),
   z.object({

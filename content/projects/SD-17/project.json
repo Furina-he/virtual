@@ -1,0 +1,80 @@
+{
+  "id": "SD-17",
+  "group": "综合性应用仿真实训项目",
+  "title": "声光控制节能路灯电路",
+  "type": "integrated",
+  "modules": [{ "instanceId": "stl1", "moduleId": "mod-app-street-light", "slot": "SLOT_BOX_L1" }],
+  "allowedInstruments": ["ins-multimeter", "ins-oscilloscope"],
+  "reference": {
+    "nets": [
+      ["ins-dc-power.V5P", "stl1.VCC"],
+      ["ins-dc-power.CH1P", "stl1.LAMP_V12"],
+      ["ins-dc-power.V5N", "ins-dc-power.CH1N", "stl1.GND", "stl1.LAMP_GND"],
+      ["stl1.DRV_OUT", "stl1.REL_IN"],
+      ["stl1.REL_NO", "stl1.LAMP_IN"]
+    ],
+    "measurePoints": [
+      { "id": "v_ldr", "kind": "voltage", "mode": "dcv", "between": ["stl1.LDR_OUT", "stl1.GND"] },
+      { "id": "v_drv", "kind": "voltage", "mode": "dcv", "between": ["stl1.DRV_OUT", "stl1.GND"] },
+      { "id": "v_lamp", "kind": "voltage", "mode": "dcv", "between": ["stl1.LAMP_IN", "stl1.LAMP_GND"] }
+    ]
+  },
+  "steps": [
+    {
+      "id": "prepare",
+      "text": "保持断电，熟悉声光控节能路灯工作原理：GL5528 光敏电阻检测昼夜，驻极体话筒拾取拍手/脚步声，CD4011 完成“夜间且有声”逻辑与非及 RC 延时，继电器驱动 12 V 路灯。",
+      "measurePoints": [],
+      "dataTable": "stl_test"
+    },
+    {
+      "id": "wire",
+      "text": "断电接线：+5V→VCC、CH1+(12V)→LAMP_V12、公共地接 V5N/CH1N/GND/LAMP_GND，并连接 DRV_OUT→REL_IN、REL_NO→LAMP_IN，点击“检查接线”。",
+      "measurePoints": [],
+      "checkWiring": true,
+      "dataTable": "stl_test"
+    },
+    {
+      "id": "day_block",
+      "text": "设直流稳压源 CH1=12 V，将直流电压表接 LAMP_IN 与 LAMP_GND；将环境光照设为 500 lx (白天)、声控设为“拍手声 (触发)”，上电验证白天有声音时路灯仍保持熄灭（v_lamp < 0.5 V），记录第 1 行。",
+      "measurePoints": ["v_lamp"],
+      "expect": { "measurePoint": "v_lamp", "min": -0.2, "max": 0.5 },
+      "dataTable": "stl_test"
+    },
+    {
+      "id": "night_quiet",
+      "text": "将环境光照切至 0 lx (黑夜)、声控切至“安静 (无声)”，观察“黑夜光敏有效”亮起 (H)，但无声音时路灯仍熄灭（v_lamp < 0.5 V），记录第 2 行。",
+      "measurePoints": ["v_lamp"],
+      "expect": { "measurePoint": "v_lamp", "min": -0.2, "max": 0.5 },
+      "dataTable": "stl_test"
+    },
+    {
+      "id": "night_sound",
+      "text": "保持黑夜 (0 lx)，将声控切至“拍手声 (触发)”，观察继电器吸合、路灯点亮（L_LAMP=H，v_lamp ≈ 12 V），记录第 3 行；随后切回“安静”观察延时保持后自动熄灭，断电完成思考题。",
+      "measurePoints": ["v_lamp"],
+      "expect": { "measurePoint": "v_lamp", "min": 10.5, "max": 12.5 },
+      "recordTable": "stl_test",
+      "dataTable": "stl_test"
+    }
+  ],
+  "dataTables": [
+    {
+      "id": "stl_test",
+      "title": "声光控制节能路灯工况测试记录表",
+      "rows": 3,
+      "columns": [
+        { "id": "v_ldr", "title": "光敏电压 v_LDR", "unit": "V", "measurePoint": "v_ldr", "captureSteps": ["day_block", "night_quiet", "night_sound"] },
+        { "id": "v_drv", "title": "延时驱动 v_DRV", "unit": "V", "measurePoint": "v_drv", "captureSteps": ["day_block", "night_quiet", "night_sound"] },
+        { "id": "v_lamp", "title": "路灯电压 v_LAMP", "unit": "V", "measurePoint": "v_lamp", "captureSteps": ["day_block", "night_quiet", "night_sound"] }
+      ],
+      "sanity": [
+        { "column": "v_lamp", "min": -0.5, "max": 13.5, "message": "路灯端电压应在 0 V（熄灭）至 12 V（点亮）之间。" }
+      ]
+    }
+  ],
+  "charts": [],
+  "questions": [
+    "光敏电阻 GL5528 在强光与黑暗下的阻值如何变化？为何本电路将其接在下偏置臂即可实现“白天封锁、夜间允许”？",
+    "若希望夜间触发后路灯延时点亮时间延长一倍，应如何调整延时 RC 网络的参数？",
+    "采用 CD4011 与继电器隔离驱动 12 V 路灯有何工程优势？"
+  ]
+}

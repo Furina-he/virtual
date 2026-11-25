@@ -1,0 +1,46 @@
+{
+  "id": "mod-app-second-pulse",
+  "name": "秒脉冲信号发生器电路板",
+  "form": "board",
+  "model": "module.glb",
+  "netlist": "module.cir",
+  "jacks": [
+    { "id": "VCC", "label": "+5V 电源", "kind": "banana4", "polarityHint": "+" },
+    { "id": "GND", "label": "公共地 GND", "kind": "banana4", "polarityHint": "-" },
+    { "id": "XTAL_OUT", "label": "32768 Hz 晶振输出", "kind": "banana4" },
+    { "id": "C4060_PHI", "label": "CD4060 时钟 PHI_I", "kind": "banana4" },
+    { "id": "C4060_MR", "label": "CD4060 清零 MR", "kind": "banana4" },
+    { "id": "K_MR", "label": "清零开关 K_MR", "kind": "banana4" },
+    { "id": "C4060_Q10", "label": "Q10 (32 Hz)", "kind": "banana4" },
+    { "id": "C4060_Q12", "label": "Q12 (8 Hz)", "kind": "banana4" },
+    { "id": "C4060_Q13", "label": "Q13 (4 Hz)", "kind": "banana4" },
+    { "id": "C4060_Q14", "label": "Q14 (2 Hz)", "kind": "banana4" },
+    { "id": "FF_CP", "label": "74LS74 时钟 CP", "kind": "banana4" },
+    { "id": "FF_D", "label": "74LS74 数据 D", "kind": "banana4" },
+    { "id": "FF_Q", "label": "1 Hz 秒脉冲 Q", "kind": "banana4" },
+    { "id": "FF_NQ", "label": "74LS74 反相 /Q", "kind": "banana4" }
+  ],
+  "controls": [
+    {
+      "id": "SW_MR",
+      "label": "CD4060 清零开关 MR",
+      "kind": "switch",
+      "param": "sw_mr",
+      "steps": [0, 1],
+      "stepLabels": ["正常分频 (0)", "清零复位 (1)"],
+      "targets": [
+        { "element": "RMR_HI", "values": [1000000000, 100] },
+        { "element": "RMR_LO", "values": [100, 1000000000] }
+      ],
+      "unit": "",
+      "default": 0
+    }
+  ],
+  "indicators": [
+    { "id": "L_Q12", "kind": "led", "label": "Q12 (8 Hz)", "probe": "C4060_Q12", "common": "GND" },
+    { "id": "L_Q13", "kind": "led", "label": "Q13 (4 Hz)", "probe": "C4060_Q13", "common": "GND" },
+    { "id": "L_2HZ", "kind": "led", "label": "Q14 (2 Hz)", "probe": "C4060_Q14", "common": "GND" },
+    { "id": "L_1HZ", "kind": "led", "label": "1 Hz 秒脉冲", "probe": "FF_Q", "common": "GND" }
+  ],
+  "simulation": { "analysis": "tran", "maxStep": 0.0005, "pacing": "realtime" }
+}

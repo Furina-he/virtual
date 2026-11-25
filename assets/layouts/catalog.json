@@ -12002,6 +12002,1308 @@
       "parts": [],
       "slots": [],
       "notes": []
+    },
+    {
+      "id": "mod-dig-pulse",
+      "name": "脉冲整形与单稳态实验箱",
+      "kind": "module",
+      "bodyStyle": "module",
+      "dimensionsMm": [
+        290,
+        470,
+        55
+      ],
+      "model": "content/modules/mod-dig-pulse/module.glb",
+      "estimatedDimensions": true,
+      "dimensionNote": "Parametric 290x470x55 mm panel layout for mod-dig-pulse (M2 B6 digital/application module).",
+      "textureSize": [
+        1536,
+        2048
+      ],
+      "jacks": [
+        {
+          "id": "VCC",
+          "label": "+5V 电源",
+          "silkLabel": "VCC",
+          "x": 38,
+          "y": 60,
+          "color": "red",
+          "kind": "banana4"
+        },
+        {
+          "id": "GND",
+          "label": "公共地 GND",
+          "silkLabel": "GND",
+          "x": 108,
+          "y": 60,
+          "color": "black",
+          "kind": "banana4"
+        },
+        {
+          "id": "DIF_IN",
+          "label": "微分单稳触发 IN",
+          "silkLabel": "DIF_IN",
+          "x": 178,
+          "y": 60,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "DIF_G1Y",
+          "label": "微分单稳 G1 输出",
+          "silkLabel": "DIF_G1Y",
+          "x": 248,
+          "y": 60,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "DIF_RC",
+          "label": "微分节点 RC",
+          "silkLabel": "DIF_RC",
+          "x": 38,
+          "y": 116,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "DIF_Q",
+          "label": "微分单稳输出 Q",
+          "silkLabel": "DIF_Q",
+          "x": 108,
+          "y": 116,
+          "color": "green",
+          "kind": "banana4"
+        },
+        {
+          "id": "M121_B",
+          "label": "74LS121 触发 B",
+          "silkLabel": "M121_B",
+          "x": 178,
+          "y": 116,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "M121_RC",
+          "label": "74LS121 定时 RC",
+          "silkLabel": "M121_RC",
+          "x": 248,
+          "y": 116,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "M121_Q",
+          "label": "74LS121 输出 Q",
+          "silkLabel": "M121_Q",
+          "x": 38,
+          "y": 172,
+          "color": "green",
+          "kind": "banana4"
+        },
+        {
+          "id": "M121_NQ",
+          "label": "74LS121 输出 /Q",
+          "silkLabel": "M121_NQ",
+          "x": 108,
+          "y": 172,
+          "color": "green",
+          "kind": "banana4"
+        },
+        {
+          "id": "M123_B",
+          "label": "74LS123 触发 1B",
+          "silkLabel": "M123_B",
+          "x": 178,
+          "y": 172,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "M123_CLR",
+          "label": "74LS123 清零 /CLR",
+          "silkLabel": "M123_CLR",
+          "x": 248,
+          "y": 172,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "M123_RC",
+          "label": "74LS123 定时 RC",
+          "silkLabel": "M123_RC",
+          "x": 38,
+          "y": 228,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "M123_Q",
+          "label": "74LS123 输出 1Q",
+          "silkLabel": "M123_Q",
+          "x": 108,
+          "y": 228,
+          "color": "green",
+          "kind": "banana4"
+        },
+        {
+          "id": "M123_NQ",
+          "label": "74LS123 输出 1/Q",
+          "silkLabel": "M123_NQ",
+          "x": 178,
+          "y": 228,
+          "color": "green",
+          "kind": "banana4"
+        },
+        {
+          "id": "S14_IN",
+          "label": "74LS14 输入 A",
+          "silkLabel": "S14_IN",
+          "x": 248,
+          "y": 228,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "S14_OUT",
+          "label": "74LS14 输出 Y",
+          "silkLabel": "S14_OUT",
+          "x": 38,
+          "y": 284,
+          "color": "green",
+          "kind": "banana4"
+        },
+        {
+          "id": "S106_IN",
+          "label": "CD40106 输入 A",
+          "silkLabel": "S106_IN",
+          "x": 108,
+          "y": 284,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "S106_OUT",
+          "label": "CD40106 输出 Y",
+          "silkLabel": "S106_OUT",
+          "x": 178,
+          "y": 284,
+          "color": "green",
+          "kind": "banana4"
+        },
+        {
+          "id": "OSC_R",
+          "label": "施密特振荡反馈 R",
+          "silkLabel": "OSC_R",
+          "x": 248,
+          "y": 284,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "OSC_C",
+          "label": "施密特振荡电容 C",
+          "silkLabel": "OSC_C",
+          "x": 38,
+          "y": 340,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "K_CLR",
+          "label": "清零开关 K0",
+          "silkLabel": "K_CLR",
+          "x": 108,
+          "y": 340,
+          "color": "yellow",
+          "kind": "banana4"
+        }
+      ],
+      "controls": [
+        {
+          "id": "R_DIF",
+          "label": "微分定时电阻 Rd",
+          "param": "r_dif",
+          "kind": "knob",
+          "x": 52,
+          "y": 432
+        },
+        {
+          "id": "R_121",
+          "label": "74LS121 定时电阻 R1",
+          "param": "r_121",
+          "kind": "knob",
+          "x": 114,
+          "y": 432
+        },
+        {
+          "id": "R_OSC",
+          "label": "施密特振荡电阻 Rf",
+          "param": "r_osc",
+          "kind": "knob",
+          "x": 176,
+          "y": 432
+        },
+        {
+          "id": "SW_CLR",
+          "label": "清零开关 K0 (/CLR)",
+          "param": "sw_clr",
+          "kind": "switch",
+          "x": 238,
+          "y": 432
+        }
+      ],
+      "screens": [],
+      "parts": [],
+      "slots": [],
+      "notes": [],
+      "panel": {
+        "title": "脉冲整形与单稳态实验箱",
+        "titleSize": 5.2,
+        "footer": "SD-14/15/16 · 74LS00 / 74LS121 / 74LS123 / 74LS14 / CD40106",
+        "lines": [],
+        "symbols": [],
+        "texts": [],
+        "labels": []
+      }
+    },
+    {
+      "id": "mod-app-street-light",
+      "name": "声光控制节能路灯电路板",
+      "kind": "module",
+      "bodyStyle": "module",
+      "dimensionsMm": [
+        264,
+        184,
+        42
+      ],
+      "model": "content/modules/mod-app-street-light/module.glb",
+      "estimatedDimensions": true,
+      "dimensionNote": "Parametric 264x184x42 mm panel layout for mod-app-street-light (M2 B6 digital/application module).",
+      "textureSize": [
+        1536,
+        1024
+      ],
+      "jacks": [
+        {
+          "id": "VCC",
+          "label": "+5V 控制电源",
+          "silkLabel": "VCC",
+          "x": 36,
+          "y": 46,
+          "color": "red",
+          "kind": "banana4"
+        },
+        {
+          "id": "GND",
+          "label": "公共地 GND",
+          "silkLabel": "GND",
+          "x": 100,
+          "y": 46,
+          "color": "black",
+          "kind": "banana4"
+        },
+        {
+          "id": "LAMP_V12",
+          "label": "+12V 路灯电源",
+          "silkLabel": "LAMP_V12",
+          "x": 164,
+          "y": 46,
+          "color": "red",
+          "kind": "banana4"
+        },
+        {
+          "id": "LDR_OUT",
+          "label": "光敏检测输出",
+          "silkLabel": "LDR_OUT",
+          "x": 228,
+          "y": 46,
+          "color": "green",
+          "kind": "banana4"
+        },
+        {
+          "id": "MIC_OUT",
+          "label": "声控包络输出",
+          "silkLabel": "MIC_OUT",
+          "x": 36,
+          "y": 92,
+          "color": "green",
+          "kind": "banana4"
+        },
+        {
+          "id": "GATE_OUT",
+          "label": "CD4011 门控输出",
+          "silkLabel": "GATE_OUT",
+          "x": 100,
+          "y": 92,
+          "color": "blue",
+          "kind": "banana4"
+        },
+        {
+          "id": "DLY_RC",
+          "label": "延时电容节点",
+          "silkLabel": "DLY_RC",
+          "x": 164,
+          "y": 92,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "DRV_OUT",
+          "label": "延时驱动输出",
+          "silkLabel": "DRV_OUT",
+          "x": 228,
+          "y": 92,
+          "color": "green",
+          "kind": "banana4"
+        },
+        {
+          "id": "REL_IN",
+          "label": "继电器控制输入",
+          "silkLabel": "REL_IN",
+          "x": 36,
+          "y": 138,
+          "color": "green",
+          "kind": "banana4"
+        },
+        {
+          "id": "REL_NO",
+          "label": "继电器常开输出",
+          "silkLabel": "REL_NO",
+          "x": 100,
+          "y": 138,
+          "color": "green",
+          "kind": "banana4"
+        },
+        {
+          "id": "LAMP_IN",
+          "label": "路灯输入端",
+          "silkLabel": "LAMP_IN",
+          "x": 164,
+          "y": 138,
+          "color": "green",
+          "kind": "banana4"
+        },
+        {
+          "id": "LAMP_GND",
+          "label": "路灯负端",
+          "silkLabel": "LAMP_GND",
+          "x": 228,
+          "y": 138,
+          "color": "black",
+          "kind": "banana4"
+        }
+      ],
+      "controls": [
+        {
+          "id": "LIGHT_LUX",
+          "label": "环境光照强度",
+          "param": "light_lux",
+          "kind": "knob",
+          "x": 64,
+          "y": 162
+        },
+        {
+          "id": "SOUND_LVL",
+          "label": "环境声控触发",
+          "param": "sound_lvl",
+          "kind": "switch",
+          "x": 136,
+          "y": 162
+        }
+      ],
+      "screens": [],
+      "parts": [],
+      "slots": [],
+      "notes": [],
+      "panel": {
+        "title": "声光控制节能路灯电路板",
+        "titleSize": 5.2,
+        "footer": "SD-17 · GL5528 / 驻极体 / CD4011 / 5V继电器 / 12V路灯",
+        "lines": [],
+        "symbols": [],
+        "texts": [],
+        "labels": []
+      }
+    },
+    {
+      "id": "mod-dig-mux-bus",
+      "name": "8 线时分复用数据传输实验箱",
+      "kind": "module",
+      "bodyStyle": "module",
+      "dimensionsMm": [
+        290,
+        470,
+        55
+      ],
+      "model": "content/modules/mod-dig-mux-bus/module.glb",
+      "estimatedDimensions": true,
+      "dimensionNote": "Parametric 290x470x55 mm panel layout for mod-dig-mux-bus (M2 B6 digital/application module).",
+      "textureSize": [
+        1536,
+        2048
+      ],
+      "jacks": [
+        {
+          "id": "VCC",
+          "label": "+5V 电源",
+          "silkLabel": "VCC",
+          "x": 38,
+          "y": 56,
+          "color": "red",
+          "kind": "banana4"
+        },
+        {
+          "id": "GND",
+          "label": "公共地 GND",
+          "silkLabel": "GND",
+          "x": 108,
+          "y": 56,
+          "color": "black",
+          "kind": "banana4"
+        },
+        {
+          "id": "CP_MAN",
+          "label": "单次脉冲 CP",
+          "silkLabel": "CP_MAN",
+          "x": 178,
+          "y": 56,
+          "color": "blue",
+          "kind": "banana4"
+        },
+        {
+          "id": "CLK_OUT",
+          "label": "连续脉冲 CLK",
+          "silkLabel": "CLK_OUT",
+          "x": 248,
+          "y": 56,
+          "color": "blue",
+          "kind": "banana4"
+        },
+        {
+          "id": "CNT_CP",
+          "label": "地址时钟 CP",
+          "silkLabel": "CNT_CP",
+          "x": 38,
+          "y": 106,
+          "color": "blue",
+          "kind": "banana4"
+        },
+        {
+          "id": "CNT_CLR",
+          "label": "地址清零 /CLR",
+          "silkLabel": "CNT_CLR",
+          "x": 108,
+          "y": 106,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "CNT_A0",
+          "label": "地址输出 A0",
+          "silkLabel": "CNT_A0",
+          "x": 178,
+          "y": 106,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "CNT_A1",
+          "label": "地址输出 A1",
+          "silkLabel": "CNT_A1",
+          "x": 248,
+          "y": 106,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "CNT_A2",
+          "label": "地址输出 A2",
+          "silkLabel": "CNT_A2",
+          "x": 38,
+          "y": 156,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "TX_A0",
+          "label": "发送地址 A0",
+          "silkLabel": "TX_A0",
+          "x": 108,
+          "y": 156,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "TX_A1",
+          "label": "发送地址 A1",
+          "silkLabel": "TX_A1",
+          "x": 178,
+          "y": 156,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "TX_A2",
+          "label": "发送地址 A2",
+          "silkLabel": "TX_A2",
+          "x": 248,
+          "y": 156,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "TX_Y",
+          "label": "串行总线 TX_Y",
+          "silkLabel": "TX_Y",
+          "x": 38,
+          "y": 206,
+          "color": "green",
+          "kind": "banana4"
+        },
+        {
+          "id": "TX_W",
+          "label": "串行反相 TX_W",
+          "silkLabel": "TX_W",
+          "x": 108,
+          "y": 206,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "RX_A0",
+          "label": "接收地址 A0",
+          "silkLabel": "RX_A0",
+          "x": 178,
+          "y": 206,
+          "color": "green",
+          "kind": "banana4"
+        },
+        {
+          "id": "RX_A1",
+          "label": "接收地址 A1",
+          "silkLabel": "RX_A1",
+          "x": 248,
+          "y": 206,
+          "color": "green",
+          "kind": "banana4"
+        },
+        {
+          "id": "RX_A2",
+          "label": "接收地址 A2",
+          "silkLabel": "RX_A2",
+          "x": 38,
+          "y": 256,
+          "color": "green",
+          "kind": "banana4"
+        },
+        {
+          "id": "RX_DIN",
+          "label": "接收数据 RX_DIN",
+          "silkLabel": "RX_DIN",
+          "x": 108,
+          "y": 256,
+          "color": "green",
+          "kind": "banana4"
+        },
+        {
+          "id": "RX0",
+          "label": "接收通道 RX0",
+          "silkLabel": "RX0",
+          "x": 178,
+          "y": 256,
+          "color": "green",
+          "kind": "banana4"
+        },
+        {
+          "id": "RX1",
+          "label": "接收通道 RX1",
+          "silkLabel": "RX1",
+          "x": 248,
+          "y": 256,
+          "color": "green",
+          "kind": "banana4"
+        },
+        {
+          "id": "RX2",
+          "label": "接收通道 RX2",
+          "silkLabel": "RX2",
+          "x": 38,
+          "y": 306,
+          "color": "green",
+          "kind": "banana4"
+        },
+        {
+          "id": "RX3",
+          "label": "接收通道 RX3",
+          "silkLabel": "RX3",
+          "x": 108,
+          "y": 306,
+          "color": "green",
+          "kind": "banana4"
+        },
+        {
+          "id": "RX4",
+          "label": "接收通道 RX4",
+          "silkLabel": "RX4",
+          "x": 178,
+          "y": 306,
+          "color": "green",
+          "kind": "banana4"
+        },
+        {
+          "id": "RX5",
+          "label": "接收通道 RX5",
+          "silkLabel": "RX5",
+          "x": 248,
+          "y": 306,
+          "color": "green",
+          "kind": "banana4"
+        },
+        {
+          "id": "RX6",
+          "label": "接收通道 RX6",
+          "silkLabel": "RX6",
+          "x": 38,
+          "y": 356,
+          "color": "green",
+          "kind": "banana4"
+        },
+        {
+          "id": "RX7",
+          "label": "接收通道 RX7",
+          "silkLabel": "RX7",
+          "x": 108,
+          "y": 356,
+          "color": "green",
+          "kind": "banana4"
+        }
+      ],
+      "controls": [
+        {
+          "id": "CLK_RATE",
+          "label": "扫描时钟频率",
+          "param": "clk_rate",
+          "kind": "knob",
+          "x": 52,
+          "y": 432
+        },
+        {
+          "id": "CP_BTN",
+          "label": "单次地址步进 CP",
+          "param": "cp_btn",
+          "kind": "switch",
+          "x": 114,
+          "y": 432
+        },
+        {
+          "id": "TX_LOW",
+          "label": "发送数据低 4 位 D3~D0",
+          "param": "tx_low",
+          "kind": "knob",
+          "x": 176,
+          "y": 432
+        },
+        {
+          "id": "TX_HIGH",
+          "label": "发送数据高 4 位 D7~D4",
+          "param": "tx_high",
+          "kind": "knob",
+          "x": 238,
+          "y": 432
+        }
+      ],
+      "screens": [],
+      "parts": [],
+      "slots": [],
+      "notes": [],
+      "panel": {
+        "title": "8 线时分复用数据传输实验箱",
+        "titleSize": 5.2,
+        "footer": "SD-18 · 74LS161 + 74LS151 + 74LS138 8线时分复用传输",
+        "lines": [],
+        "symbols": [],
+        "texts": [],
+        "labels": []
+      }
+    },
+    {
+      "id": "mod-dig-ring",
+      "name": "4 位环形计数节拍发生器板",
+      "kind": "module",
+      "bodyStyle": "module",
+      "dimensionsMm": [
+        264,
+        184,
+        42
+      ],
+      "model": "content/modules/mod-dig-ring/module.glb",
+      "estimatedDimensions": true,
+      "dimensionNote": "Parametric 264x184x42 mm panel layout for mod-dig-ring (M2 B6 digital/application module).",
+      "textureSize": [
+        1536,
+        1024
+      ],
+      "jacks": [
+        {
+          "id": "VCC",
+          "label": "+5V 电源",
+          "silkLabel": "VCC",
+          "x": 26,
+          "y": 36,
+          "color": "red",
+          "kind": "banana4"
+        },
+        {
+          "id": "GND",
+          "label": "公共地 GND",
+          "silkLabel": "GND",
+          "x": 68,
+          "y": 36,
+          "color": "black",
+          "kind": "banana4"
+        },
+        {
+          "id": "CP_MAN",
+          "label": "单次脉冲 CP",
+          "silkLabel": "CP_MAN",
+          "x": 110,
+          "y": 36,
+          "color": "blue",
+          "kind": "banana4"
+        },
+        {
+          "id": "CLK_OUT",
+          "label": "连续脉冲 CLK",
+          "silkLabel": "CLK_OUT",
+          "x": 152,
+          "y": 36,
+          "color": "blue",
+          "kind": "banana4"
+        },
+        {
+          "id": "R194_CP",
+          "label": "194 时钟 CP",
+          "silkLabel": "R194_CP",
+          "x": 194,
+          "y": 36,
+          "color": "blue",
+          "kind": "banana4"
+        },
+        {
+          "id": "R194_CLR",
+          "label": "194 清零 /CLR",
+          "silkLabel": "R194_CLR",
+          "x": 236,
+          "y": 36,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "R194_S0",
+          "label": "194 模式 S0",
+          "silkLabel": "R194_S0",
+          "x": 26,
+          "y": 68,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "R194_S1",
+          "label": "194 模式 S1",
+          "silkLabel": "R194_S1",
+          "x": 68,
+          "y": 68,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "R194_SR",
+          "label": "194 右移输入 SR",
+          "silkLabel": "R194_SR",
+          "x": 110,
+          "y": 68,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "R194_FB",
+          "label": "自启动反馈 ~(|Q)",
+          "silkLabel": "R194_FB",
+          "x": 152,
+          "y": 68,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "R194_QA",
+          "label": "节拍输出 T1 (QA)",
+          "silkLabel": "R194_QA",
+          "x": 194,
+          "y": 68,
+          "color": "green",
+          "kind": "banana4"
+        },
+        {
+          "id": "R194_QB",
+          "label": "节拍输出 T2 (QB)",
+          "silkLabel": "R194_QB",
+          "x": 236,
+          "y": 68,
+          "color": "green",
+          "kind": "banana4"
+        },
+        {
+          "id": "R194_QC",
+          "label": "节拍输出 T3 (QC)",
+          "silkLabel": "R194_QC",
+          "x": 26,
+          "y": 100,
+          "color": "green",
+          "kind": "banana4"
+        },
+        {
+          "id": "R194_QD",
+          "label": "节拍输出 T4 (QD)",
+          "silkLabel": "R194_QD",
+          "x": 68,
+          "y": 100,
+          "color": "green",
+          "kind": "banana4"
+        },
+        {
+          "id": "R175_CP",
+          "label": "175 时钟 CP",
+          "silkLabel": "R175_CP",
+          "x": 110,
+          "y": 100,
+          "color": "blue",
+          "kind": "banana4"
+        },
+        {
+          "id": "R175_CLR",
+          "label": "175 清零 /CLR",
+          "silkLabel": "R175_CLR",
+          "x": 152,
+          "y": 100,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "R175_D1",
+          "label": "175 首级输入 1D",
+          "silkLabel": "R175_D1",
+          "x": 194,
+          "y": 100,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "R175_Q1",
+          "label": "175 扭环 Q1",
+          "silkLabel": "R175_Q1",
+          "x": 236,
+          "y": 100,
+          "color": "green",
+          "kind": "banana4"
+        },
+        {
+          "id": "R175_Q2",
+          "label": "175 扭环 Q2",
+          "silkLabel": "R175_Q2",
+          "x": 26,
+          "y": 132,
+          "color": "green",
+          "kind": "banana4"
+        },
+        {
+          "id": "R175_Q3",
+          "label": "175 扭环 Q3",
+          "silkLabel": "R175_Q3",
+          "x": 68,
+          "y": 132,
+          "color": "green",
+          "kind": "banana4"
+        },
+        {
+          "id": "R175_Q4",
+          "label": "175 扭环 Q4",
+          "silkLabel": "R175_Q4",
+          "x": 110,
+          "y": 132,
+          "color": "green",
+          "kind": "banana4"
+        },
+        {
+          "id": "R175_NQ4",
+          "label": "175 扭环 /Q4",
+          "silkLabel": "R175_NQ4",
+          "x": 152,
+          "y": 132,
+          "color": "green",
+          "kind": "banana4"
+        }
+      ],
+      "controls": [
+        {
+          "id": "CLK_RATE",
+          "label": "节拍时钟频率",
+          "param": "clk_rate",
+          "kind": "knob",
+          "x": 64,
+          "y": 162
+        },
+        {
+          "id": "CP_BTN",
+          "label": "单次脉冲按键 CP",
+          "param": "cp_btn",
+          "kind": "switch",
+          "x": 136,
+          "y": 162
+        }
+      ],
+      "screens": [],
+      "parts": [],
+      "slots": [],
+      "notes": [],
+      "panel": {
+        "title": "4 位环形计数节拍发生器板",
+        "titleSize": 5.2,
+        "footer": "SD-19 · 74LS194 四拍环形 + 74LS175 扭环形节拍发生器",
+        "lines": [],
+        "symbols": [],
+        "texts": [],
+        "labels": []
+      }
+    },
+    {
+      "id": "mod-app-second-pulse",
+      "name": "秒脉冲信号发生器电路板",
+      "kind": "module",
+      "bodyStyle": "module",
+      "dimensionsMm": [
+        264,
+        184,
+        42
+      ],
+      "model": "content/modules/mod-app-second-pulse/module.glb",
+      "estimatedDimensions": true,
+      "dimensionNote": "Parametric 264x184x42 mm panel layout for mod-app-second-pulse (M2 B6 digital/application module).",
+      "textureSize": [
+        1536,
+        1024
+      ],
+      "jacks": [
+        {
+          "id": "VCC",
+          "label": "+5V 电源",
+          "silkLabel": "VCC",
+          "x": 32,
+          "y": 48,
+          "color": "red",
+          "kind": "banana4"
+        },
+        {
+          "id": "GND",
+          "label": "公共地 GND",
+          "silkLabel": "GND",
+          "x": 82,
+          "y": 48,
+          "color": "black",
+          "kind": "banana4"
+        },
+        {
+          "id": "XTAL_OUT",
+          "label": "32768 Hz 晶振输出",
+          "silkLabel": "XTAL_OUT",
+          "x": 132,
+          "y": 48,
+          "color": "blue",
+          "kind": "banana4"
+        },
+        {
+          "id": "C4060_PHI",
+          "label": "CD4060 时钟 PHI_I",
+          "silkLabel": "C4060_PHI",
+          "x": 182,
+          "y": 48,
+          "color": "blue",
+          "kind": "banana4"
+        },
+        {
+          "id": "C4060_MR",
+          "label": "CD4060 清零 MR",
+          "silkLabel": "C4060_MR",
+          "x": 232,
+          "y": 48,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "K_MR",
+          "label": "清零开关 K_MR",
+          "silkLabel": "K_MR",
+          "x": 32,
+          "y": 94,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "C4060_Q10",
+          "label": "Q10 (32 Hz)",
+          "silkLabel": "C4060_Q10",
+          "x": 82,
+          "y": 94,
+          "color": "green",
+          "kind": "banana4"
+        },
+        {
+          "id": "C4060_Q12",
+          "label": "Q12 (8 Hz)",
+          "silkLabel": "C4060_Q12",
+          "x": 132,
+          "y": 94,
+          "color": "green",
+          "kind": "banana4"
+        },
+        {
+          "id": "C4060_Q13",
+          "label": "Q13 (4 Hz)",
+          "silkLabel": "C4060_Q13",
+          "x": 182,
+          "y": 94,
+          "color": "green",
+          "kind": "banana4"
+        },
+        {
+          "id": "C4060_Q14",
+          "label": "Q14 (2 Hz)",
+          "silkLabel": "C4060_Q14",
+          "x": 232,
+          "y": 94,
+          "color": "green",
+          "kind": "banana4"
+        },
+        {
+          "id": "FF_CP",
+          "label": "74LS74 时钟 CP",
+          "silkLabel": "FF_CP",
+          "x": 32,
+          "y": 140,
+          "color": "blue",
+          "kind": "banana4"
+        },
+        {
+          "id": "FF_D",
+          "label": "74LS74 数据 D",
+          "silkLabel": "FF_D",
+          "x": 82,
+          "y": 140,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "FF_Q",
+          "label": "1 Hz 秒脉冲 Q",
+          "silkLabel": "FF_Q",
+          "x": 132,
+          "y": 140,
+          "color": "green",
+          "kind": "banana4"
+        },
+        {
+          "id": "FF_NQ",
+          "label": "74LS74 反相 /Q",
+          "silkLabel": "FF_NQ",
+          "x": 182,
+          "y": 140,
+          "color": "green",
+          "kind": "banana4"
+        }
+      ],
+      "controls": [
+        {
+          "id": "SW_MR",
+          "label": "CD4060 清零开关 MR",
+          "param": "sw_mr",
+          "kind": "switch",
+          "x": 64,
+          "y": 162
+        }
+      ],
+      "screens": [],
+      "parts": [],
+      "slots": [],
+      "notes": [],
+      "panel": {
+        "title": "秒脉冲信号发生器电路板",
+        "titleSize": 5.2,
+        "footer": "SD-20 · 32768Hz晶振 + CD4060 + 74LS74 → 1Hz秒脉冲",
+        "lines": [],
+        "symbols": [],
+        "texts": [],
+        "labels": []
+      }
+    },
+    {
+      "id": "mod-motor-speed",
+      "name": "伺服电机光电测速模块",
+      "kind": "module",
+      "bodyStyle": "module",
+      "dimensionsMm": [
+        145,
+        470,
+        55
+      ],
+      "model": "content/modules/mod-motor-speed/module.glb",
+      "estimatedDimensions": true,
+      "dimensionNote": "Parametric 145x470x55 mm panel layout for mod-motor-speed (M2 B6 digital/application module).",
+      "textureSize": [
+        1024,
+        2048
+      ],
+      "jacks": [
+        {
+          "id": "VM_IN",
+          "label": "+12V 电机电源",
+          "silkLabel": "VM_IN",
+          "x": 40,
+          "y": 66,
+          "color": "red",
+          "kind": "banana4"
+        },
+        {
+          "id": "VCC",
+          "label": "+5V 测速电源",
+          "silkLabel": "VCC",
+          "x": 105,
+          "y": 66,
+          "color": "red",
+          "kind": "banana4"
+        },
+        {
+          "id": "GND",
+          "label": "公共地 GND",
+          "silkLabel": "GND",
+          "x": 40,
+          "y": 124,
+          "color": "black",
+          "kind": "banana4"
+        },
+        {
+          "id": "VM_MON",
+          "label": "电枢电压观测",
+          "silkLabel": "VM_MON",
+          "x": 105,
+          "y": 124,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "ENC_RAW",
+          "label": "码盘原始信号",
+          "silkLabel": "ENC_RAW",
+          "x": 40,
+          "y": 182,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "SCH_IN",
+          "label": "施密特输入",
+          "silkLabel": "SCH_IN",
+          "x": 105,
+          "y": 182,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "TACH_OUT",
+          "label": "整形测速脉冲",
+          "silkLabel": "TACH_OUT",
+          "x": 40,
+          "y": 240,
+          "color": "blue",
+          "kind": "banana4"
+        },
+        {
+          "id": "GATE_OUT",
+          "label": "1 s 闸门信号",
+          "silkLabel": "GATE_OUT",
+          "x": 105,
+          "y": 240,
+          "color": "blue",
+          "kind": "banana4"
+        },
+        {
+          "id": "RST_AUTO",
+          "label": "闸门自动清零",
+          "silkLabel": "RST_AUTO",
+          "x": 40,
+          "y": 298,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "AND_A",
+          "label": "闸门与门 A",
+          "silkLabel": "AND_A",
+          "x": 105,
+          "y": 298,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "AND_B",
+          "label": "闸门与门 B",
+          "silkLabel": "AND_B",
+          "x": 40,
+          "y": 356,
+          "color": "yellow",
+          "kind": "banana4"
+        },
+        {
+          "id": "COUNT_OUT",
+          "label": "门控计数输出",
+          "silkLabel": "COUNT_OUT",
+          "x": 105,
+          "y": 356,
+          "color": "green",
+          "kind": "banana4"
+        }
+      ],
+      "controls": [
+        {
+          "id": "SPEED_SET",
+          "label": "电机设定转速 (60 槽码盘)",
+          "param": "speed_set",
+          "kind": "knob",
+          "x": 44,
+          "y": 432
+        },
+        {
+          "id": "GATE_MODE",
+          "label": "测频闸门模式",
+          "param": "gate_mode",
+          "kind": "switch",
+          "x": 100,
+          "y": 432
+        }
+      ],
+      "screens": [],
+      "parts": [],
+      "slots": [],
+      "notes": [],
+      "panel": {
+        "title": "伺服电机光电测速模块",
+        "titleSize": 4.2,
+        "footer": "SD-21 · 12V伺服电机 + 60槽光电码盘 + 74LS14/08",
+        "lines": [],
+        "symbols": [],
+        "texts": [],
+        "labels": []
+      }
     }
   ],
   "preview": {

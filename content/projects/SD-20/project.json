@@ -1,0 +1,73 @@
+{
+  "id": "SD-20",
+  "group": "综合性应用仿真实训项目",
+  "title": "秒脉冲信号发生器",
+  "type": "integrated",
+  "modules": [{ "instanceId": "sec1", "moduleId": "mod-app-second-pulse", "slot": "SLOT_BOX_L1" }],
+  "allowedInstruments": ["ins-oscilloscope", "ins-multimeter"],
+  "reference": {
+    "nets": [
+      ["ins-dc-power.V5P", "sec1.VCC"],
+      ["ins-dc-power.V5N", "sec1.GND"],
+      ["sec1.XTAL_OUT", "sec1.C4060_PHI"],
+      ["sec1.K_MR", "sec1.C4060_MR"],
+      ["sec1.C4060_Q14", "sec1.FF_CP"],
+      ["sec1.FF_NQ", "sec1.FF_D"]
+    ],
+    "measurePoints": [
+      { "id": "f_q12", "kind": "waveform", "quantity": "frequency", "minCycles": 2, "between": ["sec1.C4060_Q12", "sec1.GND"] },
+      { "id": "f_q14", "kind": "waveform", "quantity": "frequency", "minCycles": 2, "between": ["sec1.C4060_Q14", "sec1.GND"] },
+      { "id": "f_1hz", "kind": "waveform", "quantity": "frequency", "minCycles": 2, "between": ["sec1.FF_Q", "sec1.GND"] }
+    ]
+  },
+  "steps": [
+    {
+      "id": "prepare",
+      "text": "保持断电，熟悉 32,768 Hz 石英晶振秒脉冲产生原理：2^15 = 32768，CD4060 内含 14 级二进制分频器将 32,768 Hz 分频至 Q14 = 2 Hz，再经 74LS74 二分频即可输出精确 1.000 Hz 秒脉冲。",
+      "measurePoints": [],
+      "dataTable": "sec_test"
+    },
+    {
+      "id": "wire",
+      "text": "断电接线：+5V→VCC、GND→GND、XTAL_OUT→C4060_PHI、K_MR→C4060_MR、C4060_Q14→FF_CP、FF_NQ→FF_D，点击“检查接线”。",
+      "measurePoints": [],
+      "checkWiring": true,
+      "dataTable": "sec_test"
+    },
+    {
+      "id": "verify_chain",
+      "text": "将示波器 CH1 接 C4060_Q14 (2 Hz)、CH2 接 FF_Q (1 Hz)、GND 接 sec1.GND（关闭示波器内置信号源，设时基 500 ms/div）；上电观察实时 1 Hz 秒脉冲 LED 以每秒一次节奏规律闪烁（SIM-11），实测 f_Q14 ≈ 2.00 Hz、f_1Hz ≈ 1.00 Hz，记录数据。",
+      "measurePoints": ["f_q14", "f_1hz"],
+      "expect": { "measurePoint": "f_1hz", "min": 0.94, "max": 1.06 },
+      "recordTable": "sec_test",
+      "dataTable": "sec_test"
+    },
+    {
+      "id": "mr_check",
+      "text": "可切换 SW_MR 至“清零复位 (1)”验证分频链立即停振清零，复归“正常分频 (0)”恢复 1 Hz 脉冲输出；断电并完成思考题。",
+      "measurePoints": ["f_q14", "f_1hz"],
+      "dataTable": "sec_test"
+    }
+  ],
+  "dataTables": [
+    {
+      "id": "sec_test",
+      "title": "32768 Hz 晶振分频链与 1 Hz 秒脉冲测量记录",
+      "rows": 2,
+      "columns": [
+        { "id": "f_q12", "title": "Q12 (2^12 分频)", "unit": "Hz", "measurePoint": "f_q12", "captureSteps": ["verify_chain", "mr_check"] },
+        { "id": "f_q14", "title": "Q14 (2^14 分频)", "unit": "Hz", "measurePoint": "f_q14", "captureSteps": ["verify_chain", "mr_check"] },
+        { "id": "f_1hz", "title": "74LS74 输出 f_1Hz", "unit": "Hz", "measurePoint": "f_1hz", "captureSteps": ["verify_chain", "mr_check"] }
+      ],
+      "sanity": [
+        { "column": "f_1hz", "min": 0.8, "max": 1.2, "message": "正常分频下秒脉冲输出频率应严格为 1.00 Hz。" }
+      ]
+    }
+  ],
+  "charts": [],
+  "questions": [
+    "为什么数字钟表与实时时钟普遍选用 32.768 kHz 石英晶体作为基准振荡源？",
+    "CD4060 最高只能分频到 Q14（2^14 分频），为何还需要外接一片 D 触发器（如 74LS74）才能得到 1 Hz 秒脉冲？",
+    "若希望同时获取 8 Hz、4 Hz、2 Hz 与 1 Hz 四种标准时基，分别应从电路的哪些引脚引出？"
+  ]
+}

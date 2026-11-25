@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 440" width="820" height="440">
+  <rect width="820" height="440" fill="#f8fafc"/>
+  <text x="410" y="30" text-anchor="middle" font-family="sans-serif" font-size="16" font-weight="bold" fill="#0f172a">SD-14 微分型单稳态触发器原理图（74LS00 + RC 微分网络，SIM-09）</text>
+  <rect x="70" y="120" width="160" height="120" rx="6" fill="#eff6ff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="150" y="162" text-anchor="middle" font-size="13" font-weight="bold" fill="#1e3a8a">与非门 G1 (74LS00)</text>
+  <text x="150" y="192" text-anchor="middle" font-size="11" fill="#334155">输入：DIF_IN 与 DIF_Q</text>
+  <text x="150" y="216" text-anchor="middle" font-size="11" fill="#1d4ed8">输出：DIF_G1Y (正脉冲)</text>
+  <rect x="295" y="120" width="215" height="120" rx="6" fill="#fef3c7" stroke="#d97706" stroke-width="1.5"/>
+  <text x="402" y="160" text-anchor="middle" font-size="13" font-weight="bold" fill="#92400e">RC 微分定时网络</text>
+  <text x="402" y="190" text-anchor="middle" font-size="12" fill="#334155">Cd = 470 nF 串联耦合</text>
+  <text x="402" y="216" text-anchor="middle" font-size="12" fill="#b45309">Rd = 510Ω / 1kΩ / 2kΩ 对地</text>
+  <rect x="575" y="120" width="175" height="120" rx="6" fill="#f0fdf4" stroke="#16a34a" stroke-width="1.5"/>
+  <text x="662" y="162" text-anchor="middle" font-size="13" font-weight="bold" fill="#14532d">与非门 G2 (74LS00)</text>
+  <text x="662" y="192" text-anchor="middle" font-size="11" fill="#334155">输入：DIF_RC (反相接法)</text>
+  <text x="662" y="216" text-anchor="middle" font-size="11" fill="#15803d">输出：DIF_Q (反馈至 G1)</text>
+  <line x1="230" y1="180" x2="295" y2="180" stroke="#0f172a" stroke-width="2"/>
+  <line x1="510" y1="180" x2="575" y2="180" stroke="#0f172a" stroke-width="2"/>
+  <polyline points="662,240 662,310 150,310 150,240" fill="none" stroke="#16a34a" stroke-width="2" stroke-dasharray="6,3"/>
+  <text x="406" y="330" text-anchor="middle" font-size="11" fill="#15803d">正反馈锁存通道（DIF_Q → G1 第二输入）</text>
+  <circle cx="70" cy="160" r="4" fill="#2563eb" data-jack="pls1.DIF_IN"/>
+  <circle cx="262" cy="180" r="4" fill="#2563eb" data-jack="pls1.DIF_G1Y"/>
+  <circle cx="542" cy="180" r="4" fill="#d97706" data-jack="pls1.DIF_RC"/>
+  <circle cx="750" cy="180" r="4" fill="#16a34a" data-jack="pls1.DIF_Q"/>
+  <text x="410" y="405" text-anchor="middle" font-size="12" fill="#64748b">+5V→VCC，GND→GND，信号源 CH1→DIF_IN，示波器 CH1 测 DIF_G1Y，CH2 测 DIF_RC</text>
+</svg>

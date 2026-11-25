@@ -1,0 +1,44 @@
+.subckt mod_app_street_light VCC GND LAMP_V12 LDR_OUT MIC_OUT GATE_OUT DLY_RC DRV_OUT REL_IN REL_NO LAMP_IN LAMP_GND params: light_lux=0 sound_lvl=0
+* 声光控制节能路灯电路板（SD-17：GL5528 光敏电阻 + 驻极体话筒 + CD4011 延时门控 + 5 V 继电器 + 12 V 灯泡）
+Rgnd GND 0 1G
+Rvcc VCC GND 100k
+Rlmp_gnd LAMP_GND 0 1G
+Rv12 LAMP_V12 GND 100k
+Cdec VCC GND 100n
+
+* ---- 1. GL5528 光敏分压（黑夜 0 lx -> RLDR=200k -> LDR_OUT≈4.55 V；白天 500 lx -> RLDR=1.4k -> LDR_OUT≈0.33 V）----
+Rldr_bias VCC LDR_OUT 20k
+RLDR LDR_OUT GND {200000 / (1 + pwr(max(0, light_lux) / 1.5, 0.85))}
+
+* ---- 2. 驻极体话筒偏置 + 声学包络检波（安静 -> MIC_OUT≈0 V；拍手声 -> MIC_OUT≈4.4 V）----
+Rmic_bias VCC mic_p 2.2k
+Xmic mic_p GND ELECTRET_MIC params: spl_mv=120 freq_hz=1000
+* 声源门控放大（仅在驻极体正常偏置且有声音输入时输出高电平包络，无高频断点拖慢）
+RSND_ON VCC snd_sw {sound_lvl > 0.5 ? 100 : 1G}
+RSND_OFF snd_sw GND {sound_lvl > 0.5 ? 1G : 100}
+Bsnd_env mic_drv GND V=V(snd_sw,GND)*0.5*(1+tanh((V(mic_p,GND)-0.8)/0.2))
+Rmic_out mic_drv MIC_OUT 1k
+Rmic_pd MIC_OUT GND 100k
+
+* ---- 3. CD4011 四与非门：光声门控 + RC 延时（黑夜且有声时急速充电，声停后延时约 0.25 s 熄灭）----
+* 门 1: GATE_OUT = ~(LDR_OUT & MIC_OUT)；门 2: inv_g = ~GATE_OUT（有触发时为 5 V）
+* 门 3+4: 对延时电容 DLY_RC 两次反相整形输出 DRV_OUT
+X4011 LDR_OUT MIC_OUT GATE_OUT inv_g GATE_OUT GATE_OUT GND DLY_RC DLY_RC dly_n DRV_OUT dly_n dly_n VCC CD4011
+Dchg inv_g DLY_RC D_STL_CHG
+.model D_STL_CHG D(IS=1e-12 N=1 RS=20)
+Rdly_chg inv_g DLY_RC 100Meg
+Cdly DLY_RC GND 10u
+Rdly DLY_RC GND 36k
+Rdrv_pd DRV_OUT GND 100k
+
+* ---- 4. 驱动级 + 5 V 电磁继电器 + 12 V / 0.1 A 路灯灯泡 ----
+Rrel_in REL_IN GND 100k
+Bcoil coil_p GND V=V(REL_IN,GND)*0.5*(1+tanh((V(VCC,GND)-3.0)/0.2))
+Xrel coil_p GND LAMP_V12 REL_NO RELAY_5V_SPST
+Rrel_no REL_NO GND 100k
+Xlamp LAMP_IN LAMP_GND LAMP_12V_100MA
+Rlamp_leak LAMP_IN LAMP_GND 100k
+.ends mod_app_street_light
+
+.include "cmos.lib"
+.include "sensors.lib"

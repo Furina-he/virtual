@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 440" width="820" height="440">
+  <rect width="820" height="440" fill="#f8fafc"/>
+  <text x="410" y="30" text-anchor="middle" font-family="sans-serif" font-size="16" font-weight="bold" fill="#0f172a">SD-13 NE555 定时器基本应用电路原理图（多谐 / 单稳 / 施密特）</text>
+  <rect x="40" y="70" width="230" height="295" rx="6" fill="#eff6ff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="155" y="98" text-anchor="middle" font-size="13" font-weight="bold" fill="#1e3a8a">1. 多谐振荡器（默认）</text>
+  <text x="155" y="135" text-anchor="middle" font-size="12" fill="#334155">RA2=10kΩ, RB2=10kΩ</text>
+  <text x="155" y="165" text-anchor="middle" font-size="12" fill="#334155">C2=47nF, C4=10nF</text>
+  <text x="155" y="198" text-anchor="middle" font-size="12" fill="#1d4ed8">f ≈ 1023 Hz · D = 66.7%</text>
+  <text x="155" y="234" text-anchor="middle" font-size="11" fill="#475569">T2_CT_P 呈 1/3~2/3 VCC 三角波</text>
+  <rect x="295" y="70" width="230" height="295" rx="6" fill="#f0fdf4" stroke="#16a34a" stroke-width="1.5"/>
+  <text x="410" y="98" text-anchor="middle" font-size="13" font-weight="bold" fill="#14532d">2. 单稳态触发器</text>
+  <text x="410" y="135" text-anchor="middle" font-size="12" fill="#334155">T2_TR ← 信号源负脉冲触发</text>
+  <text x="410" y="165" text-anchor="middle" font-size="12" fill="#334155">RA2=10kΩ + C2=47nF</text>
+  <text x="410" y="198" text-anchor="middle" font-size="12" fill="#15803d">tw = 1.1·RA2·C2 ≈ 0.52 ms</text>
+  <text x="410" y="234" text-anchor="middle" font-size="11" fill="#475569">T2_DIS 与 T2_TH 并接定时电容</text>
+  <rect x="550" y="70" width="230" height="295" rx="6" fill="#fef3c7" stroke="#d97706" stroke-width="1.5"/>
+  <text x="665" y="98" text-anchor="middle" font-size="13" font-weight="bold" fill="#92400e">3. 施密特触发器</text>
+  <text x="665" y="135" text-anchor="middle" font-size="12" fill="#334155">T2_TR 与 T2_TH 短接输入</text>
+  <text x="665" y="165" text-anchor="middle" font-size="12" fill="#334155">VT+ = 3.33 V · VT- = 1.67 V</text>
+  <text x="665" y="198" text-anchor="middle" font-size="12" fill="#b45309">回差 ΔVT = 1.67 V</text>
+  <text x="665" y="234" text-anchor="middle" font-size="11" fill="#475569">正弦输入 → 标准方波输出</text>
+  <circle cx="155" cy="310" r="4" fill="#2563eb" data-jack="timer1.T2_OUT"/>
+  <circle cx="410" cy="310" r="4" fill="#16a34a" data-jack="timer1.T2_TR"/>
+  <circle cx="665" cy="310" r="4" fill="#d97706" data-jack="timer1.T2_TH"/>
+  <text x="410" y="408" text-anchor="middle" font-size="12" fill="#64748b">+5V→VCC1/T2_RST，GND→GND1，示波器 CH1 测 T2_OUT，CH2 测 T2_CT_P</text>
+</svg>

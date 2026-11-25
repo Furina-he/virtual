@@ -1,0 +1,44 @@
+.subckt mod_motor_speed VM_IN VCC GND VM_MON ENC_RAW SCH_IN TACH_OUT GATE_OUT RST_AUTO AND_A AND_B COUNT_OUT params: speed_set=30 gate_mode=1
+* 伺服电机光电测速模块（SD-21：12 V 伺服电机 + 60 槽光电码盘 + 74LS14 施密特整形 + 1 s 闸门 + 74LS08 与门）
+Rgnd GND 0 1G
+Rvcc VCC GND 100k
+Rvm VM_IN GND 100k
+Cdec VCC GND 100n
+
+* ---- 1. 电机调速分压器（VM_IN=12 V 时分压为 0 / 2.5 / 4.5 / 6.5 / 8.5 / 10.5 V -> 0 / 15 / 30 / 45 / 60 / 75 r/min）----
+RSPD_TOP VM_IN spd_ref {speed_set < 1 ? 1G : (12000 - (500 + speed_set * 133.333333))}
+RSPD_BOT spd_ref GND {speed_set < 1 ? 100 : (500 + speed_set * 133.333333)}
+Bvm_drv vm_drv GND V=V(spd_ref,GND)
+Rvm_mon vm_drv VM_MON 50
+Rvm_mon_pd VM_MON GND 100k
+
+* ---- 2. 直流伺服电机与 60 槽光电码盘（1 Hz 脉冲 = 1 r/min 转速）----
+Xmot vm_drv GND VCC GND ENC_RAW SERVO_MOTOR_ENC params: rpm_per_v=7.5
+Renc ENC_RAW GND 10k
+
+* ---- 3. 74LS14 施密特触发整形（两级反相同相整形输出标准 TTL 测速方波 TACH_OUT）----
+X14 SCH_IN sch_n sch_n TACH_OUT GND u14_3 GND u14_4 GND u14_5 GND u14_6 GND VCC SN74LS14
+Rtach TACH_OUT GND 10k
+
+* ---- 4. 1.000 s 标准测频闸门（周期 2.0 s：0.05~1.05 s 计数，1.05~2.00 s 锁存显示）与前导 20 ms 自动清零脉冲 ----
+Vgate_1s g1s_raw GND PULSE(0 1 0.05 10u 10u 1.0 2.0)
+Vgate_hi ghi_raw GND DC 1
+RGM_GATE g1s_raw g_mix {gate_mode > 0.5 ? 10 : 1G}
+RGM_CONT ghi_raw g_mix {gate_mode > 0.5 ? 1G : 10}
+Rg_load g_mix GND 100k
+Bgate gate_buf GND V=V(g_mix,GND)*max(V(VCC,GND),0)
+Rgate_out gate_buf GATE_OUT 50
+
+Vrst_1s rst_raw GND PULSE(0 1 0.01 10u 10u 0.02 2.0)
+RRST_EN rst_raw rst_mix {gate_mode > 0.5 ? 10 : 1G}
+Rrst_l rst_mix GND 100k
+Brst rst_buf GND V=V(rst_mix,GND)*max(V(VCC,GND),0)
+Rrst_out rst_buf RST_AUTO 50
+
+* ---- 5. 74LS08 闸门计数与门（AND_A & AND_B -> COUNT_OUT）----
+X08 AND_A AND_B COUNT_OUT GND GND u08_2 GND u08_3 GND GND u08_4 GND GND VCC SN74LS08
+Rcnt COUNT_OUT GND 10k
+.ends mod_motor_speed
+
+.include "ttl.lib"
+.include "sensors.lib"

@@ -936,3 +936,171 @@ X12 lc 12 16 8 LS_OUT
 X11 ld 11 16 8 LS_OUT
 X15 lrco 15 16 8 LS_OUT
 .ends SN74LS160
+
+
+* ---- B6 公共辅助模型（施密特迟滞、单稳态比较器与放电开关）----
+.model LS_DLATCH d_dlatch(data_delay=2e-9 enable_delay=2e-9 set_delay=2e-9 reset_delay=2e-9 rise_delay=2e-9 fall_delay=2e-9)
+.model LS14_HI adc_bridge(in_low=1.65 in_high=1.75 rise_delay=1e-9 fall_delay=1e-9)
+.model LS14_LO adc_bridge(in_low=0.85 in_high=0.95 rise_delay=1e-9 fall_delay=1e-9)
+.model LS_DLY5U d_and(rise_delay=15e-6 fall_delay=5e-9)
+.model LS121_CMP adc_bridge(in_low=0.495 in_high=0.505 rise_delay=2e-9 fall_delay=2e-9)
+.model LS123_CMP adc_bridge(in_low=0.358 in_high=0.366 rise_delay=2e-9 fall_delay=2e-9)
+.model LS_DIS_SW SW(VT=0.5 VH=0.1 RON=2 ROFF=100Meg)
+
+* ---- 74LS175 四上升沿 D 触发器（公共异步低有效 /CLR，带 Q 与 /Q 互补输出）----
+* DIP-16：1 /CLR 2 1Q 3 /1Q 4 1D 5 2D 6 /2Q 7 2Q 8 GND 9 CLK 10 3Q 11 /3Q 12 3D 13 4D 14 /4Q 15 4Q 16 VCC
+.subckt SN74LS175 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16
+Rq 16 8 450
+Rg 8 0 1G
+Xclr 1 xclr 16 8 LS_IN
+Xd1 4 xd1 16 8 LS_IN
+Xd2 5 xd2 16 8 LS_IN
+Xck 9 xck 16 8 LS_IN
+Xd3 12 xd3 16 8 LS_IN
+Xd4 13 xd4 16 8 LS_IN
+Bvcc vs 0 V=V(16,8)
+Aadc [xclr xck xd1 xd2 xd3 xd4] [clr ck d1 d2 d3 d4] LS_ADC
+Apwr [vs] [pwr] LS_PWR
+Anp pwr npwr LS_INV0
+Azero [pwr npwr] zero LS_AND0
+Anclr clr rst LS_INV0
+Ack [ck pwr] ick LS_AND0
+Aff1 d1 ick zero rst q1 nq1 LS_DFF
+Aff2 d2 ick zero rst q2 nq2 LS_DFF
+Aff3 d3 ick zero rst q3 nq3 LS_DFF
+Aff4 d4 ick zero rst q4 nq4 LS_DFF
+Adac [q1 nq1 q2 nq2 q3 nq3 q4 nq4] [lq1 lnq1 lq2 lnq2 lq3 lnq3 lq4 lnq4] LS_DAC
+X2 lq1 2 16 8 LS_OUT
+X3 lnq1 3 16 8 LS_OUT
+X7 lq2 7 16 8 LS_OUT
+X6 lnq2 6 16 8 LS_OUT
+X10 lq3 10 16 8 LS_OUT
+X11 lnq3 11 16 8 LS_OUT
+X15 lq4 15 16 8 LS_OUT
+X14 lnq4 14 16 8 LS_OUT
+.ends SN74LS175
+
+* ---- 74LS14 六施密特触发反相器（VT+ ≈ 1.7 V，VT- ≈ 0.9 V，回差 ΔVT ≈ 0.8 V）----
+* DIP-14：1 1A 2 1Y 3 2A 4 2Y 5 3A 6 3Y 7 GND 8 4Y 9 4A 10 5Y 11 5A 12 6Y 13 6A 14 VCC
+.subckt LS14_SCH pin_a pin_y vcc gnd pwr zero en
+* 施密特输入高阻 200 kΩ 上拉，避免显著拉偏外接 RC 振荡/滤波网络
+Bpu pu 0 V=V(vcc)
+Rpu pin_a pu 200k
+Bx xa 0 V=V(pin_a,gnd)
+Ahi [xa] [hi_raw] LS14_HI
+Alo [xa] [lo_raw] LS14_LO
+Anlo lo_raw nlo_raw LS_INV0
+Ahi_g [hi_raw en] hi LS_AND0
+Anlo_g [nlo_raw en] nlo LS_AND0
+Ast zero zero hi nlo q nq LS_DLATCH
+Aout [nq pwr] y_ok LS_AND0
+Adac [y_ok] [ly] LS_DAC
+Xo ly pin_y vcc gnd LS_OUT
+.ends LS14_SCH
+
+.subckt SN74LS14 1 2 3 4 5 6 7 8 9 10 11 12 13 14
+Rq 14 7 420
+Rg 7 0 1G
+Bvcc vs 0 V=V(14,7)
+Apwr [vs] [pwr] LS_PWR
+Anp pwr npwr LS_INV0
+Azero [pwr npwr] zero LS_AND0
+Ven en_a 0 PULSE(0 5 0.5u 10n 10n 1e6 2e6)
+Ren en_a 0 100k
+Aen [en_a] [en] LS_ADC
+Xu1 1 2 14 7 pwr zero en LS14_SCH
+Xu2 3 4 14 7 pwr zero en LS14_SCH
+Xu3 5 6 14 7 pwr zero en LS14_SCH
+Xu4 9 8 14 7 pwr zero en LS14_SCH
+Xu5 11 10 14 7 pwr zero en LS14_SCH
+Xu6 13 12 14 7 pwr zero en LS14_SCH
+.ends SN74LS14
+
+* ---- 74LS121 不可重复触发单稳态触发器（tw = ln(2)·Rext·Cext ≈ 0.693·Rext·Cext）----
+* 触发条件：trig = B & (~A1 | ~A2) 上升沿；Q=1 期间新触发边沿不影响外部 RC 充电定时。
+* DIP-14：1 /Q 2 NC 3 A1 4 A2 5 B 6 Q 7 GND 8 NC 9 RINT 10 CEXT 11 REXT_CEXT 12 NC 13 NC 14 VCC
+.subckt SN74LS121 1 2 3 4 5 6 7 8 9 10 11 12 13 14
+Rq 14 7 380
+Rg 7 0 1G
+Rnc2 2 7 1G
+Rnc8 8 7 1G
+Rnc12 12 7 1G
+Rnc13 13 7 1G
+* 内部 2 kΩ 定时电阻（脚 9）与外接电容参考端（脚 10）
+Rint 14 9 2k
+Rcext 10 7 1
+Rrc_leak 11 7 100Meg
+Xa1 3 xa1 14 7 LS_IN
+Xa2 4 xa2 14 7 LS_IN
+Xb 5 xb 14 7 LS_IN
+Bvcc vs 0 V=V(14,7)
+Aadc [xa1 xa2 xb] [a1 a2 b] LS_ADC
+Apwr [vs] [pwr] LS_PWR
+Anp pwr npwr LS_INV0
+Azero [pwr npwr] zero LS_AND0
+Aone [pwr pwr] one LS_AND0
+Ana1 a1 na1 LS_INV0
+Ana2 a2 na2 LS_INV0
+Aaor [na1 na2] a_low LS_OR0
+Atrig [b a_low pwr] trig LS_AND0
+* 10 ns 上电清零保证初始 Q=0、/Q=1
+Vpor por_a 0 PULSE(5 0 10n 2n 2n 1e6 2e6)
+Rpor por_a 0 100k
+Apor [por_a] [por] LS_ADC
+* 归一化 RC 充电电压比较器（阈值 0.5·VCC -> tw = ln(2)·RC ≈ 0.693·RC）
+Brc_norm xrc 0 V=V(11,7)/max(V(14,7),1)
+Acmp [xrc] [cmp] LS121_CMP
+Arst [cmp por npwr] rst_all LS_OR0
+* 不可重触发核心：D 恒为 1，trig 上升沿置 Q=1；Q=1 期间再来边沿不重启放电开关
+Aff one trig zero rst_all q nq LS_DFF
+Adac [q nq] [lq lnq] LS_DAC
+Sdis 11 7 lnq 0 LS_DIS_SW
+X6 lq 6 14 7 LS_OUT
+X1 lnq 1 14 7 LS_OUT
+.ends SN74LS121
+
+* ---- 74LS123 双可重复触发单稳态触发器（带异步低有效 /CLR，tw ≈ 0.45·Rext·Cext）----
+* 触发条件：trig = (~A) & B & /CLR 上升沿；Q=1 期间再次触发将快速重放 Cext 并延长脉宽。
+* DIP-16：1 1A 2 1B 3 1/CLR 4 1/Q 5 2Q 6 2CEXT 7 2REXT_CEXT 8 GND 9 2A 10 2B 11 2/CLR 12 2/Q 13 1Q 14 1CEXT 15 1REXT_CEXT 16 VCC
+.subckt LS123_UNIT pin_a pin_b pin_clr pin_cext pin_rc pin_q pin_nq vcc gnd pwr npwr one zero por
+Rcext pin_cext gnd 1
+Rrc_leak pin_rc gnd 100Meg
+Xa pin_a xa vcc gnd LS_IN
+Xb pin_b xb vcc gnd LS_IN
+Xclr pin_clr xclr vcc gnd LS_IN
+Aadc [xa xb xclr] [a b clr] LS_ADC
+Ana a na LS_INV0
+Anclr clr nclr LS_INV0
+Atrig [na b clr pwr] trig LS_AND0
+* 每次 trig 上升沿产生 5 us 复位脉冲：一方面保持 Q=1，一方面将外接电容放回 0 V 重新计时
+Adly [trig trig] trig_dly LS_DLY5U
+Antd trig_dly ntrig_dly LS_INV0
+Aedge [trig ntrig_dly] edge_p LS_AND0
+Anedge edge_p nedge_p LS_INV0
+Brc_norm xrc 0 V=V(pin_rc,gnd)/max(V(vcc,gnd),1)
+Acmp [xrc] [cmp] LS123_CMP
+Acmp_g [cmp nedge_p] cmp_ok LS_AND0
+Arst [cmp_ok nclr por npwr] rst_all LS_OR0
+Aset [edge_p clr] set_ok LS_AND0
+Aff one trig set_ok rst_all q nq LS_DFF
+Adis [nq edge_p] dis_en LS_OR0
+Adac [q nq dis_en] [lq lnq ldis] LS_DAC
+Sdis pin_rc gnd ldis 0 LS_DIS_SW
+Xq lq pin_q vcc gnd LS_OUT
+Xnq lnq pin_nq vcc gnd LS_OUT
+.ends LS123_UNIT
+
+.subckt SN74LS123 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16
+Rq 16 8 420
+Rg 8 0 1G
+Bvcc vs 0 V=V(16,8)
+Apwr [vs] [pwr] LS_PWR
+Anp pwr npwr LS_INV0
+Azero [pwr npwr] zero LS_AND0
+Aone [pwr pwr] one LS_AND0
+Vpor por_a 0 PULSE(5 0 10n 2n 2n 1e6 2e6)
+Rpor por_a 0 100k
+Apor [por_a] [por] LS_ADC
+Xu1 1 2 3 14 15 13 4 16 8 pwr npwr one zero por LS123_UNIT
+Xu2 9 10 11 6 7 5 12 16 8 pwr npwr one zero por LS123_UNIT
+.ends SN74LS123

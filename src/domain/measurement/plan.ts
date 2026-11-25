@@ -163,7 +163,7 @@ export function buildMeasurementPlan(
             indicatorId: indicator.id,
             label: indicator.label ?? indicator.id,
             probe,
-            threshold: indicator.threshold,
+            threshold: indicator.threshold ?? 1.8,
           })
           continue
         }
@@ -196,7 +196,7 @@ export function buildMeasurementPlan(
             indicatorId: indicator.id,
             label: indicator.label ?? indicator.id,
             probes: segProbes,
-            threshold: indicator.threshold,
+            threshold: indicator.threshold ?? 1.8,
           })
         }
       }

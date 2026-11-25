@@ -116,3 +116,191 @@ Xoe le 9 16 8 CD4511_OUT
 Xof lf 15 16 8 CD4511_OUT
 Xog lg 14 16 8 CD4511_OUT
 .ends CD4511
+
+
+* ---- B6 CMOS 公共原语（轨到轨 CMOS 输出与归一化阈值）----
+.subckt CMOS_OUT l pin vdd vss
+Bo o 0 V=V(vss)+V(l)*max(V(vdd,vss),0)
+Ro o pin 200
+.ends CMOS_OUT
+
+.subckt CMOS_NORM_IN pin xn vdd vss
+Rpd pin vss 10Meg
+Bxn xn 0 V=V(pin,vss)/max(V(vdd,vss),0.1)
+.ends CMOS_NORM_IN
+
+.model CMOS_ADC adc_bridge(in_low=0.45 in_high=0.55 rise_delay=1e-9 fall_delay=1e-9)
+.model CMOS_SCH_HI adc_bridge(in_low=0.595 in_high=0.605 rise_delay=1e-9 fall_delay=1e-9)
+.model CMOS_SCH_LO adc_bridge(in_low=0.395 in_high=0.405 rise_delay=1e-9 fall_delay=1e-9)
+.model CMOS_DAC dac_bridge(out_low=0 out_high=1 out_undef=0 t_rise=15e-9 t_fall=15e-9)
+.model CMOS_NAND d_nand(rise_delay=10e-9 fall_delay=10e-9)
+.model CMOS_DFF d_dff(clk_delay=5e-9 set_delay=5e-9 reset_delay=5e-9 ic=0 rise_delay=5e-9 fall_delay=5e-9)
+
+* ---- CD40106 六 CMOS 施密特触发反相器（VT+ = 0.6·VDD，VT- = 0.4·VDD，回差 ΔVT = 0.2·VDD）----
+* DIP-14：1 1A 2 1Y 3 2A 4 2Y 5 3A 6 3Y 7 VSS 8 4Y 9 4A 10 5Y 11 5A 12 6Y 13 6A 14 VDD
+.subckt CD40106_UNIT pin_a pin_y vdd vss pwr zero en
+Xin pin_a xn vdd vss CMOS_NORM_IN
+Ahi [xn] [hi_raw] CMOS_SCH_HI
+Alo [xn] [lo_raw] CMOS_SCH_LO
+Anlo lo_raw nlo_raw CD4511_INV
+* en 在 t=0 直流工作点期间为 0，避免外接 RC 反馈振荡器在 .op 阶段陷入无不动点振荡；t>0.5us 后完全透明
+Ahi_g [hi_raw en] hi CD4511_AND
+Anlo_g [nlo_raw en] nlo CD4511_AND
+Ast zero zero hi nlo q nq CD4511_LATCH
+Aok [nq pwr] y_ok CD4511_AND
+Adac [y_ok] [ly] CMOS_DAC
+Xo ly pin_y vdd vss CMOS_OUT
+.ends CD40106_UNIT
+
+.subckt CD40106 1 2 3 4 5 6 7 8 9 10 11 12 13 14
+Rq 14 7 100k
+Rg 7 0 1G
+Evs vs 0 14 7 1
+Apwr [vs] [pwr] CD4511_PWR
+Anp pwr npwr CD4511_INV
+Azero [pwr npwr] zero CD4511_AND
+Ven en_a 0 PULSE(0 1 0.5u 10n 10n 1e6 2e6)
+Ren en_a 0 100k
+Aen [en_a] [en] CMOS_ADC
+Xu1 1 2 14 7 pwr zero en CD40106_UNIT
+Xu2 3 4 14 7 pwr zero en CD40106_UNIT
+Xu3 5 6 14 7 pwr zero en CD40106_UNIT
+Xu4 9 8 14 7 pwr zero en CD40106_UNIT
+Xu5 11 10 14 7 pwr zero en CD40106_UNIT
+Xu6 13 12 14 7 pwr zero en CD40106_UNIT
+.ends CD40106
+
+* ---- CD4011 四 2 输入 CMOS 与非门 ----
+* DIP-14：1 1A 2 1B 3 1Y 4 2Y 5 2A 6 2B 7 VSS 8 3A 9 3B 10 3Y 11 4Y 12 4A 13 4B 14 VDD
+.subckt CD4011 1 2 3 4 5 6 7 8 9 10 11 12 13 14
+Rq 14 7 100k
+Rg 7 0 1G
+Evs vs 0 14 7 1
+Apwr [vs] [pwr] CD4511_PWR
+X1 1 x1 14 7 CMOS_NORM_IN
+X2 2 x2 14 7 CMOS_NORM_IN
+X5 5 x5 14 7 CMOS_NORM_IN
+X6 6 x6 14 7 CMOS_NORM_IN
+X8 8 x8 14 7 CMOS_NORM_IN
+X9 9 x9 14 7 CMOS_NORM_IN
+X12 12 x12 14 7 CMOS_NORM_IN
+X13 13 x13 14 7 CMOS_NORM_IN
+Aadc [x1 x2 x5 x6 x8 x9 x12 x13] [a1 b1 a2 b2 a3 b3 a4 b4] CMOS_ADC
+An1 [a1 b1] y1_raw CMOS_NAND
+An2 [a2 b2] y2_raw CMOS_NAND
+An3 [a3 b3] y3_raw CMOS_NAND
+An4 [a4 b4] y4_raw CMOS_NAND
+Ag1 [y1_raw pwr] y1 CD4511_AND
+Ag2 [y2_raw pwr] y2 CD4511_AND
+Ag3 [y3_raw pwr] y3 CD4511_AND
+Ag4 [y4_raw pwr] y4 CD4511_AND
+Adac [y1 y2 y3 y4] [l1 l2 l3 l4] CMOS_DAC
+Xo1 l1 3 14 7 CMOS_OUT
+Xo2 l2 4 14 7 CMOS_OUT
+Xo3 l3 10 14 7 CMOS_OUT
+Xo4 l4 11 14 7 CMOS_OUT
+.ends CD4011
+
+* ---- CD4060 14 级 CMOS 二进制串行分频计数器（Q4~Q10、Q12~Q14，下降沿计数，高有效 MR 清零）----
+* DIP-16：1 Q12 2 Q13 3 Q14 4 Q6 5 Q5 6 Q7 7 Q4 8 VSS 9 /PHI_O 10 PHI_O 11 PHI_I 12 MR 13 Q9 14 Q8 15 Q10 16 VDD
+.subckt CD4060 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16
+Rq 16 8 50k
+Rg 8 0 1G
+Evs vs 0 16 8 1
+Apwr [vs] [pwr] CD4511_PWR
+Anp pwr npwr CD4511_INV
+Azero [pwr npwr] zero CD4511_AND
+Xphi 11 xphi 16 8 CMOS_NORM_IN
+Xmr 12 xmr 16 8 CMOS_NORM_IN
+Aadc [xphi xmr] [dphi dmr] CMOS_ADC
+* 内部反相缓冲器（脚 9 = /PHI_O，脚 10 = PHI_O）
+Anphi dphi nphi CD4511_INV
+Ack [nphi pwr] ck1 CD4511_AND
+Arst [dmr npwr] rst CD4511_OR
+* 14 级串联二分频（每级下降沿触发下一级 -> nq_k 上升沿驱动第 k+1 级）
+Af1 nq1 ck1 zero rst q1 nq1 CMOS_DFF
+Af2 nq2 nq1 zero rst q2 nq2 CMOS_DFF
+Af3 nq3 nq2 zero rst q3 nq3 CMOS_DFF
+Af4 nq4 nq3 zero rst q4 nq4 CMOS_DFF
+Af5 nq5 nq4 zero rst q5 nq5 CMOS_DFF
+Af6 nq6 nq5 zero rst q6 nq6 CMOS_DFF
+Af7 nq7 nq6 zero rst q7 nq7 CMOS_DFF
+Af8 nq8 nq7 zero rst q8 nq8 CMOS_DFF
+Af9 nq9 nq8 zero rst q9 nq9 CMOS_DFF
+Af10 nq10 nq9 zero rst q10 nq10 CMOS_DFF
+Af11 nq11 nq10 zero rst q11 nq11 CMOS_DFF
+Af12 nq12 nq11 zero rst q12 nq12 CMOS_DFF
+Af13 nq13 nq12 zero rst q13 nq13 CMOS_DFF
+Af14 nq14 nq13 zero rst q14 nq14 CMOS_DFF
+Apo1 [nphi pwr] phi_nb CD4511_AND
+Apo2 [dphi pwr] phi_b CD4511_AND
+Adac [q4 q5 q6 q7 q8 q9 q10 q12 q13 q14 phi_nb phi_b] [l4 l5 l6 l7 l8 l9 l10 l12 l13 l14 lpn lp] CMOS_DAC
+Xo4 l4 7 16 8 CMOS_OUT
+Xo5 l5 5 16 8 CMOS_OUT
+Xo6 l6 4 16 8 CMOS_OUT
+Xo7 l7 6 16 8 CMOS_OUT
+Xo8 l8 14 16 8 CMOS_OUT
+Xo9 l9 13 16 8 CMOS_OUT
+Xo10 l10 15 16 8 CMOS_OUT
+Xo12 l12 1 16 8 CMOS_OUT
+Xo13 l13 2 16 8 CMOS_OUT
+Xo14 l14 3 16 8 CMOS_OUT
+Xopn lpn 9 16 8 CMOS_OUT
+Xop lp 10 16 8 CMOS_OUT
+.ends CD4060
+
+* ---- CD4060_XTAL32K（内置 32768 Hz XSPICE d_osc 晶振模式，DIP-16 引脚与 CD4060 完全一致）----
+* 物理与实时性能兼得（PRD SD-20 / SIM-11）：
+*   - 脚 11 (PHI_I) 接 XTAL_32768 晶振激励（直流偏置 > 1.5 V）且 VDD 供电正常时，内部纯数字 XSPICE d_osc
+*     以精确 32768 Hz 驱动全部 14 级真实 d_dff 分频链（零模拟断点，实时推进 >15× 墙钟）；
+*   - 拔掉晶振连线或断电或 MR=H 时，振荡/计数立即停止或清零；
+*   - 输出精确 Q10=32 Hz、Q12=8 Hz、Q13=4 Hz、Q14=2 Hz 供后级 74LS74 二分频得 1.000 Hz 秒脉冲。
+.model CD4060_OSC32K d_osc(cntl_array=[0 0.4 0.8 5] freq_array=[1e-6 1e-6 32768 32768] duty_cycle=0.5 init_phase=0 rise_delay=1e-9 fall_delay=1e-9)
+.model CD4060_XEN adc_bridge(in_low=0.5 in_high=0.9 rise_delay=1e-9 fall_delay=1e-9)
+
+.subckt CD4060_XTAL32K 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16
+Rq 16 8 50k
+Rg 8 0 1G
+Rnc4 4 8 100k
+Rnc5 5 8 100k
+Rnc6 6 8 100k
+Rnc7 7 8 100k
+Rnc9 9 8 100k
+Rnc10 10 8 100k
+Rnc13 13 8 100k
+Rnc14 14 8 100k
+Evs vs 0 16 8 1
+Apwr [vs] [pwr] CD4511_PWR
+Anp pwr npwr CD4511_INV
+Azero [pwr npwr] zero CD4511_AND
+Rphi_pd 11 8 100k
+* XTAL_32768 正常接入时瞬时电压恒 ≥ 1.5 V（拔线/断电为 0 V），绝不穿越 0.4~0.8 V 控制门限
+Bctl ctl 0 V=V(11,8)*0.5*(1+tanh((V(16,8)-2.8)/0.2))
+Aosc ctl dphi CD4060_OSC32K
+Xmr 12 xmr 16 8 CMOS_NORM_IN
+Aadc [xmr] [dmr] CMOS_ADC
+Anphi dphi nphi CD4511_INV
+Bphi_en pen 0 V=V(11,8)
+Apen [pen] [osc_en] CD4060_XEN
+Ack [nphi osc_en pwr] ck1 CD4511_AND
+Arst [dmr npwr] rst CD4511_OR
+Af1 nq1 ck1 zero rst q1 nq1 CMOS_DFF
+Af2 nq2 nq1 zero rst q2 nq2 CMOS_DFF
+Af3 nq3 nq2 zero rst q3 nq3 CMOS_DFF
+Af4 nq4 nq3 zero rst q4 nq4 CMOS_DFF
+Af5 nq5 nq4 zero rst q5 nq5 CMOS_DFF
+Af6 nq6 nq5 zero rst q6 nq6 CMOS_DFF
+Af7 nq7 nq6 zero rst q7 nq7 CMOS_DFF
+Af8 nq8 nq7 zero rst q8 nq8 CMOS_DFF
+Af9 nq9 nq8 zero rst q9 nq9 CMOS_DFF
+Af10 nq10 nq9 zero rst q10 nq10 CMOS_DFF
+Af11 nq11 nq10 zero rst q11 nq11 CMOS_DFF
+Af12 nq12 nq11 zero rst q12 nq12 CMOS_DFF
+Af13 nq13 nq12 zero rst q13 nq13 CMOS_DFF
+Af14 nq14 nq13 zero rst q14 nq14 CMOS_DFF
+Adac [q10 q12 q13 q14] [l10 l12 l13 l14] CMOS_DAC
+Xo10 l10 15 16 8 CMOS_OUT
+Xo12 l12 1 16 8 CMOS_OUT
+Xo13 l13 2 16 8 CMOS_OUT
+Xo14 l14 3 16 8 CMOS_OUT
+.ends CD4060_XTAL32K

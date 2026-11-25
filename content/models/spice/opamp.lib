@@ -160,3 +160,22 @@ B_push VS OUT I = 0.6 * tanh(0.5 * (20 * (v(n_tgt,COM) - v(OUT,COM)) + sqrt(400 
 B_pull OUT COM I = 0.6 * tanh(0.5 * (20 * (v(OUT,COM) - v(n_tgt,COM)) + sqrt(400 * (v(OUT,COM) - v(n_tgt,COM)) * (v(OUT,COM) - v(n_tgt,COM)) + 1e-4))) * 0.5 * (1 + tanh((v(VS,COM) - 3.5) / 0.3))
 R_out_leak OUT COM 100k
 .ends LM386
+
+
+* LM358 -- 低功耗双运算放大器（DIP-8：1 OUT1 2 IN1- 3 IN1+ 4 VEE 5 IN2+ 6 IN2- 7 OUT2 8 VCC）
+*   来源：复用本项目自建 LM324_UNIT 单元，与 LM358 数据手册 DIP-8 引脚定义严格一致。
+*   许可证：随本项目发布，可自由再分发（项目自有内容）。
+.subckt LM358 1 2 3 4 5 6 7 8
+Xu1 3 2 8 4 1 LM324_UNIT
+Xu2 5 6 8 4 7 LM324_UNIT
+.ends LM358
+
+* LM324 -- 低功耗四运算放大器（DIP-14：1 OUT1 2 IN1- 3 IN1+ 4 VCC 5 IN2+ 6 IN2- 7 OUT2 8 OUT3 9 IN3- 10 IN3+ 11 VEE 12 IN4+ 13 IN4- 14 OUT4）
+*   来源：复用本项目自建 LM324_UNIT 单元，与 LM324 数据手册 DIP-14 引脚定义严格一致。
+*   许可证：随本项目发布，可自由再分发（项目自有内容）。
+.subckt LM324 1 2 3 4 5 6 7 8 9 10 11 12 13 14
+Xu1 3 2 4 11 1 LM324_UNIT
+Xu2 5 6 4 11 7 LM324_UNIT
+Xu3 10 9 4 11 8 LM324_UNIT
+Xu4 12 13 4 11 14 LM324_UNIT
+.ends LM324

@@ -1,0 +1,114 @@
+{
+  "id": "SD-13",
+  "group": "数字逻辑基础",
+  "title": "555 定时器基本应用电路",
+  "type": "basic",
+  "modules": [{ "instanceId": "timer1", "moduleId": "mod-555-app", "slot": "SLOT_BOX_L1" }],
+  "allowedInstruments": ["ins-oscilloscope", "ins-func-gen", "ins-multimeter"],
+  "reference": {
+    "nets": [
+      ["ins-dc-power.CH1P", "timer1.VCC1", "timer1.T2_RST", "timer1.T2_RA_1"],
+      ["ins-dc-power.CH1N", "timer1.GND1", "timer1.T1_CT_N", "timer1.T1_CC_2", "timer1.T2_CT_N", "timer1.T2_CC_2", "timer1.C5_N"],
+      ["timer1.T2_RA_2", "timer1.T2_DIS", "timer1.T2_RB_1"],
+      ["timer1.T2_RB_2", "timer1.T2_TH", "timer1.T2_TR", "timer1.T2_CT_P"],
+      ["timer1.T2_CV", "timer1.T2_CC_1"]
+    ],
+    "measurePoints": [
+      { "id": "f_ast", "kind": "waveform", "quantity": "frequency", "minCycles": 2, "between": ["timer1.T2_OUT", "timer1.GND1"] },
+      { "id": "v_out_vpp", "kind": "waveform", "quantity": "vpp", "between": ["timer1.T2_OUT", "timer1.GND1"] },
+      { "id": "v_cv", "kind": "voltage", "mode": "dcv", "between": ["timer1.T2_CV", "timer1.GND1"] }
+    ]
+  },
+  "steps": [
+    {
+      "id": "prepare",
+      "text": "保持断电，查阅 NE555 内部三个 5 kΩ 电阻分压网络（比较阈值 1/3 VCC 与 2/3 VCC）及多谐振荡器、单稳态触发器、施密特触发器三种经典接法。",
+      "measurePoints": [],
+      "dataTable": "t555_test"
+    },
+    {
+      "id": "astable",
+      "text": "阶段 1（多谐振荡器）：断电连接 IC2（RA2=10 kΩ、RB2=10 kΩ、C2=47 nF、C4=10 nF），示波器 CH1 接 T2_OUT、CH2 接 T2_CT_P（时基 500 µs/div），点击“检查接线”；上电测得振荡频率 f ≈ 1.44 / ((RA+2RB)C) ≈ 1021 Hz、控制端 v_CV ≈ 3.33 V，记录第 1 行。",
+      "measurePoints": ["f_ast", "v_cv"],
+      "checkWiring": true,
+      "expect": { "measurePoint": "f_ast", "min": 960, "max": 1080 },
+      "dataTable": "t555_test"
+    },
+    {
+      "id": "monostable",
+      "text": "阶段 2（单稳态触发器）：断电将 IC2 改接为单稳态（RA2=10 kΩ 与 C2=47 nF 接至 T2_TH/T2_DIS，信号源 CH1 设 500 Hz、5 Vpp、+2.5 V 偏置方波送至 T2_TR），上电用示波器测得触发输出单稳脉宽 tw ≈ 1.1·RA2·C2 ≈ 0.52 ms，记录第 2 行。",
+      "measurePoints": ["f_ast", "v_out_vpp"],
+      "referenceNets": [
+        ["ins-dc-power.CH1P", "timer1.VCC1", "timer1.T2_RST", "timer1.T2_RA_1"],
+        ["ins-dc-power.CH1N", "timer1.GND1", "timer1.T1_CT_N", "timer1.T1_CC_2", "timer1.T2_CT_N", "timer1.T2_CC_2", "timer1.C5_N", "ins-func-gen.GND"],
+        ["timer1.T2_RA_2", "timer1.T2_DIS", "timer1.T2_TH", "timer1.T2_CT_P"],
+        ["timer1.T2_CV", "timer1.T2_CC_1"],
+        ["ins-func-gen.CH1", "timer1.T2_TR"]
+      ],
+      "expect": { "measurePoint": "v_out_vpp", "min": 3.5, "max": 5.2 },
+      "dataTable": "t555_test"
+    },
+    {
+      "id": "schmitt",
+      "text": "阶段 3（施密特触发器）：断电将 T2_TR 与 T2_TH 短接后接信号源 CH1（500 Hz、4.6 Vpp、+2.5 V 偏置正弦波），上电在示波器上观测正弦波被整形为 500 Hz 方波（回差 ΔVT = 1/3 VCC ≈ 1.67 V），记录第 3 行；可在右栏“排故”面板演练 C2 击穿/失容与 RA2 开路排故，断电完成思考题。",
+      "measurePoints": ["f_ast", "v_out_vpp"],
+      "referenceNets": [
+        ["ins-dc-power.CH1P", "timer1.VCC1", "timer1.T2_RST"],
+        ["ins-dc-power.CH1N", "timer1.GND1", "timer1.T1_CT_N", "timer1.T1_CC_2", "timer1.T2_CT_N", "timer1.T2_CC_2", "timer1.C5_N", "ins-func-gen.GND"],
+        ["timer1.T2_CV", "timer1.T2_CC_1"],
+        ["ins-func-gen.CH1", "timer1.T2_TR", "timer1.T2_TH"]
+      ],
+      "expect": { "measurePoint": "f_ast", "min": 480, "max": 520 },
+      "recordTable": "t555_test",
+      "dataTable": "t555_test"
+    }
+  ],
+  "dataTables": [
+    {
+      "id": "t555_test",
+      "title": "NE555 多谐振荡、单稳态与施密特触发器测试记录",
+      "rows": 3,
+      "columns": [
+        { "id": "f_ast", "title": "输出频率 f_OUT", "unit": "Hz", "measurePoint": "f_ast", "captureSteps": ["astable", "monostable", "schmitt"] },
+        { "id": "v_out_vpp", "title": "输出峰峰值 Vpp", "unit": "V", "measurePoint": "v_out_vpp", "captureSteps": ["monostable", "schmitt"] },
+        { "id": "v_cv", "title": "控制端电压 V_CV", "unit": "V", "measurePoint": "v_cv", "captureSteps": ["astable"] }
+      ],
+      "sanity": [
+        { "column": "f_ast", "min": 200, "max": 2000, "message": "本实验三种工况输出频率应在 500 Hz 至 1020 Hz 附近。" }
+      ]
+    }
+  ],
+  "charts": [],
+  "faults": [
+    {
+      "id": "flt-c2-short",
+      "target": "timer1.C2",
+      "kind": "short",
+      "symptom": "555 多谐振荡器停振，T2_OUT 始终停留在高电平，T2_CT_P 对地电压接近 0 V。",
+      "hint": "测量定时电容端 T2_CT_P 被拉死在 0 V，检查定时电容 C2 是否击穿短路。",
+      "verify": [{ "measurePoint": "f_ast", "min": 960, "max": 1080 }]
+    },
+    {
+      "id": "flt-ra2-open",
+      "target": "timer1.RA2",
+      "kind": "open",
+      "symptom": "555 多谐振荡器停振不输出方波，定时电容无法通过电源充电，T2_CT_P 长期保持低电平。",
+      "hint": "检查电源至放电端 T2_DIS 的充电电阻 RA2 是否开路断线。",
+      "verify": [{ "measurePoint": "f_ast", "min": 960, "max": 1080 }]
+    },
+    {
+      "id": "flt-c2-drift",
+      "target": "timer1.C2",
+      "kind": "drift",
+      "params": { "value": "4.7n" },
+      "symptom": "555 多谐振荡器仍能起振，但实测输出频率由约 1 kHz 异常暴涨至约 10 kHz。",
+      "hint": "频率与定时电容 C2 成反比，频率升高 10 倍说明定时电容 C2 严重失容衰减（由 47 nF 降至 4.7 nF）。",
+      "verify": [{ "measurePoint": "f_ast", "min": 960, "max": 1080 }]
+    }
+  ],
+  "questions": [
+    "NE555 内部三个 5 kΩ 电阻分压点为何使施密特触发器的上限/下限阈值分别为 2/3 VCC 与 1/3 VCC？",
+    "在 555 多谐振荡器中，充电通路经 RA+RB 而放电通路仅经 RB，如何改进电路才能得到占空比 ≤ 50% 的方波？",
+    "为什么 555 控制电压端（5 脚 CV）通常要经一只 10 nF 旁路电容接地？"
+  ]
+}

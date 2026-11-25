@@ -10762,6 +10762,1779 @@
           "height": 1024
         }
       ]
+    },
+    {
+      "id": "mod-dig-pulse",
+      "model": "content/modules/mod-dig-pulse/module.glb",
+      "bytes": 734360,
+      "sha256": "a0abd3859f738114e052f34e8f7452185c42feff458b74aada8f80dd0b43eef8",
+      "triangles": 5250,
+      "drawCalls": 7,
+      "bounds": {
+        "min": [
+          -0.14499999582767487,
+          5.9604643443123e-10,
+          -0.030500000342726707
+        ],
+        "max": [
+          0.14499999582767487,
+          0.4699999988079071,
+          0.041299999594688414
+        ]
+      },
+      "anchors": [
+        {
+          "name": "JACK_VCC",
+          "position": [
+            -0.107,
+            0.41,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_GND",
+          "position": [
+            -0.037,
+            0.41,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_DIF_IN",
+          "position": [
+            0.033,
+            0.41,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_DIF_G1Y",
+          "position": [
+            0.103,
+            0.41,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_DIF_RC",
+          "position": [
+            -0.107,
+            0.354,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_DIF_Q",
+          "position": [
+            -0.037,
+            0.354,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_M121_B",
+          "position": [
+            0.033,
+            0.354,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_M121_RC",
+          "position": [
+            0.103,
+            0.354,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_M121_Q",
+          "position": [
+            -0.107,
+            0.298,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_M121_NQ",
+          "position": [
+            -0.037,
+            0.298,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_M123_B",
+          "position": [
+            0.033,
+            0.298,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_M123_CLR",
+          "position": [
+            0.103,
+            0.298,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_M123_RC",
+          "position": [
+            -0.107,
+            0.242,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_M123_Q",
+          "position": [
+            -0.037,
+            0.242,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_M123_NQ",
+          "position": [
+            0.033,
+            0.242,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_S14_IN",
+          "position": [
+            0.103,
+            0.242,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_S14_OUT",
+          "position": [
+            -0.107,
+            0.186,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_S106_IN",
+          "position": [
+            -0.037,
+            0.186,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_S106_OUT",
+          "position": [
+            0.033,
+            0.186,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_OSC_R",
+          "position": [
+            0.103,
+            0.186,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_OSC_C",
+          "position": [
+            -0.107,
+            0.13,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_K_CLR",
+          "position": [
+            -0.037,
+            0.13,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "KNOB_R_DIF",
+          "position": [
+            -0.093,
+            0.038,
+            0.029
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "KNOB_R_121",
+          "position": [
+            -0.031,
+            0.038,
+            0.029
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "KNOB_R_OSC",
+          "position": [
+            0.031,
+            0.038,
+            0.029
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "SW_SW_CLR",
+          "position": [
+            0.093,
+            0.038,
+            0.029
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "textures": [
+        {
+          "mimeType": "image/webp",
+          "width": 1536,
+          "height": 2048
+        }
+      ]
+    },
+    {
+      "id": "mod-app-street-light",
+      "model": "content/modules/mod-app-street-light/module.glb",
+      "bytes": 409980,
+      "sha256": "6a49761328e84bd72b73e8d0e75402786e466a8d861ce4b6e0da024f9389d377",
+      "triangles": 2882,
+      "drawCalls": 5,
+      "bounds": {
+        "min": [
+          -0.13199999928474426,
+          -1.788139358804841e-10,
+          -0.024000000208616257
+        ],
+        "max": [
+          0.13199999928474426,
+          0.18400000035762787,
+          0.03479999959468842
+        ]
+      },
+      "anchors": [
+        {
+          "name": "JACK_VCC",
+          "position": [
+            -0.096,
+            0.138,
+            0.025
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_GND",
+          "position": [
+            -0.032,
+            0.138,
+            0.025
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_LAMP_V12",
+          "position": [
+            0.032,
+            0.138,
+            0.025
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_LDR_OUT",
+          "position": [
+            0.096,
+            0.138,
+            0.025
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_MIC_OUT",
+          "position": [
+            -0.096,
+            0.092,
+            0.025
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_GATE_OUT",
+          "position": [
+            -0.032,
+            0.092,
+            0.025
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_DLY_RC",
+          "position": [
+            0.032,
+            0.092,
+            0.025
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_DRV_OUT",
+          "position": [
+            0.096,
+            0.092,
+            0.025
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_REL_IN",
+          "position": [
+            -0.096,
+            0.046,
+            0.025
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_REL_NO",
+          "position": [
+            -0.032,
+            0.046,
+            0.025
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_LAMP_IN",
+          "position": [
+            0.032,
+            0.046,
+            0.025
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_LAMP_GND",
+          "position": [
+            0.096,
+            0.046,
+            0.025
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "KNOB_LIGHT_LUX",
+          "position": [
+            -0.068,
+            0.022,
+            0.022500000000000003
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "SW_SOUND_LVL",
+          "position": [
+            0.004,
+            0.022,
+            0.022500000000000003
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "textures": [
+        {
+          "mimeType": "image/webp",
+          "width": 1536,
+          "height": 1024
+        }
+      ]
+    },
+    {
+      "id": "mod-dig-mux-bus",
+      "model": "content/modules/mod-dig-mux-bus/module.glb",
+      "bytes": 816512,
+      "sha256": "03eac359d0e92e577a8e68690b7dd8a7afee825033358fc85986cde951003fa8",
+      "triangles": 5874,
+      "drawCalls": 7,
+      "bounds": {
+        "min": [
+          -0.14499999582767487,
+          5.9604643443123e-10,
+          -0.030500000342726707
+        ],
+        "max": [
+          0.14499999582767487,
+          0.4699999988079071,
+          0.041299999594688414
+        ]
+      },
+      "anchors": [
+        {
+          "name": "JACK_VCC",
+          "position": [
+            -0.107,
+            0.414,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_GND",
+          "position": [
+            -0.037,
+            0.414,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_CP_MAN",
+          "position": [
+            0.033,
+            0.414,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_CLK_OUT",
+          "position": [
+            0.103,
+            0.414,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_CNT_CP",
+          "position": [
+            -0.107,
+            0.364,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_CNT_CLR",
+          "position": [
+            -0.037,
+            0.364,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_CNT_A0",
+          "position": [
+            0.033,
+            0.364,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_CNT_A1",
+          "position": [
+            0.103,
+            0.364,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_CNT_A2",
+          "position": [
+            -0.107,
+            0.314,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_TX_A0",
+          "position": [
+            -0.037,
+            0.314,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_TX_A1",
+          "position": [
+            0.033,
+            0.314,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_TX_A2",
+          "position": [
+            0.103,
+            0.314,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_TX_Y",
+          "position": [
+            -0.107,
+            0.264,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_TX_W",
+          "position": [
+            -0.037,
+            0.264,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_RX_A0",
+          "position": [
+            0.033,
+            0.264,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_RX_A1",
+          "position": [
+            0.103,
+            0.264,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_RX_A2",
+          "position": [
+            -0.107,
+            0.214,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_RX_DIN",
+          "position": [
+            -0.037,
+            0.214,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_RX0",
+          "position": [
+            0.033,
+            0.214,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_RX1",
+          "position": [
+            0.103,
+            0.214,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_RX2",
+          "position": [
+            -0.107,
+            0.164,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_RX3",
+          "position": [
+            -0.037,
+            0.164,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_RX4",
+          "position": [
+            0.033,
+            0.164,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_RX5",
+          "position": [
+            0.103,
+            0.164,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_RX6",
+          "position": [
+            -0.107,
+            0.114,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_RX7",
+          "position": [
+            -0.037,
+            0.114,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "KNOB_CLK_RATE",
+          "position": [
+            -0.093,
+            0.038,
+            0.029
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "SW_CP_BTN",
+          "position": [
+            -0.031,
+            0.038,
+            0.029
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "KNOB_TX_LOW",
+          "position": [
+            0.031,
+            0.038,
+            0.029
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "KNOB_TX_HIGH",
+          "position": [
+            0.093,
+            0.038,
+            0.029
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "textures": [
+        {
+          "mimeType": "image/webp",
+          "width": 1536,
+          "height": 2048
+        }
+      ]
+    },
+    {
+      "id": "mod-dig-ring",
+      "model": "content/modules/mod-dig-ring/module.glb",
+      "bytes": 623732,
+      "sha256": "a242ec1220de575fe5fcfa75b24cf26aaf2a118d492a2df53ceb719d837d8d29",
+      "triangles": 4442,
+      "drawCalls": 5,
+      "bounds": {
+        "min": [
+          -0.13199999928474426,
+          -1.788139358804841e-10,
+          -0.024000000208616257
+        ],
+        "max": [
+          0.13199999928474426,
+          0.18400000035762787,
+          0.03479999959468842
+        ]
+      },
+      "anchors": [
+        {
+          "name": "JACK_VCC",
+          "position": [
+            -0.106,
+            0.148,
+            0.025
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_GND",
+          "position": [
+            -0.064,
+            0.148,
+            0.025
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_CP_MAN",
+          "position": [
+            -0.022,
+            0.148,
+            0.025
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_CLK_OUT",
+          "position": [
+            0.02,
+            0.148,
+            0.025
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_R194_CP",
+          "position": [
+            0.062,
+            0.148,
+            0.025
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_R194_CLR",
+          "position": [
+            0.104,
+            0.148,
+            0.025
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_R194_S0",
+          "position": [
+            -0.106,
+            0.116,
+            0.025
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_R194_S1",
+          "position": [
+            -0.064,
+            0.116,
+            0.025
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_R194_SR",
+          "position": [
+            -0.022,
+            0.116,
+            0.025
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_R194_FB",
+          "position": [
+            0.02,
+            0.116,
+            0.025
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_R194_QA",
+          "position": [
+            0.062,
+            0.116,
+            0.025
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_R194_QB",
+          "position": [
+            0.104,
+            0.116,
+            0.025
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_R194_QC",
+          "position": [
+            -0.106,
+            0.084,
+            0.025
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_R194_QD",
+          "position": [
+            -0.064,
+            0.084,
+            0.025
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_R175_CP",
+          "position": [
+            -0.022,
+            0.084,
+            0.025
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_R175_CLR",
+          "position": [
+            0.02,
+            0.084,
+            0.025
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_R175_D1",
+          "position": [
+            0.062,
+            0.084,
+            0.025
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_R175_Q1",
+          "position": [
+            0.104,
+            0.084,
+            0.025
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_R175_Q2",
+          "position": [
+            -0.106,
+            0.052,
+            0.025
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_R175_Q3",
+          "position": [
+            -0.064,
+            0.052,
+            0.025
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_R175_Q4",
+          "position": [
+            -0.022,
+            0.052,
+            0.025
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_R175_NQ4",
+          "position": [
+            0.02,
+            0.052,
+            0.025
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "KNOB_CLK_RATE",
+          "position": [
+            -0.068,
+            0.022,
+            0.022500000000000003
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "SW_CP_BTN",
+          "position": [
+            0.004,
+            0.022,
+            0.022500000000000003
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "textures": [
+        {
+          "mimeType": "image/webp",
+          "width": 1536,
+          "height": 1024
+        }
+      ]
+    },
+    {
+      "id": "mod-app-second-pulse",
+      "model": "content/modules/mod-app-second-pulse/module.glb",
+      "bytes": 396584,
+      "sha256": "1d3f7c250bf4bde12afa850f8ec59236444f958bb7bb9bc896a7435200d0c280",
+      "triangles": 2790,
+      "drawCalls": 4,
+      "bounds": {
+        "min": [
+          -0.13199999928474426,
+          -1.788139358804841e-10,
+          -0.024000000208616257
+        ],
+        "max": [
+          0.13199999928474426,
+          0.18400000035762787,
+          0.03479999959468842
+        ]
+      },
+      "anchors": [
+        {
+          "name": "JACK_VCC",
+          "position": [
+            -0.1,
+            0.136,
+            0.025
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_GND",
+          "position": [
+            -0.05,
+            0.136,
+            0.025
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_XTAL_OUT",
+          "position": [
+            0,
+            0.136,
+            0.025
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_C4060_PHI",
+          "position": [
+            0.05,
+            0.136,
+            0.025
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_C4060_MR",
+          "position": [
+            0.1,
+            0.136,
+            0.025
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_K_MR",
+          "position": [
+            -0.1,
+            0.09,
+            0.025
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_C4060_Q10",
+          "position": [
+            -0.05,
+            0.09,
+            0.025
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_C4060_Q12",
+          "position": [
+            0,
+            0.09,
+            0.025
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_C4060_Q13",
+          "position": [
+            0.05,
+            0.09,
+            0.025
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_C4060_Q14",
+          "position": [
+            0.1,
+            0.09,
+            0.025
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_FF_CP",
+          "position": [
+            -0.1,
+            0.044,
+            0.025
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_FF_D",
+          "position": [
+            -0.05,
+            0.044,
+            0.025
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_FF_Q",
+          "position": [
+            0,
+            0.044,
+            0.025
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_FF_NQ",
+          "position": [
+            0.05,
+            0.044,
+            0.025
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "SW_SW_MR",
+          "position": [
+            -0.068,
+            0.022,
+            0.022500000000000003
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "textures": [
+        {
+          "mimeType": "image/webp",
+          "width": 1536,
+          "height": 1024
+        }
+      ]
+    },
+    {
+      "id": "mod-motor-speed",
+      "model": "content/modules/mod-motor-speed/module.glb",
+      "bytes": 408564,
+      "sha256": "2e8bdf9eb98bd176be42191d196bf45ce7d328a97cb968f6936b99a9c513e5bf",
+      "triangles": 2882,
+      "drawCalls": 5,
+      "bounds": {
+        "min": [
+          -0.07249999791383743,
+          5.9604643443123e-10,
+          -0.030500000342726707
+        ],
+        "max": [
+          0.07249999791383743,
+          0.4699999988079071,
+          0.041299999594688414
+        ]
+      },
+      "anchors": [
+        {
+          "name": "JACK_VM_IN",
+          "position": [
+            -0.0325,
+            0.404,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_VCC",
+          "position": [
+            0.0325,
+            0.404,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_GND",
+          "position": [
+            -0.0325,
+            0.346,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_VM_MON",
+          "position": [
+            0.0325,
+            0.346,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_ENC_RAW",
+          "position": [
+            -0.0325,
+            0.288,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_SCH_IN",
+          "position": [
+            0.0325,
+            0.288,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_TACH_OUT",
+          "position": [
+            -0.0325,
+            0.23,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_GATE_OUT",
+          "position": [
+            0.0325,
+            0.23,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_RST_AUTO",
+          "position": [
+            -0.0325,
+            0.172,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_AND_A",
+          "position": [
+            0.0325,
+            0.172,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_AND_B",
+          "position": [
+            -0.0325,
+            0.114,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_COUNT_OUT",
+          "position": [
+            0.0325,
+            0.114,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "KNOB_SPEED_SET",
+          "position": [
+            -0.0285,
+            0.038,
+            0.029
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "SW_GATE_MODE",
+          "position": [
+            0.0275,
+            0.038,
+            0.029
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "textures": [
+        {
+          "mimeType": "image/webp",
+          "width": 1024,
+          "height": 2048
+        }
+      ]
     }
   ],
   "preview": {

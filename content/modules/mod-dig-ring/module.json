@@ -1,0 +1,74 @@
+{
+  "id": "mod-dig-ring",
+  "name": "4 位环形计数节拍发生器板",
+  "form": "board",
+  "model": "module.glb",
+  "netlist": "module.cir",
+  "jacks": [
+    { "id": "VCC", "label": "+5V 电源", "kind": "banana4", "polarityHint": "+" },
+    { "id": "GND", "label": "公共地 GND", "kind": "banana4", "polarityHint": "-" },
+    { "id": "CP_MAN", "label": "单次脉冲 CP", "kind": "banana4" },
+    { "id": "CLK_OUT", "label": "连续脉冲 CLK", "kind": "banana4" },
+    { "id": "R194_CP", "label": "194 时钟 CP", "kind": "banana4" },
+    { "id": "R194_CLR", "label": "194 清零 /CLR", "kind": "banana4" },
+    { "id": "R194_S0", "label": "194 模式 S0", "kind": "banana4" },
+    { "id": "R194_S1", "label": "194 模式 S1", "kind": "banana4" },
+    { "id": "R194_SR", "label": "194 右移输入 SR", "kind": "banana4" },
+    { "id": "R194_FB", "label": "自启动反馈 ~(|Q)", "kind": "banana4" },
+    { "id": "R194_QA", "label": "节拍输出 T1 (QA)", "kind": "banana4" },
+    { "id": "R194_QB", "label": "节拍输出 T2 (QB)", "kind": "banana4" },
+    { "id": "R194_QC", "label": "节拍输出 T3 (QC)", "kind": "banana4" },
+    { "id": "R194_QD", "label": "节拍输出 T4 (QD)", "kind": "banana4" },
+    { "id": "R175_CP", "label": "175 时钟 CP", "kind": "banana4" },
+    { "id": "R175_CLR", "label": "175 清零 /CLR", "kind": "banana4" },
+    { "id": "R175_D1", "label": "175 首级输入 1D", "kind": "banana4" },
+    { "id": "R175_Q1", "label": "175 扭环 Q1", "kind": "banana4" },
+    { "id": "R175_Q2", "label": "175 扭环 Q2", "kind": "banana4" },
+    { "id": "R175_Q3", "label": "175 扭环 Q3", "kind": "banana4" },
+    { "id": "R175_Q4", "label": "175 扭环 Q4", "kind": "banana4" },
+    { "id": "R175_NQ4", "label": "175 扭环 /Q4", "kind": "banana4" }
+  ],
+  "controls": [
+    {
+      "id": "CLK_RATE",
+      "label": "节拍时钟频率",
+      "kind": "rotary",
+      "param": "clk_rate",
+      "steps": [1, 2, 5, 10],
+      "stepLabels": ["1 Hz", "2 Hz", "5 Hz", "10 Hz"],
+      "targets": [
+        { "element": "RCLK1", "values": [10, 1000000000, 1000000000, 1000000000] },
+        { "element": "RCLK2", "values": [1000000000, 10, 1000000000, 1000000000] },
+        { "element": "RCLK5", "values": [1000000000, 1000000000, 10, 1000000000] },
+        { "element": "RCLK10", "values": [1000000000, 1000000000, 1000000000, 10] }
+      ],
+      "unit": "Hz",
+      "default": 5
+    },
+    {
+      "id": "CP_BTN",
+      "label": "单次脉冲按键 CP",
+      "kind": "switch",
+      "param": "cp_btn",
+      "steps": [0, 1],
+      "stepLabels": ["低电平 (0)", "高电平 (1)"],
+      "targets": [
+        { "element": "RCP_HI", "values": [1000000000, 100] },
+        { "element": "RCP_LO", "values": [100, 1000000000] }
+      ],
+      "unit": "",
+      "default": 0
+    }
+  ],
+  "indicators": [
+    { "id": "L_T1", "kind": "led", "label": "194 节拍 T1", "probe": "R194_QA", "common": "GND" },
+    { "id": "L_T2", "kind": "led", "label": "194 节拍 T2", "probe": "R194_QB", "common": "GND" },
+    { "id": "L_T3", "kind": "led", "label": "194 节拍 T3", "probe": "R194_QC", "common": "GND" },
+    { "id": "L_T4", "kind": "led", "label": "194 节拍 T4", "probe": "R194_QD", "common": "GND" },
+    { "id": "L_J1", "kind": "led", "label": "175 扭环 Q1", "probe": "R175_Q1", "common": "GND" },
+    { "id": "L_J2", "kind": "led", "label": "175 扭环 Q2", "probe": "R175_Q2", "common": "GND" },
+    { "id": "L_J3", "kind": "led", "label": "175 扭环 Q3", "probe": "R175_Q3", "common": "GND" },
+    { "id": "L_J4", "kind": "led", "label": "175 扭环 Q4", "probe": "R175_Q4", "common": "GND" }
+  ],
+  "simulation": { "analysis": "tran", "maxStep": 0.0005, "pacing": "realtime" }
+}

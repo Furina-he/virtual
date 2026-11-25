@@ -1,0 +1,85 @@
+{
+  "id": "SD-21",
+  "group": "综合性应用仿真实训项目",
+  "title": "伺服电机测速与时钟脉冲测频电路",
+  "type": "integrated",
+  "modules": [
+    { "instanceId": "dig1", "moduleId": "mod-digital-logic", "slot": "SLOT_BOX_L1" },
+    { "instanceId": "spd1", "moduleId": "mod-motor-speed", "slot": "SLOT_BOX_S1" }
+  ],
+  "allowedInstruments": ["ins-oscilloscope", "ins-multimeter"],
+  "reference": {
+    "nets": [
+      ["ins-dc-power.V5P", "dig1.VCC", "spd1.VCC"],
+      ["ins-dc-power.CH1P", "spd1.VM_IN"],
+      ["ins-dc-power.V5N", "ins-dc-power.CH1N", "dig1.GND", "spd1.GND"],
+      ["spd1.ENC_RAW", "spd1.SCH_IN"],
+      ["spd1.TACH_OUT", "spd1.AND_A"],
+      ["spd1.GATE_OUT", "spd1.AND_B"],
+      ["spd1.COUNT_OUT", "dig1.U1_CP0"],
+      ["spd1.RST_AUTO", "dig1.U1_R0", "dig1.U2_R0"],
+      ["dig1.U1_Q0", "dig1.U1_CP1", "dig1.D1_A"],
+      ["dig1.U1_Q1", "dig1.D1_B"],
+      ["dig1.U1_Q2", "dig1.D1_C"],
+      ["dig1.U1_Q3", "dig1.D1_D", "dig1.U2_CP0"],
+      ["dig1.U2_Q0", "dig1.U2_CP1", "dig1.D2_A"],
+      ["dig1.U2_Q1", "dig1.D2_B"],
+      ["dig1.U2_Q2", "dig1.D2_C"],
+      ["dig1.U2_Q3", "dig1.D2_D"]
+    ],
+    "measurePoints": [
+      { "id": "f_tach", "kind": "waveform", "quantity": "frequency", "minCycles": 2, "between": ["spd1.TACH_OUT", "spd1.GND"] },
+      { "id": "v_arm", "kind": "voltage", "mode": "dcv", "between": ["spd1.VM_MON", "spd1.GND"] }
+    ]
+  },
+  "steps": [
+    {
+      "id": "prepare",
+      "text": "保持断电，熟悉 60 槽光电码盘测速与数字测频原理：电机每转产生 60 个脉冲，故测速频率 f_TACH (Hz) 在数值上严格等于转速 n (r/min)；在 1.000 s 闸门内送入二位十进制计数显示挂箱即可直读转速。",
+      "measurePoints": [],
+      "dataTable": "spd_test"
+    },
+    {
+      "id": "wire",
+      "text": "断电连接 +5V（dig1/spd1 共用）、CH1+(12V)→spd1.VM_IN、公共地，接入光电整形与闸门链路（ENC_RAW→SCH_IN、TACH_OUT→AND_A、GATE_OUT→AND_B、COUNT_OUT→dig1.U1_CP0、RST_AUTO→U1_R0/U2_R0）及二位十进制计数译码连线，点击“检查接线”。",
+      "measurePoints": [],
+      "checkWiring": true,
+      "dataTable": "spd_test"
+    },
+    {
+      "id": "speed_30",
+      "text": "设直流稳压源 CH1=12 V、电机转速 SPEED_SET=30 r/min、GATE_MODE=1 s 闸门，示波器 CH1 接 TACH_OUT、CH2 接 GATE_OUT（关闭示波器内置信号源，时基 50 ms/div）；上电实测 f_TACH ≈ 30.0 Hz，并观察 dig1 二位数码管在 1 s 闸门结束时锁存显示“30”，记录第 1 行。",
+      "measurePoints": ["f_tach", "v_arm"],
+      "expect": { "measurePoint": "f_tach", "min": 28.5, "max": 31.5 },
+      "dataTable": "spd_test"
+    },
+    {
+      "id": "speed_60",
+      "text": "在线将电机设定转速调至 SPEED_SET=60 r/min，观察电枢电压上升、示波器测得 f_TACH ≈ 60.0 Hz 且 dig1 二位数码管下一周期刷新显示“60”，记录第 2 行并断电完成思考题。",
+      "measurePoints": ["f_tach", "v_arm"],
+      "expect": { "measurePoint": "f_tach", "min": 57.5, "max": 62.5 },
+      "recordTable": "spd_test",
+      "dataTable": "spd_test"
+    }
+  ],
+  "dataTables": [
+    {
+      "id": "spd_test",
+      "title": "伺服电机电枢电压、光电测速频率与数码管测速记录",
+      "rows": 2,
+      "columns": [
+        { "id": "v_arm", "title": "电枢电压 V_arm", "unit": "V", "measurePoint": "v_arm", "captureSteps": ["speed_30", "speed_60"] },
+        { "id": "f_tach", "title": "测速脉冲 f_TACH", "unit": "Hz", "measurePoint": "f_tach", "captureSteps": ["speed_30", "speed_60"] }
+      ],
+      "sanity": [
+        { "column": "f_tach", "min": 5, "max": 90, "message": "15~75 r/min 档位下 60 槽光电码盘输出频率应为 15~75 Hz。" }
+      ]
+    }
+  ],
+  "charts": [],
+  "questions": [
+    "为什么选用 60 槽光电码盘配 1.000 s 测频闸门时，二位数码管计数值可直接读作电机转速（r/min）？",
+    "槽型光电开关输出的原始信号为何先经过 74LS14 施密特触发器整形再送入闸门与门？",
+    "数字直接测频法在 1 s 闸门下存在 ±1 个脉冲的量化误差，若电机转速较低（如 10 r/min），应如何提高测速分辨率？"
+  ]
+}

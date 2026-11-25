@@ -1,0 +1,38 @@
+.subckt mod_app_second_pulse VCC GND XTAL_OUT C4060_PHI C4060_MR K_MR C4060_Q10 C4060_Q12 C4060_Q13 C4060_Q14 FF_CP FF_D FF_Q FF_NQ params: sw_mr=0
+* 秒脉冲信号发生器电路板（SD-20：32768 Hz 晶振行为模型 + CD4060 14 级分频至 2 Hz + 74LS74 二分频得 1.000 Hz）
+Rgnd GND 0 1G
+Rvcc VCC GND 100k
+Cdec VCC GND 100n
+
+* ---- 1. 手动清零开关 K_MR 与 1 ms 上电复位 ----
+RMR_HI VCC mr_sw {sw_mr > 0.5 ? 100 : 1G}
+RMR_LO mr_sw GND {sw_mr > 0.5 ? 1G : 100}
+Bmr mr_buf GND V=V(mr_sw,GND)
+Rmr_out mr_buf K_MR 50
+
+Vpor por_hi GND PULSE(1 0 1m 10u 10u 1e6 2e6)
+Rpor por_hi GND 100k
+Vpor_n por_lo GND PULSE(0 1 1m 10u 10u 1e6 2e6)
+Rpor_n por_lo GND 100k
+
+* ---- 2. 32768 Hz 石英晶振行为振荡源与 CD4060 14 级分频器 ----
+Xxtal VCC GND XTAL_OUT XTAL_32768 params: freq_hz=32768
+Rxtal_l XTAL_OUT GND 100k
+Rmr_pd C4060_MR GND 100k
+Bmr_int mr_int GND V=max(V(C4060_MR,GND),V(por_hi,GND)*max(V(VCC,GND),0))
+X4060 C4060_Q12 C4060_Q13 C4060_Q14 nc_q6 nc_q5 nc_q7 nc_q4 GND nc_npo nc_po C4060_PHI mr_int nc_q9 nc_q8 C4060_Q10 VCC CD4060_XTAL32K
+Rq10 C4060_Q10 GND 100k
+Rq12 C4060_Q12 GND 100k
+Rq13 C4060_Q13 GND 100k
+Rq14 C4060_Q14 GND 100k
+
+* ---- 3. 74LS74 二分频触发器（2 Hz -> 1.000 Hz 精确秒脉冲）----
+Bffclr ff_clr GND V=V(por_lo,GND)*max(V(VCC,GND),0)
+X74 ff_clr FF_D FF_CP VCC FF_Q FF_NQ GND u74_2nq u74_2q VCC GND GND VCC VCC SN74LS74
+Rffq FF_Q GND 10k
+Rffnq FF_NQ GND 10k
+.ends mod_app_second_pulse
+
+.include "cmos.lib"
+.include "ttl.lib"
+.include "sensors.lib"

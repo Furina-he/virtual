@@ -1,0 +1,55 @@
+{
+  "id": "mod-app-street-light",
+  "name": "声光控制节能路灯电路板",
+  "form": "board",
+  "model": "module.glb",
+  "netlist": "module.cir",
+  "jacks": [
+    { "id": "VCC", "label": "+5V 控制电源", "kind": "banana4", "polarityHint": "+" },
+    { "id": "GND", "label": "公共地 GND", "kind": "banana4", "polarityHint": "-" },
+    { "id": "LAMP_V12", "label": "+12V 路灯电源", "kind": "banana4", "polarityHint": "+" },
+    { "id": "LDR_OUT", "label": "光敏检测输出", "kind": "banana4" },
+    { "id": "MIC_OUT", "label": "声控包络输出", "kind": "banana4" },
+    { "id": "GATE_OUT", "label": "CD4011 门控输出", "kind": "banana4" },
+    { "id": "DLY_RC", "label": "延时电容节点", "kind": "banana4" },
+    { "id": "DRV_OUT", "label": "延时驱动输出", "kind": "banana4" },
+    { "id": "REL_IN", "label": "继电器控制输入", "kind": "banana4" },
+    { "id": "REL_NO", "label": "继电器常开输出", "kind": "banana4" },
+    { "id": "LAMP_IN", "label": "路灯输入端", "kind": "banana4" },
+    { "id": "LAMP_GND", "label": "路灯负端", "kind": "banana4", "polarityHint": "-" }
+  ],
+  "controls": [
+    {
+      "id": "LIGHT_LUX",
+      "label": "环境光照强度",
+      "kind": "rotary",
+      "param": "light_lux",
+      "steps": [0, 10, 100, 500],
+      "stepLabels": ["0 lx (黑夜)", "10 lx (黄昏)", "100 lx (室内)", "500 lx (白天)"],
+      "targets": [{ "element": "RLDR", "values": [200000, 33200, 5500, 1400] }],
+      "unit": "lx",
+      "default": 0
+    },
+    {
+      "id": "SOUND_LVL",
+      "label": "环境声控触发",
+      "kind": "switch",
+      "param": "sound_lvl",
+      "steps": [0, 1],
+      "stepLabels": ["安静 (无声)", "拍手声 (触发)"],
+      "targets": [
+        { "element": "RSND_ON", "values": [1000000000, 100] },
+        { "element": "RSND_OFF", "values": [100, 1000000000] }
+      ],
+      "unit": "",
+      "default": 0
+    }
+  ],
+  "indicators": [
+    { "id": "L_DARK", "kind": "led", "label": "黑夜光敏有效", "probe": "LDR_OUT", "common": "GND", "threshold": 2.5 },
+    { "id": "L_SND", "kind": "led", "label": "声控拾音有效", "probe": "MIC_OUT", "common": "GND", "threshold": 2.5 },
+    { "id": "L_DRV", "kind": "led", "label": "延时驱动有效", "probe": "DRV_OUT", "common": "GND", "threshold": 2.5 },
+    { "id": "L_LAMP", "kind": "led", "label": "路灯点亮状态", "probe": "LAMP_IN", "common": "LAMP_GND", "threshold": 3.0 }
+  ],
+  "simulation": { "analysis": "tran", "maxStep": 0.0005, "pacing": "realtime" }
+}
