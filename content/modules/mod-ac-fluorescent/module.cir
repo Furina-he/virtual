@@ -1,0 +1,25 @@
+.subckt mod_ac_fluorescent AC_L AC_N I_LINE_A I_LINE_B I_TOT_A I_TOT_B LOAD_IN I_RL_A I_RL_B BALLAST_OUT LAMP_N CAP_IN CAP_N params: kc1=0 kc2=0 kc3=0
+* 日光灯与功率因数实验挂箱（原型选型说明 §3.1 #4，DG-10 / DG-12）
+* 1. 同铜箔公共节点经 1u 电阻连接（子电路端口不可直接合并）
+Rcu1 AC_L I_LINE_A 1u
+Rcu2 I_LINE_B I_TOT_A 1u
+Rcu3 I_TOT_B LOAD_IN 1u
+Rcu4 LOAD_IN I_RL_A 1u
+Rcu5 AC_N LAMP_N 1u
+Rcu6 AC_N CAP_N 1u
+* 2. 感性负载支路：30 W 稳态日光灯管（Rlamp=240 Ω）+ 铁芯镇流器（Rballast=60 Ω, Lballast=1.65 H）
+*    50 Hz 下 Z_RL = 300 + j518.36 Ω，220 V 时 I_RL ≈ 0.3673 A，P ≈ 40.48 W，cosφ ≈ 0.501（感性 L）
+Rballast I_RL_B n_lb 60
+Lballast n_lb BALLAST_OUT 1.65
+Rlamp BALLAST_OUT LAMP_N 240
+* 3. 三组并联补偿电容（1 / 2.2 / 4.7 uF），由 ADR-009 声明电阻目标连续切换
+RKC1 CAP_IN n_c1 {kc1 > 0.5 ? 0.01 : 1G}
+C1 n_c1 CAP_N 1u
+Rbleed1 n_c1 CAP_N 100Meg
+RKC2 CAP_IN n_c2 {kc2 > 0.5 ? 0.01 : 1G}
+C2 n_c2 CAP_N 2.2u
+Rbleed2 n_c2 CAP_N 100Meg
+RKC3 CAP_IN n_c3 {kc3 > 0.5 ? 0.01 : 1G}
+C3 n_c3 CAP_N 4.7u
+Rbleed3 n_c3 CAP_N 100Meg
+.ends mod_ac_fluorescent

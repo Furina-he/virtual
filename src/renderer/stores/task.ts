@@ -269,7 +269,7 @@ function freshWiring(project: Project, step: Step) {
 
 function formatCapturedValue(valueSI: number, unit: string, meterConfig?: ResolvedInstrument): string {
   if (!Number.isFinite(valueSI)) return unit ? `— ${unit}` : '—'
-  if (meterConfig && meterConfig.displayScale > 0) {
+  if (meterConfig && meterConfig.mode !== 'power' && meterConfig.displayScale > 0) {
     const scaled = valueSI / meterConfig.displayScale
     const step = meterConfig.resolution / meterConfig.displayScale
     const decimals = step > 0 && step < 1 ? Math.min(6, Math.max(0, Math.ceil(-Math.log10(step) - 1e-9))) : 0

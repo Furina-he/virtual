@@ -1,0 +1,118 @@
+* cmos.lib -- 常用 CMOS / 译码显示集成电路模型库
+*
+* 来源：本项目按 TI / NXP CD4511B 数据手册功能表与典型参数自建，
+*   内部仅使用 ngspice 内置 XSPICE 代码模型（adc_bridge、dac_bridge、
+*   d_inverter、d_and、d_or、d_dlatch），未复制任何厂商 SPICE 模型文件。
+* 许可证：随本项目发布，可自由再分发（项目自有内容）。
+*
+* ---- CD4511 BCD-七段锁存/译码/驱动器（共阴数码管高电平有效）----
+* 供电依赖：V(VDD,VSS) < 2.8 V 时全部段输出关闭；VOH ≈ VDD - 0.7 V（NPN 射极跟随输出级，100 Ω 输出阻）。
+* 输入阈值：in_low=1.2 V，in_high=2.4 V，兼容 5 V CMOS 与 74LS TTL（VOH≈3.4 V）直接驱动。
+* 引脚顺序 = DIP-16：
+*   1 B  2 C  3 /LT  4 /BI  5 LE  6 D  7 A  8 VSS(GND)
+*   9 e  10 d  11 c  12 b  13 a  14 g  15 f  16 VDD(VCC)
+
+.subckt CMOS_IN pin x vss
+Rpd pin vss 10Meg
+Ex x 0 pin vss 1
+.ends CMOS_IN
+
+.subckt CD4511_OUT l pin vdd vss
+Bo o 0 V=V(vss)+V(l)*max(V(vdd,vss)-0.7,0)
+Ro o pin 100
+.ends CD4511_OUT
+
+.model CD4511_ADC adc_bridge(in_low=1.2 in_high=2.4 rise_delay=1e-9 fall_delay=1e-9)
+.model CD4511_PWR adc_bridge(in_low=2.8 in_high=3.2 rise_delay=1e-9 fall_delay=1e-9)
+.model CD4511_DAC dac_bridge(out_low=0 out_high=1 out_undef=0 t_rise=50e-9 t_fall=50e-9)
+.model CD4511_INV d_inverter(rise_delay=1e-9 fall_delay=1e-9)
+.model CD4511_AND d_and(rise_delay=2e-9 fall_delay=2e-9)
+.model CD4511_OR d_or(rise_delay=2e-9 fall_delay=2e-9)
+.model CD4511_LATCH d_dlatch(data_delay=5e-9 enable_delay=5e-9 set_delay=5e-9 reset_delay=5e-9 rise_delay=2e-9 fall_delay=2e-9)
+
+.subckt CD4511 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16
+* 静态功耗与参考地防奇异路径
+Rq 16 8 50k
+Rg 8 0 1G
+* 输入相对 VSS 采样
+Xib 1 xb 8 CMOS_IN
+Xic 2 xc 8 CMOS_IN
+Xilt 3 xlt 8 CMOS_IN
+Xibi 4 xbi 8 CMOS_IN
+Xile 5 xle 8 CMOS_IN
+Xid 6 xd 8 CMOS_IN
+Xia 7 xa 8 CMOS_IN
+Evs vs 0 16 8 1
+
+Aadc [xa xb xc xd xlt xbi xle] [da db dc dd dlt dbi dle] CD4511_ADC
+Apwr [vs] [pwr] CD4511_PWR
+
+* 常量 0 与透明使能 en = (~LE) & pwr
+Anp pwr npwr CD4511_INV
+Azero [pwr npwr] zero CD4511_AND
+Anle dle nle CD4511_INV
+Aen [nle pwr] en CD4511_AND
+
+* 四位 BCD 电平锁存器（LE=0 透明，LE=1 锁存）
+Ala da en zero zero qa nqa CD4511_LATCH
+Alb db en zero zero qb nqb CD4511_LATCH
+Alc dc en zero zero qc nqc CD4511_LATCH
+Ald dd en zero zero qd nqd CD4511_LATCH
+
+* 0~9 十进制最小项（10~15 全为 0，符合 CD4511B 消隐特性）
+Am0 [nqd nqc nqb nqa] m0 CD4511_AND
+Am1 [nqd nqc nqb qa] m1 CD4511_AND
+Am2 [nqd nqc qb nqa] m2 CD4511_AND
+Am3 [nqd nqc qb qa] m3 CD4511_AND
+Am4 [nqd qc nqb nqa] m4 CD4511_AND
+Am5 [nqd qc nqb qa] m5 CD4511_AND
+Am6 [nqd qc qb nqa] m6 CD4511_AND
+Am7 [nqd qc qb qa] m7 CD4511_AND
+Am8 [qd nqc nqb nqa] m8 CD4511_AND
+Am9 [qd nqc nqb qa] m9 CD4511_AND
+
+* 七段译码（CD4511B 标准：6 为 cdefg，9 为 abcfg）
+Asa [m0 m2 m3 m5 m7 m8 m9] sa_raw CD4511_OR
+Asb [m0 m1 m2 m3 m4 m7 m8 m9] sb_raw CD4511_OR
+Asc [m0 m1 m3 m4 m5 m6 m7 m8 m9] sc_raw CD4511_OR
+Asd [m0 m2 m3 m5 m6 m8] sd_raw CD4511_OR
+Ase [m0 m2 m6 m8] se_raw CD4511_OR
+Asf [m0 m4 m5 m6 m8 m9] sf_raw CD4511_OR
+Asg [m2 m3 m4 m5 m6 m8 m9] sg_raw CD4511_OR
+
+* /BI 消隐（低有效）、/LT 灯测（低有效，优先级高于 /BI）与供电门控
+Anlt dlt lt_on CD4511_INV
+
+Aba [sa_raw dbi] sa_bi CD4511_AND
+Abb [sb_raw dbi] sb_bi CD4511_AND
+Abc [sc_raw dbi] sc_bi CD4511_AND
+Abd [sd_raw dbi] sd_bi CD4511_AND
+Abe [se_raw dbi] se_bi CD4511_AND
+Abf [sf_raw dbi] sf_bi CD4511_AND
+Abg [sg_raw dbi] sg_bi CD4511_AND
+
+Alta [sa_bi lt_on] sa_lt CD4511_OR
+Altb [sb_bi lt_on] sb_lt CD4511_OR
+Altc [sc_bi lt_on] sc_lt CD4511_OR
+Altd [sd_bi lt_on] sd_lt CD4511_OR
+Alte [se_bi lt_on] se_lt CD4511_OR
+Altf [sf_bi lt_on] sf_lt CD4511_OR
+Altg [sg_bi lt_on] sg_lt CD4511_OR
+
+Apa [sa_lt pwr] sa_ok CD4511_AND
+Apb [sb_lt pwr] sb_ok CD4511_AND
+Apc [sc_lt pwr] sc_ok CD4511_AND
+Apd [sd_lt pwr] sd_ok CD4511_AND
+Ape [se_lt pwr] se_ok CD4511_AND
+Apf [sf_lt pwr] sf_ok CD4511_AND
+Apg [sg_lt pwr] sg_ok CD4511_AND
+
+Adac [sa_ok sb_ok sc_ok sd_ok se_ok sf_ok sg_ok] [la lb lc ld le lf lg] CD4511_DAC
+Xoa la 13 16 8 CD4511_OUT
+Xob lb 12 16 8 CD4511_OUT
+Xoc lc 11 16 8 CD4511_OUT
+Xod ld 10 16 8 CD4511_OUT
+Xoe le 9 16 8 CD4511_OUT
+Xof lf 15 16 8 CD4511_OUT
+Xog lg 14 16 8 CD4511_OUT
+.ends CD4511

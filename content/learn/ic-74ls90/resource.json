@@ -7,7 +7,7 @@
   "summary": "74LS90 内部包含 1 位二进制计数器（CP0→Q0）和 1 位五进制计数器（CP1→Q1Q2Q3），级联可构成 8421 BCD 或 5421 十进制计数电路。",
   "keywords": ["74LS90", "计数器", "BCD", "十进制", "TTL", "级联", "SD-09", "SD-10"],
   "model": "models/components/cmp-dip8.glb",
-  "relatedModules": [],
+  "relatedModules": ["mod-digital-logic"],
   "specs": [
     { "label": "供电电压", "value": "5 V ± 5%（TTL）" },
     { "label": "触发沿", "value": "下降沿有效" },

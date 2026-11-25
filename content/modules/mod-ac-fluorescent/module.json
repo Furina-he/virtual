@@ -1,0 +1,69 @@
+{
+  "id": "mod-ac-fluorescent",
+  "name": "日光灯与功率因数实验挂箱",
+  "form": "box",
+  "model": "module.glb",
+  "netlist": "module.cir",
+  "jacks": [
+    { "id": "AC_L", "label": "电源 L", "kind": "banana4", "polarityHint": "+" },
+    { "id": "AC_N", "label": "电源 N", "kind": "banana4", "polarityHint": "-" },
+    { "id": "I_LINE_A", "label": "总电流表+", "kind": "banana4" },
+    { "id": "I_LINE_B", "label": "总电流表−", "kind": "banana4" },
+    { "id": "I_TOT_A", "label": "功率表电流+", "kind": "banana4" },
+    { "id": "I_TOT_B", "label": "功率表电流−", "kind": "banana4" },
+    { "id": "LOAD_IN", "label": "负载端 U", "kind": "banana4" },
+    { "id": "I_RL_A", "label": "感性支路电流+", "kind": "banana4" },
+    { "id": "I_RL_B", "label": "感性支路电流−", "kind": "banana4" },
+    { "id": "BALLAST_OUT", "label": "镇流器/灯管中点 M", "kind": "banana4" },
+    { "id": "LAMP_N", "label": "灯管零线 N1", "kind": "banana4", "polarityHint": "-" },
+    { "id": "CAP_IN", "label": "补偿电容入口 C", "kind": "banana4" },
+    { "id": "CAP_N", "label": "补偿电容零线 N2", "kind": "banana4", "polarityHint": "-" }
+  ],
+  "controls": [
+    {
+      "id": "KC1",
+      "label": "补偿电容 C1（1 µF）",
+      "kind": "switch",
+      "param": "kc1",
+      "steps": [0, 1],
+      "stepLabels": ["断开", "投入 1 µF"],
+      "targets": [{ "element": "RKC1", "values": [1000000000, 0.01] }],
+      "unit": "",
+      "default": 0
+    },
+    {
+      "id": "KC2",
+      "label": "补偿电容 C2（2.2 µF）",
+      "kind": "switch",
+      "param": "kc2",
+      "steps": [0, 1],
+      "stepLabels": ["断开", "投入 2.2 µF"],
+      "targets": [{ "element": "RKC2", "values": [1000000000, 0.01] }],
+      "unit": "",
+      "default": 0
+    },
+    {
+      "id": "KC3",
+      "label": "补偿电容 C3（4.7 µF）",
+      "kind": "switch",
+      "param": "kc3",
+      "steps": [0, 1],
+      "stepLabels": ["断开", "投入 4.7 µF"],
+      "targets": [{ "element": "RKC3", "values": [1000000000, 0.01] }],
+      "unit": "",
+      "default": 0
+    }
+  ],
+  "indicators": [],
+  "commonNets": [
+    ["AC_L", "I_LINE_A"],
+    ["I_LINE_B", "I_TOT_A"],
+    ["I_TOT_B", "LOAD_IN", "I_RL_A"],
+    ["AC_N", "LAMP_N", "CAP_N"]
+  ],
+  "internalJumpers": [
+    { "id": "S_LINE", "kind": "currentSocket", "a": "I_LINE_A", "b": "I_LINE_B" },
+    { "id": "S_TOT", "kind": "currentSocket", "a": "I_TOT_A", "b": "I_TOT_B" },
+    { "id": "S_RL", "kind": "currentSocket", "a": "I_RL_A", "b": "I_RL_B" }
+  ]
+}

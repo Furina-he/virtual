@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 560" role="img" aria-labelledby="title description">
+  <title id="title">DG-12 交流电路功率因数提高原理图</title>
+  <desc id="description">220 V 50 Hz 单相交流电源经总电流插座、功率表电流插座驱动镇流器与日光灯管感性支路，并在负载端外接并联三组可切换补偿电容（1 / 2.2 / 4.7 uF）。</desc>
+  <metadata>Original code-native teaching schematic for DG-12 power factor improvement.</metadata>
+  <style>
+    text { font-family: "Noto Sans SC Variable", sans-serif; fill: black; font-size: 14px; }
+    .wire { fill: none; stroke: black; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    .ext { fill: none; stroke: steelblue; stroke-width: 2; stroke-dasharray: 7 5; }
+    .component, .jack { fill: white; stroke: black; stroke-width: 2; }
+    .small { font-size: 12px; fill: dimgray; }
+    .center { text-anchor: middle; }
+  </style>
+  <rect width="920" height="560" fill="white"/>
+  <text x="460" y="34" class="center" style="font-size: 22px; font-weight: 600">DG-12 交流电路功率及功率因数提高原理图</text>
+  <text x="460" y="58" class="center small">AC 220 V 50 Hz · 镇流器(60 Ω / 1.65 H) + 灯管(240 Ω) ∥ 补偿电容(1 / 2.2 / 4.7 µF)</text>
+
+  <g class="wire">
+    <path d="M90 150 H170 M220 150 H290 M340 150 H430 V200 M430 250 V310 M430 390 V450 M90 450 H800"/>
+    <path d="M550 150 H800 M610 150 V220 M610 270 V340 M610 356 V450"/>
+    <path d="M705 150 V220 M705 270 V340 M705 356 V450"/>
+    <path d="M800 150 V220 M800 270 V340 M800 356 V450"/>
+    <path d="M610 220 L622 258 M705 220 L717 258 M800 220 L812 258"/>
+    <path d="M594 340 H626 M594 356 H626 M689 340 H721 M689 356 H721 M784 340 H816 M784 356 H816"/>
+  </g>
+  <g class="ext">
+    <path d="M430 150 H550"/>
+  </g>
+  <g class="component">
+    <rect x="414" y="200" width="32" height="50"/>
+    <rect x="414" y="310" width="32" height="80"/>
+  </g>
+  <text x="480" y="230">镇流器 R=60 Ω, L=1.65 H</text>
+  <text x="480" y="355">日光灯管 R=240 Ω</text>
+  <text x="490" y="136" class="center small">外接 U→C</text>
+  <text x="610" y="388" class="center small">C1 1 µF</text>
+  <text x="705" y="388" class="center small">C2 2.2 µF</text>
+  <text x="800" y="388" class="center small">C3 4.7 µF</text>
+  <text x="634" y="246" class="small">KC1</text>
+  <text x="729" y="246" class="small">KC2</text>
+  <text x="824" y="246" class="small">KC3</text>
+
+  <g class="jack">
+    <circle id="JACK_AC_L" data-jack="ac1.AC_L" cx="90" cy="150" r="6"/>
+    <circle id="JACK_AC_N" data-jack="ac1.AC_N" cx="90" cy="450" r="6"/>
+    <circle id="JACK_I_LINE_A" data-jack="ac1.I_LINE_A" cx="170" cy="150" r="6"/>
+    <circle id="JACK_I_LINE_B" data-jack="ac1.I_LINE_B" cx="220" cy="150" r="6"/>
+    <circle id="JACK_I_TOT_A" data-jack="ac1.I_TOT_A" cx="290" cy="150" r="6"/>
+    <circle id="JACK_I_TOT_B" data-jack="ac1.I_TOT_B" cx="340" cy="150" r="6"/>
+    <circle id="JACK_LOAD_IN" data-jack="ac1.LOAD_IN" cx="430" cy="150" r="6"/>
+    <circle id="JACK_BALLAST_OUT" data-jack="ac1.BALLAST_OUT" cx="430" cy="280" r="6"/>
+    <circle id="JACK_LAMP_N" data-jack="ac1.LAMP_N" cx="430" cy="450" r="6"/>
+    <circle id="JACK_CAP_IN" data-jack="ac1.CAP_IN" cx="550" cy="150" r="6"/>
+    <circle id="JACK_CAP_N" data-jack="ac1.CAP_N" cx="550" cy="450" r="6"/>
+  </g>
+  <text x="90" y="132" class="center small">AC_L (接电源U)</text>
+  <text x="90" y="476" class="center small">AC_N (接电源N)</text>
+  <text x="195" y="132" class="center small">I总 (串交流电流表)</text>
+  <text x="315" y="132" class="center small">Iw (串功率表 I/*I)</text>
+  <text x="430" y="132" class="center small">U (接电压表/功率表U)</text>
+  <text x="550" y="132" class="center small">C (补偿电容入口)</text>
+  <text x="412" y="284" class="small" style="text-anchor: end">M</text>
+  <text x="430" y="476" class="center small">N1</text>
+  <text x="550" y="476" class="center small">N2</text>
+</svg>

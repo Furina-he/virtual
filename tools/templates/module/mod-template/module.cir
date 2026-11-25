@@ -1,0 +1,11 @@
+.subckt mod_template IN_P IN_N OUT_A OUT_B params: rw1=1000 k1=1
+* 实训挂箱标准子电路模板（ADR-009 / 公共模块运行接口）
+* 1. .subckt 端口顺序必须与 module.json 的 jacks 数组 1:1 完全一致。
+* 2. 同铜箔公共节点用 1u 电阻相连，不在端口处直接合并。
+* 3. 连续改参控件必须在 module.json 声明 targets，对应本子电路内真实电阻元件名。
+* 4. 如需器件模型库，仅使用本地 .lib 文件名（例如 .lib diodes.lib），严禁外网或绝对路径。
+Rcu_gnd IN_N OUT_B 1u
+RRW1 IN_P n_mid {rw1}
+RK1 n_mid OUT_A {k1 > 0.5 ? 1m : 1T}
+Rload OUT_A OUT_B 1k
+.ends mod_template

@@ -21,6 +21,7 @@
     "test": "vitest run",
     "e2e": "electron-vite build && playwright test",
     "content:lint": "node tools/content-lint.ts",
+    "content:new": "node tools/content-scaffold.ts",
     "assets:fetch": "node tools/assets/fetch-sources.ts",
     "assets:build": "node tools/assets/build.ts",
     "assets:lint": "node tools/assets/lint.ts",

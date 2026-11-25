@@ -50,7 +50,18 @@ export async function selectJackFromList(page: Page, label: string, ref: string)
   const trigger = editor.getByRole('combobox', { name: label, exact: true })
   // Keep stationary pointer hover from competing with this selection sequence.
   await page.mouse.move(0, 0)
-  await trigger.click()
+  await trigger.scrollIntoViewIfNeeded()
+  await expect
+    .poll(
+      async () => {
+        if ((await trigger.getAttribute('aria-expanded')) !== 'true') {
+          await trigger.click()
+        }
+        return (await trigger.getAttribute('aria-expanded')) === 'true'
+      },
+      { timeout: 5_000, intervals: [150, 300, 500] },
+    )
+    .toBe(true)
   const search = page.getByRole('combobox', { name: `搜索${label}`, exact: true })
   await expect(search).toBeVisible()
   await search.fill(ref)

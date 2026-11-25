@@ -1,0 +1,84 @@
+.subckt mod_digital_logic VCC GND CLK_OUT RST_OUT U1_CP0 U1_CP1 U1_R0 U1_Q0 U1_Q1 U1_Q2 U1_Q3 U2_CP0 U2_CP1 U2_R0 U2_Q0 U2_Q1 U2_Q2 U2_Q3 D1_A D1_B D1_C D1_D D2_A D2_B D2_C D2_D params: clk_rate=2 rst_sw=0
+* 数字电路综合实验挂箱（原型选型说明 §3.1 #18，SD-10 二位十进制计数/译码/驱动/显示）
+* 端口顺序与 module.json jacks 1:1 对应；芯片供电依赖外接 +5V/GND，未供电不计数且数码管熄灭。
+Rgnd GND 0 1G
+Rvcc_bleed VCC GND 100k
+Cdec VCC GND 100n
+
+* ---- 1. 供电门控连续脉冲源（1 / 2 / 5 / 10 Hz，ADR-009 电阻目标连续切换）----
+Vclk1 clk1_raw GND PULSE(0 1 0.5 10u 10u 0.5 1.0)
+Vclk2 clk2_raw GND PULSE(0 1 0.25 10u 10u 0.25 0.5)
+Vclk5 clk5_raw GND PULSE(0 1 0.1 10u 10u 0.1 0.2)
+Vclk10 clk10_raw GND PULSE(0 1 0.05 10u 10u 0.05 0.1)
+RCLK1 clk1_raw clk_mix {clk_rate < 1.5 ? 10 : 1G}
+RCLK2 clk2_raw clk_mix {clk_rate >= 1.5 && clk_rate < 3.5 ? 10 : 1G}
+RCLK5 clk5_raw clk_mix {clk_rate >= 3.5 && clk_rate < 7.5 ? 10 : 1G}
+RCLK10 clk10_raw clk_mix {clk_rate >= 7.5 ? 10 : 1G}
+Rclk_load clk_mix GND 100k
+Bclk_buf clk_buf GND V=V(clk_mix,GND)*max(V(VCC,GND),0)
+Rclk_out clk_buf CLK_OUT 50
+
+* ---- 2. 上电复位脉冲（前 2 ms 为高）+ 手动清零开关 RST_SW ----
+Vpor por_raw GND PULSE(1 0 2m 10u 10u 1e6 2e6)
+Rpor_load por_raw GND 100k
+RRST_HI VCC rst_sw_node {rst_sw > 0.5 ? 100 : 1G}
+RRST_LO rst_sw_node GND {rst_sw > 0.5 ? 1G : 100}
+Brst_buf rst_buf GND V=max(V(rst_sw_node,GND),V(por_raw,GND)*max(V(VCC,GND),0))
+Rrst_out rst_buf RST_OUT 50
+
+* ---- 3. 个位计数器 U1（SN74LS90）与十位计数器 U2（SN74LS90）----
+* DIP-14: 1 CKB 2 R0(1) 3 R0(2) 4 NC 5 VCC 6 R9(1) 7 R9(2) 8 QC 9 QB 10 GND 11 QD 12 QA 13 NC 14 CKA
+XU1 U1_CP1 U1_R0 U1_R0 u1_nc4 VCC GND GND U1_Q2 U1_Q1 GND U1_Q3 U1_Q0 u1_nc13 U1_CP0 SN74LS90
+XU2 U2_CP1 U2_R0 U2_R0 u2_nc4 VCC GND GND U2_Q2 U2_Q1 GND U2_Q3 U2_Q0 u2_nc13 U2_CP0 SN74LS90
+Ru1_q0 U1_Q0 GND 10k
+Ru1_q1 U1_Q1 GND 10k
+Ru1_q2 U1_Q2 GND 10k
+Ru1_q3 U1_Q3 GND 10k
+Ru2_q0 U2_Q0 GND 10k
+Ru2_q1 U2_Q1 GND 10k
+Ru2_q2 U2_Q2 GND 10k
+Ru2_q3 U2_Q3 GND 10k
+
+* ---- 4. 个位/十位七段译码驱动器（CD4511 × 2）与共阴极数码管负载 ----
+* DIP-16: 1 B 2 C 3 /LT 4 /BI 5 LE 6 D 7 A 8 VSS 9 e 10 d 11 c 12 b 13 a 14 g 15 f 16 VDD
+Rlt1 d1_lt VCC 10k
+Rbi1 d1_bi VCC 10k
+Rle1 d1_le GND 10k
+XU3 D1_B D1_C d1_lt d1_bi d1_le D1_D D1_A GND u3_e u3_d u3_c u3_b u3_a u3_g u3_f VCC CD4511
+R1a_lim u3_a seg1_a 330
+R1b_lim u3_b seg1_b 330
+R1c_lim u3_c seg1_c 330
+R1d_lim u3_d seg1_d 330
+R1e_lim u3_e seg1_e 330
+R1f_lim u3_f seg1_f 330
+R1g_lim u3_g seg1_g 330
+R1a_led seg1_a GND 1k
+R1b_led seg1_b GND 1k
+R1c_led seg1_c GND 1k
+R1d_led seg1_d GND 1k
+R1e_led seg1_e GND 1k
+R1f_led seg1_f GND 1k
+R1g_led seg1_g GND 1k
+
+Rlt2 d2_lt VCC 10k
+Rbi2 d2_bi VCC 10k
+Rle2 d2_le GND 10k
+XU4 D2_B D2_C d2_lt d2_bi d2_le D2_D D2_A GND u4_e u4_d u4_c u4_b u4_a u4_g u4_f VCC CD4511
+R2a_lim u4_a seg2_a 330
+R2b_lim u4_b seg2_b 330
+R2c_lim u4_c seg2_c 330
+R2d_lim u4_d seg2_d 330
+R2e_lim u4_e seg2_e 330
+R2f_lim u4_f seg2_f 330
+R2g_lim u4_g seg2_g 330
+R2a_led seg2_a GND 1k
+R2b_led seg2_b GND 1k
+R2c_led seg2_c GND 1k
+R2d_led seg2_d GND 1k
+R2e_led seg2_e GND 1k
+R2f_led seg2_f GND 1k
+R2g_led seg2_g GND 1k
+.ends mod_digital_logic
+
+.include "ttl.lib"
+.include "cmos.lib"

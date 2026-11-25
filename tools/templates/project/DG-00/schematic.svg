@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 480" role="img" aria-labelledby="title description">
+  <title id="title">DG-00 实训项目标准原理图模板</title>
+  <desc id="description">代码原生离线教学原理图模板，示范 data-jack 双向高亮与两点直连插孔标记规范。</desc>
+  <metadata>Original code-native teaching schematic template. No external network assets.</metadata>
+  <style>
+    text { font-family: "Noto Sans SC Variable", sans-serif; fill: black; font-size: 14px; }
+    .wire { fill: none; stroke: black; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    .component, .jack { fill: white; stroke: black; stroke-width: 2; }
+    .small { font-size: 12px; fill: dimgray; }
+    .center { text-anchor: middle; }
+  </style>
+  <rect width="800" height="480" fill="white"/>
+  <text x="400" y="36" class="center" style="font-size: 20px; font-weight: 600">DG-00 实训项目标准原理图模板</text>
+  <text x="400" y="60" class="center small">按实际电路替换元器件与插孔 data-jack 映射</text>
+
+  <g class="wire">
+    <path d="M140 160 H260 M340 160 H520 M520 160 V220 M520 300 V360 M140 360 H640 M520 160 H640"/>
+  </g>
+  <g class="component">
+    <rect x="260" y="148" width="80" height="24"/>
+    <rect x="508" y="220" width="24" height="80"/>
+  </g>
+  <text x="300" y="138" class="center">R6 (330 Ω)</text>
+  <text x="480" y="264" class="center">R7 (510 Ω)</text>
+
+  <g class="jack">
+    <circle id="JACK_TH_USP" data-jack="dc1.TH_USP" cx="140" cy="160" r="7"/>
+    <circle id="JACK_TH_USN" data-jack="dc1.TH_USN" cx="140" cy="360" r="7"/>
+    <circle id="JACK_TH_A" data-jack="dc1.TH_A" cx="640" cy="160" r="7"/>
+    <circle id="JACK_TH_B" data-jack="dc1.TH_B" cx="640" cy="360" r="7"/>
+  </g>
+  <text x="140" y="142" class="center small">Us+</text>
+  <text x="140" y="388" class="center small">Us−</text>
+  <text x="640" y="142" class="center small">A</text>
+  <text x="640" y="388" class="center small">B</text>
+</svg>

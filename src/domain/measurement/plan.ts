@@ -1,6 +1,6 @@
 import type { Probe, SimCommand } from '../../shared/ipc/sim.ts'
 import type { Instrument } from '../../shared/schema/instrument.ts'
-import { type AssembleInput, type AssembleOutput, assembleNetlist } from '../circuit/assemble.ts'
+import { type AssembleInput, type AssembleOutput, assembleNetlist, spiceSafe } from '../circuit/assemble.ts'
 import { type ModuleParameter, moduleParameters } from '../circuit/module-controls.ts'
 import {
   activeInstrumentDefinition,
@@ -17,6 +17,7 @@ import {
   resolveDcSupply,
   resolveInstrument,
   resolveScope,
+  SEGMENT7_NAMES,
   scopeSampleStep,
   screenSeconds,
   shortestActivePeriod,
@@ -51,6 +52,13 @@ export type ScopePlan = {
 }
 export type SimPacing = Extract<SimCommand, { type: 'setPacing' }>
 export type SpeakerPlan = { instanceId: string; indicatorId: string; probe: string; fullScale: number }
+export type Segment7Plan = {
+  instanceId: string
+  indicatorId: string
+  label: string
+  probes: readonly [string, string, string, string, string, string, string]
+  threshold: number
+}
 
 /** 示波器通道探针 ID 固定，2D 面板、3D 屏幕和弹出窗口按同一 ID 读环形缓冲 */
 export const scopeProbeId = (instanceId: string, channelId: string) => `scope:${instanceId}:${channelId}`
@@ -63,6 +71,7 @@ export type MeasurementPlan = {
   pacing: SimPacing
   parameters: ModuleParameter[]
   speakers: SpeakerPlan[]
+  segment7s: Segment7Plan[]
   scopes: ScopePlan[]
   assembled: AssembleOutput
   meters: MeterPlan[]
@@ -130,18 +139,43 @@ export function buildMeasurementPlan(
   const parameters = moduleParameters(input.modules, input.controlValues)
   const probes: Probe[] = []
   const speakers: SpeakerPlan[] = []
+  const segment7s: Segment7Plan[] = []
   if (powered && !options.preflight) {
     for (const { instanceId, module } of input.modules) {
+      const safeInstance = spiceSafe(instanceId)
       for (const indicator of module.indicators) {
-        if (indicator.kind !== 'speaker') continue
-        const probe = indicatorProbeId(instanceId, indicator.id)
-        probes.push({
-          id: probe,
-          kind: 'v',
-          node: assembled.nodeOf[`${instanceId}.${indicator.between[0]}`],
-          nodeRef: assembled.nodeOf[`${instanceId}.${indicator.between[1]}`],
-        })
-        speakers.push({ instanceId, indicatorId: indicator.id, probe, fullScale: indicator.audio.fullScale })
+        if (indicator.kind === 'speaker') {
+          const probe = indicatorProbeId(instanceId, indicator.id)
+          probes.push({
+            id: probe,
+            kind: 'v',
+            node: assembled.nodeOf[`${instanceId}.${indicator.between[0]}`],
+            nodeRef: assembled.nodeOf[`${instanceId}.${indicator.between[1]}`],
+          })
+          speakers.push({ instanceId, indicatorId: indicator.id, probe, fullScale: indicator.audio.fullScale })
+          continue
+        }
+        if (indicator.kind === 'segment7' && indicator.segments) {
+          const commonNode = indicator.common ? assembled.nodeOf[`${instanceId}.${indicator.common}`] : '0'
+          const segProbes = indicator.segments.map((segNode, idx) => {
+            const probeId = `${indicatorProbeId(instanceId, indicator.id)}:${SEGMENT7_NAMES[idx]}`
+            const node = assembled.nodeOf[`${instanceId}.${segNode}`] ?? `x${safeInstance}.${segNode}`
+            probes.push({
+              id: probeId,
+              kind: 'v',
+              node,
+              nodeRef: commonNode,
+            })
+            return probeId
+          }) as [string, string, string, string, string, string, string]
+          segment7s.push({
+            instanceId,
+            indicatorId: indicator.id,
+            label: indicator.label ?? indicator.id,
+            probes: segProbes,
+            threshold: indicator.threshold,
+          })
+        }
       }
     }
   }
@@ -303,6 +337,7 @@ export function buildMeasurementPlan(
         : { type: 'setPacing', mode: 'realtime' },
     parameters,
     speakers,
+    segment7s,
     scopes,
     assembled,
     meters,
@@ -354,6 +389,7 @@ function simulationKey(plan: MeasurementPlan, ignoreParameters = false): string 
       currentSource,
     ]),
     plan.speakers,
+    plan.segment7s,
     plan.parameters.length ? plan.command.parameterTargets : undefined,
     plan.parameters.map(({ controlRef, param, value, targets }) => [
       controlRef,

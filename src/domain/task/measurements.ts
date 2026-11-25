@@ -345,6 +345,15 @@ function captureWaveform(snapshot: MeasurementSnapshot, point: MeasurePoint, sel
 }
 
 export function measurementUnit(point: MeasurePoint): string {
+  if (point.kind === 'power') {
+    const qty = point.powerQuantity ?? 'P'
+    if (qty === 'P') return 'W'
+    if (qty === 'Q') return 'var'
+    if (qty === 'S') return 'VA'
+    if (qty === 'pf') return ''
+    if (qty === 'I') return 'A'
+    return 'V'
+  }
   return point.kind === 'current'
     ? 'A'
     : point.kind === 'waveform' && point.quantity === 'frequency'
@@ -363,9 +372,17 @@ export function tableValue(point: MeasurePoint, measurement: CapturedMeasurement
       ? { V: 1, mV: 1e-3 }
       : si === 'A'
         ? { A: 1, mA: 1e-3, uA: 1e-6 }
-        : si === 'Hz'
-          ? { Hz: 1, kHz: 1e3 }
-          : { s: 1, ms: 1e-3, us: 1e-6 }
+        : si === 'W'
+          ? { W: 1, mW: 1e-3, kW: 1e3 }
+          : si === 'var'
+            ? { var: 1, kvar: 1e3 }
+            : si === 'VA'
+              ? { VA: 1, kVA: 1e3 }
+              : si === ''
+                ? { '': 1 }
+                : si === 'Hz'
+                  ? { Hz: 1, kHz: 1e3 }
+                  : { s: 1, ms: 1e-3, us: 1e-6 }
   const scale = scales[unit ?? si]
   return scale === undefined ? undefined : measurement.referenceValueSI / scale
 }

@@ -1,0 +1,39 @@
+{
+  "id": "mod-template",
+  "name": "实训挂箱标准模板",
+  "form": "box",
+  "model": "module.glb",
+  "netlist": "module.cir",
+  "jacks": [
+    { "id": "IN_P", "label": "输入+", "kind": "banana4", "polarityHint": "+" },
+    { "id": "IN_N", "label": "输入−", "kind": "banana4", "polarityHint": "-" },
+    { "id": "OUT_A", "label": "输出A", "kind": "banana4" },
+    { "id": "OUT_B", "label": "输出B", "kind": "banana4" }
+  ],
+  "controls": [
+    {
+      "id": "RW1",
+      "label": "调节电位器 RW1",
+      "kind": "pot",
+      "param": "rw1",
+      "range": [100, 10000],
+      "step": 100,
+      "targets": [{ "element": "RRW1", "scale": 1, "offset": 0, "min": 100 }],
+      "unit": "Ω",
+      "default": 1000
+    },
+    {
+      "id": "K1",
+      "label": "支路开关 K1",
+      "kind": "switch",
+      "param": "k1",
+      "steps": [0, 1],
+      "stepLabels": ["断开", "闭合"],
+      "targets": [{ "element": "RK1", "values": [1000000000000, 0.001] }],
+      "unit": "",
+      "default": 1
+    }
+  ],
+  "indicators": [],
+  "commonNets": [["IN_N", "OUT_B"]]
+}

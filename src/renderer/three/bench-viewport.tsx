@@ -742,13 +742,18 @@ function PreviewModels({
             </>
           )}
           {asset.kind === 'module' && (
-            <ModuleControls3D
-              model={model}
-              instanceId={instanceId}
-              assetId={asset.id}
-              anchors={anchors}
-              enabled={enabled}
-            />
+            <>
+              {anchors.some((anchor) => anchor.kind === 'SCREEN') && (
+                <InstrumentScreens model={model} instanceId={instanceId} />
+              )}
+              <ModuleControls3D
+                model={model}
+                instanceId={instanceId}
+                assetId={asset.id}
+                anchors={anchors}
+                enabled={enabled}
+              />
+            </>
           )}
           {anchors
             .filter((anchor) => anchor.kind === 'JACK')

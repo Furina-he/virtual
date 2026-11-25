@@ -54,11 +54,24 @@ export const ModuleControl = z
     })
   })
 
+const SpiceNodeName = z.string().regex(/^[A-Za-z][A-Za-z0-9_]*$/, 'SPICE 节点名只能用字母、数字、下划线且以字母开头')
+
 export const ModuleIndicator = z.discriminatedUnion('kind', [
   z.object({
     id: z.string().min(1),
-    kind: z.enum(['led', 'lamp', 'segment7', 'motor']),
+    kind: z.enum(['led', 'lamp', 'motor']),
     probe: z.string().min(1),
+  }),
+  z.object({
+    id: z.string().min(1),
+    kind: z.literal('segment7'),
+    label: z.string().min(1).optional(),
+    segments: z
+      .tuple([SpiceNodeName, SpiceNodeName, SpiceNodeName, SpiceNodeName, SpiceNodeName, SpiceNodeName, SpiceNodeName])
+      .optional(),
+    common: JackId.optional(),
+    threshold: z.number().positive().default(1.8),
+    probe: z.string().min(1).optional(),
   }),
   z.object({
     id: z.string().min(1),
@@ -120,6 +133,21 @@ export const Module = z
       }
     })
     m.indicators.forEach((indicator, index) => {
+      if (indicator.kind === 'segment7') {
+        if (!indicator.segments && !indicator.probe)
+          ctx.addIssue({
+            code: 'custom',
+            message: '数码管指示器必须声明 segments 七段节点或 probe',
+            path: ['indicators', index],
+          })
+        if (indicator.common && !ids.has(indicator.common))
+          ctx.addIssue({
+            code: 'custom',
+            message: `数码管公共端插孔 ${indicator.common} 不存在`,
+            path: ['indicators', index, 'common'],
+          })
+        return
+      }
       if (indicator.kind !== 'speaker') return
       indicator.between.forEach((jack, end) => {
         if (!ids.has(jack))

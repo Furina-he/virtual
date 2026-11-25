@@ -3179,6 +3179,662 @@
           "height": 640
         }
       ]
+    },
+    {
+      "id": "mod-ac-fluorescent",
+      "model": "content/modules/mod-ac-fluorescent/module.glb",
+      "bytes": 439676,
+      "sha256": "d2aad2b07361bc5a8bc030232abf3b5d2d75be521e596edb9ff2e24f9a3b23ac",
+      "triangles": 3074,
+      "drawCalls": 6,
+      "bounds": {
+        "min": [
+          -0.14499999582767487,
+          5.9604643443123e-10,
+          -0.030500000342726707
+        ],
+        "max": [
+          0.14499999582767487,
+          0.4699999988079071,
+          0.041299999594688414
+        ]
+      },
+      "anchors": [
+        {
+          "name": "JACK_AC_L",
+          "position": [
+            -0.119,
+            0.396,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_AC_N",
+          "position": [
+            -0.119,
+            0.28,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_I_LINE_A",
+          "position": [
+            -0.071,
+            0.396,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_I_LINE_B",
+          "position": [
+            -0.041,
+            0.396,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_I_TOT_A",
+          "position": [
+            0.001,
+            0.396,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_I_TOT_B",
+          "position": [
+            0.031,
+            0.396,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_LOAD_IN",
+          "position": [
+            0.079,
+            0.396,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_I_RL_A",
+          "position": [
+            -0.091,
+            0.334,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_I_RL_B",
+          "position": [
+            -0.061,
+            0.334,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_BALLAST_OUT",
+          "position": [
+            0.023,
+            0.334,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_LAMP_N",
+          "position": [
+            0.103,
+            0.28,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_CAP_IN",
+          "position": [
+            -0.099,
+            0.174,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_CAP_N",
+          "position": [
+            -0.099,
+            0.056,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "SW_KC1",
+          "position": [
+            -0.039,
+            0.114,
+            0.029
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "SW_KC2",
+          "position": [
+            0.027,
+            0.114,
+            0.029
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "SW_KC3",
+          "position": [
+            0.093,
+            0.114,
+            0.029
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "textures": [
+        {
+          "mimeType": "image/webp",
+          "width": 1264,
+          "height": 2048
+        }
+      ]
+    },
+    {
+      "id": "mod-digital-logic",
+      "model": "content/modules/mod-digital-logic/module.glb",
+      "bytes": 736096,
+      "sha256": "588011f97477a04a30b68839651d341affc3864b84f9e190c1f3515596c3596e",
+      "triangles": 5254,
+      "drawCalls": 7,
+      "bounds": {
+        "min": [
+          -0.14499999582767487,
+          5.9604643443123e-10,
+          -0.030500000342726707
+        ],
+        "max": [
+          0.14499999582767487,
+          0.4699999988079071,
+          0.041299999594688414
+        ]
+      },
+      "anchors": [
+        {
+          "name": "JACK_VCC",
+          "position": [
+            -0.111,
+            0.27,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_GND",
+          "position": [
+            -0.071,
+            0.27,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_CLK_OUT",
+          "position": [
+            -0.019,
+            0.27,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_RST_OUT",
+          "position": [
+            0.077,
+            0.27,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_U1_CP0",
+          "position": [
+            -0.111,
+            0.166,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_U1_CP1",
+          "position": [
+            -0.073,
+            0.166,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_U1_R0",
+          "position": [
+            -0.035,
+            0.166,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_U1_Q0",
+          "position": [
+            0.007,
+            0.166,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_U1_Q1",
+          "position": [
+            0.045,
+            0.166,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_U1_Q2",
+          "position": [
+            0.083,
+            0.166,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_U1_Q3",
+          "position": [
+            0.119,
+            0.166,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_U2_CP0",
+          "position": [
+            -0.111,
+            0.06,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_U2_CP1",
+          "position": [
+            -0.073,
+            0.06,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_U2_R0",
+          "position": [
+            -0.035,
+            0.06,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_U2_Q0",
+          "position": [
+            0.007,
+            0.06,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_U2_Q1",
+          "position": [
+            0.045,
+            0.06,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_U2_Q2",
+          "position": [
+            0.083,
+            0.06,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_U2_Q3",
+          "position": [
+            0.119,
+            0.06,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_D1_A",
+          "position": [
+            0.119,
+            0.342,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_D1_B",
+          "position": [
+            0.087,
+            0.342,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_D1_C",
+          "position": [
+            0.055,
+            0.342,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_D1_D",
+          "position": [
+            0.023,
+            0.342,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_D2_A",
+          "position": [
+            -0.011,
+            0.342,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_D2_B",
+          "position": [
+            -0.043,
+            0.342,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_D2_C",
+          "position": [
+            -0.075,
+            0.342,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "JACK_D2_D",
+          "position": [
+            -0.107,
+            0.342,
+            0.0315
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "KNOB_CLK_RATE",
+          "position": [
+            0.031,
+            0.27,
+            0.029
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "SW_RST_SW",
+          "position": [
+            0.115,
+            0.27,
+            0.029
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "SCREEN_DISP_TENS",
+          "position": [
+            -0.049,
+            0.402,
+            0.030899999999999997
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "SCREEN_DISP_ONES",
+          "position": [
+            0.049,
+            0.402,
+            0.030899999999999997
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "textures": [
+        {
+          "mimeType": "image/webp",
+          "width": 1264,
+          "height": 2048
+        }
+      ]
     }
   ],
   "preview": {

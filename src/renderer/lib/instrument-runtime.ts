@@ -4,6 +4,7 @@ import {
   checkInstrumentJacks,
   classifyCurrentSource,
   classifyDcChannel,
+  evaluateSegment7,
   formatFrequency,
   formatVoltage,
   isSelfPoweredMode,
@@ -567,6 +568,16 @@ export function connectInstrumentRuntime(onStatus: (status: RuntimeStatus) => vo
       for (const channel of entry.instrument.scope?.channels ?? [])
         setInstrumentReading(entry.instanceId, reading, channel.id)
     }
+    for (const entry of input.modules) {
+      for (const indicator of entry.module.indicators) {
+        if (indicator.kind !== 'segment7') continue
+        setInstrumentReading(
+          entry.instanceId,
+          { ...reading, text: '--', unit: '', mode: 'SEG7:0', label: indicator.label ?? indicator.id },
+          indicator.id,
+        )
+      }
+    }
   }
 
   function showGenerators(input: AssembleInput, powered: boolean) {
@@ -992,6 +1003,23 @@ export function connectInstrumentRuntime(onStatus: (status: RuntimeStatus) => vo
           label: chStatus.mode === 'CC' ? 'CC 限流' : 'CV 稳压',
         },
         supply.screenId,
+      )
+    }
+    for (const seg of current.plan.segment7s) {
+      if (!current.powered) continue
+      const voltages = seg.probes.map((probeId) => values[probeId])
+      const decoded = evaluateSegment7(voltages, seg.threshold)
+      setInstrumentReading(
+        seg.instanceId,
+        {
+          text: decoded.char || '-',
+          unit: '',
+          status: 'ok',
+          label: seg.label,
+          mode: `SEG7:${decoded.mask}`,
+          value: /^[0-9]$/.test(decoded.char) ? Number(decoded.char) : null,
+        },
+        seg.indicatorId,
       )
     }
     showScopes(current.input, current.plan, current.powered, true)

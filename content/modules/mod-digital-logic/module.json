@@ -1,0 +1,86 @@
+{
+  "id": "mod-digital-logic",
+  "name": "数字电路综合实验挂箱",
+  "form": "box",
+  "model": "module.glb",
+  "netlist": "module.cir",
+  "jacks": [
+    { "id": "VCC", "label": "+5V", "kind": "banana4", "polarityHint": "+" },
+    { "id": "GND", "label": "GND", "kind": "banana4", "polarityHint": "-" },
+    { "id": "CLK_OUT", "label": "连续脉冲 CLK", "kind": "banana4" },
+    { "id": "RST_OUT", "label": "清零输出 RST", "kind": "banana4" },
+    { "id": "U1_CP0", "label": "U1 CP0", "kind": "banana4" },
+    { "id": "U1_CP1", "label": "U1 CP1", "kind": "banana4" },
+    { "id": "U1_R0", "label": "U1 R0", "kind": "banana4" },
+    { "id": "U1_Q0", "label": "U1 Q0", "kind": "banana4" },
+    { "id": "U1_Q1", "label": "U1 Q1", "kind": "banana4" },
+    { "id": "U1_Q2", "label": "U1 Q2", "kind": "banana4" },
+    { "id": "U1_Q3", "label": "U1 Q3", "kind": "banana4" },
+    { "id": "U2_CP0", "label": "U2 CP0", "kind": "banana4" },
+    { "id": "U2_CP1", "label": "U2 CP1", "kind": "banana4" },
+    { "id": "U2_R0", "label": "U2 R0", "kind": "banana4" },
+    { "id": "U2_Q0", "label": "U2 Q0", "kind": "banana4" },
+    { "id": "U2_Q1", "label": "U2 Q1", "kind": "banana4" },
+    { "id": "U2_Q2", "label": "U2 Q2", "kind": "banana4" },
+    { "id": "U2_Q3", "label": "U2 Q3", "kind": "banana4" },
+    { "id": "D1_A", "label": "个位译码 A", "kind": "banana4" },
+    { "id": "D1_B", "label": "个位译码 B", "kind": "banana4" },
+    { "id": "D1_C", "label": "个位译码 C", "kind": "banana4" },
+    { "id": "D1_D", "label": "个位译码 D", "kind": "banana4" },
+    { "id": "D2_A", "label": "十位译码 A", "kind": "banana4" },
+    { "id": "D2_B", "label": "十位译码 B", "kind": "banana4" },
+    { "id": "D2_C", "label": "十位译码 C", "kind": "banana4" },
+    { "id": "D2_D", "label": "十位译码 D", "kind": "banana4" }
+  ],
+  "controls": [
+    {
+      "id": "CLK_RATE",
+      "label": "连续脉冲频率",
+      "kind": "rotary",
+      "param": "clk_rate",
+      "steps": [1, 2, 5, 10],
+      "stepLabels": ["1 Hz", "2 Hz", "5 Hz", "10 Hz"],
+      "targets": [
+        { "element": "RCLK1", "values": [10, 1000000000, 1000000000, 1000000000] },
+        { "element": "RCLK2", "values": [1000000000, 10, 1000000000, 1000000000] },
+        { "element": "RCLK5", "values": [1000000000, 1000000000, 10, 1000000000] },
+        { "element": "RCLK10", "values": [1000000000, 1000000000, 1000000000, 10] }
+      ],
+      "unit": "Hz",
+      "default": 2
+    },
+    {
+      "id": "RST_SW",
+      "label": "清零开关 R0",
+      "kind": "switch",
+      "param": "rst_sw",
+      "steps": [0, 1],
+      "stepLabels": ["计数 (0)", "清零 (1)"],
+      "targets": [
+        { "element": "RRST_HI", "values": [1000000000, 100] },
+        { "element": "RRST_LO", "values": [100, 1000000000] }
+      ],
+      "unit": "",
+      "default": 0
+    }
+  ],
+  "indicators": [
+    {
+      "id": "DISP_TENS",
+      "kind": "segment7",
+      "label": "十位数码管",
+      "segments": ["seg2_a", "seg2_b", "seg2_c", "seg2_d", "seg2_e", "seg2_f", "seg2_g"],
+      "common": "GND",
+      "threshold": 1.8
+    },
+    {
+      "id": "DISP_ONES",
+      "kind": "segment7",
+      "label": "个位数码管",
+      "segments": ["seg1_a", "seg1_b", "seg1_c", "seg1_d", "seg1_e", "seg1_f", "seg1_g"],
+      "common": "GND",
+      "threshold": 1.8
+    }
+  ],
+  "simulation": { "analysis": "tran", "maxStep": 0.0005, "pacing": "realtime" }
+}

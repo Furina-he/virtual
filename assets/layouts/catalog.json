@@ -4816,6 +4816,148 @@
           }
         ]
       }
+    },
+    {
+      "estimatedDimensions": true,
+      "id": "mod-ac-fluorescent",
+      "name": "日光灯与功率因数实验挂箱",
+      "kind": "module",
+      "bodyStyle": "module",
+      "dimensionsMm": [
+        290,
+        470,
+        55
+      ],
+      "model": "content/modules/mod-ac-fluorescent/module.glb",
+      "textureSize": [
+        1264,
+        2048
+      ],
+      "dimensionNote": "Panel 290 x 470 mm and 55 mm housing depth follow the DGJ-3 large module box envelope.",
+      "jacks": [
+        { "id": "AC_L", "label": "L", "x": 26, "y": 74, "color": "red", "kind": "banana4" },
+        { "id": "AC_N", "label": "N", "x": 26, "y": 190, "color": "black", "kind": "banana4" },
+        { "id": "I_LINE_A", "label": "I总", "x": 74, "y": 74, "color": "green", "kind": "banana4" },
+        { "id": "I_LINE_B", "label": "—", "x": 104, "y": 74, "color": "green", "kind": "banana4" },
+        { "id": "I_TOT_A", "label": "Iw", "x": 146, "y": 74, "color": "green", "kind": "banana4" },
+        { "id": "I_TOT_B", "label": "—", "x": 176, "y": 74, "color": "green", "kind": "banana4" },
+        { "id": "LOAD_IN", "label": "U", "x": 224, "y": 74, "color": "yellow", "kind": "banana4" },
+        { "id": "I_RL_A", "label": "IL", "x": 54, "y": 136, "color": "green", "kind": "banana4" },
+        { "id": "I_RL_B", "label": "—", "x": 84, "y": 136, "color": "green", "kind": "banana4" },
+        { "id": "BALLAST_OUT", "label": "M", "x": 168, "y": 136, "color": "yellow", "kind": "banana4" },
+        { "id": "LAMP_N", "label": "N1", "x": 248, "y": 190, "color": "black", "kind": "banana4" },
+        { "id": "CAP_IN", "label": "C", "x": 46, "y": 296, "color": "yellow", "kind": "banana4" },
+        { "id": "CAP_N", "label": "N2", "x": 46, "y": 414, "color": "black", "kind": "banana4" }
+      ],
+      "controls": [
+        { "id": "KC1", "label": "KC1 1µF", "kind": "switch", "x": 106, "y": 356, "param": "kc1", "labelY": 374 },
+        { "id": "KC2", "label": "KC2 2.2µF", "kind": "switch", "x": 172, "y": 356, "param": "kc2", "labelY": 374 },
+        { "id": "KC3", "label": "KC3 4.7µF", "kind": "switch", "x": 238, "y": 356, "param": "kc3", "labelY": 374 }
+      ],
+      "screens": [],
+      "panel": {
+        "title": "日光灯与功率因数实验",
+        "titleSize": 5.5,
+        "frames": [
+          { "x": 8, "y": 22, "width": 274, "height": 204, "label": "30 W 日光灯感性负载支路（镇流器 + 灯管）" },
+          { "x": 8, "y": 244, "width": 274, "height": 206, "label": "并联补偿电容组（500 V AC）" }
+        ],
+        "lines": [
+          { "points": [[26, 74], [74, 74]] },
+          { "points": [[104, 74], [146, 74]] },
+          { "points": [[176, 74], [224, 74], [224, 108], [54, 108], [54, 136]] },
+          { "points": [[84, 136], [168, 136], [248, 136], [248, 190]] },
+          { "points": [[26, 190], [248, 190]] },
+          { "points": [[46, 296], [238, 296], [238, 356]] },
+          { "points": [[106, 296], [106, 356]] },
+          { "points": [[172, 296], [172, 356]] },
+          { "points": [[106, 356], [106, 414]] },
+          { "points": [[172, 356], [172, 414]] },
+          { "points": [[238, 356], [238, 414]] },
+          { "points": [[46, 414], [238, 414]] }
+        ],
+        "symbols": [
+          { "kind": "resistor", "x": 126, "y": 136, "length": 34, "label": "镇流器 L=1.65H" },
+          { "kind": "resistor", "x": 208, "y": 136, "length": 34, "label": "灯管 240Ω" }
+        ],
+        "texts": [
+          { "text": "C1=1 µF", "x": 106, "y": 324, "size": 3.4 },
+          { "text": "C2=2.2 µF", "x": 172, "y": 324, "size": 3.4 },
+          { "text": "C3=4.7 µF", "x": 238, "y": 324, "size": 3.4 },
+          { "text": "U 与 C 外接导线即投入补偿支路", "x": 145, "y": 438, "size": 3.2 }
+        ],
+        "footer": "AC 220 V 50 Hz · 先断电再改线"
+      }
+    },
+    {
+      "estimatedDimensions": true,
+      "id": "mod-digital-logic",
+      "name": "数字电路综合实验挂箱",
+      "kind": "module",
+      "bodyStyle": "module",
+      "dimensionsMm": [
+        290,
+        470,
+        55
+      ],
+      "model": "content/modules/mod-digital-logic/module.glb",
+      "textureSize": [
+        1264,
+        2048
+      ],
+      "dimensionNote": "Panel 290 x 470 mm and 55 mm housing depth follow the DGJ-3 large module box envelope.",
+      "jacks": [
+        { "id": "VCC", "label": "+5V", "x": 34, "y": 200, "color": "red", "kind": "banana4" },
+        { "id": "GND", "label": "GND", "x": 74, "y": 200, "color": "black", "kind": "banana4" },
+        { "id": "CLK_OUT", "label": "CLK", "x": 126, "y": 200, "color": "yellow", "kind": "banana4" },
+        { "id": "RST_OUT", "label": "RST", "x": 222, "y": 200, "color": "yellow", "kind": "banana4" },
+        { "id": "U1_CP0", "label": "CP0", "x": 34, "y": 304, "color": "yellow", "kind": "banana4" },
+        { "id": "U1_CP1", "label": "CP1", "x": 72, "y": 304, "color": "yellow", "kind": "banana4" },
+        { "id": "U1_R0", "label": "R0", "x": 110, "y": 304, "color": "yellow", "kind": "banana4" },
+        { "id": "U1_Q0", "label": "Q0", "x": 152, "y": 304, "color": "yellow", "kind": "banana4" },
+        { "id": "U1_Q1", "label": "Q1", "x": 190, "y": 304, "color": "yellow", "kind": "banana4" },
+        { "id": "U1_Q2", "label": "Q2", "x": 228, "y": 304, "color": "yellow", "kind": "banana4" },
+        { "id": "U1_Q3", "label": "Q3", "x": 264, "y": 304, "color": "yellow", "kind": "banana4" },
+        { "id": "U2_CP0", "label": "CP0", "x": 34, "y": 410, "color": "yellow", "kind": "banana4" },
+        { "id": "U2_CP1", "label": "CP1", "x": 72, "y": 410, "color": "yellow", "kind": "banana4" },
+        { "id": "U2_R0", "label": "R0", "x": 110, "y": 410, "color": "yellow", "kind": "banana4" },
+        { "id": "U2_Q0", "label": "Q0", "x": 152, "y": 410, "color": "yellow", "kind": "banana4" },
+        { "id": "U2_Q1", "label": "Q1", "x": 190, "y": 410, "color": "yellow", "kind": "banana4" },
+        { "id": "U2_Q2", "label": "Q2", "x": 228, "y": 410, "color": "yellow", "kind": "banana4" },
+        { "id": "U2_Q3", "label": "Q3", "x": 264, "y": 410, "color": "yellow", "kind": "banana4" },
+        { "id": "D1_A", "label": "个A", "x": 264, "y": 128, "color": "yellow", "kind": "banana4" },
+        { "id": "D1_B", "label": "个B", "x": 232, "y": 128, "color": "yellow", "kind": "banana4" },
+        { "id": "D1_C", "label": "个C", "x": 200, "y": 128, "color": "yellow", "kind": "banana4" },
+        { "id": "D1_D", "label": "个D", "x": 168, "y": 128, "color": "yellow", "kind": "banana4" },
+        { "id": "D2_A", "label": "十A", "x": 134, "y": 128, "color": "yellow", "kind": "banana4" },
+        { "id": "D2_B", "label": "十B", "x": 102, "y": 128, "color": "yellow", "kind": "banana4" },
+        { "id": "D2_C", "label": "十C", "x": 70, "y": 128, "color": "yellow", "kind": "banana4" },
+        { "id": "D2_D", "label": "十D", "x": 38, "y": 128, "color": "yellow", "kind": "banana4" }
+      ],
+      "controls": [
+        { "id": "CLK_RATE", "label": "脉冲频率", "kind": "knob", "x": 176, "y": 200, "radiusMm": 9, "param": "clk_rate", "labelY": 221 },
+        { "id": "RST_SW", "label": "清零 R0", "kind": "switch", "x": 260, "y": 200, "param": "rst_sw", "labelY": 221 }
+      ],
+      "screens": [
+        { "id": "DISP_TENS", "x": 96, "y": 68, "width": 40, "height": 52 },
+        { "id": "DISP_ONES", "x": 194, "y": 68, "width": 40, "height": 52 }
+      ],
+      "panel": {
+        "title": "数字电路综合实验挂箱",
+        "titleSize": 5.5,
+        "frames": [
+          { "x": 8, "y": 22, "width": 274, "height": 128, "label": "二位共阴数码管译码显示（CD4511 × 2）" },
+          { "x": 8, "y": 160, "width": 274, "height": 82, "label": "+5 V 供电、连续脉冲源与清零控制" },
+          { "x": 8, "y": 252, "width": 274, "height": 96, "label": "个位二-五-十进制计数器 U1（74LS90）" },
+          { "x": 8, "y": 358, "width": 274, "height": 96, "label": "十位二-五-十进制计数器 U2（74LS90）" }
+        ],
+        "texts": [
+          { "text": "十位 U4", "x": 96, "y": 103, "size": 3.2 },
+          { "text": "个位 U3", "x": 194, "y": 103, "size": 3.2 },
+          { "text": "8421 BCD：Q0→CP1，进位：U1 Q3→U2 CP0", "x": 145, "y": 334, "size": 3.0 }
+        ],
+        "footer": "TTL +5 V · 下降沿计数 · 00~99"
+      }
     }
   ],
   "preview": {

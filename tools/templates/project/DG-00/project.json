@@ -1,0 +1,135 @@
+{
+  "id": "DG-00",
+  "group": "直流电路",
+  "title": "实训项目标准模板（复制后替换标题）",
+  "type": "basic",
+  "modules": [
+    {
+      "instanceId": "dc1",
+      "moduleId": "mod-dc-circuit",
+      "slot": "SLOT_BOX_L1"
+    }
+  ],
+  "allowedInstruments": ["ins-multimeter"],
+  "reference": {
+    "nets": [["ins-dc-power.CH1P", "dc1.TH_USP"], ["ins-dc-power.CH1N", "dc1.TH_USN"]],
+    "measurePoints": [
+      {
+        "id": "u-in",
+        "kind": "voltage",
+        "mode": "dcv",
+        "between": ["dc1.TH_USP", "dc1.TH_USN"]
+      },
+      {
+        "id": "u-ab",
+        "kind": "voltage",
+        "mode": "dcv",
+        "between": ["dc1.TH_A", "dc1.TH_B"]
+      }
+    ]
+  },
+  "steps": [
+    {
+      "id": "prepare",
+      "text": "保持断电，阅读实训指导书与原理图，核对所挂载模块及仪表量程。",
+      "measurePoints": [],
+      "dataTable": "main_table"
+    },
+    {
+      "id": "wire",
+      "text": "断电状态下连接电源与电路参考网络，完成后点击“检查接线”确认拓扑正确。",
+      "measurePoints": [],
+      "checkWiring": true,
+      "dataTable": "main_table"
+    },
+    {
+      "id": "measure",
+      "text": "按指导书要求设置电源并上电，使用直流电压表测量 U_in 与 U_AB，利用“记录读数”写入数据表。",
+      "measurePoints": ["u-ab"],
+      "expect": {
+        "measurePoint": "u-ab",
+        "min": 2.0,
+        "max": 4.0
+      },
+      "dataTable": "main_table",
+      "recordTable": "main_table"
+    },
+    {
+      "id": "analyse",
+      "text": "断电后核对数据表与曲线，完成思考题并按需导出 PDF 实训报告。",
+      "measurePoints": [],
+      "dataTable": "main_table"
+    }
+  ],
+  "dataTables": [
+    {
+      "id": "main_table",
+      "title": "实测数据记录表",
+      "rows": 3,
+      "columns": [
+        {
+          "id": "u_in",
+          "title": "输入电压 U_in",
+          "unit": "V",
+          "measurePoint": "u-in"
+        },
+        {
+          "id": "u_ab",
+          "title": "端口电压 U_AB",
+          "unit": "V",
+          "measurePoint": "u-ab"
+        },
+        {
+          "id": "ratio",
+          "title": "电压比 U_AB/U_in",
+          "unit": "",
+          "computed": "u_ab/u_in"
+        }
+      ],
+      "sanity": [
+        {
+          "column": "u_in",
+          "min": 0,
+          "max": 24,
+          "message": "输入电压超出电源允许范围，请核对直流电源输出设置与表笔极性。"
+        },
+        {
+          "column": "u_ab",
+          "min": 0,
+          "max": 24,
+          "message": "端口电压超出预期范围，请核对量程与测试插孔。"
+        }
+      ]
+    }
+  ],
+  "charts": [
+    {
+      "id": "transfer-curve",
+      "title": "端口电压与输入电压关系曲线",
+      "table": "main_table",
+      "x": "u_in",
+      "y": ["u_ab"],
+      "kind": "line"
+    }
+  ],
+  "faults": [
+    {
+      "id": "f-r6-open",
+      "target": "dc1.R6",
+      "kind": "open",
+      "symptom": "输出端口 A、B 间直流电压降至接近 0 V，输入端电源输出正常。",
+      "hint": "测量电源端与支路电阻 R6 两端电位，排查串联电阻 R6 是否开路。",
+      "verify": [
+        {
+          "measurePoint": "u-ab",
+          "min": 2.0,
+          "max": 4.0
+        }
+      ]
+    }
+  ],
+  "questions": [
+    "为什么测量端电压时电压表内阻越低、测量误差越大？",
+    "分压比计算列为何要求先获得真实有效读数，不能直接预填理论值？"
+  ]
+}

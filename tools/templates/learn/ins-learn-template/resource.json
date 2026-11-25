@@ -1,0 +1,23 @@
+{
+  "id": "ins-learn-template",
+  "category": "instrument-tool",
+  "subcategory": "测量仪表",
+  "title": "仪器仪表与工具标准模板（复制后替换名称）",
+  "subtitle": "一句话说明仪表/工具的测量对象、功能或工艺用途",
+  "summary": "概括该仪器仪表或电工工具的典型结构、核心指标以及在实训台中的安全操作规范。",
+  "keywords": ["仪表模板", "工具模板", "安全规范"],
+  "model": "instruments/ins-multimeter/instrument.glb",
+  "relatedInstruments": ["ins-multimeter"],
+  "relatedModules": [],
+  "specs": [
+    { "label": "核心指标", "value": "按仪表量程或工具规格填写" },
+    { "label": "输入阻抗/材质", "value": "例如 10 MΩ / 铬钒钢绝缘护套" },
+    { "label": "安全保护", "value": "超量程提示 / 绝缘耐压" }
+  ],
+  "sections": {
+    "structure": "## 结构组成与工作原理\n\n- 说明仪表内部采集/分压/分流链路，或电工工具各功能部位与材质特点（满足 LRN-07）。",
+    "symbol": "## 面板分区与插孔/部位识别\n\n- 逐项说明面板显示屏、旋钮、按键及各色插孔（或工具握持护套与工作部位）的标识与对应功能。",
+    "parameters": "## 量程规格与精度选型\n\n- 说明量程选择原则、分辨率、准确度等级或工具尺寸规格与适用场景。",
+    "troubleshooting": "## 使用规范、禁忌与维护\n\n1. **严禁违章操作**：列明电流档禁并联、禁带电测阻或工具安全使用红线。\n2. **日常核查**：使用前检查表笔/绝缘护套完好与归零/量程复位。"
+  }
+}

@@ -1,0 +1,104 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 600" role="img" aria-labelledby="title description">
+  <title id="title">SD-10 二位十进制计数/译码/驱动/显示电路原理图</title>
+  <desc id="description">两片 74LS90 级联为 00~99 二位十进制计数器（U1_Q3 接 U2_CP0），分别经两片 CD4511 译码驱动十位与个位共阴极七段数码管。</desc>
+  <metadata>Original code-native teaching schematic for SD-10 two-digit BCD counter and 7-segment display.</metadata>
+  <style>
+    text { font-family: "Noto Sans SC Variable", sans-serif; fill: black; font-size: 13px; }
+    .wire { fill: none; stroke: black; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+    .block { fill: white; stroke: black; stroke-width: 2; }
+    .jack { fill: white; stroke: black; stroke-width: 2; }
+    .small { font-size: 11px; fill: dimgray; }
+    .center { text-anchor: middle; }
+  </style>
+  <rect width="960" height="600" fill="white"/>
+  <text x="480" y="34" class="center" style="font-size: 21px; font-weight: 600">SD-10 二位十进制计数 / 译码 / 显示电路原理图</text>
+  <text x="480" y="56" class="center small">74LS90 × 2（8421 BCD 级联）+ CD4511 × 2 + 共阴数码管 × 2（+5 V TTL）</text>
+
+  <!-- 四大功能芯片框 -->
+  <rect x="80" y="96" width="220" height="110" rx="6" class="block"/>
+  <text x="190" y="138" class="center" style="font-weight: 600">十位译码显示 U4 (CD4511)</text>
+  <text x="190" y="160" class="center small">驱动十位共阴数码管 DISP_TENS</text>
+
+  <rect x="620" y="96" width="220" height="110" rx="6" class="block"/>
+  <text x="730" y="138" class="center" style="font-weight: 600">个位译码显示 U3 (CD4511)</text>
+  <text x="730" y="160" class="center small">驱动个位共阴数码管 DISP_ONES</text>
+
+  <rect x="80" y="330" width="260" height="140" rx="6" class="block"/>
+  <text x="210" y="392" class="center" style="font-weight: 600">十位计数器 U2 (74LS90)</text>
+  <text x="210" y="416" class="center small">Q0→CP1，CP0 接个位进位 U1_Q3</text>
+
+  <rect x="580" y="330" width="260" height="140" rx="6" class="block"/>
+  <text x="710" y="392" class="center" style="font-weight: 600">个位计数器 U1 (74LS90)</text>
+  <text x="710" y="416" class="center small">Q0→CP1，CP0 接连续脉冲 CLK</text>
+
+  <!-- 逻辑连线 -->
+  <g class="wire">
+    <!-- 个位 BCD 输出到 U3 -->
+    <path d="M640 330 V206 M695 330 V206 M750 330 V206 M805 330 V206"/>
+    <!-- 十位 BCD 输出到 U4 -->
+    <path d="M125 330 V206 M175 330 V206 M225 330 V206 M275 330 V206"/>
+    <!-- 进位 U1_Q3 -> U2_CP0 -->
+    <path d="M805 300 H440 V430 H340"/>
+    <!-- CLK -> U1_CP0 -->
+    <path d="M470 520 H580 V430"/>
+    <!-- RST -> U1_R0 & U2_R0 -->
+    <path d="M360 520 V495 H640 V470 M360 495 H210 V470"/>
+  </g>
+  <text x="455" y="292" class="center small">级联进位 U1_Q3 → U2_CP0</text>
+
+  <!-- 全部可交互插孔 -->
+  <g class="jack">
+    <circle id="JACK_D2_D" data-jack="dig1.D2_D" cx="125" cy="206" r="6"/>
+    <circle id="JACK_D2_C" data-jack="dig1.D2_C" cx="175" cy="206" r="6"/>
+    <circle id="JACK_D2_B" data-jack="dig1.D2_B" cx="225" cy="206" r="6"/>
+    <circle id="JACK_D2_A" data-jack="dig1.D2_A" cx="275" cy="206" r="6"/>
+
+    <circle id="JACK_D1_A" data-jack="dig1.D1_A" cx="640" cy="206" r="6"/>
+    <circle id="JACK_D1_B" data-jack="dig1.D1_B" cx="695" cy="206" r="6"/>
+    <circle id="JACK_D1_C" data-jack="dig1.D1_C" cx="750" cy="206" r="6"/>
+    <circle id="JACK_D1_D" data-jack="dig1.D1_D" cx="805" cy="206" r="6"/>
+
+    <circle id="JACK_U2_Q3" data-jack="dig1.U2_Q3" cx="125" cy="330" r="6"/>
+    <circle id="JACK_U2_Q2" data-jack="dig1.U2_Q2" cx="175" cy="330" r="6"/>
+    <circle id="JACK_U2_Q1" data-jack="dig1.U2_Q1" cx="225" cy="330" r="6"/>
+    <circle id="JACK_U2_Q0" data-jack="dig1.U2_Q0" cx="275" cy="330" r="6"/>
+    <circle id="JACK_U2_CP0" data-jack="dig1.U2_CP0" cx="340" cy="430" r="6"/>
+    <circle id="JACK_U2_CP1" data-jack="dig1.U2_CP1" cx="340" cy="370" r="6"/>
+    <circle id="JACK_U2_R0" data-jack="dig1.U2_R0" cx="210" cy="470" r="6"/>
+
+    <circle id="JACK_U1_Q0" data-jack="dig1.U1_Q0" cx="640" cy="330" r="6"/>
+    <circle id="JACK_U1_Q1" data-jack="dig1.U1_Q1" cx="695" cy="330" r="6"/>
+    <circle id="JACK_U1_Q2" data-jack="dig1.U1_Q2" cx="750" cy="330" r="6"/>
+    <circle id="JACK_U1_Q3" data-jack="dig1.U1_Q3" cx="805" cy="330" r="6"/>
+    <circle id="JACK_U1_CP0" data-jack="dig1.U1_CP0" cx="580" cy="430" r="6"/>
+    <circle id="JACK_U1_CP1" data-jack="dig1.U1_CP1" cx="580" cy="370" r="6"/>
+    <circle id="JACK_U1_R0" data-jack="dig1.U1_R0" cx="640" cy="470" r="6"/>
+
+    <circle id="JACK_VCC" data-jack="dig1.VCC" cx="120" cy="540" r="6"/>
+    <circle id="JACK_GND" data-jack="dig1.GND" cx="220" cy="540" r="6"/>
+    <circle id="JACK_RST_OUT" data-jack="dig1.RST_OUT" cx="360" cy="540" r="6"/>
+    <circle id="JACK_CLK_OUT" data-jack="dig1.CLK_OUT" cx="470" cy="540" r="6"/>
+  </g>
+  <text x="125" y="194" class="center small">十D</text>
+  <text x="175" y="194" class="center small">十C</text>
+  <text x="225" y="194" class="center small">十B</text>
+  <text x="275" y="194" class="center small">十A</text>
+  <text x="640" y="194" class="center small">个A</text>
+  <text x="695" y="194" class="center small">个B</text>
+  <text x="750" y="194" class="center small">个C</text>
+  <text x="805" y="194" class="center small">个D</text>
+
+  <text x="125" y="352" class="center small">Q3</text>
+  <text x="175" y="352" class="center small">Q2</text>
+  <text x="225" y="352" class="center small">Q1</text>
+  <text x="275" y="352" class="center small">Q0</text>
+  <text x="640" y="352" class="center small">Q0</text>
+  <text x="695" y="352" class="center small">Q1</text>
+  <text x="750" y="352" class="center small">Q2</text>
+  <text x="805" y="352" class="center small">Q3</text>
+
+  <text x="120" y="566" class="center small">+5V (接电源V5P)</text>
+  <text x="220" y="566" class="center small">GND (接电源V5N)</text>
+  <text x="360" y="566" class="center small">RST (清零开关)</text>
+  <text x="470" y="566" class="center small">CLK (连续脉冲)</text>
+</svg>

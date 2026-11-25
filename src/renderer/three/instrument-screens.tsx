@@ -1,4 +1,4 @@
-import { isMeasurementInstrument, resolveScope } from '@domain/instruments'
+import { decodeSegment7Mask, isMeasurementInstrument, parseSegment7ModeMask, resolveScope } from '@domain/instruments'
 import { useFrame, useThree } from '@react-three/fiber'
 import { useEffect, useRef } from 'react'
 import { CanvasTexture, type Material, MeshBasicMaterial, type Object3D, SRGBColorSpace } from 'three'
@@ -89,7 +89,84 @@ function paintGalvanometer(context: CanvasRenderingContext2D, reading: Instrumen
   context.fillText(`${reading.text} ${reading.unit}`.trim(), width - height * 0.08, height * 0.14)
 }
 
+function paintSegment7(context: CanvasRenderingContext2D, reading: InstrumentReading, mask: number) {
+  const { width, height } = context.canvas
+  const style = getComputedStyle(document.documentElement)
+  const bg = style.getPropertyValue('--muted').trim()
+  const onColor = style.getPropertyValue('--destructive').trim()
+  const offColor = style.getPropertyValue('--border').trim()
+  const labelColor = style.getPropertyValue('--muted-foreground').trim()
+  context.fillStyle = bg
+  context.fillRect(0, 0, width, height)
+
+  if (reading.label) {
+    context.fillStyle = labelColor
+    context.font = `${Math.max(18, Math.round(height * 0.08))}px "Noto Sans SC Variable", sans-serif`
+    context.textAlign = 'center'
+    context.textBaseline = 'top'
+    context.fillText(reading.label, width / 2, height * 0.04)
+  }
+
+  const state = decodeSegment7Mask(reading.status === 'ok' ? mask : 0)
+  const top = height * 0.17
+  const drawH = height * 0.74
+  const drawW = Math.min(width * 0.62, drawH * 0.56)
+  const left = (width - drawW) / 2
+  const t = Math.max(10, Math.round(drawW * 0.14))
+  const midY = top + drawH / 2
+  const gap = t * 0.24
+
+  const drawHBar = (x: number, y: number, w: number, lit: boolean) => {
+    context.save()
+    context.globalAlpha = lit ? 1 : 0.22
+    context.fillStyle = lit ? onColor : offColor
+    const half = t / 2
+    context.beginPath()
+    context.moveTo(x + gap, y)
+    context.lineTo(x + gap + half, y - half)
+    context.lineTo(x + w - gap - half, y - half)
+    context.lineTo(x + w - gap, y)
+    context.lineTo(x + w - gap - half, y + half)
+    context.lineTo(x + gap + half, y + half)
+    context.closePath()
+    context.fill()
+    context.restore()
+  }
+
+  const drawVBar = (x: number, y: number, h: number, lit: boolean) => {
+    context.save()
+    context.globalAlpha = lit ? 1 : 0.22
+    context.fillStyle = lit ? onColor : offColor
+    const half = t / 2
+    context.beginPath()
+    context.moveTo(x, y + gap)
+    context.lineTo(x + half, y + gap + half)
+    context.lineTo(x + half, y + h - gap - half)
+    context.lineTo(x, y + h - gap)
+    context.lineTo(x - half, y + h - gap - half)
+    context.lineTo(x - half, y + gap + half)
+    context.closePath()
+    context.fill()
+    context.restore()
+  }
+
+  const halfH = drawH / 2
+  const [a, b, c, d, e, f, g] = state.lit
+  drawHBar(left, top, drawW, a)
+  drawVBar(left + drawW, top, halfH, b)
+  drawVBar(left + drawW, midY, halfH, c)
+  drawHBar(left, top + drawH, drawW, d)
+  drawVBar(left, midY, halfH, e)
+  drawVBar(left, top, halfH, f)
+  drawHBar(left, midY, drawW, g)
+}
+
 function paintReading(context: CanvasRenderingContext2D, reading: InstrumentReading, galvanometer = false) {
+  const segMask = parseSegment7ModeMask(reading.mode)
+  if (segMask !== undefined) {
+    paintSegment7(context, reading, segMask)
+    return
+  }
   if (galvanometer) {
     paintGalvanometer(context, reading)
     return

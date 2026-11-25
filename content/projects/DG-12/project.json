@@ -1,0 +1,152 @@
+{
+  "id": "DG-12",
+  "group": "交流电路",
+  "title": "交流电路功率及功率因数的测量及提高线路功率因数的方法及其意义的研究",
+  "type": "basic",
+  "modules": [{ "instanceId": "ac1", "moduleId": "mod-ac-fluorescent", "slot": "SLOT_BOX_L1" }],
+  "allowedInstruments": ["ins-multimeter"],
+  "reference": {
+    "nets": [
+      ["ins-ac-power.U", "ac1.AC_L"],
+      ["ins-ac-power.N", "ac1.AC_N"],
+      ["ac1.LOAD_IN", "ac1.CAP_IN"]
+    ],
+    "measurePoints": [
+      { "id": "u_load", "kind": "voltage", "mode": "acv", "between": ["ac1.LOAD_IN", "ac1.AC_N"] },
+      { "id": "i_line", "kind": "current", "mode": "aca", "branch": ["ac1.I_LINE_A", "ac1.I_LINE_B"] },
+      {
+        "id": "p_active",
+        "kind": "power",
+        "mode": "power",
+        "powerQuantity": "P",
+        "between": ["ac1.LOAD_IN", "ac1.AC_N"],
+        "branch": ["ac1.I_TOT_A", "ac1.I_TOT_B"]
+      },
+      {
+        "id": "q_reactive",
+        "kind": "power",
+        "mode": "power",
+        "powerQuantity": "Q",
+        "between": ["ac1.LOAD_IN", "ac1.AC_N"],
+        "branch": ["ac1.I_TOT_A", "ac1.I_TOT_B"]
+      },
+      {
+        "id": "pf",
+        "kind": "power",
+        "mode": "power",
+        "powerQuantity": "pf",
+        "between": ["ac1.LOAD_IN", "ac1.AC_N"],
+        "branch": ["ac1.I_TOT_A", "ac1.I_TOT_B"]
+      }
+    ]
+  },
+  "steps": [
+    {
+      "id": "prepare",
+      "text": "保持断电，阅读指导书与原理图；确认挂箱补偿电容开关 KC1、KC2、KC3 均处于断开位置，三相调压交流电源相电压设为 220 V。",
+      "measurePoints": [],
+      "dataTable": "compensation"
+    },
+    {
+      "id": "wire",
+      "text": "断电连接交流电源 U→L、N→N 与负载到补偿电容入口 U→C；将固定交流电流表（1 A 档）串入 I总 插座、固定功率表电流端串入 Iw 插座、功率表电压端与交流电压表（500 V 档）并联至 U 与 N，点击“检查接线”。",
+      "measurePoints": [],
+      "checkWiring": true,
+      "dataTable": "compensation"
+    },
+    {
+      "id": "c0",
+      "text": "保持 C=0 µF（KC1~KC3 全断开），上电待 50 Hz 有效值与功率窗口稳定后，在第 1 行填入电容 0 并记录未补偿时的 U、I、P、Q 与 cosφ（约 0.50，感性 L）。",
+      "measurePoints": ["u_load", "i_line", "p_active", "q_reactive", "pf"],
+      "expect": { "measurePoint": "pf", "min": 0.47, "max": 0.53 },
+      "expects": [{ "measurePoint": "i_line", "min": 0.34, "max": 0.39 }],
+      "dataTable": "compensation"
+    },
+    {
+      "id": "c22",
+      "text": "投入 KC2（C=2.2 µF），等待新参数稳定后，在第 2 行填入电容 2.2 并记录 U、I、P、Q 与 cosφ（cosφ 升至约 0.74，总电流明显下降）。",
+      "measurePoints": ["u_load", "i_line", "p_active", "q_reactive", "pf"],
+      "expect": { "measurePoint": "pf", "min": 0.71, "max": 0.78 },
+      "expects": [{ "measurePoint": "i_line", "min": 0.23, "max": 0.27 }],
+      "dataTable": "compensation"
+    },
+    {
+      "id": "c32",
+      "text": "同时投入 KC1 与 KC2（C=3.2 µF），待稳定后在第 3 行填入电容 3.2 并记录数据（cosφ 升至约 0.89，有功功率 P 保持基本不变）。",
+      "measurePoints": ["u_load", "i_line", "p_active", "q_reactive", "pf"],
+      "expect": { "measurePoint": "pf", "min": 0.85, "max": 0.92 },
+      "expects": [{ "measurePoint": "i_line", "min": 0.19, "max": 0.23 }],
+      "dataTable": "compensation"
+    },
+    {
+      "id": "c47",
+      "text": "断开 KC1/KC2 并投入 KC3（C=4.7 µF 接近完全补偿），待稳定后在第 4 行填入电容 4.7 并记录数据（cosφ ≈ 1.00，总电流降至极小值约 0.184 A）。",
+      "measurePoints": ["u_load", "i_line", "p_active", "q_reactive", "pf"],
+      "expect": { "measurePoint": "pf", "min": 0.96, "max": 1.0 },
+      "expects": [{ "measurePoint": "i_line", "min": 0.17, "max": 0.2 }],
+      "dataTable": "compensation"
+    },
+    {
+      "id": "c79",
+      "text": "同时投入 KC1、KC2、KC3（C=7.9 µF 过补偿），待稳定后在第 5 行填入电容 7.9 并记录数据（无功 Q 转为负值呈现容性 C，总电流重新上升且 cosφ 下降）。",
+      "measurePoints": ["u_load", "i_line", "p_active", "q_reactive", "pf"],
+      "expect": { "measurePoint": "pf", "min": 0.59, "max": 0.67 },
+      "expects": [{ "measurePoint": "q_reactive", "min": -58, "max": -42 }],
+      "dataTable": "compensation"
+    },
+    {
+      "id": "analyse",
+      "text": "断电后检查 5 组记录表及生成的 cosφ–C、I–C 曲线，分析并联电容提高功率因数的物理意义与过补偿危害，完成思考题。",
+      "measurePoints": [],
+      "recordTable": "compensation",
+      "dataTable": "compensation"
+    }
+  ],
+  "dataTables": [
+    {
+      "id": "compensation",
+      "title": "感性负载并联电容补偿测量记录",
+      "rows": 5,
+      "columns": [
+        { "id": "c_uf", "title": "补偿电容 C", "unit": "µF" },
+        { "id": "u_load", "title": "负载电压 U", "unit": "V", "measurePoint": "u_load" },
+        { "id": "i_line", "title": "线路总电流 I", "unit": "A", "measurePoint": "i_line" },
+        { "id": "p_active", "title": "有功功率 P", "unit": "W", "measurePoint": "p_active" },
+        { "id": "q_reactive", "title": "无功功率 Q", "unit": "var", "measurePoint": "q_reactive" },
+        { "id": "pf", "title": "功率因数 cosφ", "unit": "", "measurePoint": "pf" },
+        { "id": "s_calc", "title": "视在功率 U·I", "unit": "VA", "computed": "u_load*i_line" }
+      ],
+      "sanity": [
+        { "column": "c_uf", "min": 0, "max": 10, "message": "本挂箱补偿电容组合范围为 0 ~ 7.9 µF。" },
+        { "column": "u_load", "min": 200, "max": 240, "message": "额定工频供电为 220 V，请确认交流电源设置与量程。" },
+        { "column": "i_line", "min": 0.1, "max": 1.0, "message": "线路总电流超出本电路预期区间，请检查电流插座接线。" },
+        { "column": "p_active", "min": 30, "max": 55, "message": "负载有功功率应在 40.5 W 附近保持基本恒定。" },
+        { "column": "pf", "min": 0.2, "max": 1.0, "message": "功率因数应落在 [0.2, 1.0] 范围内，若为负请检查功率表同名端。" }
+      ]
+    }
+  ],
+  "charts": [
+    {
+      "id": "pf-curve",
+      "title": "补偿电容与功率因数 cosφ 关系曲线",
+      "table": "compensation",
+      "x": "c_uf",
+      "y": ["pf"],
+      "kind": "line"
+    },
+    {
+      "id": "current-curve",
+      "title": "补偿电容与线路总电流 I 关系曲线",
+      "table": "compensation",
+      "x": "c_uf",
+      "y": ["i_line"],
+      "kind": "line"
+    }
+  ],
+  "questions": [
+    "在感性负载两端并联补偿电容后，负载支路的有功功率 P 与电流 I_RL 为什么基本保持不变，而线路总电流 I 显著减小？",
+    "从 I–C 与 cosφ–C 曲线可以看出，并联电容是否越大越好？过补偿（如 7.9 µF）会带来什么现象与后果？",
+    "单相功率表接线时为什么必须核对电压线圈与电流线圈的同名端（U/*U、I/*I）？若电流线圈反接，读数会如何变化？",
+    "工业供电中提高功率因数对变压器容量利用率与输电线路损耗有哪些实际意义？"
+  ]
+}

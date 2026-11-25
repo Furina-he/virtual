@@ -1,0 +1,97 @@
+{
+  "id": "SD-10",
+  "group": "数字逻辑基础",
+  "title": "二位十进制计数/译码/驱动/显示电路",
+  "type": "basic",
+  "modules": [{ "instanceId": "dig1", "moduleId": "mod-digital-logic", "slot": "SLOT_BOX_L1" }],
+  "allowedInstruments": ["ins-oscilloscope", "ins-func-gen", "ins-multimeter"],
+  "reference": {
+    "nets": [
+      ["ins-dc-power.V5P", "dig1.VCC"],
+      ["ins-dc-power.V5N", "dig1.GND"],
+      ["dig1.CLK_OUT", "dig1.U1_CP0"],
+      ["dig1.U1_Q0", "dig1.U1_CP1", "dig1.D1_A"],
+      ["dig1.U1_Q1", "dig1.D1_B"],
+      ["dig1.U1_Q2", "dig1.D1_C"],
+      ["dig1.U1_Q3", "dig1.U2_CP0", "dig1.D1_D"],
+      ["dig1.U2_Q0", "dig1.U2_CP1", "dig1.D2_A"],
+      ["dig1.U2_Q1", "dig1.D2_B"],
+      ["dig1.U2_Q2", "dig1.D2_C"],
+      ["dig1.U2_Q3", "dig1.D2_D"],
+      ["dig1.RST_OUT", "dig1.U1_R0", "dig1.U2_R0"]
+    ],
+    "measurePoints": [
+      { "id": "vcc", "kind": "voltage", "mode": "dcv", "between": ["dig1.VCC", "dig1.GND"] },
+      { "id": "f_clk", "kind": "waveform", "quantity": "frequency", "minCycles": 2, "between": ["dig1.U1_CP0", "dig1.GND"] },
+      { "id": "f_carry", "kind": "waveform", "quantity": "frequency", "minCycles": 2, "between": ["dig1.U1_Q3", "dig1.GND"] }
+    ]
+  },
+  "steps": [
+    {
+      "id": "prepare",
+      "text": "保持断电，阅读指导书与原理图；确认数字挂箱脉冲频率默认 2 Hz、清零开关 R0 置于“计数 (0)”位置。",
+      "measurePoints": [],
+      "dataTable": "counter_check"
+    },
+    {
+      "id": "wire",
+      "text": "断电连接 +5V/GND、脉冲 CLK→U1_CP0、清零 RST→U1_R0/U2_R0，按 8421 BCD 接好两片 74LS90（Q0→CP1）与级联进位（U1_Q3→U2_CP0），再把 U1/U2 的 Q0~Q3 分别接至个位/十位 CD4511 译码输入 A~D，点击“检查接线”。",
+      "measurePoints": [],
+      "checkWiring": true,
+      "dataTable": "counter_check"
+    },
+    {
+      "id": "supply",
+      "text": "用固定直流电压表（20 V 档）接 VCC 与 GND，上电确认 TTL 供电约 5.0 V 并记录 vcc。",
+      "measurePoints": ["vcc"],
+      "expect": { "measurePoint": "vcc", "min": 4.75, "max": 5.25 },
+      "dataTable": "counter_check"
+    },
+    {
+      "id": "count-cascade",
+      "text": "将脉冲频率切至 5 Hz 或 10 Hz，观察挂箱顶部十位/个位共阴数码管从 00 实时递增计数，验证个位由 9 翻 0 时十位自动加 1（09 → 10）。",
+      "measurePoints": [],
+      "dataTable": "counter_check"
+    },
+    {
+      "id": "verify-divide",
+      "text": "先断电，放置双通道示波器并接 CH1→U1_CP0、CH2→U1_Q3、GND→GND，将连续脉冲设为 10 Hz、示波器时基设为 0.5 s/div，上电待捕获至少两个完整周期后记录 f_clk（约 10 Hz）与 f_carry（约 1 Hz），核对十分频比约为 10。",
+      "measurePoints": ["f_clk", "f_carry"],
+      "expect": { "measurePoint": "f_clk", "min": 9.5, "max": 10.5 },
+      "expects": [{ "measurePoint": "f_carry", "min": 0.95, "max": 1.05 }],
+      "dataTable": "counter_check"
+    },
+    {
+      "id": "reset-analyse",
+      "text": "运行中将清零开关 R0 拨至“清零 (1)”确认二位数码管立即归零显示 00，拨回“计数 (0)”恢复计数；断电核对数据表并完成思考题。",
+      "measurePoints": [],
+      "recordTable": "counter_check",
+      "dataTable": "counter_check"
+    }
+  ],
+  "dataTables": [
+    {
+      "id": "counter_check",
+      "title": "二位十进制计数器供电与十分频级联测量",
+      "rows": 1,
+      "columns": [
+        { "id": "vcc", "title": "供电电压 VCC", "unit": "V", "measurePoint": "vcc", "captureSteps": ["supply"] },
+        { "id": "f_clk", "title": "时钟频率 f_CLK", "unit": "Hz", "measurePoint": "f_clk", "captureSteps": ["verify-divide"] },
+        { "id": "f_carry", "title": "个位进位频率 f_Q3", "unit": "Hz", "measurePoint": "f_carry", "captureSteps": ["verify-divide"] },
+        { "id": "div_ratio", "title": "分频比 f_CLK/f_Q3", "unit": "", "computed": "f_clk/f_carry" }
+      ],
+      "sanity": [
+        { "column": "vcc", "min": 4.75, "max": 5.25, "message": "TTL 74LS90 标准供电为 5 V ± 5%，请检查 +5V 电源线。" },
+        { "column": "f_clk", "min": 0.5, "max": 20, "message": "本步骤脉冲频率应在 1 ~ 10 Hz 范围内，请检查示波器 CH1 接线与时基。" },
+        { "column": "f_carry", "min": 0.05, "max": 2.5, "message": "U1_Q3 频率应为时钟频率的 1/10，请检查 Q0→CP1 是否漏接。" }
+      ]
+    }
+  ],
+  "charts": [],
+  "questions": [
+    "74LS90 构成标准 8421 BCD 十进制计数器时，为什么必须将 Q0 外接至 CP1，而不是直接把时钟同时接到 CP0 与 CP1？",
+    "两片 74LS90 级联实现 00~99 计数时，为什么把个位 Q3（而非 Q0）接到十位 CP0？进位发生在个位哪个状态跳变瞬间？",
+    "CD4511 驱动共阴极七段数码管时，若未接通挂箱 +5V 供电或清零端 R0 误接高电平，数码管分别会呈现什么现象？",
+    "为什么示波器测得个位最高位 U1_Q3 的频率严格等于输入时钟频率 f_CLK 的 1/10，且其占空比不是 50%？"
+  ]
+}

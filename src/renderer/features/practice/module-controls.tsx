@@ -2,6 +2,7 @@ import { moduleControlValid } from '@domain/circuit/module-controls'
 import { findLearnResourceForBenchTarget } from '@domain/learn/catalog'
 import type { Project } from '@shared/schema/project'
 import { BookOpen } from 'lucide-react'
+import { useEffect, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router'
 import { create } from 'zustand'
 import { RotaryKnob } from '@/components/instruments/rotary-knob'
@@ -9,6 +10,8 @@ import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { learnCatalog } from '@/features/learn/learn-content'
+import { getInstrumentReading, subscribeInstrumentReadings } from '@/lib/instrument-readings'
+import type { Module } from '../../../shared/schema/module'
 import { FaultPanel } from './fault-panel'
 import { moduleCatalog } from './practice-content'
 import { WiringPanel } from './wiring-panel'
@@ -39,6 +42,54 @@ export function setModuleControl(instanceId: string, controlId: string, value: n
   return circuitStore.getState().setControlValue(`${instanceId}.${control.id}`, value)
 }
 
+function ModuleSegment7Strip({ instanceId, module }: { instanceId: string; module: Module }) {
+  const displays = module.indicators.filter(
+    (entry): entry is Extract<Module['indicators'][number], { kind: 'segment7' }> => entry.kind === 'segment7',
+  )
+  const [, setTick] = useState(0)
+  useEffect(() => {
+    if (!displays.length) return
+    return subscribeInstrumentReadings(instanceId, () => setTick((n) => n + 1))
+  }, [instanceId, displays.length])
+  if (!displays.length) return null
+  const combined = displays
+    .map((disp) => {
+      const reading = getInstrumentReading(instanceId, disp.id)
+      return reading.status === 'ok' ? reading.text : '-'
+    })
+    .join('')
+  return (
+    <div
+      data-module-segment7-group={instanceId}
+      data-segment7-value={combined}
+      className="space-y-2 rounded-sm border bg-muted/40 p-2.5"
+    >
+      <div className="flex items-center justify-between text-xs text-muted-foreground">
+        <span>板载数码管实时显示</span>
+        <span className="font-mono font-medium text-foreground">{combined}</span>
+      </div>
+      <div className="grid grid-cols-2 gap-2">
+        {displays.map((disp) => {
+          const reading = getInstrumentReading(instanceId, disp.id)
+          const char = reading.status === 'ok' ? reading.text : '--'
+          return (
+            <div
+              key={disp.id}
+              data-module-segment7={`${instanceId}.${disp.id}`}
+              data-segment7-char={char}
+              data-segment7-status={reading.status}
+              className="flex flex-col items-center rounded-sm border bg-background px-2 py-2"
+            >
+              <span className="text-xs text-muted-foreground">{disp.label ?? disp.id}</span>
+              <span className="font-mono text-2xl font-semibold tracking-wider text-destructive">{char}</span>
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
 export function ModuleProperties({ project }: { project?: Project }) {
   const navigate = useNavigate()
   const location = useLocation()
@@ -48,7 +99,10 @@ export function ModuleProperties({ project }: { project?: Project }) {
   const values = useCircuit((state) => state.controlValues)
   const modules = placements.flatMap((placement) => {
     const module = moduleCatalog.find((entry) => entry.id === placement.assetId)
-    return module?.controls.length ? [{ instanceId: placement.instanceId, module }] : []
+    const hasInteractive = Boolean(
+      module && (module.controls.length || module.indicators.some((entry) => entry.kind === 'segment7')),
+    )
+    return hasInteractive && module ? [{ instanceId: placement.instanceId, module }] : []
   })
   const active = modules.find((entry) => entry.instanceId === selected) ?? modules[0]
   const activeLearnResource = active
@@ -105,6 +159,7 @@ export function ModuleProperties({ project }: { project?: Project }) {
               查看器件资料
             </Button>
           )}
+          {active && <ModuleSegment7Strip instanceId={active.instanceId} module={active.module} />}
           {active?.module.controls.map((control) => {
             const steps = control.steps
             const actual = values[`${active.instanceId}.${control.id}`] ?? control.default

@@ -5,7 +5,13 @@ import type { MeasurePoint } from '../../shared/schema/project.ts'
 import type { InstrumentInput } from '../circuit/assemble.ts'
 import { getInstrumentDefaults } from '../instruments/index.ts'
 import { buildMeasurementPlan } from '../measurement/plan.ts'
-import { captureMeasurePoint, type MeasurementSnapshot, type ReadingValue, tableValue } from './measurements.ts'
+import {
+  captureMeasurePoint,
+  type MeasurementSnapshot,
+  measurementUnit,
+  type ReadingValue,
+  tableValue,
+} from './measurements.ts'
 
 const load = (path: string) => JSON.parse(readFileSync(path, 'utf8'))
 const module = Module.parse(load('content/modules/mod-dc-circuit/module.json'))
@@ -336,5 +342,35 @@ describe('Capture actual project measurement points', () => {
     expect(tableValue(current, measurement)).toBe(-0.00595)
     expect(tableValue(current, measurement, 'V')).toBeUndefined()
     expect(tableValue(voltage, measurement, 'V')).toBeUndefined()
+  })
+
+  it('maps power measurePoint quantities to SI units and compatible table columns', () => {
+    const base: MeasurePoint = {
+      id: 'p',
+      kind: 'power',
+      mode: 'power',
+      between: ['dc1.KH_F', 'dc1.KH_A'],
+      branch: ['dc1.KH_I1A', 'dc1.KH_I1B'],
+    }
+    const mk = (referenceValueSI: number) => ({
+      measurePoint: 'p',
+      instanceId: 'pw',
+      displayValueSI: referenceValueSI,
+      referenceValueSI,
+      reversed: false,
+    })
+    expect(measurementUnit({ ...base, powerQuantity: 'P' })).toBe('W')
+    expect(measurementUnit({ ...base, powerQuantity: 'Q' })).toBe('var')
+    expect(measurementUnit({ ...base, powerQuantity: 'S' })).toBe('VA')
+    expect(measurementUnit({ ...base, powerQuantity: 'pf' })).toBe('')
+    expect(measurementUnit({ ...base, powerQuantity: 'U' })).toBe('V')
+    expect(measurementUnit({ ...base, powerQuantity: 'I' })).toBe('A')
+
+    expect(tableValue({ ...base, powerQuantity: 'P' }, mk(40.5), 'W')).toBe(40.5)
+    expect(tableValue({ ...base, powerQuantity: 'P' }, mk(40.5), 'kW')).toBeCloseTo(0.0405, 8)
+    expect(tableValue({ ...base, powerQuantity: 'Q' }, mk(-50.2), 'var')).toBe(-50.2)
+    expect(tableValue({ ...base, powerQuantity: 'S' }, mk(80.8), 'VA')).toBe(80.8)
+    expect(tableValue({ ...base, powerQuantity: 'pf' }, mk(0.885), '')).toBe(0.885)
+    expect(tableValue({ ...base, powerQuantity: 'pf' }, mk(0.885), 'W')).toBeUndefined()
   })
 })
