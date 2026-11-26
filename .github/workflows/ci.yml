@@ -3,6 +3,7 @@ name: CI
 on:
   push:
     branches: [main]
+    tags: ['v*']
   pull_request:
   workflow_dispatch:
     inputs:
@@ -16,10 +17,23 @@ on:
         required: false
         default: false
         type: boolean
+      publish_release:
+        description: '构建并发布到 GitHub Release（永久保留安装包）'
+        required: false
+        default: false
+        type: boolean
+      release_tag:
+        description: '可选：自定义 Release 标签（如 v0.1.0；留空则使用 package.json 的 v<version>）'
+        required: false
+        default: ''
+        type: string
+
+permissions:
+  contents: read
 
 concurrency:
   group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ !startsWith(github.ref, 'refs/tags/') }}
 
 jobs:
   static:
@@ -109,10 +123,14 @@ jobs:
 
   package-nsis:
     name: 构建 Windows NSIS 安装包
-    if: ${{ github.event_name == 'workflow_dispatch' && inputs.build_nsis == true }}
+    if: >-
+      startsWith(github.ref, 'refs/tags/v') ||
+      (github.event_name == 'workflow_dispatch' && (inputs.build_nsis == true || inputs.publish_release == true))
     runs-on: windows-latest
     needs: [unit-golden, electron-e2e]
     timeout-minutes: 25
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -124,9 +142,56 @@ jobs:
         run: pnpm install --frozen-lockfile
       - name: 打包 NSIS 安装程序
         run: pnpm build
-      - name: 上传安装包产物
+      - name: 生成安装包 SHA-256 校验文件
+        shell: pwsh
+        run: |
+          $installers = Get-ChildItem dist\*.exe -File | Sort-Object Name
+          if (-not $installers) { throw '未在 dist/ 下找到 .exe 安装包' }
+          $lines = foreach ($file in $installers) {
+            $hash = (Get-FileHash -Algorithm SHA256 -Path $file.FullName).Hash.ToLowerInvariant()
+            "$hash  $($file.Name)"
+          }
+          Set-Content -Path dist\SHA256SUMS.txt -Value $lines -Encoding utf8NoBOM
+      - name: 上传安装包产物（Actions 临时产物）
         uses: actions/upload-artifact@v4
         with:
           name: windows-nsis-installer
-          path: dist/*.exe
+          path: |
+            dist/*.exe
+            dist/SHA256SUMS.txt
           retention-days: 14
+      - name: 发布到 GitHub Release（永久保留）
+        if: >-
+          startsWith(github.ref, 'refs/tags/v') ||
+          (github.event_name == 'workflow_dispatch' && inputs.publish_release == true)
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          INPUT_RELEASE_TAG: ${{ inputs.release_tag }}
+          REF_TYPE: ${{ github.ref_type }}
+          REF_NAME: ${{ github.ref_name }}
+        run: |
+          $PSNativeCommandUseErrorActionPreference = $false
+          $customTag = "$($env:INPUT_RELEASE_TAG)".Trim()
+          if ($env:REF_TYPE -eq 'tag') {
+            $tag = $env:REF_NAME
+          } elseif ($customTag) {
+            $tag = $customTag
+          } else {
+            $pkg = Get-Content package.json -Raw | ConvertFrom-Json
+            $tag = "v$($pkg.version)"
+          }
+          if ($tag -notmatch '^[A-Za-z0-9._-]+$') {
+            throw "非法的 Release 标签名: $tag"
+          }
+
+          $files = @(Get-ChildItem dist\*.exe -File | Sort-Object Name | ForEach-Object { $_.FullName })
+          $files += (Resolve-Path dist\SHA256SUMS.txt).Path
+
+          gh release view $tag *> $null
+          if ($LASTEXITCODE -eq 0) {
+            gh release upload $tag @files --clobber
+          } else {
+            gh release create $tag @files --target $env:GITHUB_SHA --title $tag --generate-notes
+          }
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
