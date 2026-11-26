@@ -1,4 +1,4 @@
-import { BookOpen, Clock, Cpu, Info, Monitor, Play, Search, Settings as SettingsIcon, Wrench } from 'lucide-react'
+import { BookOpen, Clock, Info, Monitor, Play, Search, Settings as SettingsIcon, Wrench } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router'
 import { Badge } from '@/components/ui/badge'
@@ -8,6 +8,7 @@ import { Separator } from '@/components/ui/separator'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { projectCatalog } from '@/features/practice/practice-content'
 import { useSettings } from '@/stores/settings'
+import appIconUrl from '../../../../resources/icon.svg?url'
 import type { SaveSummary } from '../../../shared/ipc/storage'
 import type { Project } from '../../../shared/schema/project'
 
@@ -73,7 +74,7 @@ export function HomePage() {
       {/* PRD 15.3：左侧窄导航：学习、练习、设置 */}
       <aside aria-label="主导航" className="flex w-44 shrink-0 flex-col border-r bg-muted/20 p-3">
         <div className="flex items-center gap-2 px-2 py-1.5">
-          <Cpu className="size-4 text-primary" />
+          <img src={appIconUrl} alt="" aria-hidden="true" className="size-5 shrink-0" />
           <span className="truncate text-sm font-medium">电工电子仿真</span>
         </div>
         <Separator className="my-2" />

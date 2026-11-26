@@ -1,5 +1,6 @@
 import { join } from 'node:path'
 import { app, BrowserWindow, session, shell } from 'electron'
+import { appIconPath } from './app-icon'
 import { installNetworkGuard } from './network-guard'
 import { registerPanelWindows } from './panel-windows'
 import { registerReportPdfHandlers } from './report-pdf'
@@ -17,6 +18,7 @@ function createWindow(): void {
     height: 900,
     minWidth: 1280,
     minHeight: 720,
+    icon: appIconPath(),
     show: false,
     autoHideMenuBar: true,
     webPreferences: {

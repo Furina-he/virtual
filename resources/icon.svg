@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-labelledby="app-icon-title app-icon-desc">
+  <title id="app-icon-title">电工电子技术虚拟仿真实训</title>
+  <desc id="app-icon-desc">瑞士白极简工程徽标：左侧墨黑模拟正弦波峰与右侧精密蓝数字方波谷呈 180 度中心对称，两端为电路端子焊盘。</desc>
+
+  <!-- Crisp Lab Bright Canvas ceramic tile (#ffffff) with quiet Zinc hairline frame -->
+  <rect x="20" y="20" width="472" height="472" rx="108" fill="#ffffff" />
+  <rect x="23" y="23" width="466" height="466" rx="105" fill="none" stroke="#dcdce0" stroke-width="6" />
+
+  <!-- Subtle precision reference axes -->
+  <g stroke="#e4e4e7" stroke-width="3" fill="none">
+    <line x1="88" y1="256" x2="424" y2="256" stroke-dasharray="6 10" />
+    <line x1="256" y1="96" x2="256" y2="416" />
+  </g>
+
+  <!-- Left half: Analog sine peak (#18181b = oklch(0.21 0.006 285.885)) -->
+  <path
+    d="M 96 256 H 132 C 152.21 200.69 171.56 148 194 148 C 216.44 148 235.79 200.69 256 256"
+    fill="none"
+    stroke="#18181b"
+    stroke-width="26"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+
+  <!-- Right half: Digital square trough (#155dfc = oklch(0.546 0.245 262.881)) -->
+  <path
+    d="M 256 256 V 364 H 380 V 256 H 416"
+    fill="none"
+    stroke="#155dfc"
+    stroke-width="26"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+
+  <!-- Precision circuit terminal pads & center A/D transition node -->
+  <circle cx="96" cy="256" r="20" fill="#ffffff" stroke="#18181b" stroke-width="13" />
+  <circle cx="416" cy="256" r="20" fill="#ffffff" stroke="#155dfc" stroke-width="13" />
+  <circle cx="256" cy="256" r="14" fill="#155dfc" />
+</svg>

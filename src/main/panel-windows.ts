@@ -1,5 +1,6 @@
 import { join } from 'node:path'
 import { BrowserWindow, ipcMain } from 'electron'
+import { appIconPath } from './app-icon'
 
 // ADR-007：底栏仪表面板"弹出"= 新 BrowserWindow，关闭即回到底栏。
 // 各窗口之间的面板状态经 main 转发，main 缓存最新值供新窗口初始化。
@@ -43,6 +44,7 @@ export function registerPanelWindows(): void {
       minWidth: 320,
       minHeight: 240,
       title: typeof title === 'string' ? title : panelId,
+      icon: appIconPath(),
       autoHideMenuBar: true,
       webPreferences: secureWebPreferences(),
     })

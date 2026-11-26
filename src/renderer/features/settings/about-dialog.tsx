@@ -1,4 +1,4 @@
-import { Cpu, FileText, PackageCheck, ShieldCheck } from 'lucide-react'
+import { FileText, PackageCheck, ShieldCheck } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -8,6 +8,7 @@ import { Separator } from '@/components/ui/separator'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useSettings } from '@/stores/settings'
+import appIconUrl from '../../../../resources/icon.svg?url'
 import { filterAssetLicenses } from '../../../domain/licenses/catalog'
 import { appLicenseBundle } from './license-data'
 
@@ -29,7 +30,7 @@ export function AboutDialog() {
       <DialogContent className="about-license-dialog flex flex-col overflow-hidden" data-about-dialog>
         <DialogHeader className="shrink-0">
           <div className="flex flex-wrap items-center gap-2">
-            <Cpu className="size-4 text-primary" />
+            <img src={appIconUrl} alt="" aria-hidden="true" className="size-5 shrink-0" />
             <DialogTitle>关于与第三方许可证</DialogTitle>
             <Badge variant="secondary" className="font-mono text-xs">
               v{appLicenseBundle.version}
